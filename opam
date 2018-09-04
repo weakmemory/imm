@@ -5,7 +5,10 @@ maintainer: "Anton Podkopaev <podkoav239@gmail.com>"
 authors: ["Anton Podkopaev <podkoav239@gmail.com>"
           "Ori Lahav <ori.lahav@tau.ac.il>"
           "Viktor Vafeiadis <viktor@mpi-sws.org>"]
+homepage: "https://github.com/weakmemory/imm"
+bug-reports: "https://github.com/weakmemory/imm/issues"
 license: "MIT"
+dev-repo: "https://github.com/weakmemory/imm.git"
 build: [
   ["./configure"]
   [make "-j%{jobs}%" "build"]
