@@ -10,7 +10,6 @@ bug-reports: "https://github.com/weakmemory/imm/issues"
 license: "MIT"
 dev-repo: "https://github.com/weakmemory/imm.git"
 build: [
-  ["./configure"]
   [make "-j%{jobs}%" "build"]
 ]
 install: [make "-f" "Makefile.coq" "install"]
