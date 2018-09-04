@@ -1,0 +1,2 @@
+Coq definition of Intermediate Memory Model (IMM) and compilation correctness proofs stated in
+``Bridging the Gap Between Programming Languages and Hardware Weak Memory Models'' paper.

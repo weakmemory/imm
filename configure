@@ -1,0 +1,6 @@
+#!/bin/bash
+opam pin add coq-hahn git://github.com/anlun/hahn#opam
+opam pin add coq-sflib git://github.com/anlun/sflib
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam install coq-paco
+opam pin add coq-promising git://github.com/anlun/promising-coq#opam_red

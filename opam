@@ -1,0 +1,21 @@
+opam-version: "1.2"
+name: "coq-imm"
+version: "1.0"
+maintainer: "Anton Podkopaev <podkoav239@gmail.com>"
+authors: ["Anton Podkopaev <podkoav239@gmail.com>"
+          "Ori Lahav <ori.lahav@tau.ac.il>"
+          "Viktor Vafeiadis <viktor@mpi-sws.org>"]
+license: "MIT"
+build: [
+  ["./configure"]
+  [make "-j%{jobs}%" "build"]
+]
+install: [make "-f" "Makefile.coq" "install"]
+remove: ["rm" "-rf" "%{lib}%/coq/user-contrib/imm"]
+depends: [
+  "coq" { (>= "8.8.1" & < "8.9~") | (= "dev") }
+  "coq-paco" { >= "1.2.8" }
+  "coq-sflib" { >= "1.1" }
+  "coq-promising" { >= "1.1" }
+  "coq-hahn" { >= "1.1" }
+]
