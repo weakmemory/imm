@@ -18,6 +18,13 @@ compilation correctness proofs stated in the paper.
 To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-coq`, and `hahn`), which the project
 depends on. This might be done by running `./configure`. After that, one needs to run `make`.
 
+Alternatively, the project may be built and installed via OPAM:
+```bash
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
+opam install coq-imm
+```
+
 ## File description
 `src/basic`. Definitions and statements about programs and execution graphs.
 - *Prog.v*---a definition of the program language.
