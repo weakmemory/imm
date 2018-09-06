@@ -140,7 +140,8 @@ Inductive label :=
 
 Section Labels.
 
-Variable lab : actid -> label.
+Variable A : Type.
+Variable lab : A -> label.
 
 Definition loc a :=
   match lab a with
@@ -240,13 +241,13 @@ Definition same_loc := (fun x y => loc x = loc y).
 Lemma restr_eq_rel_same_loc r :  restr_eq_rel loc r  ≡ r ∩ same_loc.
 Proof. unfold same_loc; basic_solver. Qed.
 
-Lemma loceq_same_loc (r: relation actid) (H: funeq loc r):
+Lemma loceq_same_loc (r: relation A) (H: funeq loc r):
  r ⊆ r ∩ same_loc.
 Proof.
 unfold same_loc; basic_solver.
 Qed.
 
-Lemma same_loc_loceq (r: relation actid) (H: r ⊆ r ∩ same_loc):
+Lemma same_loc_loceq (r: relation A) (H: r ⊆ r ∩ same_loc):
  funeq loc r.
 Proof.
 unfold same_loc; unfolder; firstorder.
