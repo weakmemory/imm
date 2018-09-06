@@ -5,7 +5,7 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 
 Require Import PArith.
 Require Import CombRelations CombRelationsMore.
@@ -27,7 +27,7 @@ Section ReadPlainStepHelper.
 Variable G : execution.
 Variable WF : Wf G.
 Variable sc : relation actid.
-Variable CON : ph_consistent G sc.
+Variable CON : imm_consistent G sc.
 
 Notation "'E'" := G.(acts_set).
 Notation "'sb'" := G.(sb).
@@ -86,7 +86,7 @@ Lemma read_step_helper PC T f_to f_from r w locr valr rel smode
                 Some (existT _ (thread_lts (tid r)) state, local)) :
   let T' := (mkTC (covered T ∪₁ eq r) (issued T)) in
   let tview' := TView.read_tview (Local.tview local) locr
-                                 (f_to w) rel (Event_ph_promise.rmod (mod lab r)) in
+                                 (f_to w) rel (Event_imm_promise.rmod (mod lab r)) in
   let langst' := existT _ (thread_lts (tid r)) state' in
   let local' := Local.mk tview' (Local.promises local) in
   let threads' :=
@@ -162,7 +162,7 @@ Proof.
   rewrite INMEM in INMEM0. inv INMEM0. clear INMEM0.
   rename rel' into rel.
 
-  assert (Ordering.le Ordering.relaxed (Event_ph_promise.rmod (mod lab r))) as RLX_ORDR.
+  assert (Ordering.le Ordering.relaxed (Event_imm_promise.rmod (mod lab r))) as RLX_ORDR.
   { unfold is_rlx, mode_le, mod, is_r in *.
     destruct (lab r); desf. }
   

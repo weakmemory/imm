@@ -1,7 +1,7 @@
 From hahn Require Import Hahn.
 From promising Require Import Event Language Cell Memory Configuration Thread Basic.
 Require Import Prog ProgToExecution.
-Require Import Events Execution Event_ph_promise.
+Require Import Events Execution Event_imm_promise.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -9,13 +9,13 @@ Remove Hints plus_n_O.
 Definition lts_step (tid : thread_id) (pe : Event.ProgramEvent.t) (s1 s2 : state) : Prop :=
   exists (labels : list label),
     ⟪ISTEP: istep tid labels s1 s2⟫ /\
-    ⟪LABS : lab_ph_promise labels pe⟫.
+    ⟪LABS : lab_imm_promise labels pe⟫.
 
 Lemma istep_nil_eq_silent thread :
   istep thread nil ≡
   lts_step thread ProgramEvent.silent.
 Proof.
-  unfold lts_step. unfold lab_ph_promise.
+  unfold lts_step. unfold lab_imm_promise.
   split.
   { intros x y H. exists nil. by split. }
   intros x y H. desf.

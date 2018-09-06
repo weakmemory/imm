@@ -4,7 +4,7 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 
 Require Import PArith.
 Require Import CombRelations.
@@ -13,7 +13,7 @@ Require Import TraversalConfig.
 Require Import Traversal.
 Require Import Setoid.
 Require Import MaxValue ViewRel.
-Require Import Event_ph_promise.
+Require Import Event_imm_promise.
 Require Import SimulationRel.
 Require Import ViewRelHelpers.
 Require Import MemoryAux.
@@ -61,19 +61,19 @@ Notation "'Acq'" := (is_acq lab).
 Notation "'Acqrel'" := (is_acqrel lab).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
-Lemma wf_rfrmw_irr (PHCOH : ph_consistent G sc) : irreflexive (rf ⨾ rmw).
+Lemma wf_rfrmw_irr (IMMCOH : imm_consistent G sc) : irreflexive (rf ⨾ rmw).
 Proof.
   arewrite (rmw ⊆ sb).
   { rewrite WF.(wf_rmwi). basic_solver. }
   rewrite Execution_eco.rf_in_eco.
-  rewrite sb_in_hb. cdes PHCOH.
+  rewrite sb_in_hb. cdes IMMCOH.
   red in Cint. generalize Cint. basic_solver 10.
 Qed.
 
-Lemma rfrmw_in_im_co (PHCON : ph_consistent G sc) :
+Lemma rfrmw_in_im_co (IMMCON : imm_consistent G sc) :
   rf ⨾ rmw ⊆ immediate co.
 Proof. 
-cdes PHCON.
+cdes IMMCON.
 apply rf_rmw_in_coimm; auto using coherence_sc_per_loc.
 Qed.
 
@@ -162,7 +162,7 @@ Qed.
 
 Lemma sim_msg_f_issued f_to f_to' T rel b 
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISS : issued T b)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
@@ -176,13 +176,13 @@ Proof.
   2: by desf; apply (ISSEQ_TO  b ISS).
   assert (issued T x) as ISSX.
   2: by apply (ISSEQ_TO  x ISSX).
-  eapply (msg_rel_issued WF PHCON TCCOH); eauto;
+  eapply (msg_rel_issued WF IMMCON TCCOH); eauto;
       eexists; apply seq_eqv_r; split; eauto.
 Qed.
 
 Lemma sim_mem_helper_f_issued f_to f_to' T rel b from v
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISS : issued T b)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
@@ -221,7 +221,7 @@ Qed.
 
 Lemma sim_mem_f_issued f_to f_from f_to' f_from' T threads thread memory
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -272,7 +272,7 @@ Qed.
 
 Lemma sim_prom_f_issued f_to f_from f_to' f_from' T thread promises 
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -321,7 +321,7 @@ Qed.
 
 Lemma simrel_common_f_issued T f_to f_from f_to' f_from' PC smode
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -337,7 +337,7 @@ Qed.
 
 Lemma simrel_thread_local_f_issued thread T f_to f_from f_to' f_from' PC smode
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -354,7 +354,7 @@ Qed.
 
 Lemma simrel_thread_f_issued thread T f_to f_from f_to' f_from' PC smode
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -369,7 +369,7 @@ Qed.
 
 Lemma simrel_f_issued T f_to f_from f_to' f_from' PC
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
       (ISSEQ_FROM : forall e (ISS: issued T e), f_from' e = f_from e)
@@ -382,7 +382,7 @@ Proof.
 Qed.
 
 Lemma max_value_le_issued locw w wprev s ts T f_to f_from
-      (PHCOH : ph_consistent G sc)
+      (IMMCOH : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent G (issued T) f_to f_from)
       (LOC : loc lab w = Some locw)
@@ -447,7 +447,7 @@ Proof.
 Qed.
 
 Lemma exists_time_interval f_to f_from T PC w locw valw langst local smode
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (ACQEX : W_ex ⊆₁ W_ex_acq)
       (TCCOH : tc_coherent G sc T)
       (WNISS : ~ issued T w)
@@ -665,7 +665,7 @@ Proof.
       2: by left; apply (w_covered_issued TCCOH); split.
       apply coi_union_coe; left.
       apply w_sb_loc_w_in_coi; auto.
-      { apply coherence_sc_per_loc. apply PHCON. }
+      { apply coherence_sc_per_loc. apply IMMCON. }
       apply seq_eqv_l; split; [done|].
       apply seq_eqv_r; split; [|done].
       split; [|by red; rewrite LOCX].
@@ -685,7 +685,7 @@ Proof.
          rewrite (set_unionC ((fun x => loc lab x = Some l) ∩₁ eq w)).
          rewrite <- set_unionA.
          reflexivity. }
-    cdes PHCON.
+    cdes IMMCON.
     eapply max_value_same_set.
     2: by rewrite (msg_rel_alt2 WF TCCOH); eauto.
     eapply max_value_same_set.
@@ -878,7 +878,7 @@ Proof.
         1,2: split; [split|]; auto.
         { by rewrite LOC. }
         { done. }
-        exfalso. cdes PHCON. eapply Cint.
+        exfalso. cdes IMMCON. eapply Cint.
         eexists; split.
         2: { apply r_step. by apply Execution_eco.co_in_eco; apply H. }
         apply sb_in_hb. apply init_ninit_sb; auto. }
@@ -960,7 +960,7 @@ Proof.
 
       assert (~ is_init wnext) as NINITWNEXT.
       { apply no_co_to_init in CONEXT; auto.
-        2: { apply coherence_sc_per_loc. apply PHCON. }
+        2: { apply coherence_sc_per_loc. apply IMMCON. }
         apply seq_eqv_r in CONEXT. desf. }
 
       assert (Time.lt (f_to wprev) (f_from wnext)) as NPLT.
@@ -1010,7 +1010,7 @@ Proof.
           { by left; left. }
           destruct (classic (h = wnext)) as [|NNEQ]; subst.
           { by right; left. }
-          edestruct WF.(wf_co_total) as [|LPH].
+          edestruct WF.(wf_co_total) as [|LIMM].
           3: by apply PNEQ.
           1,2: split; [split|]; eauto.
           { by left; right. }
@@ -1199,7 +1199,7 @@ Proof.
         apply seq_eqv_r in CCUR. destruct CCUR as [URR COVZ].
         apply seq_eqv_r in URR. destruct URR as [URR II].
         eapply eco_urr_irr with (sc:=sc); eauto.
-        1-3: by apply PHCON.
+        1-3: by apply IMMCON.
         exists y. split.
         { apply co_in_eco. apply COXY. }
         apply urr_hb. exists z. split; eauto.
@@ -1242,14 +1242,14 @@ Proof.
                { apply COXY. }
                apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
           assert (msg_rel locw ;; (rf ;; rmw) ⊆ msg_rel locw) as YY.
-          { unfold CombRelations.msg_rel, ph_s_hb.release, rs. 
+          { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
             rewrite !seqA. by rewrite rt_unit. }
           assert (msg_rel locw y x) as MSGYX.
           { apply YY. eexists. eauto. }
           unfold CombRelations.msg_rel in MSGYX.
           destruct MSGYX as [z [URR RELES]].
           eapply release_co_urr_irr; eauto.
-          1-4: by apply PHCON.
+          1-4: by apply IMMCON.
           eexists; split; [|eexists; split]; eauto. }
         unfold f_to'. rewrite upds. simpls.
         unfold TimeMap.singleton, LocFun.add. rewrite Loc.eq_dec_eq.
@@ -1415,7 +1415,7 @@ Proof.
 
     assert (~ is_init wnext) as NINITWNEXT.
     { apply no_co_to_init in CONEXT; auto.
-      2: { apply coherence_sc_per_loc. apply PHCON. }
+      2: { apply coherence_sc_per_loc. apply IMMCON. }
       apply seq_eqv_r in CONEXT. desf. }
 
     assert (Time.lt (f_from wnext) (f_to wnext)) as LLWNEXT.
@@ -1604,7 +1604,7 @@ Proof.
       apply seq_eqv_r in CCUR. destruct CCUR as [URR COVZ].
       apply seq_eqv_r in URR. destruct URR as [URR II].
       eapply eco_urr_irr with (sc:=sc); eauto.
-      1-3: by apply PHCON.
+      1-3: by apply IMMCON.
       exists y. split.
       { apply co_in_eco. apply COXY. }
       apply urr_hb. exists z. split; eauto.
@@ -1649,14 +1649,14 @@ Proof.
            { apply COXY. }
            apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
       assert (msg_rel locw ;; (rf ;; rmw) ⊆ msg_rel locw) as YY.
-      { unfold CombRelations.msg_rel, ph_s_hb.release, rs. 
+      { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
         rewrite !seqA. by rewrite rt_unit. }
       assert (msg_rel locw y x) as MSGYX.
       { apply YY. eexists. eauto. }
       unfold CombRelations.msg_rel in MSGYX.
       destruct MSGYX as [z [URR RELES]].
       eapply release_co_urr_irr; eauto.
-      1-4: by apply PHCON.
+      1-4: by apply IMMCON.
       eexists; split; [|eexists; split]; eauto. }
     { ins. rewrite updo; auto. by intros HH; subst. }
     { ins. destruct ISS as [ISS NEQ].
@@ -1799,7 +1799,7 @@ Proof.
       assert (E x) as EX.
       { hahn_rewrite (dom_l (wf_rfE WF)) in RFRMW; revert RFRMW; basic_solver. }
       assert (co x y) as COXY.
-      { apply rf_rmw_in_co; cdes PHCON; eauto using coherence_sc_per_loc. }
+      { apply rf_rmw_in_co; cdes IMMCON; eauto using coherence_sc_per_loc. }
       assert (Loc_ locw x) as LOCX.
       { hahn_rewrite (wf_col WF) in COXY; unfold same_loc in COXY; congruence. }
       assert (exists valx, val lab x = Some valx) as [valx VALX].
@@ -2000,7 +2000,7 @@ Proof.
 Qed.
 
 Lemma write_promise_step_helper f_to f_from T PC w locw valw ordw langst local smode
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (ACQEX : W_ex ⊆₁ W_ex_acq)
       (WNISS : ~ issued T w)
@@ -2069,7 +2069,7 @@ Lemma write_promise_step_helper f_to f_from T PC w locw valw ordw langst local s
 
      let tview' := if is_rel lab w
                    then TView.write_tview local.(Local.tview) sc_view locw
-                                          (f_to' w) (Event_ph_promise.wmod ordw)
+                                          (f_to' w) (Event_imm_promise.wmod ordw)
                    else local.(Local.tview) in
      let local' := Local.mk tview' promises'' in
      let threads' :=
@@ -2362,7 +2362,7 @@ Proof.
         exists b; splits; auto.
         { by left. }
         { intros [H|H]; desf. }
-        cdes PHCON.
+        cdes IMMCON.
         eapply sim_mem_helper_f_issued.
         6: by apply HELPER0.
         5: by apply ISSEQ_TO.
@@ -2380,7 +2380,7 @@ Proof.
       rewrite <- ISSEQ_FROM in FROM; auto.
       exists b; splits; auto.
       { by left. }
-      cdes PHCON.
+      cdes IMMCON.
       eapply sim_mem_helper_f_issued.
       6: by apply HELPER0.
       5: by apply ISSEQ_TO.
@@ -2769,7 +2769,7 @@ Proof.
       1,2: split; [split|]; auto.
       1-3: by apply TCCOH.
       { by rewrite LOC0. }
-      all: eapply (f_to_co_mon WF PHCON FCOH0) in CO; [|by left|by left].
+      all: eapply (f_to_co_mon WF IMMCON FCOH0) in CO; [|by left|by left].
       all: rewrite TO in CO.
       all: rewrite ISSEQ_TO in CO; auto.
       all: by apply Time.lt_strorder in CO. }
@@ -2850,7 +2850,7 @@ Proof.
         1-3: by apply TCCOH.
         { by rewrite LOC0. }
         3: done.
-        1,2: eapply (f_to_co_mon WF PHCON FCOH) in CO; auto.
+        1,2: eapply (f_to_co_mon WF IMMCON FCOH) in CO; auto.
         1,2: rewrite B in CO.
         1,2: by apply Time.lt_strorder in CO. }
       rewrite (loc_ts_eq_dec_neq LL').
@@ -2906,7 +2906,7 @@ Proof.
         1,2: split; [split|]; auto.
         1-3: by apply TCCOH.
         { by rewrite LOC0. }
-        1,2: eapply (f_to_co_mon WF PHCON FCOH) in CO; auto.
+        1,2: eapply (f_to_co_mon WF IMMCON FCOH) in CO; auto.
         1,2: rewrite B in CO.
         1,2: by apply Time.lt_strorder in CO.
         done. }
@@ -3030,7 +3030,7 @@ Proof.
     { intros HH; subst. by apply wf_rfrmw_irr in INRMW. }
     assert (p <> ws) as PWNEQ.
     { intros HH; subst.
-      cdes PHCON. eapply Cint.
+      cdes IMMCON. eapply Cint.
       exists ws; split.
       { apply sb_in_hb; eauto. }
       edestruct INRMW as [z [RF RMW]].

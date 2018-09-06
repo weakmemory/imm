@@ -6,7 +6,7 @@ Require Import Omega.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 Require Import CombRelations.
 Require Import TraversalConfig.
 Require Import Traversal SimTraversal SimTraversalProperties.
@@ -221,7 +221,7 @@ Section TraversalCounting.
   Qed.
 
   Lemma sim_traversal_helper T
-        (PHCON : ph_consistent G sc)
+        (IMMCON : imm_consistent G sc)
         (TCCOH : tc_coherent G sc T)
         (RELCOV :  W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w (RMW : rmw r w), covered T r <-> covered T w) :
@@ -249,7 +249,7 @@ Section TraversalCounting.
     eapply trav_steps_left_nnull_ncov in HH; auto.
     desc. eapply exists_next in HH0; eauto. desc.
     eapply exists_trav_step in HH1; eauto.
-    2: by apply PHCON.
+    2: by apply IMMCON.
     desc.
     apply exists_sim_trav_step in HH1; eauto. desc.
     clear T'. subst.

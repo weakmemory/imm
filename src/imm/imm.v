@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of the PH memory model *)
+(** * Definition of the IMM memory model *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -7,12 +7,12 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_hb ph_common.
+Require Import imm_hb imm_common.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH.
+Section IMM.
 
 Variable G : execution.
 
@@ -77,7 +77,7 @@ Definition ar := psc ∪ rfe ∪ ar_int.
 
 Definition acyc_ext := acyclic ar.
 
-Definition ph_consistent := 
+Definition imm_consistent := 
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cint : coherence G ⟫ /\
   ⟪ Cext : acyc_ext ⟫ /\
@@ -220,4 +220,4 @@ Qed.
 
 
 
-End PH.
+End IMM.

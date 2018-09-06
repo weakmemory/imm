@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of correspondence between PH labels and Promise's transition labels*)
+(** * Definition of correspondence between IMM labels and Promise's transition labels*)
 (******************************************************************************)
 
 Require Import List Events.
@@ -38,7 +38,7 @@ Definition fmod (mod : mode) (ordr ordw : Ordering.t) :=
   end.
   
 
-Definition lab_ph_promise (lbls : list label) (ev : ProgramEvent.t) :=
+Definition lab_imm_promise (lbls : list label) (ev : ProgramEvent.t) :=
   match lbls, ev with
   | nil, ProgramEvent.silent => True
   | Aload _ o l v :: nil, ProgramEvent.read l' v' o' =>
@@ -62,4 +62,4 @@ Definition lab_ph_promise (lbls : list label) (ev : ProgramEvent.t) :=
   | _, _ => False
   end.
 
-Definition same_g_events (lab : actid -> label) (l : list actid) := lab_ph_promise (map lab l).
+Definition same_g_events (lab : actid -> label) (l : list actid) := lab_imm_promise (map lab l).

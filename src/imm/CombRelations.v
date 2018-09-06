@@ -7,7 +7,7 @@ From hahn Require Import Hahn.
 From promising Require Import Event.
 Require Import Events Execution Execution_eco.
 Require Import AuxRel.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -60,7 +60,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Implicit Type WF : Wf G.
 Implicit Type WF_SC : wf_sc G sc.
-Implicit Type PHCON : ph_consistent G sc.
+Implicit Type IMMCON : imm_consistent G sc.
 Implicit Type CSC : coh_sc G sc.
 Implicit Type COMP : complete G.
 Implicit Type COH : coherence G.
@@ -219,10 +219,10 @@ unfold urr; rewrite !seqA.
     rewrite (dom_r (wf_rfD WF)).
     type_solver 16.
   * do 4 (hahn_frame_l).
-    unfold ph_s_hb.hb.
+    unfold imm_s_hb.hb.
     rewrite ct_end at 1; relsf; unionL.
     basic_solver 16.
-    unfold ph_s_hb.sw at 2.
+    unfold imm_s_hb.sw at 2.
 rewrite !seqA.
 hahn_frame_l.
     rewrite (dom_r (wf_rfD WF)) at 1.
@@ -237,7 +237,7 @@ unfold urr; rewrite !seqA.
     rewrite (dom_r (wf_rfD WF)).
     mode_solver 16.
   * do 4 (hahn_frame_l).
-    unfold ph_s_hb.hb.
+    unfold imm_s_hb.hb.
     rewrite ct_end at 1; relsf; unionL.
     basic_solver 16.
     rewrite (dom_r (wf_swD WF)).
@@ -255,7 +255,7 @@ split.
     type_solver.
   * unionR left.
     do 4 (hahn_frame_l).
-    unfold ph_s_hb.hb.
+    unfold imm_s_hb.hb.
     rewrite ct_end at 1; relsf; unionL.
     basic_solver.
     rewrite (dom_r (wf_swD WF)).
@@ -274,11 +274,11 @@ by rewrite (dom_r (wf_scD WF_SC)); basic_solver.
 arewrite ((hb ⨾ ⦗F ∩₁ Sc⦘)^? ⨾ ⦗set_compl F⦘ ⊆ ⦗set_compl F⦘).
 by basic_solver.
 basic_solver 12.
-- unfold ph_s_hb.hb.
+- unfold imm_s_hb.hb.
 rewrite ct_end at 2; relsf.
 unionL.
 basic_solver 21.
-unfold ph_s_hb.sw at 3; rewrite !seqA.
+unfold imm_s_hb.sw at 3; rewrite !seqA.
 arewrite ((sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗set_compl F⦘ ⊆ ⦗Acq⦘).
 basic_solver.
 unfold msg_rel, urr.
@@ -533,10 +533,10 @@ Lemma s_tmr_helper l codom WF:
 Proof.
 unfold S_tmr.
 split.
-- unfold ph_s_hb.hb.
+- unfold imm_s_hb.hb.
   rewrite ct_end at 1; relsf.
   unionL; [basic_solver 21|].
-  unfold ph_s_hb.sw at 2; rewrite !seqA.
+  unfold imm_s_hb.sw at 2; rewrite !seqA.
   arewrite (⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘ ⨾ ⦗F ∩₁ Sc⦘) at 1.
     by basic_solver.
   arewrite (rf ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ rf ⨾ sb).
@@ -550,7 +550,7 @@ split.
       by basic_solver.
     arewrite (⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Acq⦘) at 1 by mode_solver.
     arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-      by unfold ph_s_hb.sw; basic_solver 12.
+      by unfold imm_s_hb.sw; basic_solver 12.
     rewrite (sw_in_hb); relsf.
 Qed.
 

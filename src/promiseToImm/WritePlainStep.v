@@ -5,7 +5,7 @@ From promising Require Import Configuration Basic DenseOrder
      TView View Time Event Cell Thread Language Memory.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 
 Require Import PArith.
 Require Import CombRelations CombRelationsMore.
@@ -30,7 +30,7 @@ Section WritePlainStep.
 Variable G : execution.
 Variable WF : Wf G.
 Variable sc : relation actid.
-Variable CON : ph_consistent G sc.
+Variable CON : imm_consistent G sc.
 
 Notation "'E'" := G.(acts_set).
 Notation "'sb'" := G.(sb).
@@ -131,16 +131,16 @@ Proof.
   { intros [x RMW]. apply (dom_l WF.(wf_rmwD)) in RMW.
     apply seq_eqv_l in RMW. type_solver. }
 
-  assert (Event_ph_promise.same_g_events lab (w :: nil) ev) as SAME.
+  assert (Event_imm_promise.same_g_events lab (w :: nil) ev) as SAME.
   { by apply SAME_NRMW. }
   
-  assert (ev = ProgramEvent.write locw valw (Event_ph_promise.wmod ordw)) as EV.
+  assert (ev = ProgramEvent.write locw valw (Event_imm_promise.wmod ordw)) as EV.
   { red in SAME; red in SAME; simpls.
     rewrite PARAMS in *; simpls.
     destruct ev; desf; vauto. }
 
   set (pe := ThreadEvent.write locw (f_from w) (f_to w)
-                               valw rel (Event_ph_promise.wmod ordw)).
+                               valw rel (Event_imm_promise.wmod ordw)).
   assert (ev = ThreadEvent.get_program_event pe) as EV'.
   { done. }
   
@@ -157,17 +157,17 @@ Proof.
   assert (Rlx w) as WRLX.
   { apply ALLRLX. by split. }
 
-  assert (Ordering.le Ordering.relaxed (Event_ph_promise.wmod ordw)) as NRLX_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (Ordering.le Ordering.relaxed (Event_imm_promise.wmod ordw)) as NRLX_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
 
-  assert (~ Ordering.le Ordering.strong_relaxed (Event_ph_promise.wmod ordw)) as NSRLX_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (~ Ordering.le Ordering.strong_relaxed (Event_imm_promise.wmod ordw)) as NSRLX_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
-  assert (~ Ordering.le Ordering.acqrel (Event_ph_promise.wmod ordw)) as NREL_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (~ Ordering.le Ordering.acqrel (Event_imm_promise.wmod ordw)) as NREL_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
   
@@ -281,7 +281,7 @@ Proof.
       { unfold TView.write_released.
         rewrite NRLX_PROM_W; simpls.
         rewrite View.join_bot_l.
-        destruct (Ordering.le Ordering.acqrel (Event_ph_promise.wmod ordw)) eqn: HH.
+        destruct (Ordering.le Ordering.acqrel (Event_imm_promise.wmod ordw)) eqn: HH.
         { subst; desf. }
         simpls; rewrite view_join_bot_r in *.
           by unfold LocFun.add; rewrite Loc.eq_dec_eq. }
@@ -315,7 +315,7 @@ Proof.
         apply Memory.promise_lower; auto.
         all: by apply Memory.lower_exists_same. }
       intros. exfalso.
-      unfold Event_ph_promise.wmod, is_rel, mode_le, Events.mod in *.
+      unfold Event_imm_promise.wmod, is_rel, mode_le, Events.mod in *.
       rewrite PARAMS in *.
       destruct ordw; simpls. }
     unnw.
@@ -376,7 +376,7 @@ Proof.
       intros [H|H]; [done|subst].
       unfold loc in *; rewrite PARAMS in *; desf. }
     { red; ins.
-      destruct (Ordering.le Ordering.acqrel (Event_ph_promise.wmod ordw)); vauto.
+      destruct (Ordering.le Ordering.acqrel (Event_imm_promise.wmod ordw)); vauto.
       destruct (classic (b = w)) as [|NEQ].
       { subst.
         unfold loc in LOC; unfold val in VAL; rewrite PARAMS in *; inv LOC.
@@ -667,17 +667,17 @@ Proof.
   { intros ISS. apply WNCOV. apply RELCOV.
     split; [split|]; auto. }
 
-  assert (Ordering.le Ordering.relaxed (Event_ph_promise.wmod ordw)) as NRLX_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (Ordering.le Ordering.relaxed (Event_imm_promise.wmod ordw)) as NRLX_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
 
-  assert (Ordering.le Ordering.strong_relaxed (Event_ph_promise.wmod ordw)) as NSRLX_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (Ordering.le Ordering.strong_relaxed (Event_imm_promise.wmod ordw)) as NSRLX_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
-  assert (Ordering.le Ordering.acqrel (Event_ph_promise.wmod ordw)) as NREL_PROM_W.
-  { unfold Event_ph_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
+  assert (Ordering.le Ordering.acqrel (Event_imm_promise.wmod ordw)) as NREL_PROM_W.
+  { unfold Event_imm_promise.wmod, is_rel, is_rlx, mode_le, Events.mod in *.
     rewrite PARAMS in *.
     destruct ordw; simpls. }
 
@@ -694,10 +694,10 @@ Proof.
     apply (dom_l WF.(wf_rmwD)) in HH. apply seq_eqv_l in HH.
     type_solver. }
   
-  assert (Event_ph_promise.same_g_events lab (w :: nil) ev) as SAME.
+  assert (Event_imm_promise.same_g_events lab (w :: nil) ev) as SAME.
   { by apply SAME_NRMW. }
   
-  assert (ev = ProgramEvent.write locw valw (Event_ph_promise.wmod ordw)) as EV.
+  assert (ev = ProgramEvent.write locw valw (Event_imm_promise.wmod ordw)) as EV.
   { red in SAME; red in SAME; simpls.
     rewrite PARAMS in *; simpls.
     destruct ev; desf; vauto. }
@@ -707,7 +707,7 @@ Proof.
                                            (TView.cur (Local.tview local))
                                            (View.unwrap p_rel))
                                         (View.singleton_ur locw (f_to' w))))
-                               (Event_ph_promise.wmod ordw)).
+                               (Event_imm_promise.wmod ordw)).
   assert (ev = ThreadEvent.get_program_event pe) as EV' by done; subst.
 
   assert (p_rel = None); subst.
@@ -731,9 +731,9 @@ Proof.
       { unfold TView.write_released, TView.write_tview; simpls.
         unfold LocFun.add. rewrite Loc.eq_dec_eq.
         destruct (Ordering.le Ordering.relaxed
-                              (Event_ph_promise.wmod (Events.mod lab w))); simpls.
+                              (Event_imm_promise.wmod (Events.mod lab w))); simpls.
         destruct (Ordering.le Ordering.acqrel
-                              (Event_ph_promise.wmod (Events.mod lab w))); simpls.
+                              (Event_imm_promise.wmod (Events.mod lab w))); simpls.
         rewrite View.join_bot_l. by rewrite view_join_bot_r. }
       { by constructor. }
       { econstructor; eauto. }
@@ -802,7 +802,7 @@ Proof.
       ins. unfold LocFun.add, LocFun.find.
       destruct (Loc.eq_dec l locw).
       2: by rewrite EQ_REL.
-      destruct (Ordering.le Ordering.acqrel (Event_ph_promise.wmod (Events.mod lab w))).
+      destruct (Ordering.le Ordering.acqrel (Event_imm_promise.wmod (Events.mod lab w))).
       all: unfold View.join; simpls.
         by rewrite EQ_CUR. }
     { desf. }

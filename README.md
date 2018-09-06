@@ -33,30 +33,30 @@ opam install coq-imm
 - *ProgToExecution.v*---construction of execution graphs from sequential programs.
 - *ProgToExecutionProperties.v*---properties of the construction.
 
-`src/imm`. Definitions and statements about IMM (in the development, it is called *ph*)
-and IMMs, a version of IMM with RC11-style definition of happens-before (HB), (in the development, it is called *ph\_s*).
+`src/imm`. Definitions and statements about IMM
+and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
 - *CombRelations.v*, *CombRelationsMore.v*---definitions of relation VF and linked relations and their properties.
-- *ph\_common\_more.v*, *ph\_common.v*---common definitions for both models.
-- *ph\_hb.v*---a definition of HB for IMM.
-- *ph\_s\_hb.v*---the RC11-style definition of HB for IMMs.
-- *ph.v*---a definition of IMM.
-- *ph\_s.v*---a definition of IMMs.
-- *ph\_sToph.v*---a proof that IMMs is weaker than IMM.
+- *imm\_common\_more.v*, *imm\_common.v*---common definitions for both models.
+- *imm\_hb.v*---a definition of HB for IMM.
+- *imm\_s\_hb.v*---the RC11-style definition of HB for IMMs.
+- *imm.v*---a definition of IMM.
+- *imm\_s.v*---a definition of IMMs.
+- *imm\_sToimm.v*---a proof that IMMs is weaker than IMM.
 
 `src/hardware`. Definitions of hardware models and proofs about them.
 - *Power\_fences.v*,
   *Power\_ppo.v*,
   *Power.v*---a definition of POWER (Alglave-al:TOPLAS14).
 - *Rel\_opt.v*---a correctness proof for release write transformation.
-- *phToPower.v*---a compilation correctness proof from IMM to POWER.
+- *immToPower.v*---a compilation correctness proof from IMM to POWER.
 - *Arm.v*---a definition of ARMv8.3 (Pulte-al:POPL18).
-- *phToARM.v*---a compilation correctness proof from IMM to ARMv8.3.
+- *immToARM.v*---a compilation correctness proof from IMM to ARMv8.3.
 - *TSO.v*---a definition of TSO (Alglave-al:TOPLAS14, Owens-al:TPHOLs09).
-- *phToTSO.v*---a compilation correctness proof from IMM to TSO.
+- *immToTSO.v*---a compilation correctness proof from IMM to TSO.
 
 `src/rc11`. Definitions of hardware models and proofs about them.
 - *RC11.v*---a definition of RC11 (Lahav-al:PLDI17).
-- *RC11Toph\_s.v*---a compilation correctness proof from RC11 to IMMs.
+- *RC11Toimm\_s.v*---a compilation correctness proof from RC11 to IMMs.
 
 `src/promiseToImm`. The compilation correctness from Promise to IMM.
 - *Promise.v*---a definition of a Promise outcome.
@@ -79,13 +79,13 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB), (i
     *Receptiveness.v*, *CertExecutionMain.v*---construction of the certification graph and proofs of its properties.
 - *PromiseFuture.v*--- a proof that it is enough to show certification
     only for a restricted set of future memories.
-- *PromiseToPH.v*---a proof of the compilation correctness from Promise to IMM.
+- *PromiseToIMM.v*---a proof of the compilation correctness from Promise to IMM.
 
 Auxiliary files:
 - *AuxRel.v*,
 *MaxValue.v*,
 *Monotone.v*,
-*Event\_ph\_promise.v*,
+*Event\_imm\_promise.v*,
 *SimStateHelper.v*,
 *SimulationPlainStepAux.v*,
 *SimulationRelAux.v*,

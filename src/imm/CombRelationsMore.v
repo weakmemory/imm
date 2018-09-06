@@ -6,7 +6,7 @@ From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder Event.
 Require Import AuxRel.
 Require Import Events Execution.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 Require Import CombRelations. 
 
 Set Implicit Arguments.

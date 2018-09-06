@@ -6,10 +6,10 @@ From promising Require Import Basic DenseOrder
 Require Import AuxRel.
 
 Require Import Events Execution.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 
 Require Import PArith.
-Require Import Event_ph_promise.
+Require Import Event_imm_promise.
 Require Import CombRelations CombRelationsMore.
 Require Import TraversalConfig.
 Require Import MaxValue.
@@ -324,7 +324,7 @@ Qed.
 
 Lemma sim_tview_f_issued f_to f_to' T tview thread
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ : forall e (ISS: issued T e), f_to' e = f_to e)
       (SIMTVIEW : sim_tview (covered T) f_to tview thread):
@@ -350,7 +350,7 @@ Lemma sim_sc_fence_step
       f ordf ordr ordw tview thread sc_view
       (TCCOH : tc_coherent G sc T)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (NEXT : next G (covered T) f)
       (TID : tid f = thread)
       (FPARAMS : lab f = Afence ordf)
@@ -366,7 +366,7 @@ Lemma sim_sc_fence_step
                       (TView.read_fence_tview tview ordr) 
                       sc_view ordw)).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
   intros l. specialize (SC_VIEW l).
   destruct (classic (is_sc lab f)) as [FISSC|FISNOSC].
   all: unfold TView.write_fence_sc.
@@ -406,7 +406,7 @@ Lemma sim_tview_fence_step T
       f ordf ordr ordw tview thread sc_view
       (TCCOH : tc_coherent G sc T)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (COV : coverable G sc T f)
       (NCOV : ~ covered T f)
       (TID : tid f = thread)
@@ -422,7 +422,7 @@ Lemma sim_tview_fence_step T
        (TView.read_fence_tview tview ordr) 
        sc_view ordw) (tid f).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
   assert (is_f lab f) as FENCE.
   { by unfold is_f; rewrite FPARAMS. }
   assert (E f) as EF.

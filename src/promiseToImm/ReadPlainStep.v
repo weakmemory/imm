@@ -5,7 +5,7 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 
 Require Import PArith.
 Require Import CombRelations CombRelationsMore.
@@ -32,7 +32,7 @@ Section ReadPlainStep.
 Variable G : execution.
 Variable WF : Wf G.
 Variable sc : relation actid.
-Variable CON : ph_consistent G sc.
+Variable CON : imm_consistent G sc.
 
 Notation "'E'" := G.(acts_set).
 Notation "'sb'" := G.(sb).
@@ -154,19 +154,19 @@ Proof.
   all: eauto.
   desc.
 
-  assert (Event_ph_promise.same_g_events lab (r :: nil) ev) as SAME.
+  assert (Event_imm_promise.same_g_events lab (r :: nil) ev) as SAME.
   { by apply SAME_NRMW. }
   
-  assert (ev = ProgramEvent.read locr valr (Event_ph_promise.rmod (Events.mod lab r))) as EV.
+  assert (ev = ProgramEvent.read locr valr (Event_imm_promise.rmod (Events.mod lab r))) as EV.
   { red in SAME; red in SAME; simpls.
     rewrite PARAMS in *.
     destruct ev; desf; vauto. }
 
-  set (pe := ThreadEvent.read locr (f_to w) valr rel (Event_ph_promise.rmod (Events.mod lab r))).
+  set (pe := ThreadEvent.read locr (f_to w) valr rel (Event_imm_promise.rmod (Events.mod lab r))).
   assert (ev = ThreadEvent.get_program_event pe) as EV'.
   { done. }
 
-  assert (Ordering.le Ordering.relaxed (Event_ph_promise.rmod (Events.mod lab r))) as RLX_ORDR.
+  assert (Ordering.le Ordering.relaxed (Event_imm_promise.rmod (Events.mod lab r))) as RLX_ORDR.
   { unfold is_rlx, mode_le in *.
     destruct (Events.mod lab r); simpls. }
   

@@ -4,7 +4,7 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 
 Require Import Events Execution.
-Require Import ph_s_hb ph_s.
+Require Import imm_s_hb imm_s.
 
 Require Import PArith.
 Require Import CombRelations.
@@ -12,7 +12,7 @@ Require Import AuxRel.
 Require Import TraversalConfig.
 Require Import Setoid.
 Require Import MaxValue ViewRel.
-Require Import Event_ph_promise.
+Require Import Event_imm_promise.
 Require Import Promise ProgToExecution.
 Require Import ProgToExecutionProperties.
 
@@ -71,7 +71,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         I x -> I y -> (rf ⨾ rmw) x y -> f_to x = f_from y ⟫
   .
 
-Lemma init_co_w (PHCON : ph_consistent G sc)
+Lemma init_co_w (IMMCON : imm_consistent G sc)
       e e' (INIT : is_init e) (NINIT : ~ is_init e')
       (EE : E e') (WW : W e') (SL : same_loc lab e e') :
   co e e'.
@@ -87,13 +87,13 @@ Proof.
   { split; [split|]; auto. by apply init_w.
     unfold loc at 1. by rewrite WF.(wf_init_lab). }
   { intros H. subst. desf. }
-  exfalso. cdes PHCON.
+  exfalso. cdes IMMCON.
   eapply Cint. eexists. split.
   { apply sb_in_hb. by apply init_ninit_sb with (y:=e'); eauto. }
   apply r_step. apply Execution_eco.co_in_eco; eauto.
 Qed.
 
-Lemma f_to_co_mon (PHCON : ph_consistent G sc)
+Lemma f_to_co_mon (IMMCON : imm_consistent G sc)
       I f_to f_from (FCOH : f_to_coherent I f_to f_from)
       e e' (CO : co e e') (ISS : I e) (ISS' : I e') :
   Time.lt (f_to e) (f_to e').
@@ -104,7 +104,7 @@ Proof.
   apply Execution_eco.no_co_to_init in CO; auto.
   { apply seq_eqv_r in CO. desf. }
   apply coherence_sc_per_loc.
-  apply PHCON.
+  apply IMMCON.
 Qed.
 
 Lemma f_from_co_mon I f_to f_from (FCOH : f_to_coherent I f_to f_from)
@@ -116,7 +116,7 @@ Proof.
     by apply FCOH.
 Qed.
 
-Lemma f_to_coherent_strict (PHCON : ph_consistent G sc)
+Lemma f_to_coherent_strict (IMMCON : imm_consistent G sc)
       f_to f_from T
       (TCCOH : tc_coherent G sc T)
       (FCOH: f_to_coherent (issued T) f_to f_from)
@@ -132,11 +132,11 @@ Proof.
   apply Execution_eco.no_co_to_init in COXY; auto.
   { apply seq_eqv_r in COXY. desf. }
   apply coherence_sc_per_loc.
-  apply PHCON.
+  apply IMMCON.
 Qed.
 
 Lemma lt_init_ts T f_to f_from
-      (CON : ph_consistent G sc)
+      (CON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
@@ -162,7 +162,7 @@ Proof.
 Qed.
 
 Lemma le_init_ts T f_to f_from
-      (CON : ph_consistent G sc)
+      (CON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) :
@@ -179,7 +179,7 @@ Proof.
 Qed.
 
 Lemma le_init_ts_from T f_to f_from
-      (CON : ph_consistent G sc)
+      (CON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
@@ -204,7 +204,7 @@ Proof.
   desf.
 Qed.
 
-Lemma f_to_eq (PHCON : ph_consistent G sc) T (TCCOH : tc_coherent G sc T)
+Lemma f_to_eq (IMMCON : imm_consistent G sc) T (TCCOH : tc_coherent G sc T)
       f_to f_from (FCOH : f_to_coherent (issued T) f_to f_from)
       e e' (SAME_LOC : same_loc lab e e') (ISS : issued T e) (ISS' : issued T e')
       (FEQ : f_to e = f_to e') :
@@ -228,7 +228,7 @@ Proof.
     by apply DenseOrder.lt_strorder in HH.
 Qed.
 
-Lemma f_from_eq (PHCON : ph_consistent G sc) T (TCCOH : tc_coherent G sc T)
+Lemma f_from_eq (IMMCON : imm_consistent G sc) T (TCCOH : tc_coherent G sc T)
       f_to f_from (FCOH : f_to_coherent (issued T) f_to f_from)
       e e' (SAME_LOC : same_loc lab e e') (ISS : issued T e) (ISS' : issued T e')
       (NINIT : ~ is_init e) (NINIT' : ~ is_init e')

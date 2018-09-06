@@ -3,7 +3,7 @@
 (******************************************************************************)
 From hahn Require Import Hahn.
 Require Import AuxRel.
-Require Import Events Execution Execution_eco ph_s_hb.
+Require Import Events Execution Execution_eco imm_s_hb.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

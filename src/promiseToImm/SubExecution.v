@@ -7,7 +7,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s.
+Require Import imm_common imm_s_hb imm_s.
 Require Import CombRelations.
 
 Set Implicit Arguments.
@@ -275,7 +275,7 @@ Qed.
 
 Lemma sub_fwbob : fwbob' ≡ ⦗E'⦘ ⨾ fwbob ⨾ ⦗E'⦘.
 Proof. 
-unfold ph_common.fwbob; rewrite sub_Rel, sub_AcqRel, sub_W, sub_F, sub_sb, sub_same_loc.
+unfold imm_common.fwbob; rewrite sub_Rel, sub_AcqRel, sub_W, sub_F, sub_sb, sub_same_loc.
 basic_solver 21.
 Qed.
 
@@ -284,7 +284,7 @@ Proof. rewrite sub_fwbob; basic_solver. Qed.
 
 Lemma sub_bob : bob' ≡ ⦗E'⦘ ⨾ bob ⨾ ⦗E'⦘.
 Proof. 
-unfold ph_common.bob; rewrite sub_Acq, sub_fwbob, sub_R, sub_sb.
+unfold imm_common.bob; rewrite sub_Acq, sub_fwbob, sub_R, sub_sb.
 basic_solver 21.
 Qed.
 
@@ -324,7 +324,7 @@ Qed.
 
 Lemma sub_ppo_in : ppo' ⊆ ppo.
 Proof.
-unfold ph_common.ppo.
+unfold imm_common.ppo.
 rewrite sub_R_ex, sub_W, sub_R.
 hahn_frame; apply inclusion_t_t.
 rewrite sub_sb_in, sub_rfi_in.
@@ -355,37 +355,37 @@ Qed.
 
 Lemma sub_rs_in : rs' ⊆ rs.
 Proof.
-unfold ph_s_hb.rs.
+unfold imm_s_hb.rs.
 by rewrite sub_rf_in, sub_rmw_in, sub_sb_in, sub_same_loc, sub_W.
 Qed.
 
 Lemma sub_release_in : release' ⊆ release.
 Proof.
-unfold ph_s_hb.release.
+unfold imm_s_hb.release.
 by rewrite sub_sb_in, sub_rs_in, sub_F, sub_Rel.
 Qed.
 
 Lemma sub_sw_in : sw' ⊆ sw.
 Proof.
-unfold ph_s_hb.sw.
+unfold imm_s_hb.sw.
 by rewrite sub_sb_in, sub_release_in, sub_rf_in, sub_F, sub_Acq.
 Qed.
 
 Lemma sub_hb_in : hb' ⊆ hb.
 Proof.
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 by rewrite sub_sb_in, sub_sw_in.
 Qed.
 
 Lemma sub_ar_int_in : ar_int' ⊆ ar_int.
 Proof.
-unfold ph_common.ar_int.
+unfold imm_common.ar_int.
 by rewrite sub_bob_in, sub_ppo_in, sub_detour_in, sub_sb_in, sub_W_ex_acq_in, sub_W .
 Qed.
 
 Lemma sub_ar_in : ar' sc' ⊆ ar sc.
 Proof.
-unfold ph_s.ar.
+unfold imm_s.ar.
 by rewrite sub_sc_in, sub_rfe_in, sub_ar_int_in.
 Qed.
 
@@ -483,10 +483,10 @@ revert RF_A.
 basic_solver 21.
 Qed.
 
-Lemma sub_ph_consistent (RF_A : dom_rel (rf ⨾ ⦗ E' ⦘) ⊆₁ E')
-  (PHCON: ph_consistent G sc) : ph_consistent G' sc'.
+Lemma sub_imm_consistent (RF_A : dom_rel (rf ⨾ ⦗ E' ⦘) ⊆₁ E')
+  (IMMCON: imm_consistent G sc) : imm_consistent G' sc'.
 Proof.
-cdes PHCON; red.
+cdes IMMCON; red.
 splits; eauto using sub_comp, sub_WF_SC, sub_coh_sc, sub_coherence, sub_acyc_ext, sub_rmw_atomicity.
 Qed.
 

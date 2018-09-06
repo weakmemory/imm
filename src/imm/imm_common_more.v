@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * More Lemmas about ph_common *)
+(** * More Lemmas about imm_common *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -7,12 +7,12 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common.
+Require Import imm_common.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH.
+Section IMM.
 
 Variable G : execution.
 
@@ -87,7 +87,7 @@ assert (helper:
 ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ∪ detour ;; (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊).
 by apply inclusion_rt_rt; basic_solver 12.
 
-unfold ph_common.ar_int, ph_common.bob, ph_common.fwbob.
+unfold imm_common.ar_int, imm_common.bob, imm_common.fwbob.
 
 arewrite (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
  ∪ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ ppo ∪ detour
@@ -334,4 +334,4 @@ basic_solver 21.
 Qed.
 
 
-End PH.
+End IMM.

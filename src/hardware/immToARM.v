@@ -1,17 +1,17 @@
 (******************************************************************************)
-(** * Compilation correctness from the PH memory model to the ARMv8.3 model *)
+(** * Compilation correctness from the IMM memory model to the ARMv8.3 model *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
 Require Import Arm.
-Require Import ph_common ph_hb ph.
+Require Import imm_common imm_hb imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section phToARM.
+Section immToARM.
 
 Variable G : execution.
 
@@ -53,7 +53,7 @@ Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
 
-(* ph *)
+(* imm *)
 Notation "'sw'" := G.(sw).
 Notation "'release'" := G.(release).
 Notation "'rs'" := G.(rs).
@@ -133,7 +133,7 @@ Proof.
 rewrite RMW_CTRL_FAIL; basic_solver.
 Qed.
 (******************************************************************************)
-(** * ph.hb in terms of Arm relations *)
+(** * imm.hb in terms of Arm relations *)
 (******************************************************************************)
 
 Lemma co_sb_loc : ⦗W⦘ ⨾ co^? ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
@@ -169,7 +169,7 @@ assert (SB: (sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ⊆ sb ∩ same_loc).
   arewrite (rmw ⊆ rmw ∩ rmw).
   rewrite (rmw_in_sb WF) at 1; rewrite (wf_rmwl WF).
   relsf. }
-unfold ph_hb.rs.
+unfold imm_hb.rs.
 rewrite rtE; relsf; unionL.
 by rewrite (dom_r (wf_rfiD WF)), (rfi_in_sbloc' WF);
 generalize (@sb_same_loc_trans G); basic_solver 12.
@@ -179,7 +179,7 @@ rewrite path_ut_last; relsf; unionL.
 rewrite (dom_r (wf_rfiD WF)) at 2; rewrite (rfi_in_sbloc' WF) at 2.
 sin_rewrite SB; rewrite !seqA; relsf; basic_solver.
 arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ∪ (sb ∩ same_loc)^? ⨾ rfe ⨾ rmw)＊ ⊆ rs).
-by unfold ph_hb.rs; rewrite rfi_union_rfe; relsf.
+by unfold imm_hb.rs; rewrite rfi_union_rfe; relsf.
 sin_rewrite rs_sb_loc_rfe.
 rewrite (dom_l (wf_rmwD WF)), R_ex_in_R at 1.
 arewrite (rfi ⊆ sb); rewrite (rmw_in_sb WF).
@@ -190,7 +190,7 @@ Qed.
 Lemma rs_rfi_Q: rs ⨾ rfi ⨾ ⦗Q⦘ ⊆ sb ∩ same_loc ⨾ ⦗Q⦘ ∪ (obs' ∪ dob ∪ aob ∪ boba')⁺  ⨾ ⦗Q⦘.
 Proof.
 generalize (rs_in_co  WF SC_PER_LOC COMP).
-unfold ph_hb.rs.
+unfold imm_hb.rs.
 intro X.
 rewrite rtE; relsf; unionL.
 by rewrite (rfi_in_sbloc' WF);
@@ -218,7 +218,7 @@ Lemma sw_in_ord :
         ∪ ⦗L⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘
         ∪ ⦗L∪₁F^sy⦘ ⨾ (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
 Proof.
-unfold ph_hb.sw, ph_hb.release.
+unfold imm_hb.sw, imm_hb.release.
 rewrite (dom_l (wf_rsD WF)), (dom_r (wf_rfeD WF)), !seqA; relsf.
 rewrite !seqA.
 unionL.
@@ -326,7 +326,7 @@ Qed.
 
 Lemma hb_in_sb_swe : hb ⊆ (sb ∪ (sw \ sb))⁺.
 Proof.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 rewrite (ri_union_re G sw) at 1.
 apply inclusion_t_t.
 basic_solver.
@@ -380,7 +380,7 @@ Qed.
 
 Lemma psc_in_ord : sb^? ⨾ psc ⨾ sb^? ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ .
 Proof.
-unfold ph.psc.
+unfold imm.psc.
 arewrite (eco ⊆ (co ∪ fr ∪ rfe)＊⨾ rfi^?).
 { unfold Execution_eco.eco; rewrite crE.
   rewrite rfi_union_rfe; relsf; unionL.
@@ -392,7 +392,7 @@ arewrite (co ⊆ obs').
 arewrite (fr ⊆ obs').
 relsf.
 arewrite (rfi^? ⨾ hb ⊆ hb).
-by arewrite (rfi^?  ⊆ (sb ∪ sw)＊); unfold ph_hb.hb; relsf.
+by arewrite (rfi^?  ⊆ (sb ∪ sw)＊); unfold imm_hb.hb; relsf.
 arewrite (⦗F ∩₁ Sc⦘ ⊆ ⦗F^sy⦘) by mode_solver.
 rewrite hb_in_ord; relsf.
 arewrite !(sb^? ⨾ ⦗F^sy⦘⊆ boba'^? ⨾ ⦗F^sy⦘).
@@ -456,7 +456,7 @@ Qed.
 
 Lemma bob_in_boba : bob ⊆ boba' ∪ coi ∪ sb ⨾ ⦗F^ld⦘.
 Proof.
-unfold ph_common.bob, ph_common.fwbob, Arm.bob', Arm.bob.
+unfold imm_common.bob, imm_common.fwbob, Arm.bob', Arm.bob.
 unionL.
 - basic_solver 15.
 - arewrite (⦗L⦘ ⊆ ⦗W⦘) at 1 by basic_solver.
@@ -531,7 +531,7 @@ relsf; red; relsf.
 apply (external_alt2 WF CON rmw_sb_in_ctrl).
 Qed.
 
-Lemma PH_consistent : ph_consistent G.
+Lemma IMM_consistent : imm_consistent G.
 Proof.
 cdes CON.
 red; splits; eauto.
@@ -539,4 +539,4 @@ apply COH.
 apply C_EXT.
 Qed.
 
-End phToARM.
+End immToARM.

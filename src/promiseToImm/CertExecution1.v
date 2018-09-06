@@ -6,7 +6,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s.
+Require Import imm_common imm_s_hb imm_s.
 Require Import SubExecution.
 Require Import CertCOhelper.
 
@@ -96,7 +96,7 @@ Proof. unfolder; split; ins; desf; tauto. Qed.
 
 Hypothesis WF : Wf Gf.
 Hypothesis WF_SC : wf_sc Gf sc.
-Hypothesis PHCON : ph_consistent Gf sc.
+Hypothesis IMMCON : imm_consistent Gf sc.
 Hypothesis RELCOV : FW ∩₁ FRel ∩₁ I ⊆₁ C.
 Hypothesis TCCOH : tc_coherent Gf sc T.
 Hypothesis ACQEX : FW_ex ⊆₁ FW_ex_acq.
@@ -437,9 +437,9 @@ Proof. etransitivity; [|apply F_sb_I]; mode_solver 12. Qed.
 (*
 Lemma release_E : Frelease ⨾ ⦗E⦘ ⊆ Grelease.
 Proof.
-unfold ph_s_hb.release.
+unfold imm_s_hb.release.
 rewrite (sub_F SUB), (sub_Rel SUB).
-rewrite !seqA; unfold ph_s_hb.rs.
+rewrite !seqA; unfold imm_s_hb.rs.
 rewrite (sub_W SUB), (sub_same_loc SUB).
 rewrite !seqA.
 rewrite rt_rf_rmw_E.
@@ -469,9 +469,9 @@ Qed.
 *)
 Lemma release_I : Frelease ⨾ ⦗I⦘ ⊆ ⦗C⦘ ⨾ Grelease.
 Proof.
-unfold ph_s_hb.release.
+unfold imm_s_hb.release.
 rewrite (sub_F SUB), (sub_Rel SUB).
-rewrite !seqA; unfold ph_s_hb.rs.
+rewrite !seqA; unfold imm_s_hb.rs.
 rewrite (sub_W SUB), (sub_same_loc SUB).
 rewrite !seqA.
 rewrite rt_rf_rmw_I.
@@ -552,7 +552,7 @@ rewrite !id_union; relsf; unionL; splits.
   rewrite (sub_rfe_in SUB), rfe_E; basic_solver.
   rewrite (sub_rfe_in SUB).
   unfolder; ins; desf; exfalso.
-  cdes PHCON.
+  cdes IMMCON.
   generalize (thread_rfe_sb WF (coherence_sc_per_loc Cint)).
   unfold same_tid; basic_solver 21. 
 - rewrite (dom_l (wf_rmwD WF)).
@@ -636,7 +636,7 @@ rewrite (dom_r (wf_swD WF)).
 arewrite (⦗FE⦘ ⊆ ⦗FE \₁ E⦘ ∪ ⦗E⦘) by (unfolder; ins; desf; tauto).
 relsf; unionL; [basic_solver 12|].
 arewrite (⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ ⦗E⦘ ⊆ ⦗E⦘) by basic_solver.
-unfold ph_s_hb.sw.
+unfold imm_s_hb.sw.
 rewrite (sub_F SUB), (sub_Acq SUB).
 rewrite !seqA.
 arewrite ((Fsb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗E⦘ ⊆ ⦗E⦘ ⨾ (Fsb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗E⦘).
@@ -680,7 +680,7 @@ Lemma hb_Rel_E : Fhb ⨾ ⦗E ∩₁ (FF ∪₁ FW) ∩₁ Rel⦘ ⊆ Ghb.
 Proof.
 cut (Fhb ⨾ ⦗E ∩₁ (FF ∪₁ FW) ∩₁ Rel⦘ ⊆ Ghb ⨾ ⦗E ∩₁ (FF ∪₁ FW) ∩₁ Rel⦘).
 by intro H; rewrite H; basic_solver 12.
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 apply ct_ind_left with (P:= fun r => r ⨾ ⦗E ∩₁ (FF ∪₁ FW) ∩₁ Rel⦘).
 * by eauto with hahn.
 * relsf; unionL.
@@ -688,7 +688,7 @@ rewrite <- ct_step; generalize (sub_sb SUB), sb_F_E, sb_W_Rel_E; basic_solver 40
 rewrite <- ct_step; generalize dom_sw_E, sw_E; basic_solver 40.
 * intros k H; rewrite !seqA, H.
 rewrite (dom_l (wf_hbE rstWF)).
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 relsf; unionL.
 2: { rewrite !seqA.
 sin_rewrite sw_E.
@@ -708,7 +708,7 @@ rewrite (sub_sb SUB); generalize sb_F_E sb_W_Rel_E; basic_solver 40.
 arewrite (Fsb ⨾ ⦗E ∩₁ F ∩₁ Rel ∪₁ E ∩₁ W ∩₁ Rel⦘ ⊆ ⦗E⦘ ⨾ Gsb).
 rewrite (sub_sb SUB); generalize sb_F_E sb_W_Rel_E; basic_solver 40.
 
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 arewrite (Gsb ⊆ (Gsb ∪ Gsw)＊).
 relsf.
 Qed.
@@ -881,16 +881,16 @@ Lemma WF_SC_rst : wf_sc rstG rst_sc.
 Proof. unfold rstG; eapply sub_WF_SC; eauto; apply SUB. Qed.
 
 Lemma coh_sc_rst : coh_sc rstG rst_sc.
-Proof. eapply sub_coh_sc; eauto; [eapply SUB| eapply PHCON]. Qed.
+Proof. eapply sub_coh_sc; eauto; [eapply SUB| eapply IMMCON]. Qed.
 
 Lemma coherence_rst : coherence rstG .
-Proof. eapply sub_coherence; eauto; [eapply SUB| eapply PHCON]. Qed.
+Proof. eapply sub_coherence; eauto; [eapply SUB| eapply IMMCON]. Qed.
 
 Lemma acyc_ext_rst : acyc_ext rstG rst_sc.
-Proof. eapply sub_acyc_ext; eauto; [eapply SUB| eapply PHCON]. Qed.
+Proof. eapply sub_acyc_ext; eauto; [eapply SUB| eapply IMMCON]. Qed.
 
 Lemma rmw_atomicity_rst : rmw_atomicity rstG.
-Proof. eapply sub_rmw_atomicity; eauto; [eapply INIT| eapply SUB| eapply PHCON]. Qed.
+Proof. eapply sub_rmw_atomicity; eauto; [eapply INIT| eapply SUB| eapply IMMCON]. Qed.
 
 (******************************************************************************)
 (******************************************************************************)
@@ -1004,7 +1004,7 @@ Qed.
 Lemma COMP_ACQ: forall r (IN: (E ∩₁ R ∩₁ Acq) r), exists w, Grf w r.
 Proof.
 ins.
-cdes PHCON.
+cdes IMMCON.
 unfolder in IN; desf.
 exploit (Comp r).
 - split.
@@ -1025,7 +1025,7 @@ Qed.
 Lemma COMP_C : C ∩₁ R ⊆₁ codom_rel Grf.
 Proof.
 unfolder; ins; desf.
-cdes PHCON.
+cdes IMMCON.
 exploit (Comp x).
 - split; [by apply (coveredE TCCOH)| done].
 - unfolder; ins ;desf.
@@ -1039,7 +1039,7 @@ Qed.
 Lemma COMP_NTID : E ∩₁ NTid_ thread ∩₁ R ⊆₁ codom_rel Grf.
 Proof.
 unfolder; ins; desf.
-cdes PHCON.
+cdes IMMCON.
 exploit (Comp x).
 - split.
 apply (sub_E SUB); basic_solver.
@@ -1060,7 +1060,7 @@ Lemma COMP_PPO : dom_rel (Gppo ⨾ ⦗I⦘) ∩₁ R ⊆₁ codom_rel Grf.
 Proof.
 rewrite (dom_l (wf_ppoE rstWF)).
 unfolder; ins; desf.
-cdes PHCON.
+cdes IMMCON.
 exploit (Comp x).
 - split.
 apply (sub_E SUB); basic_solver.

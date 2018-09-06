@@ -5,7 +5,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s ph_common_more.
+Require Import imm_common imm_s_hb imm_s imm_common_more.
 
 Require Import TraversalConfig.
 

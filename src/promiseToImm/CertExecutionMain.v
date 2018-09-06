@@ -8,7 +8,7 @@ From promising Require Import Basic DenseOrder
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s.
+Require Import imm_common imm_s_hb imm_s.
 Require Import SubExecution.
 Require Import CertCOhelper.
 Require Import CertExecution1 CertExecution2.
@@ -104,18 +104,18 @@ Qed.
 
 Lemma cert_graph_init Gf sc T PC f_to f_from thread
       (WF : Wf Gf)
-      (PHCON : ph_consistent Gf sc)
+      (IMMCON : imm_consistent Gf sc)
       (SIMREL : simrel_thread Gf sc PC thread T f_to f_from sim_normal) :
   exists G' sc' T',
     ⟪ WF : Wf G' ⟫ /\
-    ⟪ PHCON : ph_consistent G' sc' ⟫ /\
+    ⟪ IMMCON : imm_consistent G' sc' ⟫ /\
     ⟪ NTID  : NTid_ thread ∩₁ G'.(acts_set) ⊆₁ covered T' ⟫ /\
     ⟪ SIMREL : simrel_thread G' sc' PC thread T' f_to f_from sim_certification ⟫.
 Proof.
 assert (exists G, G = rstG Gf T thread) by eauto; desc.
 
 assert (WF_SC: wf_sc Gf sc).
-by apply PHCON.
+by apply IMMCON.
 
 assert (TCCOH: tc_coherent Gf sc T).
 by cdes SIMREL; cdes COMMON.
@@ -733,7 +733,7 @@ exists Gsc.
 exists (mkTC (T.(covered) ∪₁ (G.(acts_set) ∩₁ NTid_ thread)) T.(issued)).
 splits.
 { by apply WF_cert. }
-{ by apply cert_ph_consistent. }
+{ by apply cert_imm_consistent. }
 { unfold certG, acts_set; ins; basic_solver. }
 cdes SIMREL. cdes COMMON.
 

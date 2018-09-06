@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of happens-before in the s_PH memory model (similar to C11) *)
+(** * Definition of happens-before in the s_IMM memory model (similar to C11) *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -11,7 +11,7 @@ Require Import Events Execution Execution_eco.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH_hb.
+Section IMM_hb.
 
 Variable G : execution.
 
@@ -337,4 +337,4 @@ all: generalize hb_trans; ins; relsf.
 all: try (unfolder in *; basic_solver 12).
 Qed.
 
-End PH_hb.
+End IMM_hb.

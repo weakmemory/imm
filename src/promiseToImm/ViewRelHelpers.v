@@ -7,7 +7,7 @@ From promising Require Import Basic DenseOrder Event.
 Require Import AuxRel.
 
 Require Import Events Execution.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 Require Import CombRelations CombRelationsMore.
 Require Import TraversalConfig.
 
@@ -95,7 +95,7 @@ Lemma s_tm_cov_sc_fence T
       f ordf thread
       (TID: tid f = thread)
       (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (NEXT : next G (covered T) f)
       (FPARAMS : lab f = Afence ordf)
@@ -104,7 +104,7 @@ Lemma s_tm_cov_sc_fence T
     S_tm G l (covered T ∪₁ eq f) ≡₁
     S_tm G l (covered T) ∪₁ t_acq G sc thread l (covered T).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
   intro l; split.
   - unfold S_tm, t_acq.
     rewrite s_tmr_union; relsf; unionL; splits; [basic_solver|].
@@ -202,13 +202,13 @@ Proof.
       basic_solver 21. }
 
   unfold msg_rel at 1.
-  unfold ph_s_hb.release.
-  unfold ph_s_hb.rs.
+  unfold imm_s_hb.release.
+  unfold imm_s_hb.rs.
   rewrite rtE.
   rewrite !seq_union_r. rewrite seq_union_l.
   rewrite dom_union. apply set_equiv_union.
   2: { apply dom_rel_more.
-       unfold msg_rel at 1. unfold ph_s_hb.release. unfold ph_s_hb.rs.
+       unfold msg_rel at 1. unfold imm_s_hb.release. unfold imm_s_hb.rs.
        rewrite ct_end. basic_solver. }
   rewrite seq_id_r.
   unfold t_cur, t_rel.
@@ -331,8 +331,8 @@ Lemma msg_rel_rfrmw_helper T (TCCOH : tc_coherent G sc T)
 Proof.
 rewrite rfi_union_rfe; relsf; unionL; splits.
 2: basic_solver 12.
-unfold ph_s_hb.release.
-unfold ph_s_hb.rs.
+unfold imm_s_hb.release.
+unfold imm_s_hb.rs.
 rewrite rtE; relsf.
 unionL; splits; cycle 1.
 rewrite rmw_W_ex at 1.
@@ -439,7 +439,7 @@ all: unfold t_cur, t_acq, c_cur, c_acq.
   rewrite !seqA.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by basic_solver.
   arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-  unfold ph_s_hb.sw; basic_solver 16.
+  unfold imm_s_hb.sw; basic_solver 16.
   arewrite (sw ⊆ hb^?).
   sin_rewrite urr_hb.
   basic_solver 21.
@@ -519,7 +519,7 @@ all: rewrite <- !seqA, dom_rel_eqv_dom_rel, !seqA.
     arewrite (sb ⊆ hb^?) at 1; basic_solver.
     arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
     arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-    unfold ph_s_hb.sw; basic_solver 16.
+    unfold imm_s_hb.sw; basic_solver 16.
     arewrite (sw ⊆ hb^?); basic_solver. }
   sin_rewrite urr_hb.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Rel ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
@@ -529,7 +529,7 @@ all: rewrite <- !seqA, dom_rel_eqv_dom_rel, !seqA.
     arewrite (sb ⊆ hb^?) at 1; basic_solver.
     arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
     arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-    unfold ph_s_hb.sw; basic_solver 16.
+    unfold imm_s_hb.sw; basic_solver 16.
     arewrite (sw ⊆ hb^?); basic_solver. }
   sin_rewrite urr_hb.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Rel ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
@@ -565,7 +565,7 @@ split.
 Qed.
 
 Lemma t_cur_sc_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       f (FENCE : F f) (SC: Sc f) 
       (COV : coverable G sc T f) (NCOV : ~ covered T f) :
@@ -573,7 +573,7 @@ Lemma t_cur_sc_fence_step T (TCCOH : tc_coherent G sc T)
     t_cur G sc (tid f) l (covered T ∪₁ eq f) ≡₁
     S_tm G l (covered T) ∪₁ t_acq G sc (tid f) l (covered T).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
 ins; split; try rewrite t_cur_union; unionL; desf.
 by rewrite t_cur_in_t_acq; basic_solver.
 all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
@@ -613,21 +613,21 @@ all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
   rewrite !seqA.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
   arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-  unfold ph_s_hb.sw; basic_solver 16.
+  unfold imm_s_hb.sw; basic_solver 16.
   arewrite (sw ⊆ hb^?).
   sin_rewrite urr_hb.
   basic_solver 21.
 Qed.
 
 Lemma t_acq_sc_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       f (FENCE : F f) (SC: Sc f) (COV : coverable G sc T f) (NCOV : ~ covered T f):
   forall l,
     t_acq G sc (tid f) l (covered T ∪₁ eq f) ≡₁
     t_acq G sc (tid f) l (covered T) ∪₁
     S_tm G l (covered T).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
 ins; split; try rewrite t_acq_union; unionL; desf.
 1,3: basic_solver.
 all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
@@ -661,7 +661,7 @@ all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
 Qed.
 
 Lemma t_rel_sc_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       f (FENCE : F f) (SC: Sc f) (COV : coverable G sc T f) (NCOV : ~ covered T f) :
   forall l l',
     t_rel G sc (tid f) l l' (covered T ∪₁ eq f) ∪₁
@@ -670,7 +670,7 @@ Lemma t_rel_sc_fence_step T (TCCOH : tc_coherent G sc T)
      else ∅) ≡₁
      S_tm G l (covered T) ∪₁ t_acq G sc (tid f) l (covered T).
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
 ins; split; try rewrite t_rel_union; unionL; desf.
 by rewrite t_rel_in_t_acq; basic_solver.
 all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
@@ -715,7 +715,7 @@ all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
     arewrite (sb ⊆ hb^?) at 1; basic_solver.
     arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
     arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-    unfold ph_s_hb.sw; basic_solver 16.
+    unfold imm_s_hb.sw; basic_solver 16.
     arewrite (sw ⊆ hb^?); basic_solver. }
   sin_rewrite urr_hb.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Rel ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
@@ -728,7 +728,7 @@ all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
     arewrite (sb ⊆ hb^?) at 1; basic_solver.
     arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Acq ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
     arewrite (release ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ sw).
-    unfold ph_s_hb.sw; basic_solver 16.
+    unfold imm_s_hb.sw; basic_solver 16.
     arewrite (sw ⊆ hb^?); basic_solver. }
   sin_rewrite urr_hb.
   arewrite (⦗eq f⦘ ⊆ ⦗ F∩₁ Rel ⦘ ⨾ ⦗eq f⦘) at 1 by mode_solver.
@@ -736,7 +736,7 @@ all: unfold t_cur, c_cur, S_tm, S_tmr, t_acq, c_acq, t_rel, c_rel.
 Qed.
 
 Lemma t_cur_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       f (FENCE : F f) (COV : coverable G sc T f) (NCOV : ~ covered T f):
   forall l,
@@ -751,13 +751,13 @@ Proof.
   destruct (is_sc lab f) eqn: H.
   apply t_cur_sc_fence_step; auto.
   apply t_cur_n_sc_fence_step; auto.
-  by apply PHCON.
+  by apply IMMCON.
   by ins; desf.
   by split; [apply COV|apply NCOV].
 Qed.
 
 Lemma t_acq_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       f (FENCE : F f) (COV : coverable G sc T f) (NCOV : ~ covered T f):
   forall l,
     t_acq G sc (tid f) l (covered T ∪₁ eq f) ≡₁
@@ -769,13 +769,13 @@ Proof.
   destruct (is_sc lab f) eqn: H.
   apply t_acq_sc_fence_step; auto.
   ins; rewrite set_union_empty_r; apply t_acq_n_sc_fence_step; auto.
-  by apply PHCON.
+  by apply IMMCON.
   by ins; desf.
   by split; [apply COV|apply NCOV].
 Qed.
 
 Lemma t_rel_fence_step T (TCCOH : tc_coherent G sc T)
-      (PHCON : ph_consistent G sc)
+      (IMMCON : imm_consistent G sc)
       f (FENCE : F f) (COV : coverable G sc T f) (NCOV : ~ covered T f) :
   forall l l',
     t_rel G sc (tid f) l l' (covered T ∪₁ eq f) ∪₁
@@ -799,7 +799,7 @@ Proof.
   destruct (is_sc lab f) eqn: H.
   apply t_rel_sc_fence_step; auto.
   apply t_rel_n_sc_fence_step; auto.
-  by apply PHCON.
+  by apply IMMCON.
   by ins; desf.
   by split; [apply COV|apply NCOV].
 Qed.

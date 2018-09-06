@@ -113,7 +113,7 @@ Inductive label :=
    The meaning of the modes in each case:
    (currently Opln is redundant, easy to remove in the future)
 
-                  PH        POWER      ARM 
+                  IMM        POWER      ARM 
    =================================================
    Aload Opln       rlx       ld         ldr
    Aload Orlx       rlx       ld         ldr

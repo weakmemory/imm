@@ -10,7 +10,7 @@ Require Import TraversalConfig.
 Require Import Setoid.
 Require Import MaxValue ViewRel.
 Require Import Promise ProgToExecution.
-Require Import Event_ph_promise.
+Require Import Event_imm_promise.
 Require Import SimulationRel.
 Require Import Omega.
 Require Import ProgToExecutionProperties.
@@ -100,9 +100,9 @@ Proof.
   intros state state' STEP.
   unfold lts_step. red in STEP.
   desc. cdes STEP.
-  assert (exists pe, lab_ph_promise lbls pe) as [pe XX].
+  assert (exists pe, lab_imm_promise lbls pe) as [pe XX].
   2: { exists pe. exists lbls. splits; auto. }
-  unfold lab_ph_promise.
+  unfold lab_imm_promise.
   destruct ISTEP0.
   all: rewrite LABELS.
   1,2: by exists ProgramEvent.silent.
@@ -131,7 +131,7 @@ Lemma sim_state_to_events_helper_add
       (TERMINAL : smode = sim_normal -> is_terminal state')
       (TEH : thread_restricted_execution G thread (ProgToExecution.G state'))
       (ISTEP : istep thread labels state yst)
-      (LABS : lab_ph_promise labels llab)
+      (LABS : lab_imm_promise labels llab)
       (LABELS : labels = ll :: nil)
       (UG : ProgToExecution.G yst =
             add (ProgToExecution.G state) thread (eindex state)
@@ -205,7 +205,7 @@ Lemma sim_state_to_events_helper_add_rmw
       (TERMINAL : smode = sim_normal -> is_terminal state')
       (TEH : thread_restricted_execution G thread (ProgToExecution.G state'))
       (ISTEP : istep thread labels state yst)
-      (LABS : lab_ph_promise labels llab)
+      (LABS : lab_imm_promise labels llab)
       (LABELS : labels = wl :: rl :: nil)
       (UG : ProgToExecution.G yst =
             add_rmw (ProgToExecution.G state) thread (eindex state)

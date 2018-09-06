@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of the common part of PH and s_PH  *)
+(** * Definition of the common part of IMM and s_IMM  *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -11,7 +11,7 @@ Require Import Events Execution Execution_eco.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH.
+Section IMM.
 
 Variable G : execution.
 
@@ -329,4 +329,4 @@ Lemma w_ex_acq_sb_w_in_ar_int : ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar_int.
 Proof. unfold ar_int. basic_solver 5. Qed.
 
 
-End PH.
+End IMM.

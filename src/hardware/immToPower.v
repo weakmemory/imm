@@ -1,17 +1,17 @@
 (******************************************************************************)
-(** * Compilation correctness from the PH memory model to the POWER model *)
+(** * Compilation correctness from the IMM memory model to the POWER model *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
 Require Import Power_fences Power_ppo Power.
-Require Import ph_common ph_hb ph.
+Require Import imm_common imm_hb imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section phToPower.
+Section immToPower.
 
 Variable G : execution.
 
@@ -52,7 +52,7 @@ Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
 
-(* ph *)
+(* imm *)
 Notation "'sw'" := G.(sw).
 Notation "'release'" := G.(release).
 Notation "'rs'" := G.(rs).
@@ -138,7 +138,7 @@ Qed.
 
 Lemma rs_in_rs_big: rs ⊆ rs_big.
 Proof.
-unfold ph_hb.rs, rs_big.
+unfold imm_hb.rs, rs_big.
 relsf; unionL.
 rewrite rtE, <- ct_step; basic_solver.
 rewrite rtE; relsf; unionL; [basic_solver 12|].
@@ -155,7 +155,7 @@ Definition sw_big := ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ rs_big ⨾ rf ⨾ (sb 
 
 Lemma sw_in_sw_big : sw ⊆ sw_big.
 Proof.
-unfold ph_hb.sw, ph_hb.release, sw_big.
+unfold imm_hb.sw, imm_hb.release, sw_big.
 rewrite rs_in_rs_big.
 relsf; unionL.
 by arewrite (rfi ⊆ rf).
@@ -181,7 +181,7 @@ Lemma sw_no_w_rel :
   sw ⊆ ⦗F ∩₁ Rel⦘ ⨾ sb ⨾ rs_big ⨾ rf ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘).
 Proof.
 rewrite sw_in_sw_big.
-unfold  sw_big, ph_hb.release.
+unfold  sw_big, imm_hb.release.
 rewrite (dom_l (wf_rs_bigD)).
 case_refl (⦗F⦘ ⨾ sb) at 1.
 by sin_rewrite no_w_rel; basic_solver.
@@ -201,7 +201,7 @@ Qed.*)
 Lemma bob_no_w_rel : 
   bob ⊆ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb.
 Proof.
-unfold ph_common.bob, ph_common.fwbob.
+unfold imm_common.bob, imm_common.fwbob.
 sin_rewrite !NO_W_REL.
 basic_solver 21.
 Qed.
@@ -290,7 +290,7 @@ Qed.
 *)
 
 (******************************************************************************)
-(** * ph.hb in terms of Power relations *)
+(** * imm.hb in terms of Power relations *)
 (******************************************************************************)
 
 Lemma external_helper : 
@@ -392,7 +392,7 @@ Qed.
 
 Lemma hb_in_sb_swe : hb ⊆ (sb ∪ (sw \ sb))⁺.
 Proof.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 rewrite (ri_union_re G sw) at 1.
 apply inclusion_t_t.
 basic_solver.
@@ -467,7 +467,7 @@ Proof.
 rewrite unionC.
 apply acyclic_union; [by apply CON|].
 rewrite !seqA.
-unfold ph.psc.
+unfold imm.psc.
 rewrite (dom_r (wf_ecoD WF)), !seqA.
 sin_rewrite rw_hb_f_in_hbp.
 rewrite (dom_l (wf_ecoD WF)), !seqA.
@@ -560,14 +560,14 @@ relsf; unionL.
       + arewrite_id (⦗W⦘) at 1; rels.
         sin_rewrite DATA_RMW.
         unionR left -> left.
-        unfold ph_common.ppo.
+        unfold imm_common.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.
       + arewrite (ctrl ⨾ ⦗W⦘ ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl).
         by generalize (ctrl_sb WF); basic_solver.
         unionR left -> left.
-        unfold ph_common.ppo.
+        unfold imm_common.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.
@@ -575,7 +575,7 @@ relsf; unionL.
         basic_solver.
         generalize (@sb_trans G); ins; relsf.
         unionR left -> left.
-        unfold ph_common.ppo.
+        unfold imm_common.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.
@@ -649,7 +649,7 @@ rewrite !unionA; rels.
 apply acyc_psc_hbp.
 Qed.
 
-Lemma PH_consistent : ph_consistent G.
+Lemma IMM_consistent : imm_consistent G.
 Proof.
 cdes CON.
 red; splits; eauto.
@@ -657,4 +657,4 @@ apply COH.
 apply C_EXT.
 Qed.
 
-End phToPower.
+End immToPower.

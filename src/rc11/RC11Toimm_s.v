@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * S_PH is weaker than PH   *)
+(** * S_IMM is weaker than IMM   *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -7,12 +7,12 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s RC11.
+Require Import imm_common imm_s_hb imm_s RC11.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section RC11_TO_PH_S.
+Section RC11_TO_IMM_S.
 
 Variable G : execution.
 
@@ -81,16 +81,16 @@ Proof.
   rewrite !inclusion_seq_eqv_l with (dom := E).
   unfolder; ins; desf.
   destruct (classic (x = y)) as [|NEQ]; desf.
-    by destruct Cint with z0; unfolder; unfold ph_s_hb.hb in *; eauto using t_trans.
+    by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans.
   eapply wf_sc_total in NEQ; desf; vauto.
   edestruct Csc; unfolder; eauto 10. 
 Qed.
 
-Lemma s_ph_consistentimplies_rc11_consistent (WF: Wf G) 
+Lemma s_imm_consistentimplies_rc11_consistent (WF: Wf G) 
       (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb) sc : 
-  ph_s.ph_consistent G sc -> rc11_consistent G.
+  imm_s.imm_consistent G sc -> rc11_consistent G.
 Proof.
-  unfold ph_s.ph_consistent, rc11_consistent; ins; desf; splits; ins.
+  unfold imm_s.imm_consistent, rc11_consistent; ins; desf; splits; ins.
     by eapply sc_order_implies_psc_acyclicity; eauto.
   rewrite rfi_union_rfe with (G:=G). 
   unfold Execution.rfi; rewrite inclusion_inter_l2, <- unionA, unionK.
@@ -98,17 +98,17 @@ Proof.
   1-2: by destruct WF; unfold Execution.rfe; rewrite wf_rfD; eauto using minus_doma, minus_domb with hahn. 
   assert (T:= @sb_trans G); relsf; clear T.
   eapply irreflexive_inclusion, Cext; apply inclusion_t_t2. 
-  unfold ph_s.ar, ph_common.ar_int; unionL; eauto with hahn.
+  unfold imm_s.ar, imm_common.ar_int; unionL; eauto with hahn.
   arewrite (R ≡₁ (R ∩₁ Acq) ∪₁ (R \₁ Acq)).
     by unfolder; split; ins; desf; destruct (is_acq lab x); auto. 
   rewrite id_union; relsf; unionL.
-    by rewrite inclusion_seq_eqv_r at 1; unfold ph_common.bob; auto 10 with hahn.
+    by rewrite inclusion_seq_eqv_r at 1; unfold imm_common.bob; auto 10 with hahn.
   arewrite (W ≡₁ (W ∩₁ Rel) ∪₁ (W \₁ Rel)) at 1.
     by unfolder; split; ins; desf; destruct (is_rel lab x); auto. 
   rewrite id_union; relsf; unionL.
-    by rewrite inclusion_seq_eqv_l at 1; unfold ph_common.bob, ph_common.fwbob; auto 10 with hahn.
+    by rewrite inclusion_seq_eqv_l at 1; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn.
   rewrite COND, <- seq_eqvK, seqA, <- seqA. 
-  apply inclusion_step2_ct; unfold ph_common.bob, ph_common.fwbob; auto 10 with hahn.
+  apply inclusion_step2_ct; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn.
 Qed.
 
-End RC11_TO_PH_S.
+End RC11_TO_IMM_S.

@@ -1,6 +1,6 @@
 (******************************************************************************)
 (** * A compilation correctness proof from the Promise memory model to
-      the PH memory model. *)
+      the IMM memory model. *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
@@ -9,7 +9,7 @@ From promising Require Import Basic DenseOrder
 
 Require Import Prog ProgToExecution.
 Require Import Events Execution.
-Require Import ph_s.
+Require Import imm_s.
 Require Import Traversal TraversalConfig.
 Require Import SimTraversal.
 Require Import SimulationRel.
@@ -66,7 +66,7 @@ Definition execution_final_memory (G : execution) final_memory :=
       << VAL  : val  G.(lab) w = Some (final_memory l) >> /\
       << LAST : ~ (exists w', G.(co) w w') >>.
 
-Lemma sim_traversal G sc (WF : Wf G) (PHCON : ph_consistent G sc) :
+Lemma sim_traversal G sc (WF : Wf G) (IMMCON : imm_consistent G sc) :
   exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
 Proof.
   apply sim_traversal_helper; auto.
@@ -101,7 +101,7 @@ Proof.
 Qed.
 
 Lemma cert_sim_traversal_helper G sc T thread
-      (WF : Wf G) (PHCON : ph_consistent G sc)
+      (WF : Wf G) (IMMCON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T) (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T)
       (RELCOV : is_w (lab G) ∩₁ is_rel (lab G) ∩₁ issued T ⊆₁ covered T)
       (RMWCOV : forall r w : actid, rmw G r w -> covered T r <-> covered T w) : 
@@ -128,7 +128,7 @@ Proof.
 Qed.
 
 Lemma cert_sim_step G sc thread PC T T' f_to f_from smode
-      (WF : Wf G) (PHCON : ph_consistent G sc)
+      (WF : Wf G) (IMMCON : imm_consistent G sc)
       (STEP : isim_trav_step G sc thread T T')
       (SIMREL : simrel_thread G sc PC thread T f_to f_from smode)
       (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
@@ -141,7 +141,7 @@ Proof.
 Qed.
 
 Lemma cert_sim_steps G sc thread PC T T' f_to f_from smode
-      (WF : Wf G) (PHCON : ph_consistent G sc)
+      (WF : Wf G) (IMMCON : imm_consistent G sc)
       (STEPS : (isim_trav_step G sc thread)⁺ T T')
       (SIMREL : simrel_thread G sc PC thread T f_to f_from smode)
       (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
@@ -173,7 +173,7 @@ Proof.
 Qed.
 
 Lemma cert_simulation G sc thread PC T f_to f_from
-      (WF : Wf G) (PHCON : ph_consistent G sc)
+      (WF : Wf G) (IMMCON : imm_consistent G sc)
       (SIMREL : simrel_thread G sc PC thread T f_to f_from sim_certification)
       (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
   exists T' PC' f_to' f_from',
@@ -183,7 +183,7 @@ Lemma cert_simulation G sc thread PC T f_to f_from
 Proof.
   assert (tc_coherent G sc T) as TCCOH.
   { apply SIMREL. }
-  generalize (cert_sim_traversal_helper WF PHCON TCCOH NCOV); intros H.
+  generalize (cert_sim_traversal_helper WF IMMCON TCCOH NCOV); intros H.
   destruct H as [T'].
   1,2: by apply SIMREL.
   desc.
@@ -223,7 +223,7 @@ Qed.
 Lemma simrel_thread_bigger_sc_memory G sc T thread f_to f_from threads memory
       sc_view memory' sc_view'
       lang state local
-      (WF : Wf G) (PHCON : ph_consistent G sc)
+      (WF : Wf G) (IMMCON : imm_consistent G sc)
       (THREAD  : IdentMap.find thread threads = Some (existT _ lang state, local))
       (FUTURE : Memory.future Memory.init memory')
       (MEM_LE : Memory.le memory memory')
@@ -254,7 +254,7 @@ Proof.
   exists p_v; splits; auto.
 Qed.
 
-Section PromiseToPH.
+Section PromiseToIMM.
   
 Variable prog : Prog.t.
 Hypothesis TNONULL : ~ IdentMap.In BinNums.xH prog.
@@ -277,7 +277,7 @@ Definition program_execution (prog : Prog.t) (G : execution) :=
 Hypothesis PROG_EX : program_execution prog G.
 Hypothesis WF : Wf G.
 Variable sc : relation actid.
-Hypothesis PHCON : ph_consistent G sc.
+Hypothesis IMMCON : imm_consistent G sc.
 
 Lemma w_ex_is_xacq : W_ex G ⊆₁ W_ex G ∩₁ is_xacq (lab G).
 Proof.
@@ -571,9 +571,9 @@ Proof.
     inv TID. unfold Local.init. simpls.
     apply Memory.bot_le. }
   { assert (complete G) as CG.
-    { apply PHCON. }
+    { apply IMMCON. }
     assert (Execution_eco.sc_per_loc G) as ESC.
-    { apply ph_s_hb.coherence_sc_per_loc. apply PHCON. }
+    { apply imm_s_hb.coherence_sc_per_loc. apply IMMCON. }
     red. splits; simpls.
     { ins. destruct H. desf. }
     all: ins; exfalso.
@@ -678,7 +678,7 @@ Lemma simulation :
     ⟪ PSTEP  : conf_step＊ (conf_init prog) PC ⟫ /\
     ⟪ SIMREL : simrel G sc PC T f_to f_from ⟫.
 Proof.
-  generalize (sim_traversal WF PHCON); ins; desc.
+  generalize (sim_traversal WF IMMCON); ins; desc.
   exists T. apply rtE in H.
   destruct H as [H|H].
   { red in H. desf.
@@ -955,7 +955,7 @@ Proof.
          { apply TCCOH in ISS. apply ISS. }
          { by rewrite LOC. }
          { exfalso. apply Execution_eco.no_co_to_init in CO; auto.
-           2: { apply ph_s_hb.coherence_sc_per_loc. apply PHCON. }
+           2: { apply imm_s_hb.coherence_sc_per_loc. apply IMMCON. }
            apply seq_eqv_r in CO. desf. }
          exfalso. apply LAST. eauto. }
     rewrite BB in *. rewrite <- TO in *.
@@ -990,7 +990,7 @@ Proof.
   eapply TimeFacts.lt_le_lt; eauto.
 Qed.
 
-Theorem promise2ph : promise_allows prog final_memory.
+Theorem promise2imm : promise_allows prog final_memory.
 Proof.
   red.
   destruct simulation as [T [PC H]]. desc.
@@ -1001,4 +1001,4 @@ Proof.
   eapply same_final_memory; eauto. 
 Qed.
 
-End PromiseToPH.
+End PromiseToIMM.

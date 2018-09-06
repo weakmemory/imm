@@ -5,7 +5,7 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 
 Require Import PArith.
 Require Import CombRelations CombRelationsMore.
@@ -31,7 +31,7 @@ Section PlainStep.
 Variable G : execution.
 Variable WF : Wf G.
 Variable sc : relation actid.
-Variable CON : ph_consistent G sc.
+Variable CON : imm_consistent G sc.
 
 Notation "'E'" := G.(acts_set).
 Notation "'sb'" := G.(sb).

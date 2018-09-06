@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of happens-before in the PH memory model (similar to C11) *)
+(** * Definition of happens-before in the IMM memory model (similar to C11) *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -11,7 +11,7 @@ Require Import Events Execution Execution_eco.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH_hb.
+Section IMM_hb.
 
 Variable G : execution.
 
@@ -488,7 +488,7 @@ apply inclusion_union_l.
 Qed.
 
 (******************************************************************************)
-(** PH-coherence and its consequences **   *)
+(** IMM-coherence and its consequences **   *)
 (******************************************************************************)
 
 Definition coherence := irreflexive (hb ⨾ eco).
@@ -666,4 +666,4 @@ by hahn_rewrite (wf_rmwD WF) in RMW_x_y; hahn_rewrite (wf_rfD WF) in H0;
  exfalso; type_unfolder; unfolder in *; desf.
 Qed.
 
-End PH_hb.
+End IMM_hb.

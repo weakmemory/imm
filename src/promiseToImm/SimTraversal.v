@@ -4,7 +4,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s ph_s_hb ph_common.
+Require Import imm_s imm_s_hb imm_common.
 Require Import CombRelations.
 Require Import TraversalConfig.
 Require Import Traversal.
@@ -17,7 +17,7 @@ Section SimTraversal.
   Variable WF : Wf G.
   Variable COM : complete G.
   Variable sc : relation actid.
-  Variable PHCON : ph_consistent G sc.
+  Variable IMMCON : imm_consistent G sc.
 
   Notation "'acts'" := G.(acts).
   Notation "'sb'" := G.(sb).

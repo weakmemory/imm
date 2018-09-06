@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Weaker PH model for Promise->PH    *)
+(** * Weaker IMM model for Promise->IMM    *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -7,12 +7,12 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_common.
+Require Import imm_s_hb imm_common.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section PH.
+Section IMM.
 
 Variable G : execution.
 Variable sc : relation actid.
@@ -90,7 +90,7 @@ Definition acyc_ext := acyclic ar.
 
 Definition coh_sc := irreflexive (sc ;; hb ;; (eco ;; hb)^?).
 
-Definition ph_consistent := 
+Definition imm_consistent := 
   ⟪ Wf_sc : wf_sc ⟫ /\
   ⟪ Csc   : coh_sc ⟫ /\
   ⟪ Comp  : complete G ⟫ /\
@@ -100,7 +100,7 @@ Definition ph_consistent :=
 
 Implicit Type WF : Wf G.
 Implicit Type WF_SC : wf_sc.
-Implicit Type PHCON : ph_consistent.
+Implicit Type IMMCON : imm_consistent.
 Implicit Type CSC : coh_sc.
 Implicit Type COMP : complete G.
 Implicit Type COH : coherence G.
@@ -212,16 +212,16 @@ Qed.
 Lemma sw_in_ar WF : 
   sw ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ∪ sb.
 Proof.
-unfold ph_s_hb.sw, ph_s_hb.release, ph_s_hb.rs.
+unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
 rewrite (sw_in_ar_helper WF).
 rewrite rfi_union_rfe.
 generalize (@sb_trans G); ins.
 generalize (@sb_same_loc_trans G); ins.
 assert (BB: (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ ar^?).
 { arewrite (⦗Acq⦘ ⊆ ⦗Acq/Rel⦘) by mode_solver.
-by unfold ar, ph_common.ar_int, ph_common.bob, ph_common.fwbob; basic_solver 21. }
+by unfold ar, imm_common.ar_int, imm_common.bob, imm_common.fwbob; basic_solver 21. }
 assert (CC: rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar).
-{ unfold ar, ph_common.ar_int, ph_common.ppo.
+{ unfold ar, imm_common.ar_int, imm_common.ppo.
   rewrite <- ct_step, (dom_l (wf_rmwD WF)), (rmw_in_sb WF) at 1.
   generalize (@sb_trans G) (R_ex_in_R); basic_solver 21. }
 rewrite (dom_l (wf_rfeD WF)).
@@ -274,7 +274,7 @@ Qed.
 Lemma f_sc_hb_f_sc_in_ar WF : 
   ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar⁺.
 Proof.
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 rewrite (dom_r (wf_swD WF)).
 rewrite (sw_in_ar WF); relsf.
 arewrite ((sb ∪ ((sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^?) ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘
@@ -282,14 +282,14 @@ arewrite ((sb ∪ ((sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^?) ⨾ ⦗F �
 by basic_solver 21.
 rewrite path_union.
 generalize (@sb_trans G); ins; relsf; unionL.
-by rewrite <- ct_step; unfold ar, ph_common.ar_int, ph_common.bob,  ph_common.fwbob; mode_solver 21.
+by rewrite <- ct_step; unfold ar, imm_common.ar_int, imm_common.bob,  imm_common.fwbob; mode_solver 21.
 rewrite ct_seq_swap, !seqA.
 rewrite ct_rotl, !seqA.
 arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar^?).
 { case_refl (rmw ⨾ sb^?).
   - arewrite (⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ∪ ⦗F ∩₁ Acq/Rel⦘) by mode_solver.
-    unfold ar, ph_common.ar_int, ph_common.bob, ph_common.fwbob; basic_solver 15.
-  - unfold ar, ph_common.ar_int, ph_common.ppo.
+    unfold ar, imm_common.ar_int, imm_common.bob, imm_common.fwbob; basic_solver 15.
+  - unfold ar, imm_common.ar_int, imm_common.ppo.
     rewrite <- ct_step.
     arewrite_id ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘; relsf.
     rewrite (dom_l (wf_rmwD WF)) at 1.
@@ -299,9 +299,9 @@ arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? �
 arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb^?).
 by rewrite (rmw_in_sb WF); basic_solver.
 arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar^?).
-by unfold ar, ph_common.ar_int, ph_common.bob, ph_common.fwbob; mode_solver 21.
+by unfold ar, imm_common.ar_int, imm_common.bob, imm_common.fwbob; mode_solver 21.
 arewrite (⦗F ∩₁ Sc⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar^?).
-by unfold ar, ph_common.ar_int, ph_common.bob, ph_common.fwbob; mode_solver 21.
+by unfold ar, imm_common.ar_int, imm_common.bob, imm_common.fwbob; mode_solver 21.
 arewrite (ar ⊆ ar⁺) at 1.
 arewrite (ar ⊆ ar⁺) at 2.
 arewrite (ar ⊆ ar⁺) at 3.
@@ -318,22 +318,22 @@ sin_rewrite (f_sc_hb_f_sc_in_ar WF).
 apply F_sc_ar_F_sc; done.
 Qed.
 
-Lemma wf_ar WF PHCON : well_founded ar.
+Lemma wf_ar WF IMMCON : well_founded ar.
 Proof.
   eapply wf_finite; auto.
-  { cdes PHCON. apply Cext. }
+  { cdes IMMCON. apply Cext. }
   rewrite wf_arE; auto.
-  2: by apply PHCON.
+  2: by apply IMMCON.
   apply doma_eqv.
 Qed.
 
-Lemma wf_ar_tc WF PHCON : well_founded (ar⁺).
+Lemma wf_ar_tc WF IMMCON : well_founded (ar⁺).
 Proof.
   eapply wf_finite; auto.
-  { cdes PHCON. unfold acyclic. rewrite ct_of_ct.
+  { cdes IMMCON. unfold acyclic. rewrite ct_of_ct.
     apply Cext. }
   rewrite wf_arE; auto.
-  2: by apply PHCON.
+  2: by apply IMMCON.
   apply ct_doma. apply doma_eqv.
 Qed.
 
@@ -402,4 +402,4 @@ all: try (unfolder in *; basic_solver 12).
 all: try (unfolder in *; basic_solver 16).
 Qed.
 
-End PH.
+End IMM.

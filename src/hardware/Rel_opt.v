@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Weakening redundant release writes in PH *)
+(** * Weakening redundant release writes in IMM *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
@@ -7,7 +7,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_hb ph.
+Require Import imm_common imm_hb imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -238,7 +238,7 @@ Proof. by unfold G'; ins. Qed.
 
 Lemma bob_eq : bob ⊆ bob'⁺ ∪ rmw' ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘.
 Proof.
-unfold ph_common.bob, ph_common.fwbob.
+unfold imm_common.bob, imm_common.fwbob.
 rewrite F_eq, R_eq, W_eq, Rel_eq, sb_eq, F_AcqRel_eq, R_Acq_eq, same_loc_eq.
 unionL.
 - rewrite W_REL; unionL.
@@ -257,7 +257,7 @@ Qed.
 
 Lemma ppo_eq: ppo' ≡ ppo.
 Proof.
-unfold ph_common.ppo, Execution.rfi.
+unfold imm_common.ppo, Execution.rfi.
 by rewrite W_eq, R_eq, sb_eq, data_eq, addr_eq, ctrl_eq, rf_eq, R_ex_eq.
 Qed.
 
@@ -269,12 +269,12 @@ Qed.
 
 Lemma rs_eq : rs' ≡ rs.
 Proof.
-by unfold ph_hb.rs; rewrite W_eq, same_loc_eq, sb_eq, rf_eq, rmw_eq.
+by unfold imm_hb.rs; rewrite W_eq, same_loc_eq, sb_eq, rf_eq, rmw_eq.
 Qed.
 
 Lemma rmw_release_eq WF WFp: rmw ⨾ release ⊆ rmw' ⨾ rs'.
 Proof.
-unfold ph_hb.release.
+unfold imm_hb.release.
 rewrite (dom_r (wf_rmwD WF)), !seqA.
 arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
 by type_solver.
@@ -289,7 +289,7 @@ Proof.
 rewrite (dom_l (wf_releaseD WF)).
 rewrite (dom_l (wf_releaseD WFp)). 
 
-unfold ph_hb.release; rewrite sb_eq, rs_eq, F_eq, Rel_eq, W_eq.
+unfold imm_hb.release; rewrite sb_eq, rs_eq, F_eq, Rel_eq, W_eq.
 arewrite (⦗FW ∩₁ Rel⦘ ⨾ ⦗Rel⦘ ≡ ⦗F ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘) by basic_solver 12.
 
 arewrite (⦗FW ∩₁ (Rel \₁ W ∩₁ Rel)⦘ ⨾ ⦗Rel \₁ W ∩₁ Rel⦘ ≡ ⦗F ∩₁ Rel⦘).
@@ -307,7 +307,7 @@ Qed.
 
 Lemma F_release_eq WF: ⦗F⦘ ⨾ release ⊆ release'.
 Proof.
-unfold ph_hb.release; rewrite sb_eq, rs_eq, F_eq, Rel_eq.
+unfold imm_hb.release; rewrite sb_eq, rs_eq, F_eq, Rel_eq.
 rewrite (dom_l (wf_rsD WF)).
 case_refl _; [type_solver 12|].
 arewrite (⦗F⦘ ⨾ ⦗Rel⦘ ⊆ ⦗Rel \₁ W ∩₁ Rel⦘).
@@ -330,14 +330,14 @@ Qed.
 
 Lemma F_sw_eq WF: ⦗F⦘ ⨾ sw ⊆ sw'.
 Proof.
-unfold ph_hb.sw.
+unfold imm_hb.sw.
 sin_rewrite (F_release_eq WF).
 by sin_rewrite (sw_eq_helper WF).
 Qed.
 
 Lemma rmw_sw_eq WF WFp: rmw ⨾ sw ⊆ rmw' ⨾ rs' ⨾  (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾ (sb' ⨾ ⦗F'⦘)^? ⨾ ⦗Acq'⦘.
 Proof.
-unfold ph_hb.sw.
+unfold imm_hb.sw.
 sin_rewrite !(rmw_release_eq WF WFp).
 sin_rewrite (sw_eq_helper WF).
 by relsf; rewrite !seqA.
@@ -345,7 +345,7 @@ Qed.
 
 Lemma non_rmw_sw_eq WF WFp: (sb \ rmw) ⨾ sw ⊆ sb'^? ⨾ sw'.
 Proof.
-unfold ph_hb.sw.
+unfold imm_hb.sw.
 sin_rewrite !(non_rmw_release_eq WF WFp).
 sin_rewrite (sw_eq_helper WF).
 by relsf; rewrite !seqA.
@@ -354,15 +354,15 @@ Qed.
 Lemma hb_eq1 WF WFp: 
   hb ⊆ hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?.
 Proof.
-unfold ph_hb.hb at 1.
+unfold imm_hb.hb at 1.
 apply inclusion_t_ind_left.
 unionL.
 - rewrite <- sb_eq.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 rewrite <- ct_step.
 basic_solver.
 - rewrite (dom_l (wf_swD WF)) at 1.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 rewrite <- ct_step.
 generalize (F_sw_eq WF).
 basic_solver 21.
@@ -401,14 +401,14 @@ Lemma hb_eq WF WFp:
 Proof.
 rewrite (hb_alt2 WF), (F_sw_eq WF), (non_rmw_sw_eq WF WFp), (rmw_sw_eq WF WFp).
 arewrite (sb ∪ sw' ∪ sb'^? ⨾ sw' ⊆ hb').
-by rewrite <- sb_eq, sb_in_hb, sw_in_hb; unfold ph_hb.hb; relsf.
+by rewrite <- sb_eq, sb_in_hb, sw_in_hb; unfold imm_hb.hb; relsf.
 generalize (@hb_trans G'); ins; relsf; basic_solver 42.
 Qed.
 *)
 Lemma psc_eq WF WFp SC_PER_LOC COMP COHp COMPp: 
   psc ⊆ psc'.
 Proof.
-unfold ph.psc.
+unfold imm.psc.
 rewrite (hb_eq1 WF WFp) at 1 2.
 
 arewrite (⦗F ∩₁ Sc⦘ ⨾ (hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?) ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb').
@@ -434,7 +434,7 @@ by rewrite (dom_r (wf_rmwD WF)); type_solver 12.
 
 arewrite ((sb ⨾ ⦗F ∩₁ Acq⦘)^? ⨾ hb'^? ⊆ hb'^?).
 rewrite <- sb_eq.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 arewrite (sb' ⊆ (sb' ∪ sw')) at 1; rels.
 
 arewrite_id ⦗F ∩₁ Acq⦘.
@@ -601,7 +601,7 @@ relsf; unionL.
 rewrite !seqA.
 arewrite (sb' ⨾ sb' ⨾ ⦗W'⦘ ⊆ sb').
 by generalize (@sb_trans G'); basic_solver.
-unfold ph_common.bob, ph_common.fwbob.
+unfold imm_common.bob, imm_common.fwbob.
 
 case_refl _.
 unfolder; ins; eapply t_step; basic_solver 21.
@@ -610,7 +610,7 @@ unfolder; ins; desf; eapply t_trans; eapply t_step; basic_solver 21.
 -
 
 arewrite (rmw' ⨾ sb' ⨾ ⦗W'⦘ ⊆ ppo').
-{ unfold ph_common.ppo; rewrite <- ct_step.
+{ unfold imm_common.ppo; rewrite <- ct_step.
 rewrite (dom_l (wf_rmwD WFp)) at 1; rewrite !seqA.
 rewrite (dom_l (wf_rmwD WFp)), R_ex_in_R at 1; rewrite !seqA.
 rewrite (rmw_in_sb WFp).
@@ -632,9 +632,9 @@ Proof.
 by unfold rmw_atomicity; rewrite rmw_eq, fr_eq, sb_eq, co_eq.
 Qed.
 
-Lemma rel_opt WFp COMPp  (CONSp: ph_consistent G'): ph_consistent G.
+Lemma rel_opt WFp COMPp  (CONSp: imm_consistent G'): imm_consistent G.
 Proof.
-unfold ph_consistent in *; unnw.
+unfold imm_consistent in *; unnw.
 generalize coherence_sc_per_loc, wf_eq, complete_eq, sc_per_loc_eq, coherence_eq, acyc_ext_eq, rmw_atomicity_eq.
 basic_solver 12.
 Qed.

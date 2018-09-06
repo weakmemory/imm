@@ -1,17 +1,17 @@
 (******************************************************************************)
-(** * Compilation correctness from the PH memory model to the TSO model *)
+(** * Compilation correctness from the IMM memory model to the TSO model *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
 Require Import TSO.
-Require Import ph_common ph_hb ph.
+Require Import imm_common imm_hb imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section phToTSO.
+Section immToTSO.
 
 Variable G : execution.
 
@@ -52,7 +52,7 @@ Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
 
-(* ph *)
+(* imm *)
 Notation "'sw'" := G.(sw).
 Notation "'release'" := G.(release).
 Notation "'rs'" := G.(rs).
@@ -87,7 +87,7 @@ Proof. apply CON. Qed.
 
 Lemma release_in : release ⊆ sb^? ;; <|W|> ;; (ppot ∪ rfe)^*.
 Proof.
-unfold ph_hb.release, ph_hb.rs.
+unfold imm_hb.release, imm_hb.rs.
 arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⊆ sb^?) by basic_solver.
 arewrite (⦗W⦘ ⊆ ⦗W⦘ ;; ⦗W⦘) at 1. 
 by basic_solver.
@@ -117,7 +117,7 @@ Qed.
 Lemma sw_in : sw ⊆ sb ∪ sb^? ;; <|W|> ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
 Proof.
 generalize (@sb_trans G); ins.
-unfold ph_hb.sw.
+unfold imm_hb.sw.
 rewrite (dom_r (wf_releaseD WF)).
 rewrite release_in.
 arewrite ((sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ sb^?) by basic_solver.
@@ -150,7 +150,7 @@ Qed.
 Lemma hb_in : hb ⊆ sb ∪ sb^? ;; <|W|> ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
 Proof.
 generalize (@sb_trans G); ins.
-unfold ph_hb.hb.
+unfold imm_hb.hb.
 rewrite sw_in, <- !unionA; rels.
 apply inclusion_t_ind_right.
 basic_solver.
@@ -242,7 +242,7 @@ Qed.
 Lemma psct : psc ⊆ sb ∪ sb ;; hbt^+ ;; sb.
 Proof.
 generalize (@sb_trans G); ins.
-unfold ph.psc.
+unfold imm.psc.
 rewrite (wf_ecoD WF), !seqA.
 rewrite eco_in.
 rewrite hb_in.
@@ -366,7 +366,7 @@ Qed.
 (** * Final corollary   *)
 (******************************************************************************)
 
-Lemma PH_consistent : ph_consistent G.
+Lemma IMM_consistent : imm_consistent G.
 Proof.
 cdes CON.
 red; splits; eauto.
@@ -374,7 +374,7 @@ apply Coherence.
 apply C_EXT.
 Qed.
 
-End phToTSO.
+End immToTSO.
 
 
 

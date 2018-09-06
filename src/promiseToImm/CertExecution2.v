@@ -5,7 +5,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_s_hb ph_s ph_common_more.
+Require Import imm_common imm_s_hb imm_s imm_common_more.
 Require Import SubExecution.
 Require Import CertCOhelper.
 
@@ -844,14 +844,14 @@ Proof. unfold Execution.W_ex; ins. Qed.
 
 Lemma cert_fwbob : certG.(fwbob) ≡ Gfwbob.
 Proof. 
-unfold ph_common.fwbob.
+unfold imm_common.fwbob.
 rewrite cert_W, cert_F, cert_Rel, cert_AcqRel.
 by rewrite cert_sb, cert_same_loc.
 Qed.
 
 Lemma cert_bob : certG.(bob) ≡ Gbob.
 Proof. 
-unfold ph_common.bob.
+unfold imm_common.bob.
 by rewrite cert_R, cert_Acq, cert_fwbob, cert_sb.
 Qed.
 
@@ -903,7 +903,7 @@ Qed.
 
 Lemma cert_release : certG.(release) ≡ Grelease.
 Proof.
-unfold ph_s_hb.release, ph_s_hb.rs; ins.
+unfold imm_s_hb.release, imm_s_hb.rs; ins.
 rewrite cert_F, cert_Rel, cert_W, cert_same_loc, cert_sb.
 rewrite (dom_rel_helper dom_rmw_in_D) at 1.
 seq_rewrite cert_rf_D.
@@ -950,7 +950,7 @@ Qed.
 
 Lemma cert_sb_sw : Gsb ∪ Csw ≡ Gsb ∪ Gsw.
 Proof.
-unfold ph_s_hb.sw; ins.
+unfold imm_s_hb.sw; ins.
 rewrite cert_F, cert_Acq, cert_release, cert_sb.
 rewrite !crE; relsf; rewrite !seqA.
 relsf; split; unionL.
@@ -980,7 +980,7 @@ relsf; split; unionL.
 - rewrite rfi_union_rfe; relsf; unionL.
   2: by rewrite <- R_Acq_codom_rfe at 2; rewrite (dom_r (wf_rfeD WF)) at 1; basic_solver 21.
   arewrite (Grelease ⊆ Gsb^? ∪ Grelease ⨾ ⦗GW_ex⦘) at 1.
-  { unfold ph_s_hb.release, ph_s_hb.rs.
+  { unfold imm_s_hb.release, imm_s_hb.rs.
     rewrite rtE at 1; relsf; unionL.
     generalize (@sb_trans G); basic_solver 12.
     rewrite rmw_W_ex at 1.
@@ -996,7 +996,7 @@ Qed.
 
 Lemma cert_hb : Chb ≡ Ghb.
 Proof.
-by unfold ph_s_hb.hb; rewrite cert_sb_sw.
+by unfold imm_s_hb.hb; rewrite cert_sb_sw.
 Qed.
 
 
@@ -1827,7 +1827,7 @@ Qed.
 
 Lemma cert_acyc_ext : acyc_ext certG sc.
 Proof.
-red; unfold ph_s.ar.
+red; unfold imm_s.ar.
 rewrite unionC.
 apply acyclic_union1.
 - rewrite (ar_int_in_sb WF_cert); apply sb_acyclic.
@@ -1872,7 +1872,7 @@ Qed.
 (******************************************************************************)
 
 
-Lemma cert_ph_consistent : ph_consistent certG sc.
+Lemma cert_imm_consistent : imm_consistent certG sc.
 Proof.
 red; splits; eauto using WF_SC_cert, cert_acyc_ext, cert_coh_sc, cert_complete, cert_coherence, cert_rmw_atomicity.
 Qed.

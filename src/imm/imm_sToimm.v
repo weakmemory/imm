@@ -1,17 +1,17 @@
 (******************************************************************************)
-(** * S_PH is weaker than PH   *)
+(** * S_IMM is weaker than IMM   *)
 (******************************************************************************)
 
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxRel.
 Require Import Events Execution Execution_eco.
-Require Import ph_common ph_hb ph_s_hb ph ph_s.
+Require Import imm_common imm_hb imm_s_hb imm imm_s.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section S_PH_TO_PH.
+Section S_IMM_TO_IMM.
 
 Variable G : execution.
 
@@ -35,23 +35,23 @@ Notation "'rfe'" := G.(rfe).
 
 Notation "'detour'" := G.(detour).
 
-Notation "'rs'" := G.(ph_hb.rs).
-Notation "'release'" := G.(ph_hb.release).
-Notation "'sw'" := G.(ph_hb.sw).
-Notation "'hb'" := G.(ph_hb.hb).
-Notation "'psc'" := G.(ph.psc).
+Notation "'rs'" := G.(imm_hb.rs).
+Notation "'release'" := G.(imm_hb.release).
+Notation "'sw'" := G.(imm_hb.sw).
+Notation "'hb'" := G.(imm_hb.hb).
+Notation "'psc'" := G.(imm.psc).
 
-Notation "'s_rs'" := G.(ph_s_hb.rs).
-Notation "'s_release'" := G.(ph_s_hb.release).
-Notation "'s_sw'" := G.(ph_s_hb.sw).
-Notation "'s_hb'" := G.(ph_s_hb.hb).
+Notation "'s_rs'" := G.(imm_s_hb.rs).
+Notation "'s_release'" := G.(imm_s_hb.release).
+Notation "'s_sw'" := G.(imm_s_hb.sw).
+Notation "'s_hb'" := G.(imm_s_hb.hb).
 
 Notation "'ar_int'" := G.(ar_int).
 Notation "'ppo'" := G.(ppo).
 Notation "'bob'" := G.(bob).
 
-Notation "'ar'" := G.(ph.ar).
-Notation "'s_ar'" := G.(ph_s.ar).
+Notation "'ar'" := G.(imm.ar).
+Notation "'s_ar'" := G.(imm_s.ar).
 
 Notation "'lab'" := G.(lab).
 Notation "'loc'" := (loc lab).
@@ -82,7 +82,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (******************************************************************************)
 Lemma s_rs_in_rs : s_rs ⊆ rs.
 Proof.
-unfold ph_s_hb.rs, ph_hb.rs.
+unfold imm_s_hb.rs, imm_hb.rs.
 hahn_frame.
 rewrite rtE at 1; relsf.
 apply inclusion_union_l.
@@ -99,13 +99,13 @@ Qed.
 
 Lemma s_release_in_release : s_release ⊆ release.
 Proof.
-unfold ph_s_hb.release, ph_hb.release.
+unfold imm_s_hb.release, imm_hb.release.
 by rewrite s_rs_in_rs.
 Qed.
 
 Lemma s_sw_in_sw : s_sw ⊆ sw.
 Proof.
-unfold ph_s_hb.sw, ph_hb.sw.
+unfold imm_s_hb.sw, imm_hb.sw.
 rewrite s_release_in_release.
 rewrite (rfi_union_rfe).
 basic_solver 21.
@@ -113,13 +113,13 @@ Qed.
 
 Lemma s_hb_in_hb : s_hb ⊆ hb.
 Proof.
-unfold ph_s_hb.hb, ph_hb.hb.
+unfold imm_s_hb.hb, imm_hb.hb.
 by rewrite s_sw_in_sw.
 Qed.
 
 (*Lemma s_ar_in_ar sc (WF_SC: wf_sc G sc) : s_ar sc ⊆ ar.
 Proof.
-unfold ph_s.ar, ph.ar.
+unfold imm_s.ar, imm.ar.
 destr
 by rewrite s_psc_in_psc.
 Qed.
@@ -130,21 +130,21 @@ Qed.
 (******************************************************************************)
 
 Lemma coherence_implies_s_coherence (WF: Wf G) (COMP: complete G) :
-ph_hb.coherence G -> ph_s_hb.coherence G.
+  imm_hb.coherence G -> imm_s_hb.coherence G.
 Proof.
-unfold ph_s_hb.coherence.
+unfold imm_s_hb.coherence.
 unfolder; ins; desf.
-eapply ph_hb.hb_irr; eauto.
+eapply imm_hb.hb_irr; eauto.
 eapply s_hb_in_hb; edone.
-unfold ph_hb.coherence in *; unfolder in *.
+unfold imm_hb.coherence in *; unfolder in *.
 eapply H; eexists; split; eauto.
 eapply s_hb_in_hb; edone.
 Qed.
 
-Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G): ph.acyc_ext G -> 
-  exists sc, wf_sc G sc /\ ph_s.acyc_ext G sc /\ coh_sc G sc.
+Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G): imm.acyc_ext G -> 
+  exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
 Proof.
-unfold ph_s.acyc_ext, ph.acyc_ext.
+unfold imm_s.acyc_ext, imm.acyc_ext.
 intro.
 exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext G.(acts) ar ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
 splits.
@@ -159,7 +159,7 @@ splits.
    * rewrite <- restr_relE.
      apply irreflexive_restr.
        by apply tot_ext_irr.
-- unfold ph_s.ar, ph.ar.
+- unfold imm_s.ar, imm.ar.
   apply acyclic_mon with (r:= tot_ext (acts G) (psc ∪ rfe ∪ ar_int)).
   apply trans_irr_acyclic.
   apply tot_ext_irr, H.
@@ -177,20 +177,20 @@ splits.
   by rewrite f_sc_hb_f_sc_in_ar; basic_solver 12.
   rewrite s_hb_in_hb, !seqA.
   arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗E ∩₁ F ∩₁ Sc⦘ ⊆ psc).
-  unfold ph.psc; basic_solver 12.
+  unfold imm.psc; basic_solver 12.
   arewrite (psc ⊆ ar); vauto.
   rewrite (tot_ext_extends (acts G) ar) at 2.
   generalize (tot_ext_trans (acts G) ar); ins; relsf.
   by eapply tot_ext_irr.
 Qed.
 
-Lemma ph_consistentimplies_s_ph_consistent (WF: Wf G): ph.ph_consistent G -> 
-  exists sc, ph_s.ph_consistent G sc.
+Lemma imm_consistentimplies_s_imm_consistent (WF: Wf G): imm.imm_consistent G -> 
+  exists sc, imm_s.imm_consistent G sc.
 Proof.
-unfold ph_s.ph_consistent, ph.ph_consistent.
+unfold imm_s.imm_consistent, imm.imm_consistent.
 ins; desf.
 apply acyc_ext_implies_s_acyc_ext in Cext; eauto; desf.
 exists sc; splits; eauto 10 using coherence_implies_s_coherence.
 Qed.
 
-End S_PH_TO_PH.
+End S_IMM_TO_IMM.

@@ -4,7 +4,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 Require Import CombRelations.
 Require Import TraversalConfig.
 
@@ -16,7 +16,7 @@ Section Traversal.
   Variable WF : Wf G.
   Variable COM : complete G.
   Variable sc : relation actid.
-  Variable PHCON : ph_consistent G sc.
+  Variable IMMCON : imm_consistent G sc.
 
   Notation "'acts'" := G.(acts).
   Notation "'sb'" := G.(sb).
@@ -299,14 +299,14 @@ ins; desc; subst.
                       doma (⦗W⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq w⦘) (issued T) /\
                       E w) as WMIN.
     { intros P; desf.
-      induction w using (well_founded_ind (wf_ar_tc WF PHCON)).
+      induction w using (well_founded_ind (wf_ar_tc WF IMMCON)).
       destruct (classic (doma (⦗W⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq w⦘) (issued T))); eauto.
       unfolder in H0.
       apply not_all_ex_not in H0; desf.
       apply not_all_ex_not in H0; desf.
       apply imply_to_and in H0; desf.
       eapply H; eauto.
-      cdes PHCON.
+      cdes IMMCON.
       hahn_rewrite (dom_l (wf_arE WF Wf_sc)) in H2.
       hahn_rewrite inclusion_ct_seq_eqv_l in H2.
       apply seq_eqv_l in H2; desf. }
@@ -316,7 +316,7 @@ ins; desc; subst.
                       doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
                       E f) as FMIN.
     { intros P; desf.
-      induction f using (well_founded_ind (wf_ar_tc WF PHCON)).
+      induction f using (well_founded_ind (wf_ar_tc WF IMMCON)).
       destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T)))
         as [H0 | H0]; eauto.
       rewrite seq_eqv_r, seq_eqv_l in H0.
@@ -325,7 +325,7 @@ ins; desc; subst.
       apply not_all_ex_not in H0; desf.
       apply imply_to_and in H0; desf.
       eapply H; eauto.
-      cdes PHCON.
+      cdes IMMCON.
       hahn_rewrite (dom_l (wf_arE WF Wf_sc)) in H2.
       hahn_rewrite inclusion_ct_seq_eqv_l in H2.
       apply seq_eqv_l in H2; desf. }
@@ -343,7 +343,7 @@ ins; desc; subst.
       apply not_and_or in NN; desf; apply NN.
       { apply H. }
       right; split; auto.
-      cdes PHCON.
+      cdes IMMCON.
       unfold dom_cond. rewrite Wf_sc.(wf_scD).
       type_solver. }
     
@@ -457,7 +457,7 @@ ins; desc; subst.
           intros x [z X]. apply seq_eqv_r in X; desf.
           eapply FMIN1.
           apply seq_eqv_l; split.
-          { cdes PHCON. apply Wf_sc.(wf_scD) in X. apply seq_eqv_l in X; desf. }
+          { cdes IMMCON. apply Wf_sc.(wf_scD) in X. apply seq_eqv_l in X; desf. }
           apply seq_eqv_r; split; auto.
           apply t_step. red. by apply sc_in_ar. }
         assert (R m) as RM.
@@ -504,7 +504,7 @@ ins; desc; subst.
         destruct (classic (f = n)) as [|FNEQ]; subst.
         { apply rt_refl. }
         apply rt_step. apply sc_in_ar.
-        cdes PHCON.
+        cdes IMMCON.
         edestruct wf_sc_total as [J|J]; eauto.
         { split; [split|].
           2,3: by apply FMIN.
@@ -555,7 +555,7 @@ ins; desc; subst.
       ins. destruct H0 as [y H0].
       apply seq_eqv_r in H0; desf.
       eapply wf_scD in H0.
-      2: by apply PHCON.
+      2: by apply IMMCON.
       apply seq_eqv_l in H0. destruct H0 as [_ H0].
       apply seq_eqv_r in H0.
       mode_solver. }
@@ -573,7 +573,7 @@ ins; desc; subst.
       apply seq_eqv_r in H; desf.
       apply seq_eqv_l; split.
       { eapply wf_scD in H.
-        2: by apply PHCON.
+        2: by apply IMMCON.
         apply seq_eqv_l in H; desf. }
       apply seq_eqv_r; split; auto.
       apply t_step. by apply sc_in_ar. }

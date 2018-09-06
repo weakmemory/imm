@@ -4,7 +4,7 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import ph_s_hb ph_s ph_common.
+Require Import imm_s_hb imm_s imm_common.
 Require Import CombRelations AuxRel.
 
 Set Implicit Arguments.
@@ -16,7 +16,7 @@ Section TraversalConfig.
   Variable WF : Wf G.
   Variable COM : complete G.
   Variable sc : relation actid.
-  Variable PHCON : ph_consistent G sc.
+  Variable IMMCON : imm_consistent G sc.
 
   Notation "'acts'" := G.(acts).
   Notation "'sb'" := G.(sb).
@@ -343,7 +343,7 @@ rewrite (issued_in_issuable TCCOH) at 1.
 arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond ((detour ∪ rfe) ⨾ (ppo ∪ bob)) (issued T)⦘);
   [unfold issuable; basic_solver|].
 rewrite <- !seqA, dom_cond_elim1; [basic_solver 21|].
-unfold ph_common.bob; basic_solver 21.
+unfold imm_common.bob; basic_solver 21.
 Qed.
 
 Lemma dom_wex_sb_issued T (TCCOH : tc_coherent T):
@@ -391,7 +391,7 @@ sin_rewrite dom_cond_elim1.
   arewrite (⦗issued T⦘ ⨾ rf ⨾ rmw ⊆ ⦗issued T⦘ ⨾ (rf ⨾ rmw)＊).
   relsf.
 - arewrite (sb^? ∩ (rf ⨾ rmw)＊ ⊆ sb^?).
-  unfold ph_common.ppo.
+  unfold imm_common.ppo.
   rewrite <- ct_step.
   rewrite (rmw_in_sb WF).
   generalize (@sb_trans G) R_ex_in_R; basic_solver 21.
@@ -473,7 +473,7 @@ arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
   [unfold issuable; basic_solver|].
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
-unfold ph_common.fwbob.
+unfold imm_common.fwbob.
 basic_solver 12.
 Qed.
 
@@ -493,7 +493,7 @@ arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
   [unfold issuable; basic_solver|].
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
-unfold ph_common.fwbob.
+unfold imm_common.fwbob.
 basic_solver 12.
 Qed.
 
@@ -508,7 +508,7 @@ Lemma dom_release_issued T (TCCOH : tc_coherent T)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T):
   dom_rel (release ⨾ ⦗ issued T ⦘) ⊆₁ covered T.
 Proof.
-unfold ph_s_hb.release, ph_s_hb.rs.
+unfold imm_s_hb.release, imm_s_hb.rs.
 rewrite !seqA.
 sin_rewrite rf_rmw_issued_rfi_rmw_issued; [|done].
 rewrite (dom_r (wf_rmwD WF)) at 1.
@@ -568,7 +568,7 @@ arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
   [unfold issuable; basic_solver|].
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
-unfold ph_common.fwbob.
+unfold imm_common.fwbob.
 basic_solver 12.
 Qed.
 
@@ -583,7 +583,7 @@ Lemma dom_sw_coverable T (TCCOH : tc_coherent T)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T):
   dom_rel (sw ⨾ ⦗ coverable T ⦘) ⊆₁ covered T.
 Proof.
-unfold ph_s_hb.sw.
+unfold imm_s_hb.sw.
 generalize (dom_sb_coverable TCCOH).
 generalize (dom_release_rf_coverable TCCOH RELCOV).
 generalize (covered_in_coverable TCCOH).
@@ -607,7 +607,7 @@ Qed.
 Lemma dom_sc_coverable T (TCCOH : tc_coherent T):
   dom_rel (sc ⨾ ⦗ coverable T ⦘) ⊆₁ covered T.
 Proof.
-  cdes PHCON.
+  cdes IMMCON.
   rewrite (dom_r (@wf_scD G sc Wf_sc)).
   unfold coverable, dom_cond; type_solver 42.
 Qed.
@@ -638,12 +638,12 @@ Qed.
 Lemma hb_coverable  T (TCCOH : tc_coherent T) (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T):
   hb ⨾ ⦗ coverable T ⦘ ⊆ ⦗covered T⦘ ⨾ hb.
 Proof.
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 assert (A: (sb ∪ sw) ⨾ ⦗coverable T⦘ ⊆ ⦗covered T⦘ ⨾ (sb ∪ sw)⁺).
 { relsf.
 rewrite (sb_coverable TCCOH), (sw_coverable TCCOH RELCOV).
 rewrite <- ct_step; basic_solver. }
-unfold ph_s_hb.hb.
+unfold imm_s_hb.hb.
 eapply ct_ind_left with (P:= fun r => r ⨾ ⦗coverable T⦘); eauto with hahn.
 intros k H; rewrite !seqA, H.
     rewrite (covered_in_coverable TCCOH) at 1.
