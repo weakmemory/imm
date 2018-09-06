@@ -29,7 +29,7 @@ Notation "'data''" := G'.(data).
 Notation "'addr''" := G'.(addr).
 Notation "'ctrl''" := G'.(ctrl).
 Notation "'deps''" := G'.(deps).
-Notation "'failed_rmw_dep''" := G'.(failed_rmw_dep).
+Notation "'rmw_dep''" := G'.(rmw_dep).
 
 Notation "'fre''" := G'.(fre).
 Notation "'rfe''" := G'.(rfe).
@@ -92,7 +92,7 @@ Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
 Notation "'deps'" := G.(deps).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'fre'" := G.(fre).
 Notation "'rfe'" := G.(rfe).
@@ -151,7 +151,7 @@ Record sub_execution :=
   sub_data : data'  ≡ ⦗E'⦘ ⨾ data ⨾ ⦗E'⦘ ;
   sub_addr : addr'  ≡ ⦗E'⦘ ⨾ addr ⨾ ⦗E'⦘ ;
   sub_ctrl : ctrl'  ≡ ⦗E'⦘ ⨾ ctrl ⨾ ⦗E'⦘ ;
-  sub_frmw : failed_rmw_dep'  ≡ ⦗E'⦘ ⨾ failed_rmw_dep ⨾ ⦗E'⦘ ;
+  sub_frmw : rmw_dep'  ≡ ⦗E'⦘ ⨾ rmw_dep ⨾ ⦗E'⦘ ;
   sub_rf : rf'  ≡ ⦗E'⦘ ⨾ rf ⨾ ⦗E'⦘ ;
   sub_co : co'  ≡ ⦗E'⦘ ⨾ co ⨾ ⦗E'⦘ ;
   sub_sc : sc'  ≡ ⦗E'⦘ ⨾ sc ⨾ ⦗E'⦘ ;
@@ -198,7 +198,7 @@ Lemma sub_addr_in : addr' ⊆ addr.
 Proof. rewrite sub_addr; basic_solver. Qed.
 Lemma sub_ctrl_in : ctrl' ⊆ ctrl.
 Proof. rewrite sub_ctrl; basic_solver. Qed.
-Lemma sub_frmw_in : failed_rmw_dep' ⊆ failed_rmw_dep.
+Lemma sub_frmw_in : rmw_dep' ⊆ rmw_dep.
 Proof. rewrite sub_frmw; basic_solver. Qed.
 Lemma sub_rmw_in : rmw' ⊆ rmw.
 Proof. rewrite sub_rmw; basic_solver. Qed.
@@ -265,8 +265,8 @@ constructor.
   by apply sub_E_in.
   generalize sub_loc; congruence.
 - ins; rewrite (sub_lab SUB); apply WF.
-- by rewrite (sub_frmw SUB), failed_rmw_dep_in_sb, sub_sb.
-- apply dom_helper_3; rewrite (sub_frmw SUB), wf_failed_rmw_depD, sub_R, sub_R_ex; basic_solver 12.
+- by rewrite (sub_frmw SUB), rmw_dep_in_sb, sub_sb.
+- apply dom_helper_3; rewrite (sub_frmw SUB), wf_rmw_depD, sub_R, sub_R_ex; basic_solver 12.
 Qed.
 
 (******************************************************************************)
@@ -504,7 +504,7 @@ Definition restrict (G : execution) D :=
        data := ⦗ D ⦘ ⨾G.(data) ⨾ ⦗ D ⦘;
        addr := ⦗ D ⦘ ⨾ G.(addr) ⨾ ⦗ D ⦘;
        ctrl := ⦗ D ⦘ ⨾ G.(ctrl) ⨾ ⦗ D ⦘;
-       failed_rmw_dep := ⦗ D ⦘ ⨾ G.(failed_rmw_dep) ⨾ ⦗ D ⦘;
+       rmw_dep := ⦗ D ⦘ ⨾ G.(rmw_dep) ⨾ ⦗ D ⦘;
        rf := ⦗ D ⦘ ⨾ G.(rf) ⨾ ⦗ D ⦘;
        co := ⦗ D ⦘ ⨾ G.(co) ⨾ ⦗ D ⦘;
     |}.

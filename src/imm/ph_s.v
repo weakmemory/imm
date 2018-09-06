@@ -25,7 +25,7 @@ Notation "'rmw'" := G.(rmw).
 Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'fr'" := G.(fr).
 Notation "'eco'" := G.(eco).

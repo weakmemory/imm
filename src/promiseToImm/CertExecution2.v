@@ -37,7 +37,7 @@ Notation "'Gdata'" := G.(data).
 Notation "'Gaddr'" := G.(addr).
 Notation "'Gctrl'" := G.(ctrl).
 Notation "'Gdeps'" := G.(deps).
-Notation "'Gfailed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'Grmw_dep'" := G.(rmw_dep).
 
 Notation "'Gfre'" := G.(fre).
 Notation "'Grfe'" := G.(rfe).
@@ -187,19 +187,19 @@ rewrite id_union; relsf; unionL; splits.
   by unfold D; basic_solver 21.
 Qed.
 
-Lemma dom_frmw_in_D : dom_rel Gfailed_rmw_dep ⊆₁ D.
+Lemma dom_frmw_in_D : dom_rel Grmw_dep ⊆₁ D.
 Proof.
-rewrite (dom_r (wf_failed_rmw_depE WF)).
+rewrite (dom_r (wf_rmw_depE WF)).
 rewrite E_to_I.
 rewrite id_union; relsf; unionL; splits.
-- rewrite (failed_rmw_dep_in_sb WF).
+- rewrite (rmw_dep_in_sb WF).
   generalize (dom_sb_covered TCCOH).
   by unfold D; basic_solver 12.
 - rewrite dom_rel_eqv_dom_rel.
   arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
   generalize (issuedW TCCOH); basic_solver.
-  rewrite (wf_failed_rmw_depD WF), !seqA.
-  arewrite (⦗R⦘ ⨾ Gfailed_rmw_dep ⨾ ⦗GR_ex⦘ ⨾ Gsb^? ⨾ ⦗W⦘ ⊆ Gppo).
+  rewrite (wf_rmw_depD WF), !seqA.
+  arewrite (⦗R⦘ ⨾ Grmw_dep ⨾ ⦗GR_ex⦘ ⨾ Gsb^? ⨾ ⦗W⦘ ⊆ Gppo).
   unfold ppo; hahn_frame.
   case_refl _.
   by rewrite <- ct_step; basic_solver 12.
@@ -780,7 +780,7 @@ Definition certG :=
        data := Gdata ;
        addr := Gaddr ;
        ctrl := Gctrl ;
-       failed_rmw_dep := Gfailed_rmw_dep ;
+       rmw_dep := Grmw_dep ;
        rf := Grf ⨾ ⦗D⦘ ∪ new_rf ;
        co := cert_co ;
     |}.
@@ -796,7 +796,7 @@ Notation "'Cco'" := certG.(co).
 (* Notation "'Caddr'" := certG.(addr). *)
 (* Notation "'Cctrl'" := certG.(ctrl). *)
 Notation "'Cdeps'" := certG.(deps).
-(* Notation "'Cfailed_rmw_dep'" := certG.(failed_rmw_dep). *)
+(* Notation "'Crmw_dep'" := certG.(rmw_dep). *)
 
 Notation "'Cfre'" := certG.(fre).
 (* Notation "'Crfe'" := certG.(rfe). *)
@@ -1476,7 +1476,7 @@ Qed.
 
 Lemma cert_ppo_D : Cppo ;; <| D |> ⊆ Gppo.
 Proof.
-remember (Gdata ∪ Gctrl ∪ Gaddr ⨾ Gsb^? ∪ ⦗GR_ex⦘ ⨾ Gsb ∪ Gfailed_rmw_dep) as X.
+remember (Gdata ∪ Gctrl ∪ Gaddr ⨾ Gsb^? ∪ ⦗GR_ex⦘ ⨾ Gsb ∪ Grmw_dep) as X.
 
 unfold ppo; ins.
 arewrite (Cppo ⊆ ⦗R⦘ ⨾ (X ∪ Crfi)⁺ ⨾ ⦗W⦘).

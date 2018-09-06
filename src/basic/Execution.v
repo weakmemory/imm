@@ -28,10 +28,10 @@ Record execution :=
         CAS(y, a, 1);
         
         There is an execution w/ failing CAS. In the execution,
-        there is an failed_rmw_dep edge between a read event representing `a := [x]'
+        there is an rmw_dep edge between a read event representing `a := [x]'
         and a read event representing failed `CAS(y, a, 1)'.
      *)
-    failed_rmw_dep : actid -> actid -> Prop ;
+    rmw_dep : actid -> actid -> Prop ;
 
 
 (*     ctrli : relation actid ;  (** control+isync on Power *) *)
@@ -53,7 +53,7 @@ Notation "'rmw'" := G.(rmw).
 Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
@@ -104,9 +104,9 @@ Record Wf :=
     wf_init : forall l, (exists b, E b /\ loc b = Some l) -> E (InitEvent l) ;
     wf_init_lab : forall l, lab (InitEvent l) = Astore Xpln Opln l 0 ;
 
-    failed_rmw_dep_in_sb : failed_rmw_dep ⊆ sb ;
-    wf_failed_rmw_depD : failed_rmw_dep ≡ ⦗R⦘ ⨾ failed_rmw_dep ⨾ ⦗R_ex⦘ ;
-(*     failed_rmw_fail : failed_rmw_dep ⨾ rmw ⊆ ∅₂ ; *)
+    rmw_dep_in_sb : rmw_dep ⊆ sb ;
+    wf_rmw_depD : rmw_dep ≡ ⦗R⦘ ⨾ rmw_dep ⨾ ⦗R_ex⦘ ;
+(*     failed_rmw_fail : rmw_dep ⨾ rmw ⊆ ∅₂ ; *)
   }.
 (*   ⟪  wf_rmw_deps : rmw ⊆ data ∪ addr ∪ ctrl ⟫ /\
   ⟪  wf_rmw_ctrl : rmw ⨾ sb ⊆ ctrl ⟫. *)
@@ -243,11 +243,11 @@ rewrite wf_sbE at 1.
 basic_solver.
 Qed.
 
-Lemma wf_failed_rmw_depE WF: failed_rmw_dep ≡ ⦗E⦘ ⨾ failed_rmw_dep ⨾ ⦗E⦘.
+Lemma wf_rmw_depE WF: rmw_dep ≡ ⦗E⦘ ⨾ rmw_dep ⨾ ⦗E⦘.
 Proof.
 split; [|basic_solver].
-arewrite (failed_rmw_dep ⊆ failed_rmw_dep ∩ failed_rmw_dep) at 1.
-rewrite (failed_rmw_dep_in_sb WF) at 1.
+arewrite (rmw_dep ⊆ rmw_dep ∩ rmw_dep) at 1.
+rewrite (rmw_dep_in_sb WF) at 1.
 rewrite wf_sbE at 1.
 basic_solver.
 Qed.

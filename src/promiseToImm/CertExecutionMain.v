@@ -414,12 +414,12 @@ assert (exists state'',
     seq_rewrite <- TEH.(tr_ctrl). basic_solver. }
   rewrite OFAILDEP. rewrite CACTS. unfold CT.
   rewrite !seqA.
-  arewrite (⦗Tid_ thread⦘ ⨾ ⦗E0 Gf T thread⦘ ⨾ failed_rmw_dep Gf ⨾
+  arewrite (⦗Tid_ thread⦘ ⨾ ⦗E0 Gf T thread⦘ ⨾ rmw_dep Gf ⨾
                           ⦗E0 Gf T thread⦘ ⨾ ⦗Tid_ thread⦘ ≡
-            ⦗E0 Gf T thread⦘ ⨾ ⦗Tid_ thread⦘ ⨾ ⦗Tid_ thread⦘ ⨾ failed_rmw_dep Gf ⨾
+            ⦗E0 Gf T thread⦘ ⨾ ⦗Tid_ thread⦘ ⨾ ⦗Tid_ thread⦘ ⨾ rmw_dep Gf ⨾
             ⦗Tid_ thread⦘ ⨾ ⦗Tid_ thread⦘ ⨾ ⦗E0 Gf T thread⦘).
   { basic_solver. }
-  seq_rewrite <- TEH.(tr_failed_rmw_dep). basic_solver. }
+  seq_rewrite <- TEH.(tr_rmw_dep). basic_solver. }
 desc.
 
 assert (acts_set (ProgToExecution.G state) ⊆₁ covered T) as STATECOV.
@@ -517,7 +517,7 @@ unfolder; ins; desf; splits; eauto.
 destruct (classic (tid x = thread)); try done.
 exfalso; apply H1; eauto 20. }
 { rewrite STATECOV. rewrite C_in_D. basic_solver. }
-{ rewrite TEH''.(tr_failed_rmw_dep).
+{ rewrite TEH''.(tr_rmw_dep).
 arewrite_id ⦗Tid_ thread⦘; rels.
 rewrite (dom_frmw_in_D thread WF_G TCCOH_G); try done.
 basic_solver. }
@@ -590,7 +590,7 @@ assert (thread_restricted_execution (certG G Gsc T thread lab') thread
   { rewrite <- RDATA. apply TEH''.(tr_data). }
   { rewrite <- RADDR. apply TEH''.(tr_addr). }
   { rewrite <- RCTRL. apply TEH''.(tr_ctrl). }
-  rewrite <- RFAILRMW. apply TEH''.(tr_failed_rmw_dep). }
+  rewrite <- RFAILRMW. apply TEH''.(tr_rmw_dep). }
 
 assert (new_rf G Gsc T thread ≡ new_rfi ∪ new_rfe) as NEWRF_SPLIT.
 { arewrite (new_rf G Gsc T thread ≡ new_rf G Gsc T thread ;; <| Tid_ thread |>).

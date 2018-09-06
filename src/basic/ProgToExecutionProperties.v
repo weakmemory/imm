@@ -16,9 +16,9 @@ Record thread_restricted_execution (G : execution) t (G' : execution) :=
     tr_data : G'.(data) ≡ ⦗ Tid_ t ⦘ ⨾ G.(data) ⨾ ⦗ Tid_ t ⦘;
     tr_addr : G'.(addr) ≡ ⦗ Tid_ t ⦘ ⨾ G.(addr) ⨾ ⦗ Tid_ t ⦘;
     tr_ctrl : G'.(ctrl) ≡ ⦗ Tid_ t ⦘ ⨾ G.(ctrl) ⨾ ⦗ Tid_ t ⦘;
-    tr_failed_rmw_dep :
-      G'.(failed_rmw_dep) ≡
-      ⦗ Tid_ t ⦘ ⨾ G.(failed_rmw_dep) ⨾ ⦗ Tid_ t ⦘;
+    tr_rmw_dep :
+      G'.(rmw_dep) ≡
+      ⦗ Tid_ t ⦘ ⨾ G.(rmw_dep) ⨾ ⦗ Tid_ t ⦘;
   }.
 
 Lemma depf_preserves_set_expr s (depfs : DepsFile.t) (AA : forall r, depfs r ⊆₁ s) :
@@ -54,7 +54,7 @@ Notation "'rmw'" := s.(G).(rmw).
 Notation "'data'" := s.(G).(data).
 Notation "'addr'" := s.(G).(addr).
 Notation "'ctrl'" := s.(G).(ctrl).
-Notation "'failed_rmw_dep'" := s.(G).(failed_rmw_dep).
+Notation "'rmw_dep'" := s.(G).(rmw_dep).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
@@ -93,7 +93,7 @@ Record wf_thread_state := {
   wft_dataE : data ≡ ⦗E⦘ ⨾ data ⨾ ⦗E⦘ ;
   wft_addrE : addr ≡ ⦗E⦘ ⨾ addr ⨾ ⦗E⦘ ;
   wft_ctrlE : ctrl ≡ ⦗E⦘ ⨾ ctrl ⨾ ⦗E⦘ ;
-  wft_failed_rmw_depE : failed_rmw_dep ≡ ⦗E⦘ ⨾ failed_rmw_dep ⨾ ⦗E⦘ ;
+  wft_rmw_depE : rmw_dep ≡ ⦗E⦘ ⨾ rmw_dep ⨾ ⦗E⦘ ;
   wft_ectrlE : ectrl s ⊆₁ acts_set (G s) ;
   wft_depfE : forall r, depf s r ⊆₁ acts_set (G s);
 }.
@@ -340,17 +340,17 @@ Proof.
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1-3: unfold add; simpls; rewrite WF.(wft_failed_rmw_depE) at 1;
+    1-3: unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1;
       basic_solver.
-    { unfold add; simpls; rewrite WF.(wft_failed_rmw_depE) at 1.
+    { unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
       basic_solver. }
-    { unfold add_rmw; simpls; rewrite WF.(wft_failed_rmw_depE) at 1.
+    { unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
       basic_solver. }
-    unfold add_rmw; simpls; rewrite WF.(wft_failed_rmw_depE) at 1.
+    unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1.
     basic_solver. }
   { destruct ISTEP0.
     all: rewrite UG, UECTRL.
@@ -639,8 +639,8 @@ Lemma step_old_restrict thread state state'
              <| GO.(acts_set) |> ;; GN.(addr) ;; <| GO.(acts_set)|> >> /\
   << OCTRL : GO.(ctrl) ≡
              <| GO.(acts_set) |> ;; GN.(ctrl) ;; <| GO.(acts_set)|> >> /\
-  << OFAILDEP : GO.(failed_rmw_dep) ≡
-                <| GO.(acts_set) |> ;; GN.(failed_rmw_dep) ;; <| GO.(acts_set)|> >>.
+  << OFAILDEP : GO.(rmw_dep) ≡
+                <| GO.(acts_set) |> ;; GN.(rmw_dep) ;; <| GO.(acts_set)|> >>.
 Proof.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
@@ -657,7 +657,7 @@ Proof.
   all: try by (rewrite GPC.(wft_dataE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_addrE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_ctrlE) at 1; basic_solver).
-  all: try by (rewrite GPC.(wft_failed_rmw_depE) at 1; basic_solver).
+  all: try by (rewrite GPC.(wft_rmw_depE) at 1; basic_solver).
   all: rewrite GPC.(wft_ctrlE) at 1; basic_solver 10.
 Qed.
 
@@ -674,8 +674,8 @@ Lemma steps_old_restrict thread state state'
              <| GO.(acts_set) |> ;; GN.(addr) ;; <| GO.(acts_set)|> >> /\
   << OCTRL : GO.(ctrl) ≡
              <| GO.(acts_set) |> ;; GN.(ctrl) ;; <| GO.(acts_set)|> >> /\
-  << OFAILDEP : GO.(failed_rmw_dep) ≡
-                <| GO.(acts_set) |> ;; GN.(failed_rmw_dep) ;; <| GO.(acts_set)|> >>.
+  << OFAILDEP : GO.(rmw_dep) ≡
+                <| GO.(acts_set) |> ;; GN.(rmw_dep) ;; <| GO.(acts_set)|> >>.
 Proof.
   induction STEP.
   2: { simpls. splits; apply GPC. }

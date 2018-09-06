@@ -26,7 +26,7 @@ Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
 Notation "'deps'" := G.(deps).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'fre'" := G.(fre).
 Notation "'rfe'" := G.(rfe).
@@ -88,7 +88,7 @@ Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘
 (* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
 Hypothesis DATA_RMW : data ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl.
-Hypothesis DEPS_RMW_FAIL : failed_rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
+Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 
 Hypothesis CON: PowerConsistent G.
 
@@ -265,14 +265,14 @@ rewrite path_ut_first; relsf; unionL.
   apply inclusion_t_t.
   rewrite rmw_sb_in_deps.
   basic_solver.
-- arewrite (deps ∪ rfi ∪ rmw ⨾ sb^? ∪ failed_rmw_dep ⊆ sb).
+- arewrite (deps ∪ rfi ∪ rmw ⨾ sb^? ∪ rmw_dep ⊆ sb).
   { rewrite (deps_in_sb WF).
     arewrite (rfi ⊆ sb).
     rewrite (rmw_in_sb WF).
-    rewrite (failed_rmw_dep_in_sb WF).
+    rewrite (rmw_dep_in_sb WF).
     generalize (@sb_trans G); ins; relsf. }
   generalize (@sb_trans G); ins; relsf.
-  rewrite (dom_r (wf_failed_rmw_depD WF)), !seqA.
+  rewrite (dom_r (wf_rmw_depD WF)), !seqA.
   rewrite crE at 2; relsf; unionL.
   by rewrite R_ex_in_R; type_solver.
   hahn_frame.

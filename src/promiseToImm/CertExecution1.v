@@ -38,7 +38,7 @@ Notation "'Fdata'" := Gf.(data).
 Notation "'Faddr'" := Gf.(addr).
 Notation "'Fctrl'" := Gf.(ctrl).
 Notation "'Fdeps'" := Gf.(deps).
-Notation "'Ffailed_rmw_dep'" := Gf.(failed_rmw_dep).
+Notation "'Frmw_dep'" := Gf.(rmw_dep).
 
 Notation "'Ffre'" := Gf.(fre).
 Notation "'Frfe'" := Gf.(rfe).
@@ -118,7 +118,7 @@ Notation "'Gdata'" := rstG.(data).
 Notation "'Gaddr'" := rstG.(addr).
 Notation "'Gctrl'" := rstG.(ctrl).
 Notation "'Gdeps'" := rstG.(deps).
-Notation "'Gfailed_rmw_dep'" := rstG.(failed_rmw_dep).
+Notation "'Grmw_dep'" := rstG.(rmw_dep).
 
 Notation "'Gfre'" := rstG.(fre).
 Notation "'Grfe'" := rstG.(rfe).

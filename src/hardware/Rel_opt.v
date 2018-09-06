@@ -31,7 +31,7 @@ Definition G' : execution :=
       data   := G.(data);
       addr   := G.(addr);
       ctrl   := G.(ctrl);
-      failed_rmw_dep := G.(failed_rmw_dep);
+      rmw_dep := G.(rmw_dep);
       rf     := G.(rf);
       co     := G.(co)
   |}.
@@ -47,7 +47,7 @@ Notation "'data''" := G'.(data).
 Notation "'addr''" := G'.(addr).
 Notation "'ctrl''" := G'.(ctrl).
 Notation "'deps''" := G'.(deps).
-Notation "'failed_rmw_dep''" := G'.(failed_rmw_dep).
+Notation "'rmw_dep''" := G'.(rmw_dep).
 
 Notation "'fre''" := G'.(fre).
 Notation "'rfe''" := G'.(rfe).
@@ -106,7 +106,7 @@ Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
 Notation "'deps'" := G.(deps).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'fre'" := G.(fre).
 Notation "'rfe'" := G.(rfe).

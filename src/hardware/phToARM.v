@@ -26,7 +26,7 @@ Notation "'data'" := G.(data).
 Notation "'addr'" := G.(addr).
 Notation "'ctrl'" := G.(ctrl).
 Notation "'deps'" := G.(deps).
-Notation "'failed_rmw_dep'" := G.(failed_rmw_dep).
+Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'fre'" := G.(fre).
 Notation "'rfe'" := G.(rfe).
@@ -86,7 +86,7 @@ Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
-Hypothesis DEPS_RMW_FAIL : failed_rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
+Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 
 

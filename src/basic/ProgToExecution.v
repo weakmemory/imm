@@ -80,7 +80,7 @@ Section State.
        data := ∅₂;
        addr := ∅₂;
        ctrl := ∅₂;
-       failed_rmw_dep := ∅₂;
+       rmw_dep := ∅₂;
        rf := ∅₂;
        co := ∅₂;
     |}.
@@ -98,7 +98,7 @@ Section State.
   Definition is_terminal s: Prop :=
     s.(pc) < 0 \/ s.(pc) > s.(instrs).(length).
   
-  Definition add G tid index elab ddata daddr dctrl dfailed_rmw_dep :=
+  Definition add G tid index elab ddata daddr dctrl drmw_dep :=
     let e := ThreadEvent tid index in 
     {| acts := e :: G.(acts);
        lab := upd G.(lab) e elab;
@@ -106,12 +106,12 @@ Section State.
        data := G.(data) ∪ ddata × (eq e);
        addr := G.(addr) ∪ daddr × (eq e);
        ctrl := G.(ctrl) ∪ dctrl × (eq e);
-       failed_rmw_dep := G.(failed_rmw_dep) ∪ dfailed_rmw_dep × (eq e);
+       rmw_dep := G.(rmw_dep) ∪ drmw_dep × (eq e);
        rf := ∅₂;
        co := ∅₂;
     |}.
 
-  Definition add_rmw G tid index erlab ewlab ddata daddr dctrl dfailed_rmw_dep :=
+  Definition add_rmw G tid index erlab ewlab ddata daddr dctrl drmw_dep :=
     let er:= ThreadEvent tid index in 
     let ew:= ThreadEvent tid (index + 1) in 
     let rw_edge := singl_rel er ew in
@@ -121,7 +121,7 @@ Section State.
        data := G.(data) ∪ ddata × (eq ew);
        addr := G.(addr) ∪ daddr × (eq er ∪₁ eq ew);
        ctrl := G.(ctrl) ∪ rw_edge ∪ dctrl × (eq er ∪₁ eq ew);
-       failed_rmw_dep := G.(failed_rmw_dep) ∪ dfailed_rmw_dep × (eq er);
+       rmw_dep := G.(rmw_dep) ∪ drmw_dep × (eq er);
        rf := ∅₂;
        co := ∅₂;
     |}.
