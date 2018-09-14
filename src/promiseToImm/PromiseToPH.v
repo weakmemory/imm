@@ -266,14 +266,6 @@ Hypothesis ALLRLX : G.(acts_set) \₁ is_init ⊆₁ (fun a => is_true (is_rlx G
 
 Hypothesis EFM : execution_final_memory G final_memory.
 
-Definition program_execution (prog : Prog.t) (G : execution) :=
-  (forall e (IN: G.(acts_set) e),
-      is_init e \/ IdentMap.In (tid e) prog) /\
-  forall thread linstr (INTHREAD: Some linstr = IdentMap.find thread prog),
-  exists pe, 
-    thread_execution thread linstr pe /\
-    thread_restricted_execution G thread pe.
-
 Hypothesis PROG_EX : program_execution prog G.
 Hypothesis WF : Wf G.
 Variable sc : relation actid.

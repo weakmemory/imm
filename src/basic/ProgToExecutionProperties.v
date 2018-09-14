@@ -782,3 +782,11 @@ Proof.
   exists state''. splits; auto.
   apply rt_begin. right. eexists; eauto.
 Qed.
+
+Definition program_execution (prog : Prog.t) (G : execution) :=
+  (forall e (IN: G.(acts_set) e),
+      is_init e \/ IdentMap.In (tid e) prog) /\
+  forall thread linstr (INTHREAD: Some linstr = IdentMap.find thread prog),
+  exists pe, 
+    thread_execution thread linstr pe /\
+    thread_restricted_execution G thread pe.
