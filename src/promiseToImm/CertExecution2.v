@@ -454,7 +454,7 @@ apply new_co_irr.
   all: apply WF.
 Qed.
 
-Lemma cert_co_I : cert_co ⨾ ⦗ I ⦘  ⊆ Gco ;; <| I |>.
+Lemma cert_co_I : cert_co ⨾ ⦗ I ⦘  ⊆ Gco ⨾ ⦗ I ⦘.
 Proof.
 apply new_co_I.
   apply IT_new_co.
@@ -499,8 +499,8 @@ basic_solver.
 unfolder in D; basic_solver.
 Qed.
 
-Lemma cert_co_alt : cert_co  ⊆ Gco ∩ cert_co ⨾ ⦗ I ⦘ ∪ <| Tid_ thread |> ;; Gco ∩ cert_co ∪ 
-  ⦗ I ∩₁ NTid_ thread ⦘ ⨾ cert_co ;; <| (E ∩₁ W ∩₁ Tid_ thread) \₁ I |>.
+Lemma cert_co_alt : cert_co  ⊆ Gco ∩ cert_co ⨾ ⦗ I ⦘ ∪ ⦗ Tid_ thread ⦘ ⨾ Gco ∩ cert_co ∪ 
+  ⦗ I ∩₁ NTid_ thread ⦘ ⨾ cert_co ⨾ ⦗ (E ∩₁ W ∩₁ Tid_ thread) \₁ I ⦘.
 Proof.
 arewrite (I ∩₁ NTid_ thread ≡₁ I \₁ E ∩₁ W ∩₁ Tid_ thread).
 { revert IT_new_co; unfolder.
@@ -517,7 +517,7 @@ all: apply WF.
 Qed.
 
 Lemma cert_co_alt' : cert_co  ⊆ Gco ∩ cert_co ∪ 
-  ⦗ I ∩₁ NTid_ thread ⦘ ⨾ cert_co ;; <| (E ∩₁ W ∩₁ Tid_ thread) \₁ I |>.
+  ⦗ I ∩₁ NTid_ thread ⦘ ⨾ cert_co ⨾ ⦗ (E ∩₁ W ∩₁ Tid_ thread) \₁ I ⦘.
 Proof.
 rewrite cert_co_alt at 1.
 basic_solver 12.
@@ -663,7 +663,7 @@ assert (new_rf_hb: irreflexive (new_rf ⨾ Ghb ⨾ (sc ⨾ Ghb)^?)).
 by apply new_rf_hb. (* Coq bug ?! *)
 
 rewrite (wf_new_rfD).
-arewrite (⦗E \₁ I⦘ ⨾ ⦗W⦘ ⊆ ⦗E \₁ I⦘ ⨾ ⦗Tid_ thread⦘ ;; ⦗W⦘).
+arewrite (⦗E \₁ I⦘ ⨾ ⦗W⦘ ⊆ ⦗E \₁ I⦘ ⨾ ⦗Tid_ thread⦘ ⨾ ⦗W⦘).
 by revert IT_new_co; unfolder; firstorder.
 rewrite (wf_new_rfE).
 arewrite (E \₁ D ⊆₁ E ∩₁ Tid_ thread).
@@ -861,7 +861,7 @@ unfold Execution.W_ex.
 by rewrite cert_xacq; ins.
 Qed.
 
-Lemma cert_rfe : certG.(rfe) ≡ ⦗I⦘ ⨾ Grfe ⨾ ⦗D⦘ ∪ ⦗I⦘ ;; (new_rf \ Gsb).
+Lemma cert_rfe : certG.(rfe) ≡ ⦗I⦘ ⨾ Grfe ⨾ ⦗D⦘ ∪ ⦗I⦘ ⨾ (new_rf \ Gsb).
 Proof.
 unfold Execution.rfe; ins.
 rewrite cert_sb.
@@ -1299,7 +1299,7 @@ assert (DETOURE: Gdetour x z0).
 apply H6, A; unfolder; ins; desf; splits; eauto.
 Qed.
 
-Lemma coh_helper : irreflexive (Chb ⨾ (sc ⨾ Chb)^? ;; Ceco^?).
+Lemma coh_helper : irreflexive (Chb ⨾ (sc ⨾ Chb)^? ⨾ Ceco^?).
 Proof.
 apply coh_helper_alt; rewrite cert_hb; relsf; unionL.
 - case_refl sc; [by apply hb_irr|].
@@ -1543,7 +1543,7 @@ apply cert_ppo_D.
 Qed.
 
 
-Lemma cert_detour_D : Cdetour ⨾ ⦗ D ⦘ ⊆ <| I |> ;; Gdetour.
+Lemma cert_detour_D : Cdetour ⨾ ⦗ D ⦘ ⊆ ⦗ I ⦘ ⨾ Gdetour.
 Proof.
 enough (Cdetour ⨾ ⦗ D ⦘ ⊆ Gdetour).
 - arewrite (⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗D⦘) by basic_solver.
@@ -1563,8 +1563,8 @@ Qed.
 
 
 
-Lemma cert_detour_R_Acq_sb_D : Cdetour ⨾ ⦗R∩₁Acq⦘ ⨾ Gsb ;; ⦗ D ⦘ ⊆ 
-  ⦗ I ⦘ ⨾ Gdetour ;; ⦗R∩₁Acq⦘ ⨾ Gsb.
+Lemma cert_detour_R_Acq_sb_D : Cdetour ⨾ ⦗R∩₁Acq⦘ ⨾ Gsb ⨾ ⦗ D ⦘ ⊆ 
+  ⦗ I ⦘ ⨾ Gdetour ⨾ ⦗R∩₁Acq⦘ ⨾ Gsb.
 Proof.
 rewrite (detour_to_codom_rfe WF_cert), !seqA.
 rewrite cert_rfe.
@@ -1596,7 +1596,7 @@ basic_solver 12.
 Qed.
 
 
-Lemma cert_ar_int_I : Car_int^+ ⨾ ⦗ C ∪₁ I ⦘ ⊆ <| D ∪₁ R ∩₁ Acq |> ;; Gar_int^+.
+Lemma cert_ar_int_I : Car_int^+ ⨾ ⦗ C ∪₁ I ⦘ ⊆ ⦗ D ∪₁ R ∩₁ Acq ⦘ ⨾ Gar_int^+.
 Proof.
 rewrite (ct_ar_int_alt WF_cert).
 2: by apply (coherence_sc_per_loc cert_coherence).

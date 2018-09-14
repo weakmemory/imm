@@ -240,7 +240,7 @@ Lemma ct_ar_int_alt4 WF:
   ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
  ⊆ 
 sb ⨾ ⦗W∩₁Rel⦘ ∪
-( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ;; (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
+( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
   ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
 Proof.
 rewrite !unionA.
@@ -275,12 +275,12 @@ rewrite (dom_l (@wf_ppoD G)) at 1; type_solver.
 Qed.
 
 Lemma ct_ar_int_alt5 WF: 
-( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ;; (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
+( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
   ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
  ⊆ 
 ppo ∪
- (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ;; detour ;; (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ;; (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+ (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
 ⨾ ppo^?.
 Proof.
 
@@ -312,9 +312,9 @@ sb ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb^? ∪
 sb ⨾ ⦗W∩₁Rel⦘ ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪
 ppo ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪
- (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ;; detour ;; (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ;; (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
-⨾ ppo^? ;;
+ (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+⨾ ppo^? ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 
 

@@ -37,7 +37,7 @@ Qed.
 
 Lemma seq_eqv_minus_ll :
 forall (A : Type) (S : A -> Prop) (r r' : relation A),
-(⦗S⦘ ⨾ r) \ r' ≡ ⦗S⦘ ;; (r \ r').
+(⦗S⦘ ⨾ r) \ r' ≡ ⦗S⦘ ⨾ (r \ r').
 Proof.
 basic_solver 21.
 Qed.
@@ -193,7 +193,7 @@ Proof.
 unfolder in *; basic_solver.
 Qed.
 
-Lemma cr_helper {A} (r r' : relation A) d (H: r ⨾ ⦗d⦘ ⊆ ⦗d⦘ ⨾ r') : r^? ⨾ ⦗d⦘ ⊆ ⦗d⦘ ;; r'^? .
+Lemma cr_helper {A} (r r' : relation A) d (H: r ⨾ ⦗d⦘ ⊆ ⦗d⦘ ⨾ r') : r^? ⨾ ⦗d⦘ ⊆ ⦗d⦘ ⨾ r'^? .
 Proof.
 rewrite crE; relsf.
 rewrite H; basic_solver 20. 
@@ -382,7 +382,7 @@ Qed.
   Qed.
 
 Lemma ind_helper {A} (r r': relation A) (D1 D2: A -> Prop) (ACYC: acyclic r) :
-r^* ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'^* -> r^+ ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ;; r'^+.
+r^* ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'^* -> r^+ ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'^+.
 Proof.
 rewrite !rtE; unfolder; ins; desf.
 specialize (H x y); desf.

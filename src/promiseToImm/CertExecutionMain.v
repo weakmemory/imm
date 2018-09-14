@@ -220,7 +220,7 @@ assert (lab_G_eq_lab_Gf : lab G = lab Gf).
 { rewrite H. unfold rstG. by unfold restrict. }
 
 assert (rmw_G_rmw_Gf : rmw G ≡
-                       ⦗ E0 Gf T thread ⦘ ⨾ rmw Gf ;; <| E0 Gf T thread |>).
+                       ⦗ E0 Gf T thread ⦘ ⨾ rmw Gf ⨾ ⦗ E0 Gf T thread ⦘).
 { rewrite H. unfold rstG. by unfold restrict. }
 
 cdes SIMREL. cdes LOCAL.
@@ -425,14 +425,14 @@ desc.
 assert (acts_set (ProgToExecution.G state) ⊆₁ covered T) as STATECOV.
 { intros x EE. apply GPC.(acts_rep) in EE. desc. subst. by apply PCOV. }
 
-set (new_rfi := ⦗ Tid_ thread ⦘ ⨾ new_rf G Gsc T thread ;; <| Tid_ thread |>).
+set (new_rfi := ⦗ Tid_ thread ⦘ ⨾ new_rf G Gsc T thread ⨾ ⦗ Tid_ thread ⦘).
 
 assert (new_rfif : functional new_rfi⁻¹).
 { arewrite  (new_rfi ⊆ new_rf G Gsc T thread).
   unfold new_rfi; basic_solver.
   by apply wf_new_rff. }
 
-set (new_rfe := ⦗ NTid_ thread ⦘ ⨾ new_rf G Gsc T thread ;; <| Tid_ thread |>).
+set (new_rfe := ⦗ NTid_ thread ⦘ ⨾ new_rf G Gsc T thread ⨾ ⦗ Tid_ thread ⦘).
 
 assert (new_rfef : functional new_rfe⁻¹).
 { arewrite  (new_rfe ⊆ new_rf G Gsc T thread).

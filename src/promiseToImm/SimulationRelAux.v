@@ -391,7 +391,7 @@ Lemma max_value_le_issued locw w wprev s ts T f_to f_from
       (MAXVAL : max_value f_to s ts)
       (LOCS : s ⊆₁ Loc_ locw)
       (ISSS : s ⊆₁ issued T)
-      (NOCO : ⦗ eq w ⦘ ⨾ co ;; <| s |> ≡ ∅₂) :
+      (NOCO : ⦗ eq w ⦘ ⨾ co ⨾ ⦗ s ⦘ ≡ ∅₂) :
   Time.le ts (f_to wprev).
 Proof.
   red in MAXVAL. desc.
@@ -1241,7 +1241,7 @@ Proof.
           2: { subst. eapply WF.(co_irr). eapply WF.(co_trans).
                { apply COXY. }
                apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
-          assert (msg_rel locw ⨾ (rf ;; rmw) ⊆ msg_rel locw) as YY.
+          assert (msg_rel locw ⨾ (rf ⨾ rmw) ⊆ msg_rel locw) as YY.
           { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
             rewrite !seqA. by rewrite rt_unit. }
           assert (msg_rel locw y x) as MSGYX.
@@ -1648,7 +1648,7 @@ Proof.
       2: { subst. eapply WF.(co_irr). eapply WF.(co_trans).
            { apply COXY. }
            apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
-      assert (msg_rel locw ⨾ (rf ;; rmw) ⊆ msg_rel locw) as YY.
+      assert (msg_rel locw ⨾ (rf ⨾ rmw) ⊆ msg_rel locw) as YY.
       { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
         rewrite !seqA. by rewrite rt_unit. }
       assert (msg_rel locw y x) as MSGYX.

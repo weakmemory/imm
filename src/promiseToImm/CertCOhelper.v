@@ -248,7 +248,7 @@ unfold new_co; ins; unfolder; ins; desf.
 eapply new_col_irr; eauto.
 Qed.
 
-Lemma new_co_I : new_co ⨾ ⦗ I ⦘  ⊆ co ;; <| I |>.
+Lemma new_co_I : new_co ⨾ ⦗ I ⦘  ⊆ co ⨾ ⦗ I ⦘.
 Proof.
 unfolder; intros x y [R K]; desf.
 unfold new_co in R; desc.
@@ -270,7 +270,7 @@ red; red; unfold col0, col; left; apply t_step; basic_solver 12.
 eby eapply new_col_irr.
 Qed.
 
-Lemma T_new_co : ⦗ T ⦘ ⨾ new_co  ⊆ <| T |> ;; co.
+Lemma T_new_co : ⦗ T ⦘ ⨾ new_co  ⊆ ⦗ T ⦘ ⨾ co.
 Proof.
 unfolder; intros x y [K1 R]; desf.
 unfold new_co in R; desc.
@@ -298,7 +298,7 @@ eby eapply new_col_irr.
 Qed.
 
 Lemma new_co_in : new_co  ⊆ co ⨾ ⦗ I ⦘ ∪ 
-⦗ T ⦘ ⨾ co ∪ <| I \₁ T |> ;; new_co ;; <| T \₁ I |>.
+⦗ T ⦘ ⨾ co ∪ ⦗ I \₁ T ⦘ ⨾ new_co ⨾ ⦗ T \₁ I ⦘.
 Proof.
 rewrite (wf_new_coD), (wf_new_coE) at 1.
 rewrite !seqA.
@@ -320,8 +320,8 @@ basic_solver 21.
 Qed.
 
 Lemma T_I_col0_I_T l : 
-  ⦗ T \₁ I ⦘ ⨾ col0 l ;; <| I \₁ T |>  ⊆ 
-  ⦗ T \₁ I ⦘ ⨾ col l ;; <| I ∩₁ T |> ;; col l ;; <| I \₁ T |>.
+  ⦗ T \₁ I ⦘ ⨾ col0 l ⨾ ⦗ I \₁ T ⦘  ⊆ 
+  ⦗ T \₁ I ⦘ ⨾ col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l ⨾ ⦗ I \₁ T ⦘.
 Proof.
 unfold col0 at 1.
 arewrite (⦗T⦘ ⊆ ⦗T \₁ I⦘ ∪ ⦗I ∩₁ T⦘) at 2.
@@ -347,22 +347,22 @@ rewrite path_ut_first; relsf; unionL.
 Qed.
 
 Lemma T_I_new_col_I_T l : 
-  ⦗ T \₁ I ⦘ ⨾ new_col l ;; <| I \₁ T |>  ⊆ 
-  col l ⨾ ⦗ I ∩₁ T ⦘ ;; col l.
+  ⦗ T \₁ I ⦘ ⨾ new_col l ⨾ ⦗ I \₁ T ⦘  ⊆ 
+  col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l.
 Proof.
 unfold new_col, pref_union.
 unfolder; ins; desf.
-assert (A: (⦗ T \₁ I ⦘ ⨾ col0 l ;; <| I \₁ T |>) x y) by basic_solver.
+assert (A: (⦗ T \₁ I ⦘ ⨾ col0 l ⨾ ⦗ I \₁ T ⦘) x y) by basic_solver.
 apply T_I_col0_I_T in A; unfolder in A; basic_solver 10.
 Qed.
 
 Lemma T_I_new_co_I_T : 
-  ⦗ T \₁ I ⦘ ⨾ new_co ;; <| I \₁ T |>  ⊆ 
-  co ⨾ ⦗ I ∩₁ T ⦘ ;; co.
+  ⦗ T \₁ I ⦘ ⨾ new_co ⨾ ⦗ I \₁ T ⦘  ⊆ 
+  co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co.
 Proof.
 unfold new_co.
 unfolder; ins; desf.
-assert (A: (⦗ T \₁ I ⦘ ⨾ new_col l ;; <| I \₁ T |>) x y) by basic_solver.
+assert (A: (⦗ T \₁ I ⦘ ⨾ new_col l ⨾ ⦗ I \₁ T ⦘) x y) by basic_solver.
 apply T_I_new_col_I_T in A; unfolder in A; desf.
 unfold col in *; unfolder in *; desf; eauto 10.
 Qed.
@@ -386,14 +386,14 @@ unfolder in H2; basic_solver 21.
 eauto 12.
 Qed.
 
-Lemma new_col_helper l : ⦗ T ⦘ ⨾ col l ;; <| I ∩₁ T |> ;; col l ;; <| I |> ⊆ new_col l.
+Lemma new_col_helper l : ⦗ T ⦘ ⨾ col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l ⨾ ⦗ I ⦘ ⊆ new_col l.
 Proof.
 unfold new_col, pref_union, col0.
 unfolder; ins; left; desf.
 eapply t_trans; apply t_step; eauto 15.
 Qed.
 
-Lemma new_co_helper : ⦗ T ⦘ ⨾ co ;; <| I ∩₁ T |> ;; co ;; <| I |> ⊆ new_co.
+Lemma new_co_helper : ⦗ T ⦘ ⨾ co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co ⨾ ⦗ I ⦘ ⊆ new_co.
 Proof.
 unfold new_co.
 unfolder; ins; desf.

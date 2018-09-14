@@ -632,15 +632,15 @@ Lemma step_old_restrict thread state state'
   let GO := state.(ProgToExecution.G) in
   let GN := state'.(ProgToExecution.G) in
   ⟪ ORMW  : GO.(rmw) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ;; <| GO.(acts_set) |> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ⨾ ⦗ GO.(acts_set) ⦘ ⟫ /\
   ⟪ ODATA : GO.(data) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OADDR : GO.(addr) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OCTRL : GO.(ctrl) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OFAILDEP : GO.(rmw_dep) ≡
-                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ;; <| GO.(acts_set)|> ⟫.
+                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
 Proof.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
@@ -667,15 +667,15 @@ Lemma steps_old_restrict thread state state'
   let GO := state.(ProgToExecution.G) in
   let GN := state'.(ProgToExecution.G) in
   ⟪ ORMW  : GO.(rmw) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ;; <| GO.(acts_set) |> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ⨾ ⦗ GO.(acts_set) ⦘ ⟫ /\
   ⟪ ODATA : GO.(data) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OADDR : GO.(addr) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OCTRL : GO.(ctrl) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ;; <| GO.(acts_set)|> ⟫ /\
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OFAILDEP : GO.(rmw_dep) ≡
-                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ;; <| GO.(acts_set)|> ⟫.
+                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
 Proof.
   induction STEP.
   2: { simpls. splits; apply GPC. }

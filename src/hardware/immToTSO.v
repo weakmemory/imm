@@ -85,7 +85,7 @@ Proof. apply CON. Qed.
 (** * coherence   *)
 (******************************************************************************)
 
-Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^*.
+Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^*.
 Proof.
 unfold imm_hb.release, imm_hb.rs.
 arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⊆ sb^?) by basic_solver.
@@ -114,7 +114,7 @@ rewrite rfi_union_rfe; relsf; unionL.
   rewrite TSO.ppo_alt; basic_solver 42.
 Qed.
 
-Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
+Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^+ ⨾ ⦗R⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.sw.
@@ -147,7 +147,7 @@ arewrite (rfe ⊆ (ppot ∪ rfe)^+) at 3.
 relsf.
 Qed.
 
-Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
+Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^+ ⨾ ⦗R⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.hb.
@@ -239,7 +239,7 @@ unfold TSO.hb.
 basic_solver 40.
 Qed.
 
-Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt^+ ;; sb.
+Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm.psc.
@@ -291,7 +291,7 @@ Qed.
 
 Lemma ct_psct : 
   (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
-       sb^? ⨾ ⦗MFENCE⦘ ;; (sb ∪ sb ;; hbt^+ ;; sb) ;; <|MFENCE|> ;; sb^?.
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 

@@ -1,7 +1,7 @@
 COQMODULE    := imm 
 COQTHEORIES  := src/basic/*.v src/lib/*.v src/imm/*.v src/hardware/*.v src/rc11/*.v src/promiseToImm/*.v
 
-.PHONY: all theories clean
+.PHONY: all theories clean tounicode
 
 all: build
 
@@ -27,8 +27,8 @@ clean:
 	rm -f _CoqProject Makefile.coq
 
 tounicode:
-	sed -i 's/<</⟪/' $(COQTHEORIES) 
-	sed -i 's/>>/⟫/' $(COQTHEORIES)
-	sed -i 's/;;/⨾/' $(COQTHEORIES)
-	sed -i 's/<|/⦗/' $(COQTHEORIES)
-	sed -i 's/|>/⦘/' $(COQTHEORIES)
+	sed -i 's/<</⟪/g' $(COQTHEORIES) 
+	sed -i 's/>>/⟫/g' $(COQTHEORIES)
+	sed -i 's/;;/⨾/g' $(COQTHEORIES)
+	sed -i 's/<|/⦗/g' $(COQTHEORIES)
+	sed -i 's/|>/⦘/g' $(COQTHEORIES)

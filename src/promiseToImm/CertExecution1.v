@@ -105,7 +105,7 @@ Definition E0 :=  C ∪₁ I ∪₁ dom_rel (Fsb ⨾ ⦗Tid_ thread ∩₁ I⦘)
   ∪₁ (dom_rel (Frmw ⨾ ⦗ NTid_ thread ∩₁ I ⦘) \₁ codom_rel (⦗ set_compl FW_ex⦘ ⨾ Frfi)).
 
 Definition rstG := restrict Gf E0.
-Definition rst_sc := ⦗ E0 ⦘ ⨾ sc ;; <| E0 |>.
+Definition rst_sc := ⦗ E0 ⦘ ⨾ sc ⨾ ⦗ E0 ⦘.
 
 Notation "'E'" := rstG.(acts_set).
 Notation "'Gacts'" := rstG.(acts).
