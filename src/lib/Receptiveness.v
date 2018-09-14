@@ -384,7 +384,7 @@ by ins; desc; eauto.
 Qed.
 
 Definition new_rfi_ex (new_rfi :relation actid) :=
-new_rfi ∪ <| set_compl (codom_rel new_rfi) |>.
+new_rfi ∪ ⦗ set_compl (codom_rel new_rfi) ⦘.
 
 Lemma new_rfi_unique (new_rfi : relation actid)
       (new_rfif : functional new_rfi⁻¹):

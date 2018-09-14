@@ -105,7 +105,7 @@ Definition E0 :=  C ∪₁ I ∪₁ dom_rel (Fsb ⨾ ⦗Tid_ thread ∩₁ I⦘)
   ∪₁ (dom_rel (Frmw ⨾ ⦗ NTid_ thread ∩₁ I ⦘) \₁ codom_rel (⦗ set_compl FW_ex⦘ ⨾ Frfi)).
 
 Definition rstG := restrict Gf E0.
-Definition rst_sc := <| E0 |> ;; sc ;; <| E0 |>.
+Definition rst_sc := ⦗ E0 ⦘ ⨾ sc ;; <| E0 |>.
 
 Notation "'E'" := rstG.(acts_set).
 Notation "'Gacts'" := rstG.(acts).
@@ -238,7 +238,7 @@ rewrite !id_union; relsf; unionL; splits.
   unfold dom_cond; basic_solver 21.
 - unionR left -> left -> right.
   rewrite <- seqA, dom_rel_eqv_dom_rel, !seqA.
-  arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ;; ⦗Tid_ thread ∩₁ I⦘) at 1.
+  arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ⨾ ⦗Tid_ thread ∩₁ I⦘) at 1.
   basic_solver.
   rewrite (issuedW TCCOH) at 1.
   sin_rewrite (rmw_sb_W_in_ppo WF).
@@ -354,7 +354,7 @@ apply rt_ind_left with (P:= fun r => Frf ⨾ Frmw ⨾ r ⨾ ⦗I⦘).
   generalize I_in_E rfe_rmw_I rmw_E_rfe; ie_unfolder; basic_solver 80.
 - intros k H. 
   rewrite !seqA, H.
-arewrite (⦗FW_ex⦘ ⨾ (Frfi ⨾ Frmw)^? ⨾ ⦗I⦘ ⊆ ⦗I⦘ ;; ⦗FW_ex⦘ ⨾ (Frfi ⨾ Frmw)^? ⨾ ⦗I⦘).
+arewrite (⦗FW_ex⦘ ⨾ (Frfi ⨾ Frmw)^? ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ ⦗FW_ex⦘ ⨾ (Frfi ⨾ Frmw)^? ⨾ ⦗I⦘).
 eapply dom_rel_helper_in.
 
 
@@ -527,7 +527,7 @@ rewrite !id_union; relsf; unionL; splits.
     intro; type_solver. }
   unfolder; ins; desf.
   apply sb_tid_init in H1; desf.
-- arewrite (⦗NTid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ;; ⦗NTid_ thread ∩₁ I⦘) at 1.
+- arewrite (⦗NTid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ⨾ ⦗NTid_ thread ∩₁ I⦘) at 1.
   basic_solver.
   rewrite (issuedW TCCOH) at 1.
   rewrite (rmw_in_ppo WF).
@@ -605,7 +605,7 @@ rewrite !id_union; relsf; unionL; splits.
 - generalize dom_rf_covered dom_sb_covered; ie_unfolder; basic_solver 21.
 - rewrite (issuedW TCCOH) at 1; type_solver.
 - arewrite (dom_rel (Fsb ⨾ ⦗Tid_ thread ∩₁ I⦘) ∩₁ FF ∩₁ FAcq/Rel ⊆₁ C).
-  { arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ;; ⦗Tid_ thread ∩₁ I⦘) at 1.
+  { arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ⨾ ⦗Tid_ thread ∩₁ I⦘) at 1.
     basic_solver.
     rewrite (issued_in_issuable TCCOH) at 1.
     unfold issuable.
@@ -782,7 +782,7 @@ rewrite !id_union; relsf; unionL; splits.
   rewrite !seqA.
   arewrite (FSc ⊆₁ FAcq/Rel) by mode_solver. 
   arewrite (⦗FF ∩₁ FAcq/Rel⦘ ⨾ ⦗dom_rel (Fsb ⨾ ⦗Tid_ thread ∩₁ I⦘)⦘ ⊆ ⦗C⦘).
-  { arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ;; ⦗Tid_ thread ∩₁ I⦘) at 1.
+  { arewrite (⦗Tid_ thread ∩₁ I⦘ ⊆ ⦗I⦘ ⨾ ⦗Tid_ thread ∩₁ I⦘) at 1.
     basic_solver.
     rewrite (issued_in_issuable TCCOH) at 1.
     unfold issuable.
@@ -837,7 +837,7 @@ Proof.
 unfold t_cur, c_cur.
 split.
 rewrite (sub_urr_in SUB); basic_solver 12.
-arewrite (⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ;; ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘).
+arewrite (⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘).
 basic_solver.
 sin_rewrite (@urr_C l).
 basic_solver 21.
@@ -849,7 +849,7 @@ Proof.
 unfold t_rel, c_rel.
 split.
 rewrite (sub_urr_in SUB); basic_solver 12.
-arewrite (⦗FRel⦘ ⨾ ⦗FW_ l' ∪₁ FF⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ;; 
+arewrite (⦗FRel⦘ ⨾ ⦗FW_ l' ∪₁ FF⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ 
 ⦗FRel⦘ ⨾ ⦗FW_ l' ∪₁ FF⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘).
 basic_solver.
 sin_rewrite (@urr_C l).
@@ -862,9 +862,9 @@ Proof.
 unfold t_acq, c_acq.
 split.
 rewrite (sub_urr_in SUB), (sub_release_in SUB), (sub_rf_in SUB) ; basic_solver 12.
-arewrite (⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ;; ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘).
+arewrite (⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗C⦘).
 basic_solver.
-arewrite ((Frelease ⨾ Frf)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ;; (Grelease ⨾ Grf)^? ).
+arewrite ((Frelease ⨾ Frf)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ (Grelease ⨾ Grf)^? ).
 { case_refl _; [basic_solver|].
   rewrite !seqA.
   sin_rewrite rf_C.
@@ -1105,7 +1105,7 @@ rewrite (sub_hb_in SUB), (sub_release_in SUB), (sub_F SUB), (sub_Sc SUB).
 rewrite (sub_rf_in SUB).
 arewrite (rst_sc ⊆ sc) by unfold rst_sc; basic_solver.
 
-arewrite ((Frelease ⨾ Frf)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ;; (Grelease ⨾ Grf)^?).
+arewrite ((Frelease ⨾ Frf)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ (Grelease ⨾ Grf)^?).
 { case_refl _; [basic_solver 12|].
 rewrite !seqA.
 rewrite rf_C.
@@ -1127,7 +1127,7 @@ basic_solver.
 Qed.
 
 
-Lemma release_de : ⦗(E \₁ C) ∩₁ (E \₁ I)⦘ ⨾ Grelease ⊆ Gsb^? ;; ⦗(E \₁ C) ∩₁ (E \₁ I)⦘.
+Lemma release_de : ⦗(E \₁ C) ∩₁ (E \₁ I)⦘ ⨾ Grelease ⊆ Gsb^? ⨾ ⦗(E \₁ C) ∩₁ (E \₁ I)⦘.
 Proof.
 rewrite (wf_releaseE rstWF); relsf; unionL; [basic_solver 21|].
 arewrite_id ⦗E⦘ at 1; rels.
@@ -1285,7 +1285,7 @@ Qed.
 
 
 Lemma W_hb_sc_hb_to_I_NTid: 
-  dom_rel (⦗W⦘ ⨾ Ghb ⨾ (rst_sc ⨾ Ghb)^? ;; ⦗I ∩₁ NTid_ thread⦘) ⊆₁ I.
+  dom_rel (⦗W⦘ ⨾ Ghb ⨾ (rst_sc ⨾ Ghb)^? ⨾ ⦗I ∩₁ NTid_ thread⦘) ⊆₁ I.
 Proof.
 rewrite crE; relsf; split.
 generalize W_hb_to_I_NTid; basic_solver 21.

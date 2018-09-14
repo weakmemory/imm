@@ -168,7 +168,7 @@ Proof.
     { apply TEH.(tr_rmw).
       apply seq_eqv_l. split; auto.
       apply seq_eqv_r. split; auto. }
-    assert ((<| acts_set yst.(ProgToExecution.G) |> ;;
+    assert ((⦗ acts_set yst.(ProgToExecution.G) ⦘ ⨾
             Execution.rmw state'.(ProgToExecution.G)) r w) as ZZ.
     { apply seq_eqv_l. split; auto.
       rewrite UG. unfold add, acts_set. simpls. by left. }

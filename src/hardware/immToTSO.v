@@ -85,11 +85,11 @@ Proof. apply CON. Qed.
 (** * coherence   *)
 (******************************************************************************)
 
-Lemma release_in : release ⊆ sb^? ;; <|W|> ;; (ppot ∪ rfe)^*.
+Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^*.
 Proof.
 unfold imm_hb.release, imm_hb.rs.
 arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⊆ sb^?) by basic_solver.
-arewrite (⦗W⦘ ⊆ ⦗W⦘ ;; ⦗W⦘) at 1. 
+arewrite (⦗W⦘ ⊆ ⦗W⦘ ⨾ ⦗W⦘) at 1. 
 by basic_solver.
 hahn_frame; relsf; unionL.
 rewrite rt_begin; rewrite TSO.ppo_alt; basic_solver 12.
@@ -114,7 +114,7 @@ rewrite rfi_union_rfe; relsf; unionL.
   rewrite TSO.ppo_alt; basic_solver 42.
 Qed.
 
-Lemma sw_in : sw ⊆ sb ∪ sb^? ;; <|W|> ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
+Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.sw.
@@ -132,7 +132,7 @@ rewrite (dom_r (wf_rfiD WF)); rewrite (dom_r (wf_rfeD WF)) at 2; rewrite !seqA.
 arewrite (rfi ⊆ sb).
 arewrite_id ⦗W⦘ at 2.
 relsf.
-arewrite (⦗R⦘ ⊆ ⦗R⦘ ;; ⦗R⦘) at 2.
+arewrite (⦗R⦘ ⊆ ⦗R⦘ ⨾ ⦗R⦘) at 2.
 basic_solver.
 arewrite (⦗R⦘ ⨾ sb ⨾ ⦗R⦘ ⊆ ppot).
 rewrite TSO.ppo_alt; basic_solver 21.
@@ -147,7 +147,7 @@ arewrite (rfe ⊆ (ppot ∪ rfe)^+) at 3.
 relsf.
 Qed.
 
-Lemma hb_in : hb ⊆ sb ∪ sb^? ;; <|W|> ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
+Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ;; (ppot ∪ rfe)^+ ;; <|R|> ;; sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.hb.
@@ -228,7 +228,7 @@ Qed.
 (** * global acyclicity condition   *)
 (******************************************************************************)
 
-Lemma eco_in : eco ⊆ sb ∪ hbt^+ ;; sb^?.
+Lemma eco_in : eco ⊆ sb ∪ hbt^+ ⨾ sb^?.
 Proof.
 unfold Execution_eco.eco.
 rewrite rfi_union_rfe.
@@ -239,7 +239,7 @@ unfold TSO.hb.
 basic_solver 40.
 Qed.
 
-Lemma psct : psc ⊆ sb ∪ sb ;; hbt^+ ;; sb.
+Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt^+ ;; sb.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm.psc.
@@ -291,7 +291,7 @@ Qed.
 
 Lemma ct_psct : 
   (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
-       sb^? ;; <|MFENCE|> ;; (sb ∪ sb ;; hbt^+ ;; sb) ;; <|MFENCE|> ;; sb^?.
+       sb^? ⨾ ⦗MFENCE⦘ ;; (sb ∪ sb ;; hbt^+ ;; sb) ;; <|MFENCE|> ;; sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 

@@ -371,7 +371,7 @@ Proof.
     6: { eexists. split.
          2: { eexists. split; [by apply CO|].
               eauto. }
-         assert (release G ;; (rf ;; rmw) ⊆ release G) as XX.
+         assert (release G ⨾ (rf ;; rmw) ⊆ release G) as XX.
          { unfold release, rs. rewrite !seqA. by rewrite rt_unit. }
          apply XX. eexists. split; eauto. }
     { done. }

@@ -57,14 +57,14 @@ Qed.
 
 Definition execution_final_memory (G : execution) final_memory :=
   forall l,
-    (<< NO : forall e (EE : acts_set G e), loc G.(lab) e <> Some l >> /\
-     << ZERO : final_memory l = 0 >>) \/
+    (⟪ NO : forall e (EE : acts_set G e), loc G.(lab) e <> Some l ⟫ /\
+     ⟪ ZERO : final_memory l = 0 ⟫) \/
     exists w,
-      << ACTS : G.(acts_set) w >> /\
-      << WW   : is_w G.(lab) w >> /\
-      << LOC  : loc  G.(lab) w = Some l >> /\
-      << VAL  : val  G.(lab) w = Some (final_memory l) >> /\
-      << LAST : ~ (exists w', G.(co) w w') >>.
+      ⟪ ACTS : G.(acts_set) w ⟫ /\
+      ⟪ WW   : is_w G.(lab) w ⟫ /\
+      ⟪ LOC  : loc  G.(lab) w = Some l ⟫ /\
+      ⟪ VAL  : val  G.(lab) w = Some (final_memory l) ⟫ /\
+      ⟪ LAST : ~ (exists w', G.(co) w w') ⟫.
 
 Lemma sim_traversal G sc (WF : Wf G) (IMMCON : imm_consistent G sc) :
   exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
@@ -482,11 +482,11 @@ Proof.
 
   assert
     (exists langst local,
-        << THREAD :
+        ⟪ THREAD :
             Basic.IdentMap.find tid PC'.(Configuration.threads) =
             Some (langst, local)
-        >> /\
-        << EMPTY : Local.promises local = Memory.bot >>)
+        ⟫ /\
+        ⟪ EMPTY : Local.promises local = Memory.bot ⟫)
     as HH.
   { cdes SIMREL2. cdes LOCAL.
     exists (existT _ (thread_lts tid) state). exists local.
@@ -698,21 +698,21 @@ Definition thread_is_terminal ths tid :=
   forall lang st lc
          (LLH : IdentMap.find tid ths =
                 Some (existT (fun lang : Language.t => Language.state lang) lang st, lc)),
-    << NOTS : Language.is_terminal lang st >> /\
-    << NOPROM : Local.is_terminal lc >>.
+    ⟪ NOTS : Language.is_terminal lang st ⟫ /\
+    ⟪ NOPROM : Local.is_terminal lc ⟫.
 
 Lemma sim_thread_covered_exists_terminal PC thread T f_to f_from
       (FINALT : Tid_ thread ∩₁ acts_set G ⊆₁ covered T)
       (SIMREL : simrel G sc PC T f_to f_from) :
   exists PC',
-    << STEP : (conf_step)^? PC PC' >> /\
-    << SIMREL : simrel G sc PC' T f_to f_from >> /\
-    << SAMENUM : Permutation (map fst (IdentMap.elements (Configuration.threads PC))) 
-                             (map fst (IdentMap.elements (Configuration.threads PC'))) >> /\ 
-    << TERMINAL  : thread_is_terminal PC'.(Configuration.threads) thread >> /\
-    << PTERMINAL :
+    ⟪ STEP : (conf_step)^? PC PC' ⟫ /\
+    ⟪ SIMREL : simrel G sc PC' T f_to f_from ⟫ /\
+    ⟪ SAMENUM : Permutation (map fst (IdentMap.elements (Configuration.threads PC))) 
+                             (map fst (IdentMap.elements (Configuration.threads PC'))) ⟫ /\ 
+    ⟪ TERMINAL  : thread_is_terminal PC'.(Configuration.threads) thread ⟫ /\
+    ⟪ PTERMINAL :
       forall thread' (TT : thread_is_terminal PC.(Configuration.threads) thread'),
-        thread_is_terminal PC'.(Configuration.threads) thread' >>.
+        thread_is_terminal PC'.(Configuration.threads) thread' ⟫.
 Proof.
   cdes SIMREL.
   destruct (IdentMap.find thread (Configuration.threads PC)) as [j|] eqn: QQ.
@@ -851,9 +851,9 @@ Lemma sim_covered_exists_terminal T PC f_to f_from
       (FINALT : acts_set G ⊆₁ covered T)
       (SIMREL : simrel G sc PC T f_to f_from) :
   exists PC',
-    << STEPS : conf_step＊ PC PC' >> /\
-    << SIMREL : simrel G sc PC' T f_to f_from >> /\
-    << TERMINAL : Configuration.is_terminal PC' >>.
+    ⟪ STEPS : conf_step＊ PC PC' ⟫ /\
+    ⟪ SIMREL : simrel G sc PC' T f_to f_from ⟫ /\
+    ⟪ TERMINAL : Configuration.is_terminal PC' ⟫.
 Proof.
   assert
     (exists l, 

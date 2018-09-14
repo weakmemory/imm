@@ -488,7 +488,7 @@ unionL.
 - basic_solver 12.
 Qed.
 
-Lemma thread_rfe_sb WF SC_PER_LOC : (rfe^{-1} ;; sb) ∩ same_tid ⊆ ∅₂.
+Lemma thread_rfe_sb WF SC_PER_LOC : (rfe^{-1} ⨾ sb) ∩ same_tid ⊆ ∅₂.
 Proof.
 ie_unfolder; unfolder; unfold same_tid; ins; desf.
 hahn_rewrite (@wf_sbE G) in H1; unfolder in H1; desf.

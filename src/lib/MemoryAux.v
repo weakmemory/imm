@@ -58,7 +58,7 @@ Proof. eapply inhabited_future; eauto. apply inhabited_init. Qed.
 Definition ts_lt_or_bot memory :=
   forall loc to from msg (GET : Memory.get loc to memory = Some (from, msg)),
     (to = Time.bot /\ from = Time.bot) \/
-    << FTLT : Time.lt from to >>.
+    ⟪ FTLT : Time.lt from to ⟫.
 
 Lemma memory_init_o loc to from msg
       (GET : Memory.get loc to Memory.init = Some (from, msg)) :

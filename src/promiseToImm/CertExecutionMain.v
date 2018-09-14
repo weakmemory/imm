@@ -127,7 +127,7 @@ by cdes SIMREL; cdes COMMON.
 assert (ACQEX: W_ex Gf ⊆₁ W_ex Gf ∩₁ (fun a : actid => is_xacq (lab Gf) a)).
 by cdes SIMREL; cdes COMMON.
 
-remember (⦗E0 Gf T thread⦘ ⨾ sc ;; ⦗E0 Gf T thread⦘) as Gsc.
+remember (⦗E0 Gf T thread⦘ ⨾ sc ⨾ ⦗E0 Gf T thread⦘) as Gsc.
 assert (SUB: sub_execution Gf G sc Gsc).
 { unfold rstG in *; subst.
 apply restrict_sub.
@@ -192,7 +192,7 @@ subst; eapply urr_helper; edone.
 assert ( urr_helper_C: dom_rel ((G.(hb) ⨾ ⦗(is_f G.(lab)) ∩₁ (is_sc G.(lab))⦘)^? ⨾ Gsc^? ⨾ G.(hb)^? ⨾ (G.(release) ⨾ G.(rf))^? ⨾ ⦗T.(covered)⦘) ⊆₁ T.(covered)).
 subst; eapply urr_helper_C; edone.
 
-assert ( W_hb_sc_hb_to_I_NTid: dom_rel (⦗(is_w G.(lab))⦘ ⨾ G.(hb) ⨾ (Gsc ⨾ G.(hb))^? ;; ⦗T.(issued) ∩₁ NTid_ thread⦘) ⊆₁ T.(issued)).
+assert ( W_hb_sc_hb_to_I_NTid: dom_rel (⦗(is_w G.(lab))⦘ ⨾ G.(hb) ⨾ (Gsc ⨾ G.(hb))^? ⨾ ⦗T.(issued) ∩₁ NTid_ thread⦘) ⊆₁ T.(issued)).
 subst; eapply W_hb_sc_hb_to_I_NTid; edone.
 
 assert ( detour_E : dom_rel (G.(detour) ⨾ ⦗G.(acts_set) ∩₁ NTid_ thread⦘) ⊆₁ T.(issued)).
@@ -201,7 +201,7 @@ subst; eapply detour_E; edone.
 assert ( detour_Acq_E : dom_rel (G.(detour) ⨾ ⦗G.(acts_set) ∩₁ (is_r G.(lab)) ∩₁ (is_acq G.(lab))⦘) ⊆₁ T.(issued)).
 subst; eapply detour_Acq_E; edone.
 
-assert ( hb_sc_hb_de : ⦗(G.(acts_set) \₁ T.(covered)) ∩₁ (G.(acts_set) \₁ T.(issued))⦘ ⨾ G.(hb) ;; (Gsc ⨾ G.(hb))^? ⊆ G.(sb)).
+assert ( hb_sc_hb_de : ⦗(G.(acts_set) \₁ T.(covered)) ∩₁ (G.(acts_set) \₁ T.(issued))⦘ ⨾ G.(hb) ⨾ (Gsc ⨾ G.(hb))^? ⊆ G.(sb)).
 subst; eapply hb_sc_hb_de; edone.
 
 assert (COMP_C : T.(covered) ∩₁ (is_r G.(lab)) ⊆₁ codom_rel G.(rf)).
@@ -220,7 +220,7 @@ assert (lab_G_eq_lab_Gf : lab G = lab Gf).
 { rewrite H. unfold rstG. by unfold restrict. }
 
 assert (rmw_G_rmw_Gf : rmw G ≡
-                       <| E0 Gf T thread |> ;; rmw Gf ;; <| E0 Gf T thread |>).
+                       ⦗ E0 Gf T thread ⦘ ⨾ rmw Gf ;; <| E0 Gf T thread |>).
 { rewrite H. unfold rstG. by unfold restrict. }
 
 cdes SIMREL. cdes LOCAL.
@@ -257,18 +257,18 @@ assert (wf_thread_state thread state') as GPC'.
 { eapply wf_thread_state_steps; eauto. }
 
 assert (exists ctindex,
-           << CCLOS :forall index (LT : index < ctindex),
-             CT (ThreadEvent thread index) >> /\
-           << CREP : forall e (CTE : CT e),
+           ⟪ CCLOS :forall index (LT : index < ctindex),
+             CT (ThreadEvent thread index) ⟫ /\
+           ⟪ CREP : forall e (CTE : CT e),
                exists index : nat,
                  ⟪ EREP : e = ThreadEvent thread index ⟫ /\
-                 ⟪ ILT : index < ctindex ⟫ >>).
+                 ⟪ ILT : index < ctindex ⟫ ⟫).
 { destruct (classic (exists e, CT e)) as [|NCT].
   2: { exists 0. splits.
        { ins. inv LT. }
        ins. exfalso. apply NCT. eauto. }
   desc.
-  assert (acyclic (sb Gf ;; <| CT |>)) as AC.
+  assert (acyclic (sb Gf ⨾ ⦗ CT ⦘)) as AC.
   { arewrite (sb Gf ⨾ ⦗CT⦘ ⊆ sb Gf). apply sb_acyclic. }
   set (doml := filterP CT Gf.(acts)).
   assert (forall c, (sb Gf ⨾ ⦗CT⦘)＊ e c -> In c doml) as UU.
@@ -324,8 +324,8 @@ assert (exists ctindex,
 desc.
 
 assert (exists state'',
-           << STEPS'' : (step thread)＊ state state'' >> /\
-           << TEH''   : thread_restricted_execution G thread state''.(ProgToExecution.G) >>).
+           ⟪ STEPS'' : (step thread)＊ state state'' ⟫ /\
+           ⟪ TEH''   : thread_restricted_execution G thread state''.(ProgToExecution.G) ⟫).
 { edestruct steps_middle_set with (C:=CT) (state0:=state) (state':=state')
     as [state'']; eauto.
   { intros x HH. apply GPC.(acts_rep) in HH.
@@ -425,21 +425,21 @@ desc.
 assert (acts_set (ProgToExecution.G state) ⊆₁ covered T) as STATECOV.
 { intros x EE. apply GPC.(acts_rep) in EE. desc. subst. by apply PCOV. }
 
-set (new_rfi := <| Tid_ thread |> ;; new_rf G Gsc T thread ;; <| Tid_ thread |>).
+set (new_rfi := ⦗ Tid_ thread ⦘ ⨾ new_rf G Gsc T thread ;; <| Tid_ thread |>).
 
 assert (new_rfif : functional new_rfi⁻¹).
 { arewrite  (new_rfi ⊆ new_rf G Gsc T thread).
   unfold new_rfi; basic_solver.
   by apply wf_new_rff. }
 
-set (new_rfe := <| NTid_ thread |> ;; new_rf G Gsc T thread ;; <| Tid_ thread |>).
+set (new_rfe := ⦗ NTid_ thread ⦘ ⨾ new_rf G Gsc T thread ;; <| Tid_ thread |>).
 
 assert (new_rfef : functional new_rfe⁻¹).
 { arewrite  (new_rfe ⊆ new_rf G Gsc T thread).
   unfold new_rfe; basic_solver.
   by apply wf_new_rff. }
 
-set (new_rfe_ex := new_rfe ∪ <| set_compl (codom_rel new_rfe) |>).
+set (new_rfe_ex := new_rfe ∪ ⦗ set_compl (codom_rel new_rfe) ⦘).
 
 assert (new_rfe_unique: forall r, exists ! w, new_rfe_ex⁻¹  r w).
 { ins.
@@ -593,7 +593,7 @@ assert (thread_restricted_execution (certG G Gsc T thread lab') thread
   rewrite <- RFAILRMW. apply TEH''.(tr_rmw_dep). }
 
 assert (new_rf G Gsc T thread ≡ new_rfi ∪ new_rfe) as NEWRF_SPLIT.
-{ arewrite (new_rf G Gsc T thread ≡ new_rf G Gsc T thread ;; <| Tid_ thread |>).
+{ arewrite (new_rf G Gsc T thread ≡ new_rf G Gsc T thread ⨾ ⦗ Tid_ thread ⦘).
   2: { unfold new_rfi, new_rfe. 
        rewrite <- seq_union_l. rewrite <- id_union.
        arewrite (Tid_ thread ∪₁ NTid_ thread ≡₁ fun _ => True).
@@ -765,7 +765,7 @@ red. splits.
     1,2: by (intros x [AA BB]; apply FCOH; split; auto).
     { ins. by apply FCOH. }
     { ins. apply FCOH; auto.
-      assert ((cert_co G T thread ;; <| issued T |>) x y) as HH.
+      assert ((cert_co G T thread ⨾ ⦗ issued T ⦘) x y) as HH.
       { apply seq_eqv_r. by split. }
       apply cert_co_I in HH; auto.
       apply seq_eqv_r in HH. destruct HH as [HH _].
@@ -814,7 +814,7 @@ all: eauto.
        rewrite <- lab_G_eq_lab_Gf; eauto. }
   2: { erewrite same_label_loc in AA; eauto.
        rewrite <- lab_G_eq_lab_Gf; eauto. }
-  { assert ((msg_rel Gf sc ll ;; <| issued T |>) x b) as XX.
+  { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
     2: { apply seq_eqv_r in XX. desf. }
     eapply msg_rel_I; eauto.
     eapply cert_msg_rel; eauto.
@@ -823,7 +823,7 @@ all: eauto.
     all: try by unfold rst_sc; rewrite <- HeqGsc.
     apply seq_eqv_r. split; auto.
       by unfold rst_sc; rewrite <- HeqGsc. }
-  assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ;; <| issued T |>) x b) as XX.
+  assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ⨾ ⦗ issued T ⦘) x b) as XX.
   2: { apply seq_eqv_r in XX. desf. }
   rewrite HeqGsc. rewrite H.
   eapply cert_msg_rel; eauto.
@@ -848,7 +848,7 @@ all: eauto.
          rewrite <- lab_G_eq_lab_Gf; eauto. }
     2: { erewrite same_label_loc in AA; eauto.
          rewrite <- lab_G_eq_lab_Gf; eauto. }
-    { assert ((msg_rel Gf sc ll ;; <| issued T |>) x b) as XX.
+    { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
       2: { apply seq_eqv_r in XX. desf. }
       eapply msg_rel_I; eauto.
       eapply cert_msg_rel; eauto.
@@ -857,7 +857,7 @@ all: eauto.
       all: try by unfold rst_sc; rewrite <- HeqGsc.
       apply seq_eqv_r. split; auto.
         by unfold rst_sc; rewrite <- HeqGsc. }
-    assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ;; <| issued T |>) x b) as XX.
+    assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ⨾ ⦗ issued T ⦘) x b) as XX.
     2: { apply seq_eqv_r in XX. desf. }
     rewrite HeqGsc. rewrite H.
     eapply cert_msg_rel; eauto.

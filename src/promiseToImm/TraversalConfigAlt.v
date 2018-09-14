@@ -92,15 +92,15 @@ Implicit Type WF_SC : wf_sc G sc.
 Record tc_coherent_alt T :=
   { tc_init : Init ∩₁ E ⊆₁ covered T ;
     tc_C_in_E : covered T ⊆₁ E ;
-    tc_sb_C : dom_rel ( sb ;; <|covered T|>) ⊆₁ covered T ;
+    tc_sb_C : dom_rel ( sb ⨾ ⦗covered T⦘) ⊆₁ covered T ;
     tc_W_C_in_I : covered T ∩₁ W ⊆₁ issued T ;
-    tc_rf_C : dom_rel ( rf ;; <|covered T|>) ⊆₁ issued T ;
-    tc_sc_C : dom_rel ( sc ;; <|covered T|>) ⊆₁ covered T ;
+    tc_rf_C : dom_rel ( rf ⨾ ⦗covered T⦘) ⊆₁ issued T ;
+    tc_sc_C : dom_rel ( sc ⨾ ⦗covered T⦘) ⊆₁ covered T ;
     tc_I_in_E : issued T ⊆₁ E ;
     tc_I_in_W : issued T ⊆₁ W ;
-    tc_fwbob_I : dom_rel ( fwbob ;; <|issued T|>) ⊆₁ covered T ;
-    tc_dr_pb_I : dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ;; <|issued T|>) ⊆₁ issued T ;
-    tc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ;; <|issued T|>) ⊆₁ issued T ;
+    tc_fwbob_I : dom_rel ( fwbob ⨾ ⦗issued T⦘) ⊆₁ covered T ;
+    tc_dr_pb_I : dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗issued T⦘) ⊆₁ issued T ;
+    tc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T ;
   }.
 
 

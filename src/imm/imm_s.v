@@ -88,7 +88,7 @@ Record wf_sc :=
 
 Definition acyc_ext := acyclic ar.
 
-Definition coh_sc := irreflexive (sc ;; hb ;; (eco ;; hb)^?).
+Definition coh_sc := irreflexive (sc ⨾ hb ;; (eco ;; hb)^?).
 
 Definition imm_consistent := 
   ⟪ Wf_sc : wf_sc ⟫ /\
@@ -387,10 +387,10 @@ eapply hb_trans; eauto.
 Qed.
 
 Proposition coh_helper_alt :
-  irreflexive (hb ;; sc^? ∪ hb ;; (sc ⨾ hb)^? ⨾ rfe ∪ 
-  hb ;; (sc ⨾ hb)^? ⨾ co ∪ hb ;; (sc ⨾ hb)^? ⨾ co ⨾ rfe ∪ 
-  hb ;; (sc ⨾ hb)^? ⨾ fr ∪ hb ;; (sc ⨾ hb)^? ⨾ fr ⨾ rfe) -> 
-  irreflexive (hb ;; (sc ⨾ hb)^? ;; eco^?).
+  irreflexive (hb ⨾ sc^? ∪ hb ;; (sc ⨾ hb)^? ⨾ rfe ∪ 
+  hb ⨾ (sc ⨾ hb)^? ⨾ co ∪ hb ;; (sc ⨾ hb)^? ⨾ co ⨾ rfe ∪ 
+  hb ⨾ (sc ⨾ hb)^? ⨾ fr ∪ hb ;; (sc ⨾ hb)^? ⨾ fr ⨾ rfe) -> 
+  irreflexive (hb ⨾ (sc ⨾ hb)^? ;; eco^?).
 Proof.
 unfold Execution_eco.eco; relsf.
 rewrite rfi_union_rfe; relsf.

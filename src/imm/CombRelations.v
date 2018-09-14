@@ -577,7 +577,7 @@ unfolder; ins; desf.
 eapply eco_urr_irr; basic_solver.
 Qed.
 
-Lemma urr_alt l WF_SC : urr l ≡ ⦗W_ l⦘ ;; rf^? ⨾ hb^? ⨾ sc^? ⨾ hb^?.
+Lemma urr_alt l WF_SC : urr l ≡ ⦗W_ l⦘ ⨾ rf^? ⨾ hb^? ⨾ sc^? ⨾ hb^?.
 Proof.
 unfold urr.
 split.
@@ -587,7 +587,7 @@ generalize (@hb_trans G); basic_solver 21.
 rewrite (dom_l (wf_scD WF_SC)); basic_solver 21.
 Qed.
 
-Lemma furr_alt WF_SC : furr ≡ ⦗W⦘ ;; rf^? ⨾ hb^? ⨾ sc^? ⨾ hb^?.
+Lemma furr_alt WF_SC : furr ≡ ⦗W⦘ ⨾ rf^? ⨾ hb^? ⨾ sc^? ⨾ hb^?.
 Proof.
 unfold furr; split; red; ins; desf.
 apply (urr_alt l WF_SC) in H; unfolder in *; basic_solver 21.
@@ -629,7 +629,7 @@ basic_solver 21.
 Qed.
 
 Lemma urr_hb_sc_hb_irr WF WF_SC CSC COH ACYC_EXT l: 
-  irreflexive (urr l ;; hb ;; (sc ;; hb)^?).
+  irreflexive (urr l ⨾ hb ;; (sc ;; hb)^?).
 Proof.
 case_refl _.
 apply (urr_hb_irr WF WF_SC CSC COH ACYC_EXT).
@@ -639,7 +639,7 @@ apply (urr_hb_irr WF WF_SC CSC COH ACYC_EXT).
 Qed.
 
 Lemma furr_hb_sc_hb_irr WF WF_SC CSC COH ACYC_EXT : 
-  irreflexive (furr ;; hb ;; (sc ;; hb)^?).
+  irreflexive (furr ⨾ hb ;; (sc ;; hb)^?).
 Proof.
 unfold furr; unfolder; ins; desc.
 eapply urr_hb_sc_hb_irr; eauto.

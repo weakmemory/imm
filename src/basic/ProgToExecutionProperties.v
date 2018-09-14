@@ -79,8 +79,8 @@ Record wf_thread_state := {
   acts_rep :
     forall e (EE : E e),
       exists index,
-        << REP : e = ThreadEvent thread index >> /\
-        << LE : index < s.(eindex) >> ;
+        ⟪ REP : e = ThreadEvent thread index ⟫ /\
+        ⟪ LE : index < s.(eindex) ⟫ ;
   acts_clos :
     forall n (LT : n < s.(eindex)),
       E (ThreadEvent thread n) ;
@@ -88,8 +88,8 @@ Record wf_thread_state := {
   wft_rmwIndex :
     forall r w (RMW : rmw r w),
       exists index,
-        << RI : r = ThreadEvent thread index >> /\
-        << WI : w = ThreadEvent thread (S index) >> ;
+        ⟪ RI : r = ThreadEvent thread index ⟫ /\
+        ⟪ WI : w = ThreadEvent thread (S index) ⟫ ;
   wft_dataE : data ≡ ⦗E⦘ ⨾ data ⨾ ⦗E⦘ ;
   wft_addrE : addr ≡ ⦗E⦘ ⨾ addr ⨾ ⦗E⦘ ;
   wft_ctrlE : ctrl ≡ ⦗E⦘ ⨾ ctrl ⨾ ⦗E⦘ ;
@@ -478,7 +478,7 @@ Qed.
 Lemma step_dont_add_rmw thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
-  <| acts_set state.(ProgToExecution.G) |> ;; rmw state'.(ProgToExecution.G) ⊆
+  ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
   rmw state.(ProgToExecution.G).
 Proof.
   red in STEP. desc. cdes STEP.
@@ -509,7 +509,7 @@ Qed.
 Lemma steps_dont_add_rmw thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  <| acts_set state.(ProgToExecution.G) |> ;; rmw state'.(ProgToExecution.G) ⊆
+  ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
   rmw state.(ProgToExecution.G).
 Proof.
   induction STEP.
@@ -631,16 +631,16 @@ Lemma step_old_restrict thread state state'
       (STEP : (step thread) state state') :
   let GO := state.(ProgToExecution.G) in
   let GN := state'.(ProgToExecution.G) in
-  << ORMW  : GO.(rmw) ≡
-             <| GO.(acts_set) |> ;; GN.(rmw) ;; <| GO.(acts_set) |> >> /\
-  << ODATA : GO.(data) ≡
-             <| GO.(acts_set) |> ;; GN.(data) ;; <| GO.(acts_set)|> >> /\
-  << OADDR : GO.(addr) ≡
-             <| GO.(acts_set) |> ;; GN.(addr) ;; <| GO.(acts_set)|> >> /\
-  << OCTRL : GO.(ctrl) ≡
-             <| GO.(acts_set) |> ;; GN.(ctrl) ;; <| GO.(acts_set)|> >> /\
-  << OFAILDEP : GO.(rmw_dep) ≡
-                <| GO.(acts_set) |> ;; GN.(rmw_dep) ;; <| GO.(acts_set)|> >>.
+  ⟪ ORMW  : GO.(rmw) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ;; <| GO.(acts_set) |> ⟫ /\
+  ⟪ ODATA : GO.(data) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OADDR : GO.(addr) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OCTRL : GO.(ctrl) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OFAILDEP : GO.(rmw_dep) ≡
+                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ;; <| GO.(acts_set)|> ⟫.
 Proof.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
@@ -666,16 +666,16 @@ Lemma steps_old_restrict thread state state'
       (STEP : (step thread)＊ state state') :
   let GO := state.(ProgToExecution.G) in
   let GN := state'.(ProgToExecution.G) in
-  << ORMW  : GO.(rmw) ≡
-             <| GO.(acts_set) |> ;; GN.(rmw) ;; <| GO.(acts_set) |> >> /\
-  << ODATA : GO.(data) ≡
-             <| GO.(acts_set) |> ;; GN.(data) ;; <| GO.(acts_set)|> >> /\
-  << OADDR : GO.(addr) ≡
-             <| GO.(acts_set) |> ;; GN.(addr) ;; <| GO.(acts_set)|> >> /\
-  << OCTRL : GO.(ctrl) ≡
-             <| GO.(acts_set) |> ;; GN.(ctrl) ;; <| GO.(acts_set)|> >> /\
-  << OFAILDEP : GO.(rmw_dep) ≡
-                <| GO.(acts_set) |> ;; GN.(rmw_dep) ;; <| GO.(acts_set)|> >>.
+  ⟪ ORMW  : GO.(rmw) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ;; <| GO.(acts_set) |> ⟫ /\
+  ⟪ ODATA : GO.(data) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OADDR : GO.(addr) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OCTRL : GO.(ctrl) ≡
+             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ;; <| GO.(acts_set)|> ⟫ /\
+  ⟪ OFAILDEP : GO.(rmw_dep) ≡
+                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ;; <| GO.(acts_set)|> ⟫.
 Proof.
   induction STEP.
   2: { simpls. splits; apply GPC. }
@@ -745,14 +745,14 @@ Lemma steps_middle_set thread state state' C cindex
       (CREP :
          forall e (INC : C e),
            exists index,
-             << EREP : e = ThreadEvent thread index >> /\
-             << IIND : index < cindex >>)
+             ⟪ EREP : e = ThreadEvent thread index ⟫ /\
+             ⟪ IIND : index < cindex ⟫)
       (RMWC : forall r w (RMW : state'.(G).(rmw) r w),
                        C r <-> C w) :
   exists state'',
-    << STEP1 : (step thread)＊ state state'' >> /\
-    << STEP2 : (step thread)＊ state'' state' >> /\
-    << CACTS : state''.(G).(acts_set) ≡₁ C >>.
+    ⟪ STEP1 : (step thread)＊ state state'' ⟫ /\
+    ⟪ STEP2 : (step thread)＊ state'' state' ⟫ /\
+    ⟪ CACTS : state''.(G).(acts_set) ≡₁ C ⟫.
 Proof.
   apply clos_rt_rt1n in STEP.
   induction STEP.

@@ -269,7 +269,7 @@ unfold release; rewrite rs_in_co; try done.
 rewrite sb_in_hb; basic_solver 10.
 Qed.
 
-Lemma hb_W WF : hb ;; <| W |> ⊆ (hb ;; <|FR∩₁Acq|>)^? ;; sb.
+Lemma hb_W WF : hb ⨾ ⦗ W ⦘ ⊆ (hb ;; <|FR∩₁Acq|>)^? ;; sb.
 Proof.
 unfold hb; rewrite path_ut_last at 1.
 generalize (@sb_trans G); ins; relsf; unionL.

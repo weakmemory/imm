@@ -759,7 +759,7 @@ Qed.
 Lemma detour_in_sb : detour ⊆ sb.
 Proof. unfold detour; basic_solver. Qed.
 
-Lemma detour_to_codom_rfe WF: detour ⊆ detour ⨾ <| codom_rel rfe |>.
+Lemma detour_to_codom_rfe WF: detour ⊆ detour ⨾ ⦗ codom_rel rfe ⦘.
 Proof.
 unfold detour, rfe, rfi.
 unfolder; ins; desf; eauto 20.
