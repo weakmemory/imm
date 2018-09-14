@@ -25,3 +25,10 @@ Makefile.coq: Makefile $(COQTHEORIES)
 clean:
 	$(MAKE) -f Makefile.coq clean
 	rm -f _CoqProject Makefile.coq
+
+tounicode:
+	sed -i 's/<</⟪/' $(COQTHEORIES) 
+	sed -i 's/>>/⟫/' $(COQTHEORIES)
+	sed -i 's/;;/⨾/' $(COQTHEORIES)
+	sed -i 's/<|/⦗/' $(COQTHEORIES)
+	sed -i 's/|>/⦘/' $(COQTHEORIES)
