@@ -1,5 +1,5 @@
 COQMODULE    := imm 
-COQTHEORIES  := src/basic/*.v src/lib/*.v src/imm/*.v src/hardware/*.v src/rc11/*.v src/promiseToImm/*.v
+COQTHEORIES  := src/basic/*.v src/lib/*.v src/imm/*.v src/hardware/*.v src/rc11/*.v src/c11/*.v src/promiseToImm/*.v
 
 .PHONY: all theories clean tounicode
 

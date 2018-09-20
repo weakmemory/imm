@@ -54,7 +54,11 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
 - *TSO.v*---a definition of TSO (Alglave-al:TOPLAS14, Owens-al:TPHOLs09).
 - *immToTSO.v*---a compilation correctness proof from IMM to TSO.
 
-`src/rc11`. Definitions of hardware models and proofs about them.
+`src/c11`. Definition of C11 model w/o SC and NA accesses and a compilation correctness proof from it to IMM.
+- *C11.v*---a definition of C11 (Batty-al:POPL11).
+- *C11Toimm\_s.v*---a compilation correctness proof from C11 to IMMs.
+
+`src/rc11`. Definition of RC11 model w/o SC and NA accesses and a compilation correctness proof from it to IMM.
 - *RC11.v*---a definition of RC11 (Lahav-al:PLDI17).
 - *RC11Toimm\_s.v*---a compilation correctness proof from RC11 to IMMs.
 
