@@ -42,6 +42,9 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Definition psc := ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗F∩₁Sc⦘.
 
+(* This definition of consistency differs to one from [Batty et al. POPL11]:
+   it is (strictly) stronger since it follows a fix from [Lahav et al. PLDI17].
+ *)
 Definition c11_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Coh : coherence G ⟫ /\
