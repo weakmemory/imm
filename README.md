@@ -27,6 +27,9 @@ opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-
 opam install coq-imm
 ```
 
+### Building in virtual machine
+Download a [VirtualBox image](http://podkopaev.net/popl19-imm-artifact).
+
 ### Building in Docker container
 First, one needs to build a Docker image with the project and its dependencies
 ```bash
