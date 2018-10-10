@@ -13,6 +13,8 @@ The repository contains Coq code, which describes a definition of Intermediate M
 compilation correctness proofs stated in the paper.
 
 ## How to build the project
+
+### Native building
 *Requirements*: OPAM 1.2, Make.
 
 To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-coq`, and `hahn`), which the project
@@ -24,6 +26,31 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
 opam install coq-imm
 ```
+
+### Building in Docker container
+First, one needs to build a Docker image with the project and its dependencies
+```bash
+sudo docker build -t weakmemory/imm .
+```
+or to pull it from Docker Hub
+```bash
+docker pull weakmemory/imm
+```
+After that, one has to connect to the container
+
+```bash
+docker run -it weakmemory/imm /bin/bash
+```
+run
+```bash
+eval `opam config env`
+```
+to update container's environment variables and run
+```bash
+cd imm
+make clean; make -j4
+```
+to build the project.
 
 ## File description
 `src/basic`. Definitions and statements about programs and execution graphs.
