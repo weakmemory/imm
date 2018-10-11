@@ -1,17 +1,23 @@
 # Intermediate Memory Model (IMM) and compilation correctness proofs for it
 
 This repository contains Coq code supplementing the paper *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
-([arXiv](https://arxiv.org/abs/1807.07892)), by Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis.
+([arXiv](https://arxiv.org/abs/1807.07892)) by Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis.
 
-## How to build the project
+## Building the Project
 
-### Native building
-*Requirements*: OPAM 1.2, Make.
+### Requirements
+* [Coq 8.8](https://coq.inria.fr)
+* [Hahn library](https://github.com/vafeiadis/hahn)(`coq-hahn`)
+* [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/anlun/promising-coq/tree/opam_red)(`coq-promising`)
+
+### Building Manually
 
 To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-coq`, and `hahn`), which the project
-depends on. This might be done by running `./configure`. After that, one needs to run `make`.
+depends on. This might be done by running `./configure`.
+The command installs `Coq` as well. After that, one needs to run `make` (or `make -j4` for a faster build).
 
-Alternatively, the project may be built and installed via OPAM:
+### Installation via OPAM
+The project may be built and installed via OPAM:
 ```bash
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
@@ -22,7 +28,7 @@ opam install coq-imm
 Download a [VirtualBox image](http://podkopaev.net/popl19-imm-artifact).
 The login is `popl19` and the password is `popl`.
 
-### Building in Docker container
+### Building in a Docker container
 First, one needs to build a Docker image with the project and its dependencies
 ```bash
 sudo docker build -t weakmemory/imm .
