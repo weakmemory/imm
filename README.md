@@ -24,9 +24,23 @@ opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-
 opam install coq-imm
 ```
 
-### Building in virtual machine
-Download a [VirtualBox image](http://podkopaev.net/popl19-imm-artifact).
+### Building in a virtual machine
+Download the [VirtualBox image](http://podkopaev.net/popl19-imm-artifact), import it into VirtualBox, and boot the machine.
+The image was has been tested with VirtualBox 5.2.18 with Oracle VM VirtualBox Extension pack.
+
 The login is `popl19` and the password is `popl`.
+
+All necessary software is installed, and the project is checked out to `/home/popl19/imm`.
+<---!
+Additionally, Emacs and Proof General are installed so that you can browse the sources.
+--->
+
+The proofs might be checked by opening a terminal and running
+```bash
+cd /home/popl19/imm
+make clean; make -j2
+```
+There might be some warnings about notations. The build terminating without printing "error" is successful.
 
 ### Building in a Docker container
 First, one needs to build a Docker image with the project and its dependencies
