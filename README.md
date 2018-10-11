@@ -65,32 +65,32 @@ make clean; make -j4
 ```
 
 ## Description of code and its relation to the paper
-* Section 2. `src/basic`. Definitions and statements about programs and execution graphs.
-  - *Prog.v*—a definition of the program language (Fig. 2).
-  - *Events.v*—definitions related to events (Section 2.2).
-  - *Execution.v*, *Execution\_eco.v*—execution graphs (Section 2.2).
-  - *ProgToExecution.v*—construction of execution graphs from sequential programs (Fig. 3).
+* **Section 2.** `src/basic`. Definitions and statements about programs and execution graphs.
+  - *Prog.v*—a definition of the program language (**Fig. 2**).
+  - *Events.v*—definitions related to events (**Section 2.2**).
+  - *Execution.v*, *Execution\_eco.v*—execution graphs (**Section 2.2**).
+  - *ProgToExecution.v*—construction of execution graphs from sequential programs (**Fig. 3**).
   - *ProgToExecutionProperties.v*—properties of the construction.
 
-* Section 3. `src/imm`. Definitions and statements about IMM
+* **Section 3.** `src/imm`. Definitions and statements about IMM
 and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
   - *CombRelations.v*, *CombRelationsMore.v*—definitions of relation VF (in the development called `furr`)
      and linked relations and their properties.
   - *imm\_common\_more.v*, *imm\_common.v*—common definitions for both models.
-  - *imm\_hb.v*—a definition of HB for IMM (Section 3.1).
+  - *imm\_hb.v*—a definition of HB for IMM (**Section 3.1**).
   - *imm\_s\_hb.v*—the RC11-style definition of HB for IMMs.
-  - *imm.v*—a definition of IMM (Def. 3.11).
+  - *imm.v*—a definition of IMM (**Def. 3.11**).
   - *imm\_s.v*—a definition of IMMs.
   - *imm\_sToimm.v*—a proof that IMMs is weaker than IMM.
 
-* Section 4. `src/hardware`. Definitions of hardware models and proofs about them.
+* **Section 4.** `src/hardware`. Definitions of hardware models and proofs about them.
   - *Power\_fences.v*,
     *Power\_ppo.v*,
     *Power.v*—a definition of POWER (Alglave-al:TOPLAS14).
-  - *Rel\_opt.v*—a correctness proof for release write transformation (Thm. 4.1).
-  - *immToPower.v*—a compilation correctness proof from IMM to POWER (Thm. 4.3).
+  - *Rel\_opt.v*—a correctness proof for release write transformation (**Thm. 4.1**).
+  - *immToPower.v*—a compilation correctness proof from IMM to POWER (**Thm. 4.3**).
   - *Arm.v*—a definition of ARMv8.3 (Pulte-al:POPL18).
-  - *immToARM.v*—a compilation correctness proof from IMM to ARMv8.3 (Thm. 4.5).
+  - *immToARM.v*—a compilation correctness proof from IMM to ARMv8.3 (**Thm. 4.5**).
   - *TSO.v*—a definition of TSO (Alglave-al:TOPLAS14, Owens-al:TPHOLs09).
   - *immToTSO.v*—a compilation correctness proof from IMM to TSO.
 
@@ -102,16 +102,16 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
   - *RC11.v*—a definition of RC11 (Lahav-al:PLDI17).
   - *RC11Toimm\_s.v*—a compilation correctness proof from RC11 to IMMs.
 
-* Section 5. `src/promiseToImm`. The compilation correctness from Promise to IMM.
-  - *Promise.v*—a definition of a Promise outcome (Def. 5.1).
+* **Section 5.** `src/promiseToImm`. The compilation correctness from Promise to IMM.
+  - *Promise.v*—a definition of a Promise outcome (**Def. 5.1**).
   - *PromiseFuture.v*— a proof that it is enough to show certification
-    only for a restricted set of future memories (Remark 3).
+    only for a restricted set of future memories (**Remark 3**).
   - *TraversalConfig.v*, *Traversal.v*—a small traversal step of IMM-consistent execution graphs
-      used to prove properties of the traversal (Def. 5.3, 5,7).
-  - *SimTraversal.v*—traversal of IMM-consistent execution graphs (Prop. 5.8).
+      used to prove properties of the traversal (**Def. 5.3, 5,7**).
+  - *SimTraversal.v*—traversal of IMM-consistent execution graphs (**Prop. 5.8**).
   - *SimTraversalProperties.v*—properties of the normal traversal.
-  - *SimulationRel.v*—a simulation relation (Section 5.3).
-  - *SimulationPlainStep.v*— a proof of simulation step (Prop. 5.9).
+  - *SimulationRel.v*—a simulation relation (**Section 5.3**).
+  - *SimulationPlainStep.v*— a proof of simulation step (**Prop. 5.9**).
   - *PlainStepBasic.v*,
     *WritePlainStep.v*,
     *FencePlainStep.v*,
@@ -122,8 +122,8 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
     *CertCOhelper.v*,
     *CertExecution1.v*,
     *CertExecution2.v*,
-    *Receptiveness.v*, *CertExecutionMain.v*—construction of the certification graph and proofs of its properties (Section 5.4).
-  - *PromiseToIMM.v*—a proof of the compilation correctness from Promise to IMM (Prop. 5.12 and 5.13, Thm. 5.14).
+    *Receptiveness.v*, *CertExecutionMain.v*—construction of the certification graph and proofs of its properties (**Section 5.4**).
+  - *PromiseToIMM.v*—a proof of the compilation correctness from Promise to IMM (**Prop. 5.12 and 5.13, Thm. 5.14**).
 
 Auxiliary files:
 - *AuxRel.v*,
