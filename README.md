@@ -56,16 +56,13 @@ After that, one has to connect to the container
 ```bash
 docker run -it weakmemory/imm /bin/bash
 ```
-run
+and execute the following to update container's environment variables
+and build the project
 ```bash
 eval `opam config env`
-```
-to update container's environment variables and run
-```bash
-cd imm
+cd /imm
 make clean; make -j4
 ```
-to build the project.
 
 ## File description
 `src/basic`. Definitions and statements about programs and execution graphs.
