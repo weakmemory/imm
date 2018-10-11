@@ -6,7 +6,7 @@ This repository contains Coq code supplementing the paper *Bridging the Gap Betw
 ## Building the Project
 
 ### Requirements
-* [Coq 8.8](https://coq.inria.fr)
+* [Coq 8.8.1](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
 * [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/anlun/promising-coq/tree/opam_red) (`coq-promising`)
 
