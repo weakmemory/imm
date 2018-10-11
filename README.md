@@ -107,8 +107,8 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
   - *PromiseFuture.v*— a proof that it is enough to show certification
     only for a restricted set of future memories (**Remark 3**).
   - *TraversalConfig.v*, *Traversal.v*—a small traversal step of IMM-consistent execution graphs
-      used to prove properties of the traversal (**Def. 5.3, 5,7**).
-  - *SimTraversal.v*—traversal of IMM-consistent execution graphs (**Prop. 5.8**).
+      used to prove properties of the traversal (**Def. 5.3 and 5.7**).
+  - *SimTraversal.v*—traversal of IMM-consistent execution graphs (**Fig. 6 and Prop. 5.8**).
   - *SimTraversalProperties.v*—properties of the normal traversal.
   - *SimulationRel.v*—a simulation relation (**Section 5.3**).
   - *SimulationPlainStep.v*— a proof of simulation step (**Prop. 5.9**).
