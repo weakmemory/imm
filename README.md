@@ -1,16 +1,7 @@
-# Supplementary material for ``Bridging the Gap Between Programming Languages and Hardware Weak Memory Models'' paper
+# Intermediate Memory Model (IMM) and compilation correctness proofs for it
 
-## Authors
-
-Anton Podkopaev, Ori Lahav, Viktor Vafeiadis
-
-## Paper draft on Arxiv
-
-https://arxiv.org/abs/1807.07892
-
-
-The repository contains Coq code, which describes a definition of Intermediate Memory Model (IMM) and
-compilation correctness proofs stated in the paper.
+This repository contains Coq code supplementing the paper *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
+([arXiv](https://arxiv.org/abs/1807.07892)), by Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis.
 
 ## How to build the project
 
