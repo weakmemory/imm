@@ -25,7 +25,8 @@ opam install coq-imm
 ```
 
 ### Building in a virtual machine
-Download the [VirtualBox image](http://podkopaev.net/popl19-imm-artifact), import it into VirtualBox, and boot the machine.
+Download the VirtualBox image from [here](http://plv.mpi-sws.org/imm/popl19-imm-artifact.ova) (or [here](http://podkopaev.net/popl19-imm-artifact)),
+import it into VirtualBox, and boot the machine.
 The image has been tested with VirtualBox 5.2.18 with Oracle VM VirtualBox Extension pack.
 
 The login is `popl` and the password is `popl`.
