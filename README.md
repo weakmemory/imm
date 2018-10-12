@@ -20,7 +20,7 @@ The command installs `Coq` as well. After that, one needs to run `make` (or `mak
 The project may be built and installed via OPAM:
 ```bash
 opam repo add coq-released https://coq.inria.fr/opam/released
-opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
+opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive#versions
 opam install coq-imm
 ```
 
@@ -28,16 +28,14 @@ opam install coq-imm
 Download the [VirtualBox image](http://podkopaev.net/popl19-imm-artifact), import it into VirtualBox, and boot the machine.
 The image was has been tested with VirtualBox 5.2.18 with Oracle VM VirtualBox Extension pack.
 
-The login is `popl19` and the password is `popl`.
+The login is `popl` and the password is `popl`.
 
-All necessary software is installed, and the project is checked out to `/home/popl19/imm`.
-<---!
+All necessary software is installed, and the project is checked out to `/home/popl/imm`.
 Additionally, Emacs and Proof General are installed so that you can browse the sources.
---->
 
 The proofs might be checked by opening a terminal and running
 ```bash
-cd /home/popl19/imm
+cd /home/popl/imm
 make clean; make -j2
 ```
 There might be some warnings about notations. The build terminating without printing "error" is successful.
