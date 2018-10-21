@@ -76,14 +76,18 @@ Proof.
   destruct Wf_sc.
   arewrite (psc ⊆ sc); [|by red; relsf]. 
   unfold RC11.psc.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
   rewrite wf_hbE, ?seqA; ins. 
   seq_rewrite <- !id_inter. 
   rewrite !inclusion_seq_eqv_l with (dom := E).
   unfolder; ins; desf.
-  destruct (classic (x = y)) as [|NEQ]; desf.
-    by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans.
+  all: destruct (classic (x = y)) as [|NEQ]; desf.
+  { exfalso. eapply hb_irr; eauto. }
+  { eapply wf_sc_total in NEQ; desf; vauto.
+    edestruct Csc; unfolder; eauto 10. }
+  { by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans. }
   eapply wf_sc_total in NEQ; desf; vauto.
-  edestruct Csc; unfolder; eauto 10. 
+  edestruct Csc; unfolder; eauto 10.
 Qed.
 
 Lemma s_imm_consistentimplies_rc11_consistent (WF: Wf G) 
