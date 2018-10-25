@@ -96,7 +96,7 @@ Section State.
      |}.
 
   Definition is_terminal s: Prop :=
-    s.(pc) < 0 \/ s.(pc) > s.(instrs).(length).
+    s.(pc) > s.(instrs).(length).
   
   Definition add G tid index elab ddata daddr dctrl drmw_dep :=
     let e := ThreadEvent tid index in 
@@ -140,8 +140,8 @@ Section State.
       (LABELS : labels = nil)
       (II : instr = Instr.ifgoto expr shift)
       (UPC   : if Const.eq_dec (RegFile.eval_expr s1.(regf) expr) 0
-                 then s2.(pc) = s1.(pc) + 1
-                 else s2.(pc) = s1.(pc) + shift)
+               then s2.(pc) = s1.(pc) + 1
+               else s2.(pc) = shift)
       (UG    : s2.(G) = s1.(G))
       (UINDEX : s2.(eindex) = s1.(eindex))
       (UREGS : s2.(regf) = s1.(regf))
