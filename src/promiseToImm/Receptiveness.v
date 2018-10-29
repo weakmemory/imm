@@ -320,7 +320,7 @@ cut (exists instrs pc G_ eindex regf depf ectrl,
 by ins; desc; eauto.
 eexists.
   exists (if Const.eq_dec (RegFile.eval_expr (regf s1') expr) 0
-        then pc s1' + 1 else pc s1' + shift).
+        then pc s1' + 1 else shift).
   do 5 eexists; splits; red; splits.
   * eexists; red; splits; [by ins; eauto|].
     eexists; splits; [eby rewrite <- INSTRS, <- PC|].
@@ -345,7 +345,7 @@ Lemma receptiveness_sim_if_then (tid : thread_id)
   (expr : Instr.expr) (shift : nat)
   (n : RegFile.eval_expr (regf s1) expr <> 0)
   (ISTEP : Some (Instr.ifgoto expr shift) = nth_error (instrs s1) (pc s1))
-  (UPC : pc s2 = pc s1 + shift) (UG : G s2 = G s1)
+  (UPC : pc s2 = shift) (UG : G s2 = G s1)
   (UINDEX : eindex s2 = eindex s1)
   (UREGS : regf s2 = regf s1)
   (UDEPS : depf s2 = depf s1)
@@ -363,7 +363,7 @@ cut (exists instrs pc G_ eindex regf depf ectrl,
 by ins; desc; eauto.
  eexists.
   exists (if Const.eq_dec (RegFile.eval_expr (regf s1') expr) 0
-        then pc s1' + 1 else pc s1' + shift).
+        then pc s1' + 1 else shift).
   do 5 eexists; splits; red; splits.
   * eexists; red; splits; [by ins; eauto|].
     eexists; splits; [eby rewrite <- INSTRS, <- PC|].

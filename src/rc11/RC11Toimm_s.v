@@ -76,18 +76,22 @@ Proof.
   destruct Wf_sc.
   arewrite (psc ⊆ sc); [|by red; relsf]. 
   unfold RC11.psc.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
   rewrite wf_hbE, ?seqA; ins. 
   seq_rewrite <- !id_inter. 
   rewrite !inclusion_seq_eqv_l with (dom := E).
   unfolder; ins; desf.
-  destruct (classic (x = y)) as [|NEQ]; desf.
-    by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans.
+  all: destruct (classic (x = y)) as [|NEQ]; desf.
+  { exfalso. eapply hb_irr; eauto. }
+  { eapply wf_sc_total in NEQ; desf; vauto.
+    edestruct Csc; unfolder; eauto 10. }
+  { by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans. }
   eapply wf_sc_total in NEQ; desf; vauto.
-  edestruct Csc; unfolder; eauto 10. 
+  edestruct Csc; unfolder; eauto 10.
 Qed.
 
 Lemma s_imm_consistentimplies_rc11_consistent (WF: Wf G) 
-      (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb) sc : 
+      (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ∪ rmw) sc : 
   imm_s.imm_consistent G sc -> rc11_consistent G.
 Proof.
   unfold imm_s.imm_consistent, rc11_consistent; ins; desf; splits; ins.
@@ -107,8 +111,18 @@ Proof.
     by unfolder; split; ins; desf; destruct (is_rel lab x); auto. 
   rewrite id_union; relsf; unionL.
     by rewrite inclusion_seq_eqv_l at 1; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn.
-  rewrite COND, <- seq_eqvK, seqA, <- seqA. 
-  apply inclusion_step2_ct; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn.
+  rewrite COND.
+  sin_rewrite rmw_in_ppo; auto.
+  arewrite (⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ⊆ ppo).
+  { rewrite <- deps_rfi_in_ppo.
+    sin_rewrite (ct_step deps).
+    rewrite unionC, ct_unionE.
+    basic_solver. }
+  unionL.
+  { rewrite <- seq_eqvK, seqA, <- seqA. 
+    apply inclusion_step2_ct; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn. }
+  all: etransitivity; [|by apply ct_step].
+  all: basic_solver 20.
 Qed.
 
 End RC11_TO_IMM_S.

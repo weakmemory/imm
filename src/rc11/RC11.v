@@ -40,7 +40,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition psc := ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗F∩₁Sc⦘.
+Definition psc := ⦗F∩₁Sc⦘ ⨾ (hb ∪ hb ⨾ eco ⨾ hb) ⨾ ⦗F∩₁Sc⦘.
 
 Definition rc11_consistent :=
   ⟪ Comp : complete G ⟫ /\
