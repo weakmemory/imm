@@ -72,7 +72,7 @@ make clean; make -j4
   - *ProgToExecutionProperties.v*—properties of the construction.
 
 * **Section 3.** `src/imm`. Definitions and statements about IMM
-and IMMs, a version of IMM with RC11-style definition of happens-before (HB).
+and IMMs, a version of IMM (see **section 5.0**) with RC11-style definition of happens-before (HB).
   - *CombRelations.v*, *CombRelationsMore.v*—definitions of relation VF (in the development called `furr`)
      and linked relations and their properties.
   - *imm\_common\_more.v*, *imm\_common.v*—common definitions for both models.
