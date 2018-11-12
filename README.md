@@ -3,6 +3,8 @@
 This repository contains Coq code supplementing the paper *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
 ([arXiv](https://arxiv.org/abs/1807.07892)) by Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis.
 
+POPL19 arifact release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1484024.svg)](https://doi.org/10.5281/zenodo.1484024)
+
 ## Building the Project
 
 ### Requirements
