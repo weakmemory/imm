@@ -36,7 +36,7 @@ Definition same_lab_up_to_value_set (s : actid -> Prop) lab1 lab2 :=
   forall e (EE : s e),
     same_label_up_to_value (lab1 e) (lab2 e).
 
-Lemma same_lab_up_to_value_comm lab1 lab2
+Lemma same_lab_up_to_value_comm {A} (lab1 lab2 : A -> label)
       (S1 : same_lab_up_to_value lab1 lab2) :
   same_lab_up_to_value lab2 lab1.
 Proof.

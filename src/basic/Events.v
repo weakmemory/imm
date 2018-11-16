@@ -289,11 +289,15 @@ Definition same_label_up_to_value label1 label2 :=
   | _,_ => False
   end.
 
-Definition same_lab_up_to_value lab1 lab2 :=
-  forall (e : actid), same_label_up_to_value (lab1 e) (lab2 e).
+Section SameFuns.
 
+Variable A : Type.
+Variable lab1 lab2 : A -> label.
 
-Lemma same_label_loc lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Definition same_lab_up_to_value :=
+  forall e, same_label_up_to_value (lab1 e) (lab2 e).
+
+Lemma same_label_loc (SAME: same_lab_up_to_value) :
   loc lab1 = loc lab2.
 Proof.
 unfold loc, same_lab_up_to_value, same_label_up_to_value in *.
@@ -301,7 +305,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_mod lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_mod (SAME: same_lab_up_to_value) :
   mod lab1 = mod lab2.
 Proof.
 unfold mod, same_lab_up_to_value, same_label_up_to_value in *.
@@ -309,7 +313,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_xmod lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_xmod (SAME: same_lab_up_to_value) :
   xmod lab1 = xmod lab2.
 Proof.
 unfold xmod, same_lab_up_to_value, same_label_up_to_value in *.
@@ -317,7 +321,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_is_r lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_r (SAME: same_lab_up_to_value) :
   is_r lab1 = is_r lab2.
 Proof.
 unfold is_r, same_lab_up_to_value, same_label_up_to_value in *.
@@ -325,7 +329,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_is_w lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_w (SAME: same_lab_up_to_value) :
   is_w lab1 = is_w lab2.
 Proof.
 unfold is_w, same_lab_up_to_value, same_label_up_to_value in *.
@@ -333,7 +337,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_is_f lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_f (SAME: same_lab_up_to_value) :
   is_f lab1 = is_f lab2.
 Proof.
 unfold is_f, same_lab_up_to_value, same_label_up_to_value in *.
@@ -341,7 +345,7 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_R_ex lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_R_ex (SAME: same_lab_up_to_value) :
   R_ex lab1 = R_ex lab2.
 Proof.
 unfold R_ex, same_lab_up_to_value, same_label_up_to_value in *.
@@ -349,60 +353,62 @@ extensionality a; specialize (SAME a).
 desf; desf.
 Qed.
 
-Lemma same_label_is_only_pln lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_only_pln (SAME: same_lab_up_to_value) :
   is_only_pln lab1 = is_only_pln lab2.
 Proof.
 unfold is_only_pln; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_rlx lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_rlx (SAME: same_lab_up_to_value) :
   is_rlx lab1 = is_rlx lab2.
 Proof.
 unfold is_rlx; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_acq lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_acq (SAME: same_lab_up_to_value) :
   is_acq lab1 = is_acq lab2.
 Proof.
 unfold is_acq; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_rel lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_rel (SAME: same_lab_up_to_value) :
   is_rel lab1 = is_rel lab2.
 Proof.
 unfold is_rel; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_acqrel lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_acqrel (SAME: same_lab_up_to_value) :
   is_acqrel lab1 = is_acqrel lab2.
 Proof.
 unfold is_acqrel; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_sc lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_sc (SAME: same_lab_up_to_value) :
   is_sc lab1 = is_sc lab2.
 Proof.
 unfold is_sc; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_ra lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_ra (SAME: same_lab_up_to_value) :
   is_ra lab1 = is_ra lab2.
 Proof.
 unfold is_ra, is_rel, is_acq; erewrite same_label_mod; eauto.
 Qed.
 
-Lemma same_label_is_xacq lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_is_xacq (SAME: same_lab_up_to_value) :
   is_xacq lab1 = is_xacq lab2.
 Proof.
 unfold is_xacq; erewrite same_label_xmod; eauto.
 Qed.
 
 
-Lemma same_label_same_loc lab1 lab2 (SAME: same_lab_up_to_value lab1 lab2) :
+Lemma same_label_same_loc (SAME: same_lab_up_to_value) :
   same_loc lab1 = same_loc lab2.
 Proof.
 unfold same_loc; erewrite same_label_loc; eauto.
 Qed.
+
+End SameFuns.
 
 (******************************************************************************)
 (** ** Sequenced-Before *)
