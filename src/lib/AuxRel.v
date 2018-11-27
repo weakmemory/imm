@@ -1,9 +1,31 @@
 From hahn Require Import Hahn.
 
 Require Import Setoid.
+Require Import Coq.Logic.FunctionalExtensionality.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
+
+Definition eq_dom {A B} (s : A -> Prop) (f g : A -> B) := 
+  forall (x: A) (SX: s x), f x = g x. 
+
+Hint Unfold eq_dom : unfolderDb. 
+
+Lemma eq_dom_union {A B} (s s' : A -> Prop) (f g : A -> B):
+  eq_dom (s ∪₁ s') f g <-> eq_dom s f g /\ eq_dom s' f g.
+Proof. 
+  split.
+  { ins. unfold eq_dom in *. 
+    splits; ins; apply (H x); basic_solver. }
+  intros [Hs Hs'].
+  unfold eq_dom in *. ins. 
+  unfold set_union in SX. 
+  desf; basic_solver.
+Qed.  
+
+Lemma eq_dom_full_eq {A B} (f g : A -> B) (EQD : eq_dom (fun _ => True) f g) :
+  f = g.
+Proof. apply functional_extensionality. ins. by apply EQD. Qed.
 
 Lemma doma_eqv {A} (s : A -> Prop) (r : relation A): doma (⦗s⦘ ⨾ r) s.
 Proof. apply doma_helper. basic_solver. Qed.
@@ -152,6 +174,10 @@ Lemma restr_eqv_def {A} (cond : A -> Prop) (r : relation A) :
 Proof.
 basic_solver.
 Qed.
+
+Lemma restr_full {A} (r : relation A) :
+  restr_rel (fun _ : A => True) r ≡ r.
+Proof. basic_solver. Qed.
 
 Lemma dom_rel_ext (A: Type) (r1 r2: relation A):
 dom_rel (r1 ⨾ r2^?) ≡₁ dom_rel r1.

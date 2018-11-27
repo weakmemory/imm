@@ -32,75 +32,10 @@ Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Section Cert.
 
-Definition same_lab_up_to_value_set (s : actid -> Prop) lab1 lab2 := 
-  forall e (EE : s e),
-    same_label_up_to_value (lab1 e) (lab2 e).
-
-Lemma same_lab_up_to_value_comm {A} (lab1 lab2 : A -> label)
-      (S1 : same_lab_up_to_value lab1 lab2) :
-  same_lab_up_to_value lab2 lab1.
-Proof.
-  unfold same_lab_up_to_value. ins.
-  specialize (S1 e).
-  unfold same_label_up_to_value in *.
-  desf; desf.
-Qed.
-
-Lemma same_lab_up_to_value_follows_set s lab1 lab2
-      (S1 : same_lab_up_to_value lab1 lab2) :
-  same_lab_up_to_value_set s lab1 lab2.
-Proof. unfold same_lab_up_to_value, same_lab_up_to_value_set in *. desf. Qed.
-
-Lemma same_lab_up_to_value_set_inclusion s s' lab lab'
-      (SS : s' ⊆₁ s)
-      (S1 : same_lab_up_to_value_set s lab lab') :
-  same_lab_up_to_value_set s' lab lab'.
-Proof. red. ins. apply S1. by apply SS. Qed.
-
 Lemma same_lab_up_to_value_set_restricted G thread G'
   (TEH : thread_restricted_execution G thread G') :
   same_lab_up_to_value_set G'.(acts_set) G.(lab) G'.(lab).
 Proof. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
-
-Lemma same_label_up_to_value_trans lbl1 lbl2 lbl3
-      (S1 : same_label_up_to_value lbl1 lbl2)
-      (S2 : same_label_up_to_value lbl2 lbl3) :
-  same_label_up_to_value lbl1 lbl3.
-Proof. unfold same_label_up_to_value in *. desf; desf. Qed.
-
-Lemma same_label_up_to_value_comm lbl1 lbl2
-      (S1 : same_label_up_to_value lbl1 lbl2) :
-  same_label_up_to_value lbl2 lbl1.
-Proof. unfold same_label_up_to_value in *. desf; desf. Qed.
-
-Lemma same_lab_up_to_value_set_trans s lab1 lab2 lab3
-      (S1 : same_lab_up_to_value_set s lab1 lab2)
-      (S2 : same_lab_up_to_value_set s lab2 lab3) :
-  same_lab_up_to_value_set s lab1 lab3.
-Proof.
-  red. ins.
-  specialize (S1 e EE).
-  specialize (S2 e EE).
-  eapply same_label_up_to_value_trans; eauto.
-Qed.
-
-Lemma same_lab_up_to_value_set_comm s lab1 lab2
-      (S2 : same_lab_up_to_value_set s lab1 lab2) :
-  same_lab_up_to_value_set s lab2 lab1.
-Proof.
-  red. ins. specialize (S2 e EE).
-    by apply same_label_up_to_value_comm.
-Qed.
-
-Lemma same_label_in_set_is_r e (s : actid -> Prop) lab1 lab2
-      (EE : s e)
-      (S2 : same_lab_up_to_value_set s lab1 lab2) :
-  is_r lab1 e <-> is_r lab2 e.
-Proof.
-  specialize (S2 e EE). red in S2.
-  unfold is_r in *.
-  desf.
-Qed.
 
 Lemma cert_graph_init Gf sc T PC f_to f_from thread
       (WF : Wf Gf)
