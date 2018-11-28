@@ -289,17 +289,15 @@ Definition same_label_up_to_value label1 label2 :=
   | _,_ => False
   end.
 
-Section SameFuns.
+Section SameFunsSet.
 
 Variable A : Type.
+Variable s : A -> Prop.
 Variable lab1 lab2 : A -> label.
 
-Definition same_lab_up_to_value_set (s : A -> Prop) := 
+Definition same_lab_up_to_value_set  := 
   forall e (EE : s e),
     same_label_up_to_value (lab1 e) (lab2 e).
-
-Definition same_lab_up_to_value :=
-  same_lab_up_to_value_set (fun _ => True).
 
 Hint Unfold eq_dom loc mod xmod is_r is_w is_f is_acq is_rel is_rlx is_acqrel R_ex
      is_only_pln is_sc is_ra is_xacq
@@ -311,131 +309,71 @@ Ltac same_lab_set_solver_f SAME :=
           intros a HH; specialize (SAME a HH);
           desf; desf.
 
-Lemma same_label_set_loc (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_loc (SAME: same_lab_up_to_value_set) :
   eq_dom s (loc lab1) (loc lab2).
 Proof. same_lab_set_solver_f SAME. Qed.
 
-Lemma same_label_loc (SAME: same_lab_up_to_value) :
-  loc lab1 = loc lab2.
-Proof. apply eq_dom_full_eq. by apply same_label_set_loc. Qed.
-
-Lemma same_label_set_mod (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_mod (SAME: same_lab_up_to_value_set) :
   eq_dom s (mod lab1) (mod lab2).
 Proof. same_lab_set_solver_f SAME. Qed.
 
-Lemma same_label_mod (SAME: same_lab_up_to_value) :
-  mod lab1 = mod lab2.
-Proof. apply eq_dom_full_eq. by apply same_label_set_mod. Qed.
-
-Lemma same_label_set_xmod (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_xmod (SAME: same_lab_up_to_value_set) :
   eq_dom s (xmod lab1) (xmod lab2).
 Proof. same_lab_set_solver_f SAME. Qed.
-
-Lemma same_label_xmod (SAME: same_lab_up_to_value) :
-  xmod lab1 = xmod lab2.
-Proof. apply eq_dom_full_eq. by apply same_label_set_xmod. Qed.
 
 Ltac same_lab_set_solver_s SAME :=
   repeat (autounfold with same_lab_unfoldDb in *); unfolder;
           split; intros a HH; desf; split; auto; specialize (SAME a HH); desf.
 
-Lemma same_label_set_is_r (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_r (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_r lab1 ≡₁ s ∩₁ is_r lab2.
 Proof. same_lab_set_solver_s SAME. Qed.
 
-Lemma same_label_is_r (SAME: same_lab_up_to_value) :
-  is_r lab1 ≡₁ is_r lab2.
-Proof. generalize (same_label_set_is_r SAME). relsf. Qed.
-
-Lemma same_label_set_is_w (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_w (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_w lab1 ≡₁ s ∩₁ is_w lab2.
 Proof. same_lab_set_solver_s SAME. Qed.
 
-Lemma same_label_is_w (SAME: same_lab_up_to_value) :
-  is_w lab1 ≡₁ is_w lab2.
-Proof. generalize (same_label_set_is_w SAME). relsf. Qed.
-
-Lemma same_label_set_is_f (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_f (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_f lab1 ≡₁ s ∩₁ is_f lab2.
 Proof. same_lab_set_solver_s SAME. Qed.
 
-Lemma same_label_is_f (SAME: same_lab_up_to_value) :
-  is_f lab1 ≡₁ is_f lab2.
-Proof. generalize (same_label_set_is_f SAME). relsf. Qed.
-
-Lemma same_label_set_R_ex (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_R_ex (SAME: same_lab_up_to_value_set) :
   s ∩₁ R_ex lab1 ≡₁ s ∩₁ R_ex lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_R_ex (SAME: same_lab_up_to_value) :
-  R_ex lab1 ≡₁ R_ex lab2.
-Proof. generalize (same_label_set_R_ex SAME). relsf. Qed.
-
-Lemma same_label_set_is_only_pln (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_only_pln (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_only_pln lab1 ≡₁ s ∩₁ is_only_pln lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_only_pln (SAME: same_lab_up_to_value) :
-  is_only_pln lab1 ≡₁ is_only_pln lab2.
-Proof. generalize (same_label_set_is_only_pln SAME). relsf. Qed.
-
-Lemma same_label_set_is_rlx (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_rlx (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_rlx lab1 ≡₁ s ∩₁ is_rlx lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_rlx (SAME: same_lab_up_to_value) :
-  is_rlx lab1 ≡₁ is_rlx lab2.
-Proof. generalize (same_label_set_is_rlx SAME). relsf. Qed.
-
-Lemma same_label_set_is_acq (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_acq (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_acq lab1 ≡₁ s ∩₁ is_acq lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_acq (SAME: same_lab_up_to_value) :
-  is_acq lab1 ≡₁ is_acq lab2.
-Proof. generalize (same_label_set_is_acq SAME). relsf. Qed.
-
-Lemma same_label_set_is_rel (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_rel (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_rel lab1 ≡₁ s ∩₁ is_rel lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_rel (SAME: same_lab_up_to_value) :
-  is_rel lab1 ≡₁ is_rel lab2.
-Proof. generalize (same_label_set_is_rel SAME). relsf. Qed.
-
-Lemma same_label_set_is_acqrel (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_acqrel (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_acqrel lab1 ≡₁ s ∩₁ is_acqrel lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_acqrel (SAME: same_lab_up_to_value) :
-  is_acqrel lab1 ≡₁ is_acqrel lab2.
-Proof. generalize (same_label_set_is_acqrel SAME). relsf. Qed.
-
-Lemma same_label_set_is_sc (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_sc (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_sc lab1 ≡₁ s ∩₁ is_sc lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_sc (SAME: same_lab_up_to_value) :
-  is_sc lab1 ≡₁ is_sc lab2.
-Proof. generalize (same_label_set_is_sc SAME). relsf. Qed.
-
-Lemma same_label_set_is_ra (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_ra (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_ra lab1 ≡₁ s ∩₁ is_ra lab2.
 Proof. same_lab_set_solver_s SAME; desf. all: by rewrite Bool.orb_true_r. Qed.
 
-Lemma same_label_is_ra (SAME: same_lab_up_to_value) :
-  is_ra lab1 ≡₁ is_ra lab2.
-Proof. generalize (same_label_set_is_ra SAME). relsf. Qed.
-
-Lemma same_label_set_is_xacq (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_is_xacq (SAME: same_lab_up_to_value_set) :
   s ∩₁ is_xacq lab1 ≡₁ s ∩₁ is_xacq lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
-Lemma same_label_is_xacq (SAME: same_lab_up_to_value) :
-  is_xacq lab1 ≡₁ is_xacq lab2.
-Proof. generalize (same_label_set_is_xacq SAME). relsf. Qed.
-
-Lemma same_label_set_same_loc (s : A -> Prop) (SAME: same_lab_up_to_value_set s) :
+Lemma same_label_set_same_loc (SAME: same_lab_up_to_value_set) :
   restr_rel s (same_loc lab1) ≡ restr_rel s (same_loc lab2).
 Proof.
   unfolder. split.
@@ -444,6 +382,76 @@ Proof.
   all: set (SAMEY := SAME); specialize (SAMEY y H1).
   all: specialize (SAME x H0); desf; desf.
 Qed.
+
+End SameFunsSet.
+
+Section SameFuns.
+
+Variable A : Type.
+Variable lab1 lab2 : A -> label.
+
+Definition same_lab_up_to_value :=
+  same_lab_up_to_value_set (fun _ => True) lab1 lab2.
+
+Lemma same_label_loc (SAME: same_lab_up_to_value) :
+  loc lab1 = loc lab2.
+Proof. apply eq_dom_full_eq. by apply same_label_set_loc. Qed.
+
+Lemma same_label_mod (SAME: same_lab_up_to_value) :
+  mod lab1 = mod lab2.
+Proof. apply eq_dom_full_eq. by apply same_label_set_mod. Qed.
+
+Lemma same_label_xmod (SAME: same_lab_up_to_value) :
+  xmod lab1 = xmod lab2.
+Proof. apply eq_dom_full_eq. by apply same_label_set_xmod. Qed.
+
+Lemma same_label_is_r (SAME: same_lab_up_to_value) :
+  is_r lab1 ≡₁ is_r lab2.
+Proof. generalize (same_label_set_is_r SAME). relsf. Qed.
+
+Lemma same_label_is_w (SAME: same_lab_up_to_value) :
+  is_w lab1 ≡₁ is_w lab2.
+Proof. generalize (same_label_set_is_w SAME). relsf. Qed.
+
+Lemma same_label_is_f (SAME: same_lab_up_to_value) :
+  is_f lab1 ≡₁ is_f lab2.
+Proof. generalize (same_label_set_is_f SAME). relsf. Qed.
+
+Lemma same_label_R_ex (SAME: same_lab_up_to_value) :
+  R_ex lab1 ≡₁ R_ex lab2.
+Proof. generalize (same_label_set_R_ex SAME). relsf. Qed.
+
+Lemma same_label_is_only_pln (SAME: same_lab_up_to_value) :
+  is_only_pln lab1 ≡₁ is_only_pln lab2.
+Proof. generalize (same_label_set_is_only_pln SAME). relsf. Qed.
+
+Lemma same_label_is_rlx (SAME: same_lab_up_to_value) :
+  is_rlx lab1 ≡₁ is_rlx lab2.
+Proof. generalize (same_label_set_is_rlx SAME). relsf. Qed.
+
+Lemma same_label_is_acq (SAME: same_lab_up_to_value) :
+  is_acq lab1 ≡₁ is_acq lab2.
+Proof. generalize (same_label_set_is_acq SAME). relsf. Qed.
+
+Lemma same_label_is_rel (SAME: same_lab_up_to_value) :
+  is_rel lab1 ≡₁ is_rel lab2.
+Proof. generalize (same_label_set_is_rel SAME). relsf. Qed.
+
+Lemma same_label_is_acqrel (SAME: same_lab_up_to_value) :
+  is_acqrel lab1 ≡₁ is_acqrel lab2.
+Proof. generalize (same_label_set_is_acqrel SAME). relsf. Qed.
+
+Lemma same_label_is_sc (SAME: same_lab_up_to_value) :
+  is_sc lab1 ≡₁ is_sc lab2.
+Proof. generalize (same_label_set_is_sc SAME). relsf. Qed.
+
+Lemma same_label_is_ra (SAME: same_lab_up_to_value) :
+  is_ra lab1 ≡₁ is_ra lab2.
+Proof. generalize (same_label_set_is_ra SAME). relsf. Qed.
+
+Lemma same_label_is_xacq (SAME: same_lab_up_to_value) :
+  is_xacq lab1 ≡₁ is_xacq lab2.
+Proof. generalize (same_label_set_is_xacq SAME). relsf. Qed.
 
 Lemma same_label_same_loc (SAME: same_lab_up_to_value) :
   same_loc lab1 ≡ same_loc lab2.
@@ -456,8 +464,8 @@ Lemma same_lab_up_to_value_comm {A} (lab1 lab2 : A -> label)
       (S1 : same_lab_up_to_value lab1 lab2) :
   same_lab_up_to_value lab2 lab1.
 Proof.
-  unfold same_lab_up_to_value. ins.
-  specialize (S1 e).
+  unfold same_lab_up_to_value, same_lab_up_to_value_set. ins.
+  specialize (S1 e EE).
   unfold same_label_up_to_value in *.
   desf; desf.
 Qed.
@@ -465,7 +473,7 @@ Qed.
 Lemma same_lab_up_to_value_follows_set {A} s (lab1 lab2 : A -> label)
       (S1 : same_lab_up_to_value lab1 lab2) :
   same_lab_up_to_value_set s lab1 lab2.
-Proof. unfold same_lab_up_to_value, same_lab_up_to_value_set in *. desf. Qed.
+Proof. unfold same_lab_up_to_value, same_lab_up_to_value_set in *. ins. by apply S1. Qed.
 
 Lemma same_lab_up_to_value_set_inclusion {A} s s' (lab lab' : A -> label)
       (SS : s' ⊆₁ s)
@@ -501,16 +509,6 @@ Lemma same_lab_up_to_value_set_comm {A} (s : A -> Prop) lab1 lab2
 Proof.
   red. ins. specialize (S2 e EE).
     by apply same_label_up_to_value_comm.
-Qed.
-
-Lemma same_label_in_set_is_r e (s : actid -> Prop) lab1 lab2
-      (EE : s e)
-      (S2 : same_lab_up_to_value_set s lab1 lab2) :
-  is_r lab1 e <-> is_r lab2 e.
-Proof.
-  specialize (S2 e EE). red in S2.
-  unfold is_r in *.
-  desf.
 Qed.
 
 End SameFuns2.

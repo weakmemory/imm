@@ -826,9 +826,9 @@ Notation "'Cmsg_rel'" := (certG.(msg_rel) sc).
 Lemma cert_lab_init : forall a (IN: is_init a), lab' a = Glab a.
 Proof.
 ins; cut (val lab' a = Gval a).
-- specialize (SAME a); unfold same_label_up_to_value in *.
-  unfold val; desf; ins; desf; by destruct SAME as [X [XX XXX]]; subst.
-  (* Ori: desf problem ? *)
+- assert (same_label_up_to_value (lab' a) (Glab a)) as SS by (by apply SAME).
+  unfold same_label_up_to_value in *. unfold val; desf; desf.
+  all: intros HH; inv HH.
 - apply OLD_VAL.
   unfolder; desf.
   generalize (D_init); unfolder; ins; desf; intro; desf; eauto 20.

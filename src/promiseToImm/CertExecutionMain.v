@@ -507,7 +507,7 @@ assert (same_lab_up_to_value_set
     by apply same_lab_up_to_value_follows_set. }
 
 assert (same_lab_up_to_value lab' (lab G)) as SAME'.
-{ red. ins.
+{ red. red. ins.
   destruct (classic (acts_set (ProgToExecution.G s') e)) as [XX|XX].
   { by apply SAME3. }
   unfold lab'. desf. 
@@ -604,10 +604,13 @@ assert (forall r w : actid, new_rf G Gsc T thread w r -> val lab' w = val lab' r
     clear -WW. 
     unfold new_val, get_val.
     unfold is_w, val in *. desf. }
-  { eapply same_label_in_set_is_r; eauto.
+  { eapply same_label_set_is_r.
+    2: { split.
+         { apply HH2. }
+         eauto. }
     eapply same_lab_up_to_value_set_trans.
     2: by apply SAME2.
-    red. ins. }
+    red. ins. by apply SAME. }
   { split; auto. rewrite H in GER.
     eapply E_E0 in GER; eauto. }
   unfold new_rfi. intros [z NEWRFI].

@@ -482,8 +482,8 @@ do 7 eexists; splits; red; splits.
     + rewrite EINDEX.
       unfold same_lab_up_to_value in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds.
-      by rewrite !updo.
+      { by subst; rewrite !upds. }
+      ins. rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
       by desf; unfold val; rewrite !upds.
@@ -592,8 +592,8 @@ by ins; desc; eauto.
     + rewrite EINDEX.
       unfold same_lab_up_to_value in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds.
-      by rewrite !updo.
+      { by subst; rewrite !upds. }
+      rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))); subst.
       -- desf; unfold val; rewrite !upds.
@@ -677,8 +677,8 @@ do 7 eexists; splits; red; splits.
     + rewrite EINDEX.
       unfold same_lab_up_to_value in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds.
-      by rewrite !updo.
+      { by subst; rewrite !upds. }
+      rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
       by desf; unfold val; rewrite !upds.
@@ -775,8 +775,8 @@ do 7 eexists; splits; red; splits.
     + rewrite EINDEX.
       unfold same_lab_up_to_value in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds; rewrite SAME_LOC.
-      by rewrite !updo; try done.
+      { by subst; rewrite !upds; rewrite SAME_LOC. }
+      rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
       rewrite SAME_LOC.
@@ -892,7 +892,7 @@ do 7 eexists; splits; red; splits.
       rewrite updo; try done.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       by subst; rewrite !upds; rewrite updo; [| by desf]; rewrite upds; rewrite SAME_LOC.
-      rewrite !updo; try done.
+      rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1' + 1))).
       -- subst; rewrite SAME_LOC.
@@ -1040,7 +1040,7 @@ do 7 eexists; splits; red; splits.
       rewrite updo; try done.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       by subst; rewrite !upds; rewrite updo; [| by desf]; rewrite upds; rewrite SAME_LOC.
-      rewrite !updo; try done.
+      rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1' + 1))).
       -- subst; rewrite SAME_LOC.
@@ -1241,7 +1241,7 @@ all: try done.
     by eapply OLD_VAL.
 - red; apply (acts_rep GPC).
 - red; splits; eauto.
-  by red; splits; eauto; red; ins; red; eauto; desf.
+  { red; splits; eauto; red; red; ins; red; eauto; desf. }
   ins; exfalso; revert NMODINIT; basic_solver.
   ins; exfalso; unfolder in *; basic_solver.
 Qed.
