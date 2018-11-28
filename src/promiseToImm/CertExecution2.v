@@ -740,7 +740,7 @@ Qed.
 (******************************************************************************)
 
 Variable lab' : actid -> label.
-Hypothesis SAME : same_lab_up_to_value lab' Glab.
+Hypothesis SAME : same_lab_u2v lab' Glab.
 Hypothesis NEW_VAL : forall r w (RF: new_rf w r), val lab' w = val lab' r.
 Hypothesis OLD_VAL : forall a (NIN: ~ (E \₁ D) a), val lab' a = Gval a.
 
@@ -826,8 +826,8 @@ Notation "'Cmsg_rel'" := (certG.(msg_rel) sc).
 Lemma cert_lab_init : forall a (IN: is_init a), lab' a = Glab a.
 Proof.
 ins; cut (val lab' a = Gval a).
-- assert (same_label_up_to_value (lab' a) (Glab a)) as SS by (by apply SAME).
-  unfold same_label_up_to_value in *. unfold val; desf; desf.
+- assert (same_label_u2v (lab' a) (Glab a)) as SS by (by apply SAME).
+  unfold same_label_u2v in *. unfold val; desf; desf.
   all: intros HH; inv HH.
 - apply OLD_VAL.
   unfolder; desf.

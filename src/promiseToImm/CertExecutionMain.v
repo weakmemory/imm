@@ -32,9 +32,9 @@ Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Section Cert.
 
-Lemma same_lab_up_to_value_set_restricted G thread G'
+Lemma same_lab_u2v_dom_restricted G thread G'
   (TEH : thread_restricted_execution G thread G') :
-  same_lab_up_to_value_set G'.(acts_set) G.(lab) G'.(lab).
+  same_lab_u2v_dom G'.(acts_set) G.(lab) G'.(lab).
 Proof. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
 
 Lemma cert_graph_init Gf sc T PC f_to f_from thread
@@ -489,24 +489,24 @@ set (lab' := fun x =>
                if excluded_middle_informative ((ProgToExecution.G s').(acts_set) x) 
                then s'.(ProgToExecution.G).(lab) x
                else G.(lab) x).
-assert (same_lab_up_to_value_set (ProgToExecution.G s').(acts_set)
+assert (same_lab_u2v_dom (ProgToExecution.G s').(acts_set)
                                  lab' (ProgToExecution.G s').(lab)) as SAME0.
 { red. ins. red. unfold lab'. desf. }
 
-assert (same_lab_up_to_value_set
+assert (same_lab_u2v_dom
           (ProgToExecution.G s').(acts_set)
           (ProgToExecution.G state'').(lab) G.(lab)) as SAME2.
 { unfold acts_set. rewrite <- RACTS.
-  apply same_lab_up_to_value_set_comm.
-  eapply same_lab_up_to_value_set_restricted; auto.
+  apply same_lab_u2v_dom_comm.
+  eapply same_lab_u2v_dom_restricted; auto.
   apply TEH''. }
-assert (same_lab_up_to_value_set
+assert (same_lab_u2v_dom
           (ProgToExecution.G s').(acts_set) lab' G.(lab)) as SAME3.
-{ eapply same_lab_up_to_value_set_trans; eauto.
-  eapply same_lab_up_to_value_set_trans; eauto.
-    by apply same_lab_up_to_value_follows_set. }
+{ eapply same_lab_u2v_dom_trans; eauto.
+  eapply same_lab_u2v_dom_trans; eauto.
+    by apply same_lab_u2v_follows_set. }
 
-assert (same_lab_up_to_value lab' (lab G)) as SAME'.
+assert (same_lab_u2v lab' (lab G)) as SAME'.
 { red. red. ins.
   destruct (classic (acts_set (ProgToExecution.G s') e)) as [XX|XX].
   { by apply SAME3. }
@@ -604,11 +604,11 @@ assert (forall r w : actid, new_rf G Gsc T thread w r -> val lab' w = val lab' r
     clear -WW. 
     unfold new_val, get_val.
     unfold is_w, val in *. desf. }
-  { eapply same_label_set_is_r.
+  { eapply same_lab_u2v_dom_is_r.
     2: { split.
          { apply HH2. }
          eauto. }
-    eapply same_lab_up_to_value_set_trans.
+    eapply same_lab_u2v_dom_trans.
     2: by apply SAME2.
     red. ins. by apply SAME. }
   { split; auto. rewrite H in GER.

@@ -209,7 +209,7 @@ Qed.
 
 Definition sim_execution G G' MOD :=
       ⟪ ACTS : G.(acts) = G'.(acts) ⟫ /\
-      ⟪ SAME : same_lab_up_to_value G'.(lab) G.(lab) ⟫ /\
+      ⟪ SAME : same_lab_u2v G'.(lab) G.(lab) ⟫ /\
       ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (G'.(lab)) a = val (G.(lab)) a ⟫ /\
       ⟪ RMW  : G.(rmw)  ≡ G'.(rmw)  ⟫ /\
       ⟪ DATA : G.(data) ≡ G'.(data) ⟫ /\
@@ -480,7 +480,7 @@ do 7 eexists; splits; red; splits.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { by subst; rewrite !upds. }
       ins. rewrite !updo; auto.
@@ -590,7 +590,7 @@ by ins; desc; eauto.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { by subst; rewrite !upds. }
       rewrite !updo; auto.
@@ -675,7 +675,7 @@ do 7 eexists; splits; red; splits.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { by subst; rewrite !upds. }
       rewrite !updo; auto.
@@ -773,7 +773,7 @@ do 7 eexists; splits; red; splits.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { by subst; rewrite !upds; rewrite SAME_LOC. }
       rewrite !updo; auto.
@@ -886,7 +886,7 @@ do 7 eexists; splits; red; splits.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
       by subst; rewrite !upds; rewrite SAME_LOC.
       rewrite updo; try done.
@@ -1034,7 +1034,7 @@ do 7 eexists; splits; red; splits.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
     + rewrite EINDEX.
-      unfold same_lab_up_to_value in *; intro e.
+      unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
       by subst; rewrite !upds; rewrite SAME_LOC.
       rewrite updo; try done.
@@ -1303,7 +1303,7 @@ Lemma receptiveness_full (tid : thread_id)
       ⟪ RADDR : s.(G).(addr) ≡ s'.(G).(addr) ⟫ /\
       ⟪ RCTRL : s.(G).(ctrl) ≡ s'.(G).(ctrl) ⟫  /\
       ⟪ RFAILRMW : s.(G).(rmw_dep) ≡ s'.(G).(rmw_dep) ⟫  /\
-      ⟪ SAME : same_lab_up_to_value (s'.(G).(lab)) (s.(G).(lab))⟫ /\
+      ⟪ SAME : same_lab_u2v (s'.(G).(lab)) (s.(G).(lab))⟫ /\
       ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r), val (s'.(G).(lab)) r = val (s'.(G).(lab)) w ⟫ /\
       ⟪ NEW_VAL2 : forall r (RR : is_r s'.(G).(lab) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
           val (s'.(G).(lab)) r = Some (new_val r) ⟫ /\
