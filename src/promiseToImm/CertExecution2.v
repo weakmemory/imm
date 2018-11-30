@@ -745,29 +745,29 @@ Hypothesis NEW_VAL : forall r w (RF: new_rf w r), val lab' w = val lab' r.
 Hypothesis OLD_VAL : forall a (NIN: ~ (E \₁ D) a), val lab' a = Gval a.
 
 Lemma cert_R : is_r lab' ≡₁ R.
-Proof. ins; erewrite same_label_is_r; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_r; eauto. Qed.
 Lemma cert_W : is_w lab' ≡₁ W.
-Proof. ins; erewrite same_label_is_w; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_w; eauto. Qed.
 Lemma cert_F : is_f lab' ≡₁ F.
-Proof. ins; erewrite same_label_is_f; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_f; eauto. Qed.
 Lemma cert_Rel : is_rel lab' ≡₁ Rel.
-Proof. ins; erewrite same_label_is_rel; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_rel; eauto. Qed.
 Lemma cert_Acq : is_acq lab' ≡₁ Acq.
-Proof. ins; erewrite same_label_is_acq; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_acq; eauto. Qed.
 Lemma cert_AcqRel : is_ra lab' ≡₁ Acq/Rel.
-Proof. ins; erewrite same_label_is_ra; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_ra; eauto. Qed.
 Lemma cert_Sc : is_sc lab' ≡₁ Sc.
-Proof. ins; erewrite same_label_is_sc; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_sc; eauto. Qed.
 Lemma cert_R_ex : R_ex lab' ≡₁ R_ex Glab.
-Proof. ins; erewrite same_label_R_ex; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_R_ex; eauto. Qed.
 Lemma cert_xacq : is_xacq lab' ≡₁ is_xacq Glab.
-Proof. ins; erewrite same_label_is_xacq; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_xacq; eauto. Qed.
 Lemma cert_loc : loc lab' = Gloc.
-Proof. ins; erewrite same_label_loc; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_loc; eauto. Qed.
 Lemma cert_W_ l : (is_w lab') ∩₁ (fun x => loc lab' x = Some l) ≡₁ W_ l.
-Proof. ins; erewrite same_label_is_w, same_label_loc; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_is_w, same_lab_u2v_loc; eauto. Qed.
 Lemma cert_same_loc : same_loc lab' ≡ Gsame_loc.
-Proof. ins; erewrite same_label_same_loc; eauto. Qed.
+Proof. ins; erewrite same_lab_u2v_same_loc; eauto. Qed.
 
 (******************************************************************************)
 (** Construction of the certification graph   *)
@@ -1212,7 +1212,7 @@ all: try by apply WF.
 - apply new_co_trans.
   apply IT_new_co.
   all: apply WF.
-- intros. erewrite same_label_loc; try edone.
+- intros. erewrite same_lab_u2v_loc; try edone.
   apply wf_new_co_total. 
   apply IT_new_co.
   all: apply WF.

@@ -393,67 +393,67 @@ Variable lab1 lab2 : A -> label.
 Definition same_lab_u2v :=
   same_lab_u2v_dom (fun _ => True) lab1 lab2.
 
-Lemma same_label_loc (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_loc (SAME: same_lab_u2v) :
   loc lab1 = loc lab2.
 Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_loc. Qed.
 
-Lemma same_label_mod (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_mod (SAME: same_lab_u2v) :
   mod lab1 = mod lab2.
 Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_mod. Qed.
 
-Lemma same_label_xmod (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_xmod (SAME: same_lab_u2v) :
   xmod lab1 = xmod lab2.
 Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_xmod. Qed.
 
-Lemma same_label_is_r (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_r (SAME: same_lab_u2v) :
   is_r lab1 ≡₁ is_r lab2.
 Proof. generalize (same_lab_u2v_dom_is_r SAME). relsf. Qed.
 
-Lemma same_label_is_w (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_w (SAME: same_lab_u2v) :
   is_w lab1 ≡₁ is_w lab2.
 Proof. generalize (same_lab_u2v_dom_is_w SAME). relsf. Qed.
 
-Lemma same_label_is_f (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_f (SAME: same_lab_u2v) :
   is_f lab1 ≡₁ is_f lab2.
 Proof. generalize (same_lab_u2v_dom_is_f SAME). relsf. Qed.
 
-Lemma same_label_R_ex (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_R_ex (SAME: same_lab_u2v) :
   R_ex lab1 ≡₁ R_ex lab2.
 Proof. generalize (same_lab_u2v_dom_R_ex SAME). relsf. Qed.
 
-Lemma same_label_is_only_pln (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_only_pln (SAME: same_lab_u2v) :
   is_only_pln lab1 ≡₁ is_only_pln lab2.
 Proof. generalize (same_lab_u2v_dom_is_only_pln SAME). relsf. Qed.
 
-Lemma same_label_is_rlx (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_rlx (SAME: same_lab_u2v) :
   is_rlx lab1 ≡₁ is_rlx lab2.
 Proof. generalize (same_lab_u2v_dom_is_rlx SAME). relsf. Qed.
 
-Lemma same_label_is_acq (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_acq (SAME: same_lab_u2v) :
   is_acq lab1 ≡₁ is_acq lab2.
 Proof. generalize (same_lab_u2v_dom_is_acq SAME). relsf. Qed.
 
-Lemma same_label_is_rel (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_rel (SAME: same_lab_u2v) :
   is_rel lab1 ≡₁ is_rel lab2.
 Proof. generalize (same_lab_u2v_dom_is_rel SAME). relsf. Qed.
 
-Lemma same_label_is_acqrel (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_acqrel (SAME: same_lab_u2v) :
   is_acqrel lab1 ≡₁ is_acqrel lab2.
 Proof. generalize (same_lab_u2v_dom_is_acqrel SAME). relsf. Qed.
 
-Lemma same_label_is_sc (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_sc (SAME: same_lab_u2v) :
   is_sc lab1 ≡₁ is_sc lab2.
 Proof. generalize (same_lab_u2v_dom_is_sc SAME). relsf. Qed.
 
-Lemma same_label_is_ra (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_ra (SAME: same_lab_u2v) :
   is_ra lab1 ≡₁ is_ra lab2.
 Proof. generalize (same_lab_u2v_dom_is_ra SAME). relsf. Qed.
 
-Lemma same_label_is_xacq (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_is_xacq (SAME: same_lab_u2v) :
   is_xacq lab1 ≡₁ is_xacq lab2.
 Proof. generalize (same_lab_u2v_dom_is_xacq SAME). relsf. Qed.
 
-Lemma same_label_same_loc (SAME: same_lab_u2v) :
+Lemma same_lab_u2v_same_loc (SAME: same_lab_u2v) :
   same_loc lab1 ≡ same_loc lab2.
 Proof. generalize (same_lab_u2v_dom_same_loc SAME). by rewrite !restr_full. Qed.
 End SameFuns.

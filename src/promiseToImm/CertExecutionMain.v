@@ -678,13 +678,13 @@ cdes SIMREL. cdes COMMON.
 red. splits.
 { red. splits; eauto; simpls; try by apply SIMREL.
   { unfold W_ex, certG; simpls.
-    erewrite same_label_is_xacq; eauto. }
-  { erewrite same_label_is_rlx; eauto.
+    erewrite same_lab_u2v_is_xacq; eauto. }
+  { erewrite same_lab_u2v_is_rlx; eauto.
     rewrite cert_E. rewrite acts_G_in_acts_Gf.
     rewrite lab_G_eq_lab_Gf. apply SIMREL. }
   { by apply TCCOH_cert. }
-  { erewrite same_label_is_rel; eauto.
-    erewrite same_label_is_w; eauto.
+  { erewrite same_lab_u2v_is_rel; eauto.
+    erewrite same_lab_u2v_is_w; eauto.
     rewrite RELCOV_G. basic_solver. }
   { ins.
     assert (acts_set G r) as ER.
@@ -713,8 +713,8 @@ red. splits.
     ins. apply FCOH; auto.
     apply RFRMW_IN. apply seq_eqv_r. split; auto. }
   { intros _.
-    erewrite same_label_is_sc; eauto.
-    erewrite same_label_is_f; eauto.
+    erewrite same_lab_u2v_is_sc; eauto.
+    erewrite same_lab_u2v_is_f; eauto.
     unfold certG, acts_set. simpls.
     rewrite H.
     arewrite ((fun x => In x (acts (rstG Gf T thread))) ⊆₁
@@ -739,7 +739,7 @@ all: eauto.
     apply in_filterP_iff. split; auto.
     red. left. left. by right. }
   { intros [HH|[_ HH]]; desf. }
-  { erewrite same_label_loc; eauto.
+  { erewrite same_lab_u2v_loc; eauto.
       by rewrite <- lab_G_eq_lab_Gf. }
   cdes HELPER.
   red. splits; auto.
@@ -748,9 +748,9 @@ all: eauto.
   intros ll. specialize (SIMMSG ll).
   eapply max_value_same_set; eauto.
   split; (intros x [AA|AA]; [left|right]).
-  4: { erewrite <- same_label_loc in AA; eauto.
+  4: { erewrite <- same_lab_u2v_loc in AA; eauto.
        rewrite <- lab_G_eq_lab_Gf; eauto. }
-  2: { erewrite same_label_loc in AA; eauto.
+  2: { erewrite same_lab_u2v_loc in AA; eauto.
        rewrite <- lab_G_eq_lab_Gf; eauto. }
   { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
     2: { apply seq_eqv_r in XX. desf. }
@@ -772,7 +772,7 @@ all: eauto.
   apply seq_eqv_r. split; auto. }
 { red. ins. (* sim_mem *)
   edestruct SIM_MEM with (b:=b) as [rel_opt]; eauto.
-  { erewrite same_label_loc in LOC; eauto.
+  { erewrite same_lab_u2v_loc in LOC; eauto.
     rewrite <- lab_G_eq_lab_Gf; eauto. }
   { rewrite <- ISS_OLD; auto. apply VAL. }
   simpls. desc.
@@ -782,9 +782,9 @@ all: eauto.
     intros ll. specialize (SIMMSG ll).
     eapply max_value_same_set; eauto.
     split; (intros x [AA|AA]; [left|right]).
-    4: { erewrite <- same_label_loc in AA; eauto.
+    4: { erewrite <- same_lab_u2v_loc in AA; eauto.
          rewrite <- lab_G_eq_lab_Gf; eauto. }
-    2: { erewrite same_label_loc in AA; eauto.
+    2: { erewrite same_lab_u2v_loc in AA; eauto.
          rewrite <- lab_G_eq_lab_Gf; eauto. }
     { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
       2: { apply seq_eqv_r in XX. desf. }
@@ -873,8 +873,8 @@ all: eauto.
   apply set_equiv_union; auto.
   destruct (Ident.eq_dec l l').
   2: done.
-  erewrite same_label_loc; eauto.
-  erewrite same_label_is_w; eauto.
+  erewrite same_lab_u2v_loc; eauto.
+  erewrite same_lab_u2v_is_w; eauto.
   rewrite <- lab_G_eq_lab_Gf; eauto. 
   unfold tid. basic_solver 10. }
 red. splits. (* sim_state *)

@@ -239,14 +239,14 @@ Lemma sim_execution_same_r G G' MOD (EXEC: sim_execution G G' MOD) :
 is_r G'.(lab) ≡₁ is_r G.(lab).
 Proof.
 red in EXEC; desf.
-eby erewrite same_label_is_r.
+eby erewrite same_lab_u2v_is_r.
 Qed.
 
 Lemma sim_execution_same_w G G' MOD (EXEC: sim_execution G G' MOD) :
 is_w G'.(lab) ≡₁ is_w G.(lab).
 Proof.
 red in EXEC; desf.
-eby erewrite same_label_is_w.
+eby erewrite same_lab_u2v_is_w.
 Qed.
 
 Lemma sim_execution_same_acts G G' MOD (EXEC: sim_execution G G' MOD) :
