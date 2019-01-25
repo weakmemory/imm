@@ -835,6 +835,35 @@ rewrite rfi_union_rfe; relsf; unionL.
   basic_solver 21.
 Qed.
 
+Lemma sw_in_ar_helper WF:
+  (rf ⨾ rmw)＊ ⊆ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
+Proof.
+  rewrite rtE at 1; relsf; unionL; [basic_solver 21|].
+  rewrite rfi_union_rfe; relsf.
+  rewrite path_union.
+  unionL.
+  { rewrite (dom_r (wf_rmwD WF)) at 1.
+    rewrite (rfi_in_sbloc' WF) at 1.
+    rewrite (rmw_in_sb_loc WF) at 1.
+    generalize sb_same_loc_trans; ins; relsf.
+    assert (transitive (sb ∩ same_loc ⨾ ⦗W⦘)).
+    2: relsf.
+    generalize sb_same_loc_trans; unfold transitive.
+    basic_solver 21. }
+  rewrite ct_seq_swap, !seqA.
+  rewrite (dom_r (wf_rmwD WF)) at 3.
+  rewrite (rfi_in_sbloc' WF) at 1 2.
+  rewrite (rmw_in_sb_loc WF) at 1 3.
+  generalize sb_same_loc_trans; ins; relsf.
+  arewrite ((sb ∩ same_loc) ⊆ sb) at 2.
+  unionR right; hahn_frame.
+  apply inclusion_t_t.
+  rewrite rtE, inclusion_ct_seq_eqv_r.
+  rewrite (dom_r (wf_rmwD WF)) at 1.
+  generalize sb_trans; ins; relsf.
+  basic_solver 24.
+Qed.
+
 End Execution.
 
 (******************************************************************************)
