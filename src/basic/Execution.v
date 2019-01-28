@@ -836,7 +836,8 @@ rewrite rfi_union_rfe; relsf; unionL.
 Qed.
 
 Lemma sw_in_ar_helper WF:
-  (rf ⨾ rmw)＊ ⊆ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
+  ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)＊ ⊆
+  (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
 Proof.
   rewrite rtE at 1; relsf; unionL; [basic_solver 21|].
   rewrite rfi_union_rfe; relsf.
@@ -847,21 +848,45 @@ Proof.
     rewrite (rmw_in_sb_loc WF) at 1.
     generalize sb_same_loc_trans; ins; relsf.
     assert (transitive (sb ∩ same_loc ⨾ ⦗W⦘)).
-    2: relsf.
+    2: by relsf.
     generalize sb_same_loc_trans; unfold transitive.
     basic_solver 21. }
   rewrite ct_seq_swap, !seqA.
   rewrite (dom_r (wf_rmwD WF)) at 3.
   rewrite (rfi_in_sbloc' WF) at 1 2.
   rewrite (rmw_in_sb_loc WF) at 1 3.
-  generalize sb_same_loc_trans; ins; relsf.
-  arewrite ((sb ∩ same_loc) ⊆ sb) at 2.
-  unionR right; hahn_frame.
-  apply inclusion_t_t.
-  rewrite rtE, inclusion_ct_seq_eqv_r.
-  rewrite (dom_r (wf_rmwD WF)) at 1.
-  generalize sb_trans; ins; relsf.
-  basic_solver 24.
+  generalize sb_same_loc_trans; intros HH; relsf.
+  arewrite ((sb ∩ same_loc) ⊆ sb) at 3.
+  unionR right.
+  rewrite (dom_l WF.(wf_rfeD)), !seqA.
+  rewrite <- seqA with (r2:= ⦗W⦘).
+  rewrite ct_rotl, !seqA.
+  arewrite ((sb ∩ same_loc)^? ⨾ (sb ∩ same_loc)^? ⊆ (sb ∩ same_loc)^?).
+  { generalize HH. basic_solver 10. }
+  hahn_frame.
+  arewrite ((sb ⨾ ⦗W⦘)＊ ⨾ (sb ∩ same_loc)^? ⊆ sb^?).
+  { arewrite_id ⦗W⦘. rewrite seq_id_r. rewrite rt_of_trans.
+    2: by apply sb_trans.
+    generalize sb_trans.
+    basic_solver 10. }
+  arewrite (rmw ⨾ (sb ⨾ ⦗W⦘)＊ ⊆ rmw ⨾ sb^? ⨾ ⦗W⦘).
+  2: { rewrite (dom_l WF.(wf_rfeD)) at 1 2; rewrite !seqA.
+       arewrite_id ⦗W⦘ at 1. rewrite seq_id_l.
+       apply ct_end. }
+  rewrite rtE, seq_union_r.
+  unionL.
+  { rewrite (dom_r (wf_rmwD WF)) at 1. basic_solver 10. }
+  rewrite ct_of_trans.
+  { basic_solver 10. }
+  generalize sb_trans. basic_solver.
+Qed.
+
+Lemma s_sw_in_ar_helper WF:
+  (rf ⨾ rmw)＊ ⊆ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
+Proof.
+  arewrite (rf ⨾ rmw ⊆ (sb ∩ same_loc)^? ⨾ rf ⨾ rmw).
+  { basic_solver 10. }
+  apply WF.(sw_in_ar_helper).
 Qed.
 
 End Execution.

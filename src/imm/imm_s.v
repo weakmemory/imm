@@ -180,7 +180,7 @@ Lemma sw_in_ar WF :
   sw ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ∪ sb.
 Proof.
 unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
-rewrite (sw_in_ar_helper WF).
+rewrite (s_sw_in_ar_helper WF).
 rewrite rfi_union_rfe.
 generalize (@sb_trans G); ins.
 generalize (@sb_same_loc_trans G); ins.
