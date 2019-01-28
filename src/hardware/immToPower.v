@@ -83,6 +83,7 @@ Notation "'F^isync'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^lwsync'" := (F ∩₁ (fun a => is_true (is_ra lab a))).
 Notation "'F^sync'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
+Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis NO_W_REL : W∩₁Rel ≡₁ ∅.
 Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾  sb^?.
 (* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
@@ -639,7 +640,7 @@ Qed.
 
 Lemma C_EXT: acyc_ext G.
 Proof.
-apply (acyc_ext_helper WF).
+apply (acyc_ext_helper WF SC_F).
 unfold ar_int.
 arewrite (⦗W⦘ ⊆ ⦗RW⦘) at 2.
 arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.

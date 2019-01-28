@@ -85,6 +85,7 @@ Notation "'Q'" := (R ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
+Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
@@ -523,7 +524,7 @@ Qed.
 
 Lemma C_EXT: acyc_ext G.
 Proof.
-apply (acyc_ext_helper WF).
+apply (acyc_ext_helper WF SC_F).
 rewrite ar_int_in_ord, psc_in_ord.
 arewrite (rfe ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ ).
 unfold Arm.obs'; rewrite <- ct_step; basic_solver 12.

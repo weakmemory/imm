@@ -76,6 +76,7 @@ Notation "'implied_fence'" := G.(implied_fence).
 Notation "'hbt'" := G.(TSO.hb).
 Notation "'MFENCE'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
+Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis CON: TSOConsistent G.
 
 Lemma WF : Wf G.
@@ -318,7 +319,7 @@ Qed.
 Lemma C_EXT : acyc_ext G.
 Proof.
 generalize (@sb_trans G); ins.
-apply (acyc_ext_helper WF).
+apply (acyc_ext_helper WF SC_F).
 arewrite (rfe ⊆ hbt⁺).
 rewrite (ar_int_in_sb WF); relsf.
 arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
@@ -375,6 +376,3 @@ apply C_EXT.
 Qed.
 
 End immToTSO.
-
-
-
