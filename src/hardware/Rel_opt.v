@@ -154,6 +154,7 @@ Implicit Type COMP : complete G.
 Implicit Type COH : coherence G.
 Implicit Type SC_PER_LOC : sc_per_loc G.
 
+Hypothesis SC_F : Sc ⊆₁ F∩₁Sc.
 Hypothesis W_REL : sb ⨾ ⦗W∩₁Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb ∪ rmw.
 
 Lemma non_rmw_w_rel : (sb \ rmw) ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb.
@@ -521,11 +522,14 @@ rewrite crE at 1; relsf; apply irreflexive_union.
 eauto using eco_irr.
 Qed.
 
-
-
 Lemma acyc_ext_eq WF WFp SC_PER_LOC COMP COHp COMPp: acyc_ext G' -> acyc_ext G.
 Proof.
-unfold acyc_ext, ar, ar_int; intro.
+unfold acyc_ext.
+intros HH.
+rewrite ar_in_br_sc_only_f; auto.
+assert (acyclic (br G)) as XX.
+2: { red. rewrite ct_of_ct. apply XX. }
+unfold br, ar, ar_int in *.
 rewrite (psc_eq WF WFp SC_PER_LOC COMP COHp COMPp).
 rewrite <- ppo_eq.
 rewrite <- rfe_eq.

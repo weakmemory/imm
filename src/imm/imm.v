@@ -419,4 +419,32 @@ Proof.
   relsf; red; rels.
 Qed.
 
+Lemma ar_in_br_sc_only_f WF (SC_F : Sc ⊆₁ F∩₁Sc) : ar ⊆ br⁺.
+Proof.
+  unfold ar.
+  apply inclusion_union_l. unionL.
+  2-4: unfold br; rewrite <- ct_step; basic_solver.
+  unfold psc_base, scb.
+  rewrite SC_F.
+  assert ((⦗F⦘ ⨾ hb)^? ⨾ hb ⨾ (hb ⨾ ⦗F⦘)^? ⊆ hb) as AA.
+  { generalize (@hb_trans G). basic_solver. }
+  rewrite sb_in_hb.
+  arewrite ((hb \ same_loc) ⨾ hb ⨾ (hb \ same_loc) ⊆ hb).
+  { generalize (@hb_trans G). basic_solver. }
+  rewrite inter_inclusion.
+  rewrite co_in_eco, fr_in_eco.
+  rewrite unionA, !unionK.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL.
+  { sin_rewrite AA. apply f_sc_hb_f_sc_in_br; auto. }
+  rewrite WF.(wf_ecoD), !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
+  assert (⦗F ∩₁ Sc⦘ ⨾ ⦗RW⦘ ⊆ ∅₂) as BB by type_solver.
+  assert (⦗RW⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ∅₂) as CC by type_solver.
+  sin_rewrite !BB. sin_rewrite !CC.
+  relsf. rewrite <- ct_step.
+  unfold br. unionR left -> left. unfold psc.
+  arewrite_id ⦗F⦘. arewrite_id ⦗RW⦘. rewrite !seq_id_l.
+  done.
+Qed.
+
 End IMM.
