@@ -134,6 +134,9 @@ Lemma global_sc_base WF COMP COH SC_PER_LOC
       (ACYC: acyclic br) :
   acyclic psc_base.
 Proof.
+  assert (transitive eco) as TECO by (by apply eco_trans).
+  assert (transitive hb ) as THB  by (by apply hb_trans).
+
   eapply acyc_dom with (d:= RW∩₁Sc) (e:= F∩₁Sc); try edone.
   { unfold imm.ar,imm.psc, imm.psc_base.
     arewrite (⦗Sc⦘ ≡ ⦗RW∩₁Sc⦘ ∪ ⦗F∩₁Sc⦘) by type_solver 42.
@@ -167,29 +170,50 @@ Proof.
     { rewrite <- HSC. basic_solver 10. }
     arewrite (⦗RW∩₁Sc⦘ ⨾ sb' ⨾ hb ⨾ sb' ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb).
     { rewrite <- HSC. basic_solver 10. }
-    (* TODO : continue from here *)
-    eapply acyclic_mon with (r := hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb ∪ ⦗RW∩₁Sc⦘ ⨾ eco ⨾ ⦗RW∩₁Sc⦘).
-    2: repeat apply inclusion_union_l; rels.
+    rewrite unionK.
     apply acyclic_utt; splits.
-    { apply transitiveI; arewrite_id ⦗F∩₁Sc⦘ at 1; relsf. }
+    { apply transitiveI. arewrite_id ⦗F∩₁Sc⦘ at 1.
+      rewrite seq_id_l.
+      generalize (@hb_trans G). basic_solver 10. }
     { apply transitiveI.
-      arewrite_id ⦗RW∩₁Sc⦘ at 2; relsf.
-      arewrite_id ⦗RW∩₁Sc⦘ at 2; relsf. }
-    { arewrite_id ⦗F∩₁Sc⦘ at 1; relsf.
-        by apply irr_hb. }
-    { arewrite_id ⦗RW∩₁Sc⦘; relsf.
-        by apply irr_eco. }
+      do 2 (arewrite_id ⦗RW∩₁Sc⦘ at 2; rewrite seq_id_l).
+      generalize (@eco_trans G). basic_solver 10. }
+    { arewrite_id ⦗F∩₁Sc⦘ at 1. rewrite seq_id_l.
+      arewrite (hb ;; hb ⊆ hb). by apply hb_irr. }
+    { generalize (eco_irr WF). basic_solver 10. }
     arewrite (⦗F∩₁Sc⦘ ⊆ ⦗F∩₁Sc⦘ ⨾ ⦗F∩₁Sc⦘) by basic_solver.
     do 2 (apply acyclic_seqC; try rewrite !seqA).
-    eapply acyclic_mon with (r := psc); try done.
-    unfold imm.psc.
-    basic_solver 12. }
-  { by rewrite psc_f. }
+    eapply acyclic_mon with (r := psc).
+    { by arewrite (psc ⊆ br). }
+    unfold imm.psc. basic_solver 12. }
+  { unfold imm.psc_base, imm.scb.
+    rewrite sb_in_hb, co_in_eco, fr_in_eco.
+    arewrite (hb ∪ (hb \ same_loc) ⨾ hb ⨾ (hb \ same_loc) ∪ hb ∩ same_loc 
+                 ⊆ hb) by basic_solver.
+    arewrite (hb ∪ eco ∪ eco ⊆ hb ∪ eco).
+    rewrite !crE.
+    rewrite !seq_union_l, !seq_id_l. rewrite !seq_union_r, !seqA.
+    repeat (arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⊆ ⦗F ∩₁ Sc⦘)).
+    repeat (arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘)).
+    repeat (arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗F ⦘ ⊆ ⦗F ∩₁ Sc⦘)).
+    repeat (arewrite (⦗F ⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘)).
+    arewrite_false !(eco ⨾ ⦗F ∩₁ Sc⦘).
+    { rewrite WF.(wf_ecoD). type_solver. }
+    arewrite_false !(⦗F ∩₁ Sc⦘ ⨾ eco).
+    { rewrite WF.(wf_ecoD). type_solver. }
+    rewrite !seq_false_r, !seq_false_l, !union_false_l, !union_false_r.
+    repeat (arewrite (hb ;; hb ⊆ hb)).
+    rewrite <- !unionA, !unionK.
+    rewrite WF.(f_sc_hb_f_sc_in_br).
+    arewrite (⦗F ∩₁ Sc⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ br).
+    arewrite (br⁺ ∪ br ⊆ br⁺).
+    red. by rewrite ct_of_ct. }
+  (* TODO: continue from here *)
   rewrite psc_rw_rw; try assumption.
   rewrite RW_scb_RW.
   arewrite (
-      sb ∪ sb_neq_loc ⨾ hb ⨾ sb_neq_loc ∪ ⦗RW⦘ ⨾ hb|loc ⨾ ⦗RW⦘ ∪ mo ∪ rb
-                                                        ⊆ sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco
+      sb ∪ sb_neq_loc ⨾ hb ⨾ sb_neq_loc ∪ ⦗RW⦘ ⨾ hb|loc ⨾ ⦗RW⦘ ∪ mo ∪ rb ⊆
+      sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco
     ).
   { arewrite (sb ⊆ sb' ∪ rmw) by (by apply inclusion_union_minus).
     rewrite rmw_in_rb at 2; try assumption.
