@@ -159,12 +159,15 @@ Proof.
     rewrite co_in_eco; auto.
     rewrite fr_in_eco; auto.
     rewrite <- !unionA.
-    relsf.
-    (* TODO: continue from here *)
+    arewrite (sb' ∪ eco ∪ sb' ⨾ hb ⨾ sb' ∪ eco ∪ sb' ∪ sb' ⨾ hb ⨾ sb'
+                  ∪ eco ∪ eco ⊆
+              sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) by basic_solver 42.
+    rewrite !seq_union_l, !seq_union_r, !seqA.
     arewrite (⦗RW∩₁Sc⦘ ⨾ sb' ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb).
-    { by rewrite <- HSC; rels. }
+    { rewrite <- HSC. basic_solver 10. }
     arewrite (⦗RW∩₁Sc⦘ ⨾ sb' ⨾ hb ⨾ sb' ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb).
-    { by rewrite <- HSC; rels; basic_solver 10. }
+    { rewrite <- HSC. basic_solver 10. }
+    (* TODO : continue from here *)
     eapply acyclic_mon with (r := hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb ∪ ⦗RW∩₁Sc⦘ ⨾ eco ⨾ ⦗RW∩₁Sc⦘).
     2: repeat apply inclusion_union_l; rels.
     apply acyclic_utt; splits.
