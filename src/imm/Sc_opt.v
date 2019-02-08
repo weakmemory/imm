@@ -74,16 +74,16 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'sb_neq_loc'" := (sb \ same_loc).
 
-Implicit Type WF : Wf G.
-Implicit Type COMP : complete G.
-Implicit Type COH : coherence G.
-Implicit Type SC_PER_LOC : sc_per_loc G.
+Hypothesis WF : Wf G.
+Hypothesis COMP : complete G.
+Hypothesis COH : coherence G.
+Hypothesis SC_PER_LOC : sc_per_loc G.
 
 Notation "'sb''" := (sb \ rmw).
 Notation "'ar'" := (ar G).
 Notation "'br'" := (br G).
 
-Lemma global_sc_helper WF
+Lemma global_sc_helper
   (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb) :
   ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾
     (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘)^* ⨾
@@ -129,7 +129,7 @@ Lemma RW_scb_RW :
       ⨾ ⦗RW∩₁Sc⦘.
 Proof. unfold imm.scb; basic_solver 42. Qed.
 
-Lemma psc_base_rw_rw WF :
+Lemma psc_base_rw_rw :
   ⦗RW∩₁Sc⦘ ⨾ psc_base ⨾ ⦗RW∩₁Sc⦘ ⊆ ⦗RW∩₁Sc⦘ ⨾ scb ⨾ ⦗RW∩₁Sc⦘.
 Proof.
   unfold imm.psc, imm.psc_base. rewrite !seqA.
@@ -142,13 +142,13 @@ Proof.
   basic_solver.
 Qed.
 
-Lemma scb_in_hb_eco WF : scb ⊆ hb ∪ eco.
+Lemma scb_in_hb_eco : scb ⊆ hb ∪ eco.
 Proof.
   unfold imm.scb. rewrite sb_in_hb, co_in_eco, fr_in_eco.
   generalize (@hb_trans G). basic_solver.
 Qed.
 
-Lemma psc_base_f WF :
+Lemma psc_base_f :
   ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ br⁺.
 Proof.
   unfold imm.psc, imm.psc_base, imm.scb.
@@ -171,7 +171,7 @@ Proof.
   unionL; eauto with hahn.
 Qed.
 
-Lemma psc_base_rw_f WF :
+Lemma psc_base_rw_f :
   ⦗RW∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ ⦗RW∩₁Sc⦘ ⨾ eco^? ⨾ hb ⨾ (⦗F∩₁Sc⦘).
 Proof.
   unfold imm.psc, imm.psc_base.
@@ -185,7 +185,7 @@ Proof.
   basic_solver 42.
 Qed.
 
-Lemma psc_base_f_rw WF :
+Lemma psc_base_f_rw :
   ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗RW∩₁Sc⦘ ⊆ ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾ (⦗RW∩₁Sc⦘).
 Proof.
   unfold imm.psc, imm.psc_base.
@@ -199,7 +199,7 @@ Proof.
   basic_solver 42.
 Qed.
 
-Lemma global_scb_rw_acyc WF COMP COH SC_PER_LOC
+Lemma global_scb_rw_acyc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic br) :
   acyclic (⦗RW ∩₁ Sc⦘ ⨾ scb ⨾ ⦗RW ∩₁ Sc⦘).
@@ -240,7 +240,7 @@ Proof.
   unfold imm.psc. basic_solver 12.
 Qed.
 
-Lemma global_sc_base WF COMP COH SC_PER_LOC
+Lemma global_sc_base
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic br) :
   acyclic psc_base.
@@ -279,8 +279,7 @@ Proof.
   rels. red. by rewrite ct_of_ct.
 Qed.
 
-Lemma global_sc WF 
-      (COH: irreflexive (hb ⨾ eco^?))
+Lemma global_sc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic br) :
   acyclic ar.
@@ -289,7 +288,41 @@ Proof.
   assert (transitive hb ) as THB  by (by apply hb_trans).
   arewrite (ar ⊆ psc_base ∪ br).
   { unfold imm.ar, imm.br. by rewrite !unionA. }
-  admit.
+  apply acyclic_union1; auto.
+  { apply global_sc_base; auto. }
+  
+  (* The below part of the proof is just a playground. *)
+  
+  assert (acyclic (psc_base ⨾ br⁺)).
+  { arewrite (psc_base ⊆ (<|RW∩₁Sc|> ∪ <|F∩₁Sc|>) ;; psc_base ;; (<|RW∩₁Sc|> ∪ <|F∩₁Sc|>)).
+    { admit. }
+    rewrite !seq_union_l, !seq_union_r.
+    sin_rewrite psc_base_f.
+    sin_rewrite psc_base_rw_rw.
+    sin_rewrite psc_base_f_rw.
+    sin_rewrite psc_base_rw_f.
+    admit. }
+
+    (* unfold imm.psc_base, imm.scb. *)
+    (* rewrite !crE. *)
+    (* rewrite !seq_union_l, !seq_union_r. *)
+    (* rewrite !seq_id_l, !seqA. *)
+
+  (* assert (exists rr, psc_base ⊆ rr). *)
+  (* { eexists. unfold imm.psc_base, imm.scb. *)
+  (*   rewrite !crE. *)
+  (*   rewrite !seq_union_l, !seq_union_r. *)
+  (*   rewrite !seq_id_l, !seqA. *)
+  (*   arewrite_false !(⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⨾ eco). *)
+  (*   { rewrite WF.(wf_ecoD). type_solver. } *)
+  (*   arewrite_false !(eco ⨾ ⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘). *)
+  (*   { rewrite WF.(wf_ecoD). type_solver. } *)
+  (*   rewrite !seq_false_l, !seq_false_r, !union_false_l, !union_false_r. *)
+  (*   repeat arewrite (hb ⨾ hb ⊆ hb). *)
+  (*   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
+  (*   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
+  (*   repeat arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
+  (*   repeat arewrite (⦗F⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
 Admitted.
   
 
