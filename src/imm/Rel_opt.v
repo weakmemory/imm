@@ -526,10 +526,7 @@ Lemma acyc_ext_eq WF WFp SC_PER_LOC COMP COHp COMPp: acyc_ext G' -> acyc_ext G.
 Proof.
 unfold acyc_ext.
 intros HH.
-rewrite ar_in_br_sc_only_f; auto.
-assert (acyclic (br G)) as XX.
-2: { red. rewrite ct_of_ct. apply XX. }
-unfold br, ar, ar_int in *.
+unfold ar, ar_int in *.
 rewrite (psc_eq WF WFp SC_PER_LOC COMP COHp COMPp).
 rewrite <- ppo_eq.
 rewrite <- rfe_eq.

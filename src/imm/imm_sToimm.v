@@ -51,7 +51,6 @@ Notation "'ppo'" := G.(ppo).
 Notation "'bob'" := G.(bob).
 
 Notation "'ar'" := G.(imm.ar).
-Notation "'br'" := G.(imm.br).
 Notation "'s_ar'" := G.(imm_s.ar).
 
 Notation "'lab'" := G.(lab).
@@ -160,7 +159,7 @@ Proof.
     apply irreflexive_restr.
       by apply tot_ext_irr. }
   { unfold imm_s.ar, imm.ar.
-    apply acyclic_mon with (r:= tot_ext (acts G) (psc_base G ∪ psc ∪ rfe ∪ ar_int)).
+    apply acyclic_mon with (r:= tot_ext (acts G) (psc ∪ rfe ∪ ar_int)).
     { apply trans_irr_acyclic.
       { apply tot_ext_irr, AC. }
       apply tot_ext_trans. }

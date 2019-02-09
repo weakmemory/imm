@@ -319,7 +319,7 @@ Qed.
 Lemma C_EXT : acyc_ext G.
 Proof.
 generalize (@sb_trans G); ins.
-apply (acyc_ext_helper WF SC_F).
+apply (acyc_ext_helper WF).
 arewrite (rfe ⊆ hbt⁺).
 rewrite (ar_int_in_sb WF); relsf.
 arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).

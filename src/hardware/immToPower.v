@@ -640,7 +640,7 @@ Qed.
 
 Lemma C_EXT: acyc_ext G.
 Proof.
-apply (acyc_ext_helper WF SC_F).
+apply (acyc_ext_helper WF).
 unfold ar_int.
 arewrite (⦗W⦘ ⊆ ⦗RW⦘) at 2.
 arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.

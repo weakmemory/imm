@@ -82,7 +82,6 @@ Hypothesis SC_PER_LOC : sc_per_loc G.
 
 Notation "'sb''" := (sb \ rmw).
 Notation "'ar'" := (ar G).
-Notation "'br'" := (br G).
 
 Lemma global_sc_helper
   (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb) :
@@ -151,7 +150,7 @@ Proof.
 Qed.
 
 Lemma psc_base_f :
-  ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ br⁺.
+  ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ ar⁺.
 Proof.
   unfold imm.psc, imm.psc_base, imm.scb.
   rewrite sb_in_hb, co_in_eco, fr_in_eco.
@@ -169,7 +168,7 @@ Proof.
   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗F ∩₁ Sc⦘).
   repeat arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
   repeat arewrite (⦗F⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
-  rewrite f_sc_hb_f_sc_in_br; auto.
+  rewrite f_sc_hb_f_sc_in_ar; auto.
   unionL; eauto with hahn.
 Qed.
 
@@ -325,16 +324,16 @@ Proof.
   red; rels.
 Qed.
 
-Lemma global_sc_br
+Lemma global_sc_ar
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
-      (ACYC: acyclic br) :
+      (ACYC: acyclic ar) :
   acyclic (psc_f ∪ psc_base).
 Proof.
   apply global_sc; auto.
-  arewrite (psc_f ⊆ br⁺); auto.
+  arewrite (psc_f ⊆ ar⁺); auto.
   2: { red. by rewrite ct_of_ct. }
   unfold imm.psc_f. rewrite crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
-  rewrite f_sc_hb_f_sc_in_br; auto.
+  rewrite f_sc_hb_f_sc_in_ar; auto.
   eauto with hahn.
 Qed.
 
