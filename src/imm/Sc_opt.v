@@ -61,6 +61,7 @@ Notation "'hb'" := G.(hb).
 Notation "'ppo'" := G.(ppo).
 Notation "'psc'" := G.(psc).
 Notation "'psc_base'" := G.(psc_base).
+Notation "'psc_f'" := G.(psc_f).
 Notation "'bob'" := G.(bob).
 Notation "'scb'" := G.(scb).
 
@@ -87,22 +88,24 @@ Lemma global_sc_helper
   (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb) :
   ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾
     (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘)^* ⨾
-      eco^? ⨾ hb ⨾ ⦗F∩₁Sc⦘ ⊆ br⁺.
+      eco^? ⨾ hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc_f⁺.
 Proof.
   assert (transitive eco) as TECO by (by apply eco_trans).
   assert (transitive hb ) as THB  by (by apply hb_trans).
 
-  assert (⦗F ∩₁ Sc⦘ ⨾ hb ⨾ eco^? ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ br⁺) as HH.
-  { rewrite crE. relsf.
-    unionL.
-    { by apply f_sc_hb_f_sc_in_br. }
-    rewrite <- ct_step. unfold imm.br, imm.psc.
-      by unionR left. }
+  assert (⦗F ∩₁ Sc⦘ ⨾ hb ⨾ eco^? ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ psc_f) as HH.
+  { unfold imm.psc_f.
+    arewrite (hb ⨾ eco^? ⨾ hb ⊆ hb ⨾ (eco ⨾ hb)^?).
+    2: done.
+    generalize THB. basic_solver 20. }
 
   eapply rt_ind_left with
       (P:= fun __ => ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco ^? ⨾ __ ⨾ eco ^? ⨾ hb ⨾ ⦗F∩₁Sc⦘).
   { eauto with hahn. }
-  { relsf. }
+  { rewrite <- ct_step, seq_id_l.
+    arewrite (eco^? ⨾ eco^? ⊆ eco^?).
+    2: by apply HH.
+    generalize TECO. basic_solver. }
   intros k IH.
   arewrite (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘ ⊆
             ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ∪ eco)
@@ -117,8 +120,7 @@ Proof.
   rewrite <- seq_eqvK at 2; rewrite !seqA.
   sin_rewrite IH.
   apply inclusion_union_l; try done.
-  rewrite <- !seqA with (r3 := br⁺).
-  sin_rewrite HH.
+  sin_rewrite HH. arewrite (psc_f ⊆ psc_f⁺).
   apply transitiveI. apply transitive_ct.
 Qed.
 
@@ -199,9 +201,32 @@ Proof.
   basic_solver 42.
 Qed.
 
+Lemma psc_base_f_f : (⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘) ⊆ psc_f.
+Proof.
+  unfold imm.psc_f, imm.psc_base.
+  rewrite scb_in_hb_eco.
+  rewrite !crE.
+  rewrite !seq_union_l, !seq_union_r, !seq_id_l.
+  rewrite !seqA.
+  repeat arewrite (hb ⨾ hb ⊆ hb).
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
+  repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗F ∩₁ Sc⦘).
+  repeat arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
+  repeat arewrite (⦗F⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
+  assert (⦗F ∩₁ Sc⦘ ⨾ eco ⊆ ∅₂) as AA.
+  { rewrite WF.(wf_ecoD). type_solver 40. }
+  repeat sin_rewrite AA.
+  assert (eco ⨾ ⦗F ∩₁ Sc⦘ ⊆ ∅₂) as BB.
+  { rewrite WF.(wf_ecoD). type_solver 40. }
+  repeat sin_rewrite BB.
+  unionL; try done.
+  all: basic_solver.
+Qed.
+
 Lemma global_scb_rw_acyc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
-      (ACYC: acyclic br) :
+      (ACYC: acyclic psc) :
   acyclic (⦗RW ∩₁ Sc⦘ ⨾ scb ⨾ ⦗RW ∩₁ Sc⦘).
 Proof.
   rewrite RW_scb_RW.
@@ -235,35 +260,56 @@ Proof.
   { generalize (eco_irr WF). basic_solver 10. }
   arewrite (⦗F∩₁Sc⦘ ⊆ ⦗F∩₁Sc⦘ ⨾ ⦗F∩₁Sc⦘) by basic_solver.
   do 2 (apply acyclic_seqC; try rewrite !seqA).
-  eapply acyclic_mon with (r := psc).
-  { by arewrite (psc ⊆ br). }
+  eapply acyclic_mon with (r := psc); auto.
   unfold imm.psc. basic_solver 12.
 Qed.
 
-Lemma global_sc_base
+Lemma global_sc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
-      (ACYC: acyclic br) :
-  acyclic psc_base.
+      (ACYC: acyclic psc_f) :
+  acyclic (psc_f ∪ psc_base).
 Proof.
   assert (transitive eco) as TECO by (by apply eco_trans).
   assert (transitive hb ) as THB  by (by apply hb_trans).
 
   eapply acyc_dom with (d:= RW∩₁Sc) (e:= F∩₁Sc); try edone.
-  { unfold imm.ar,imm.psc, imm.psc_base.
-    arewrite (⦗Sc⦘ ≡ ⦗RW∩₁Sc⦘ ∪ ⦗F∩₁Sc⦘) by type_solver 42.
-    basic_solver 42. }
-  { type_solver. }
-  { rewrite psc_base_rw_rw; auto.
-    apply global_scb_rw_acyc; auto. }
-  { rewrite psc_base_f; auto.
-    red. by rewrite ct_of_ct. }
-  rewrite psc_base_rw_rw; auto.
+  2: type_solver.
+  { arewrite (⦗RW∩₁Sc⦘ ∪ ⦗F∩₁Sc⦘ ≡ ⦗Sc⦘) by type_solver 42.
+    arewrite (psc_f ⊆ ⦗Sc⦘ ⨾ psc_f ⨾ ⦗Sc⦘).
+    { unfold imm.psc_f. basic_solver 10. }
+    arewrite (psc_base ⊆ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘).
+    { unfold imm.psc_base. basic_solver 21. }
+    eauto 10 with hahn. }
+  { rewrite !seq_union_l, !seq_union_r.
+    arewrite (⦗RW ∩₁ Sc⦘ ⨾ psc_f ⨾ ⦗RW ∩₁ Sc⦘ ⊆ ∅₂).
+    { unfold imm.psc_f. type_solver 10. }
+    rewrite union_false_l.
+    rewrite psc_base_rw_rw.
+    apply global_scb_rw_acyc; auto.
+    arewrite (psc ⊆ psc_f); auto.
+    unfold imm.psc, imm.psc_f. basic_solver 10. }
+  { rewrite !seq_union_l, !seq_union_r.
+    rewrite psc_base_f_f.
+    arewrite (⦗F ∩₁ Sc⦘ ⨾ psc_f ⨾ ⦗F ∩₁ Sc⦘ ∪ psc_f ⊆ psc_f); auto.
+    basic_solver. }
+  arewrite ((psc_f ∪ psc_base) ⨾ ⦗RW ∩₁ Sc⦘ ⊆ psc_base ⨾ ⦗RW ∩₁ Sc⦘).
+  { rewrite seq_union_l. unionL; [|done].
+    unfold imm.psc_f. type_solver 40. }
+  arewrite (⦗RW ∩₁ Sc⦘ ⨾ (psc_f ∪ psc_base) ⊆ ⦗RW ∩₁ Sc⦘ ⨾ psc_base).
+  { rewrite seq_union_r. unionL; [|done].
+    unfold imm.psc_f. type_solver 40. }
+  arewrite (⦗F ∩₁ Sc⦘ ⨾ (psc_f ∪ psc_base) ⨾ ⦗F ∩₁ Sc⦘ ⊆ psc_f).
+  { rewrite seq_union_l, seq_union_r. unionL.
+    { basic_solver. }
+    apply psc_base_f_f. }
+  rewrite psc_base_rw_rw.
   rewrite RW_scb_RW.
   arewrite (
-      sb ∪ sb_neq_loc ⨾ hb ⨾ sb_neq_loc ∪ ⦗RW⦘ ⨾ (hb ∩ same_loc) ⨾ ⦗RW⦘ ∪ co ∪ fr ⊆
-      sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco
+      sb ∪ sb_neq_loc ⨾ hb ⨾ sb_neq_loc ∪ ⦗RW⦘ ⨾ (hb ∩ same_loc) ⨾ ⦗RW⦘ ∪ co ∪ fr 
+        ⊆ sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco
     ).
-  { arewrite (sb ⊆ sb' ∪ rmw) by (by apply inclusion_union_minus).
+  { arewrite (sb ⊆ sb' ∪ rmw).
+    { unfold inclusion, minus_rel, union; ins; tauto. }
     rewrite rmw_in_fr at 2; auto.
     rewrite fr_in_eco, co_in_eco, hb_loc_in_eco; auto.
     arewrite (sb_neq_loc ⊆ sb').
@@ -271,60 +317,26 @@ Proof.
     basic_solver 10. }
   sin_rewrite psc_base_rw_f; auto.
   sin_rewrite psc_base_f_rw; auto.
-  rewrite !seqA.
-  arewrite_id ⦗RW∩₁Sc⦘ at 1. arewrite_id ⦗RW∩₁Sc⦘ at 3. rewrite !seq_id_l.
-  arewrite (⦗F ∩₁ Sc⦘ ⨾ psc_base ⨾ ⦗F ∩₁ Sc⦘ ⊆ br⁺) by (by apply psc_base_f).
-  rewrite rt_of_ct.
-  rewrite <- !seqA with (r3 := br ^* ), global_sc_helper; auto.
-  rels. red. by rewrite ct_of_ct.
+  arewrite_id ⦗RW∩₁Sc⦘ at 1.
+  arewrite_id ⦗RW∩₁Sc⦘ at 3.
+  rels.
+  rewrite <- !seqA with (r3 := psc_f ^*).
+  rewrite global_sc_helper; auto.
+  red; rels.
 Qed.
 
-Lemma global_sc
+Lemma global_sc_br
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic br) :
-  acyclic ar.
+  acyclic (psc_f ∪ psc_base).
 Proof.
-  assert (transitive eco) as TECO by (by apply eco_trans).
-  assert (transitive hb ) as THB  by (by apply hb_trans).
-  arewrite (ar ⊆ psc_base ∪ br).
-  { unfold imm.ar, imm.br. by rewrite !unionA. }
-  apply acyclic_union1; auto.
-  { apply global_sc_base; auto. }
-  
-  (* The below part of the proof is just a playground. *)
-  
-  assert (acyclic (psc_base ⨾ br⁺)).
-  { arewrite (psc_base ⊆ (<|RW∩₁Sc|> ∪ <|F∩₁Sc|>) ;; psc_base ;; (<|RW∩₁Sc|> ∪ <|F∩₁Sc|>)).
-    { admit. }
-    rewrite !seq_union_l, !seq_union_r.
-    sin_rewrite psc_base_f.
-    sin_rewrite psc_base_rw_rw.
-    sin_rewrite psc_base_f_rw.
-    sin_rewrite psc_base_rw_f.
-    admit. }
-
-    (* unfold imm.psc_base, imm.scb. *)
-    (* rewrite !crE. *)
-    (* rewrite !seq_union_l, !seq_union_r. *)
-    (* rewrite !seq_id_l, !seqA. *)
-
-  (* assert (exists rr, psc_base ⊆ rr). *)
-  (* { eexists. unfold imm.psc_base, imm.scb. *)
-  (*   rewrite !crE. *)
-  (*   rewrite !seq_union_l, !seq_union_r. *)
-  (*   rewrite !seq_id_l, !seqA. *)
-  (*   arewrite_false !(⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⨾ eco). *)
-  (*   { rewrite WF.(wf_ecoD). type_solver. } *)
-  (*   arewrite_false !(eco ⨾ ⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘). *)
-  (*   { rewrite WF.(wf_ecoD). type_solver. } *)
-  (*   rewrite !seq_false_l, !seq_false_r, !union_false_l, !union_false_r. *)
-  (*   repeat arewrite (hb ⨾ hb ⊆ hb). *)
-  (*   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
-  (*   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
-  (*   repeat arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
-  (*   repeat arewrite (⦗F⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘). *)
-Admitted.
-  
+  apply global_sc; auto.
+  arewrite (psc_f ⊆ br⁺); auto.
+  2: { red. by rewrite ct_of_ct. }
+  unfold imm.psc_f. rewrite crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
+  rewrite f_sc_hb_f_sc_in_br; auto.
+  eauto with hahn.
+Qed.
 
 (* Definition change_mode (l: label) (m: mode) : label := 
   match l with
