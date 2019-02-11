@@ -291,13 +291,13 @@ arewrite (hbt^+ ⊆ hbt^*) at 1.
 relsf; type_solver 21.
 Qed.
 
-Lemma ct_psct : 
-  (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
+Lemma ct_Xt X (XX : X ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb)
+      (XD : X ⊆ <| MFENCE |> ;; X ;; <| MFENCE |>) : 
+  (sb^? ⨾ X ⨾ sb^?)^+ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
-
-rewrite (@wf_pscD G), psct.
+rewrite XD, XX.
 apply inclusion_t_ind_right.
 basic_solver 21.
 relsf; rewrite !seqA.
@@ -315,6 +315,11 @@ arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
 arewrite (hbt^+ ⊆ hbt^* ) at 1.
 relsf; basic_solver 21.
 Qed.
+
+Lemma ct_psct : 
+  (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
+Proof. apply (ct_Xt psct). by rewrite (@wf_pscD G) at 1. Qed.
 
 Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
 Proof.
@@ -335,52 +340,63 @@ Proof.
   basic_solver 10.
 Qed.
 
-Lemma C_EXT : acyc_ext G.
+Lemma ct_psc_ft : 
+  (sb^? ⨾ psc_f ⨾ sb^?)^+ ⊆ 
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
-generalize (@sb_trans G); ins.
-apply (acyc_ext_helper WF).
-arewrite (rfe ⊆ hbt⁺).
-rewrite (ar_int_in_sb WF); relsf.
-arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
-rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot ⊆ hbt⁺).
-unfold TSO.hb; rewrite <- ct_step; basic_solver 12.
-rewrite unionA; rels.
-apply acyclic_union1.
-- red.
-rewrite ct_psct; relsf; unionL.
-by generalize (sb_irr); basic_solver 21.
-rewrite (wf_ct_hbD WF); rotate 4.
-arewrite_id ⦗MFENCE⦘ at 1.
-relsf.
-arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
-arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-rels.
-red; rels; eapply CON.
-- red; rels; eapply CON.
-- rewrite ct_psct; relsf.
-rewrite !seqA.
-rewrite (dom_r (wf_ct_hbD WF)) at 2.
-rewrite (dom_l (wf_ct_hbD WF)) at 3.
-rewrite !seqA; relsf.
-arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ fence).
-case_refl _; [type_solver|vauto].
-arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^* ) at 2.
-relsf.
-arewrite (sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb^?).
-basic_solver.
-arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ hbt⁺ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ hbt⁺).
-rewrite (dom_l (wf_ct_hbD WF)) at 1; type_solver 12.
-rels.
-rewrite (wf_ct_hbD WF); rotate 1.
-arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
-case_refl _; [type_solver|vauto].
-arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-rels.
-red; rels; eapply CON.
+  apply (ct_Xt psc_ft).
+  unfold imm.psc_f. rewrite !seqA.
+  basic_solver 10.
 Qed.
 
+Lemma C_EXT : acyc_ext G.
+Proof.
+  generalize (@sb_trans G); ins.
+  apply (acyc_ext_helper WF).
+  arewrite (rfe ⊆ hbt⁺).
+  rewrite (ar_int_in_sb WF); relsf.
+  arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
+  { rewrite TSO.ppo_alt. basic_solver 21. }
+  arewrite (ppot ⊆ hbt⁺).
+  { unfold TSO.hb. rewrite <- ct_step. basic_solver 12. }
+  rewrite unionA; rels.
+  apply acyclic_union1.
+  - red.
+    rewrite ct_psct; relsf; unionL.
+    { generalize sb_irr. basic_solver 21. }
+    rewrite (wf_ct_hbD WF); rotate 4.
+    arewrite_id ⦗MFENCE⦘ at 1.
+    relsf.
+    arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
+    arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
+    rels.
+    red; rels; eapply CON.
+  - red; rels; eapply CON.
+  - rewrite ct_psct; relsf.
+    rewrite !seqA.
+    rewrite (dom_r (wf_ct_hbD WF)) at 2.
+    rewrite (dom_l (wf_ct_hbD WF)) at 3.
+    rewrite !seqA; relsf.
+    arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ fence).
+    case_refl _; [type_solver|vauto].
+    arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
+    arewrite (hbt^+ ⊆ hbt^* ) at 2.
+    relsf.
+    arewrite (sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb^?).
+    basic_solver.
+    arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ hbt⁺ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ hbt⁺).
+    rewrite (dom_l (wf_ct_hbD WF)) at 1; type_solver 12.
+    rels.
+    rewrite (wf_ct_hbD WF); rotate 1.
+    arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
+    case_refl _; [type_solver|vauto].
+    arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
+    rels.
+    red; rels; eapply CON.
+Qed.
+
+Lemma C_SC : acyclic (psc_f ∪ psc_base).
+Proof.
 
 (******************************************************************************)
 (** * Final corollary   *)
