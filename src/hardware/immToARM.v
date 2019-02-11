@@ -88,7 +88,6 @@ Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
-Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
