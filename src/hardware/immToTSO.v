@@ -59,6 +59,8 @@ Notation "'rs'" := G.(rs).
 Notation "'hb'" := G.(hb).
 Notation "'ppo'" := G.(ppo).
 Notation "'psc'" := G.(psc).
+Notation "'psc_f'" := G.(psc_f).
+Notation "'psc_base'" := G.(psc_base).
 Notation "'bob'" := G.(bob).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
@@ -76,7 +78,6 @@ Notation "'implied_fence'" := G.(implied_fence).
 Notation "'hbt'" := G.(TSO.hb).
 Notation "'MFENCE'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
-Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis CON: TSOConsistent G.
 
 Lemma WF : Wf G.
@@ -315,6 +316,24 @@ arewrite (hbt^+ ⊆ hbt^* ) at 1.
 relsf; basic_solver 21.
 Qed.
 
+Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
+Proof.
+  unfold imm.psc_f.
+  rewrite crE.
+  rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
+  unionL.
+  2: by apply psct.
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL; [basic_solver|].
+  rewrite !seqA.
+  arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗W⦘) by type_solver. 
+  arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗MFENCE⦘) by type_solver. 
+  unionR right.
+  arewrite (ppot ∪ rfe ⊆ hbt).
+  { unfold TSO.hb. basic_solver 10. }
+  basic_solver 10.
+Qed.
 
 Lemma C_EXT : acyc_ext G.
 Proof.
