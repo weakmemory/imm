@@ -83,6 +83,7 @@ Notation "'dob'" := G.(dob).
 
 Notation "'L'" := (W ∩₁ (fun a => is_true (is_rel lab a))).
 Notation "'Q'" := (R ∩₁ (fun a => is_true (is_acq lab a))).
+Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
@@ -111,9 +112,9 @@ Proof.
 rewrite (dom_l (wf_rmwD WF)).
 rewrite (wf_rmwi WF), immediateE, !seqA.
 unfolder; ins; desf.
-assert (A: (rmw ∩ data ∪ ctrl) x y).
+assert (AA: (rmw ∩ data ∪ ctrl) x y).
 by revert RMW_CTRL_FAIL; generalize (@sb_trans G); basic_solver 14.
-unfolder in A; desf.
+unfolder in AA; desf.
 exfalso; eapply (wf_rmwi WF); eauto.
 Qed.
 
@@ -308,11 +309,11 @@ Qed.
 Lemma sb_ct_swe_in_ord :
   sb ⨾ (sw \ sb)⁺ ⊆  (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
 Proof.
-rewrite ct_swe_in_ord.
-arewrite (sb ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba').
-unfold Arm.bob', Arm.bob; basic_solver 12.
-arewrite (boba' ⊆ (obs' ∪ dob ∪ aob ∪ boba')＊) at 1.
-relsf.
+  rewrite ct_swe_in_ord.
+  arewrite (sb ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba').
+  { unfold Arm.bob', Arm.bob; basic_solver 15. }
+  arewrite (boba' ⊆ (obs' ∪ dob ∪ aob ∪ boba')＊) at 1.
+  relsf.
 Qed.
 
 Lemma ct_sb_swe_in_ord :
@@ -459,7 +460,29 @@ Proof.
 Qed.
 
 Lemma sc_sb_sc_in_boba' : ⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ boba'.
-Proof. Admitted.
+Proof.
+  arewrite (Sc ⊆₁ ((R ∪₁ F) ∪₁ W) ∩₁ Sc) at 1 by type_solver.
+  rewrite set_inter_union_l, id_union, !seq_union_l.
+  unionL.
+  { arewrite_id ⦗Sc⦘. rewrite seq_id_r.
+    rewrite set_inter_union_l, id_union, !seq_union_l.
+    arewrite (⦗F ∩₁ Sc⦘ ⊆ ⦗F^sy⦘) by mode_solver.
+    arewrite (⦗R ∩₁ Sc⦘ ⊆ ⦗Q⦘) by mode_solver.
+    unfold Arm.bob', Arm.bob.
+    basic_solver 10. }
+  arewrite (Sc ⊆₁ ((W ∪₁ F) ∪₁ R) ∩₁ Sc) at 2 by type_solver.
+  rewrite set_inter_union_l, id_union, !seq_union_r.
+  unionL.
+  { arewrite_id ⦗W ∩₁ Sc⦘. rewrite seq_id_l.
+    rewrite set_inter_union_l, id_union, !seq_union_r.
+    arewrite (⦗F ∩₁ Sc⦘ ⊆ ⦗F^sy⦘) by mode_solver.
+    arewrite (⦗W ∩₁ Sc⦘ ⊆ ⦗L⦘) by mode_solver.
+    unfold Arm.bob', Arm.bob.
+    basic_solver 20. }
+  arewrite (⦗W ∩₁ Sc⦘ ⊆ ⦗L⦘) by mode_solver.
+  unfold Arm.bob', Arm.bob.
+  basic_solver 10.
+Qed.
 
 Lemma psc_base_in_ord : psc_base ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
 Proof.
@@ -615,12 +638,7 @@ relsf; red; relsf.
 apply (external_alt2 WF CON rmw_sb_in_ctrl).
 Qed.
 
-(* TODO: eliminate the RMW_CTRL requirement by showing that
-     psc_base ⊆ (obs ∪ dob ∪ aob ∪ boba)⁺
-   and
-     psc_f    ⊆ (obs ∪ dob ∪ aob ∪ boba)⁺.
- *)
-Lemma C_SC (RMW_CTRL: rmw ⨾ sb ⊆ ctrl) : acyclic (psc_f ∪ psc_base).
+Lemma C_SC: acyclic (psc_f ∪ psc_base).
 Proof.
   rewrite psc_base_in_ord.
   arewrite (psc_f ⊆ sb^? ;; psc_f ;; sb^?).
@@ -628,8 +646,7 @@ Proof.
   rewrite psc_f_in_ord.
   rewrite unionK.
   red. rewrite ct_of_ct.
-  apply external_alt2; auto.
-  apply CON.
+  apply (external_alt2 WF CON rmw_sb_in_ctrl).
 Qed.
 
 Lemma IMM_consistent : imm_consistent G.

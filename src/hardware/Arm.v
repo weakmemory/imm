@@ -43,6 +43,7 @@ Notation "'W_ex'" := (W_ex G).
 
 Notation "'L'" := (W ∩₁ (fun a => is_true (is_rel lab a))).
 Notation "'Q'" := (R ∩₁ (fun a => is_true (is_acq lab a))).
+Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
@@ -69,8 +70,8 @@ Definition bob :=
     sb ⨾ ⦗F^sy⦘ ⨾ sb
   ∪ ⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘ ⨾ sb
   ∪ ⦗Q⦘ ⨾ sb
-  ∪ sb ⨾ ⦗L⦘ ⨾ coi^?.
-
+  ∪ sb ⨾ ⦗L⦘ ⨾ coi^?
+  ∪ ⦗L⦘ ⨾ sb ⨾ ⦗A⦘.
 
 (******************************************************************************)
 (** ** Consistency *)
@@ -142,7 +143,7 @@ Lemma wf_bobE WF: bob ≡ ⦗E⦘ ⨾ bob ⨾ ⦗E⦘.
 Proof.
 split; [|basic_solver].
 unfold bob.
-rewrite wf_sbE at 1 2 3 4 5 6.
+rewrite wf_sbE at 1 2 3 4 5 6 7.
 rewrite (wf_coiE WF) at 1.
 basic_solver 42.
 Qed.
@@ -305,18 +306,20 @@ right; relsf; hahn_rel.
   arewrite (coi ⊆ sb) at 1.
   arewrite (coi ⊆ sb) at 1.
   rewrite (@sb_sb G).
+  arewrite_false (⦗A⦘ ⨾ coi).
+  { rewrite WF.(wf_coiD). type_solver. }
   basic_solver 21.
 Qed.
 
 Lemma external_alt WF CON (RMW_CTRL: rmw ⨾ sb ⊆ ctrl) :
   acyclic (obs' ∪ dob ∪ aob ∪ bob).
 Proof.
-  forward eapply external_alt_coi as A; ins.
+  forward eapply external_alt_coi as AA; ins.
   unfold obs'.
   unfold acyclic in *; rewrite <- ct_of_union_ct_r in *.
-  unfold obs in A.
-  rewrite !unionA, (unionAC (rfe)), <- !unionA in A.
-  rewrite <- coi_union_coe in A.
+  unfold obs in AA.
+  rewrite !unionA, (unionAC (rfe)), <- !unionA in AA.
+  rewrite <- coi_union_coe in AA.
   rewrite fri_union_fre.
   rewrite !unionA, (unionAC rfe), !(unionAC _ fri), <- !unionA.
   rewrite !(unionA fri).
@@ -367,13 +370,18 @@ Proof.
       rewrite (dom_r (wf_coD WF)) at 1.
       rewrite (dom_l (wf_frD WF)) at 1.
       type_solver.
+      arewrite (⦗A⦘ ⊆ ⦗A⦘ ;; ⦗A⦘) by basic_solver.
+      arewrite (⦗L⦘ ⨾ sb ⨾ ⦗A⦘ ⊆ bob).
+      arewrite (A ⊆₁ Q) by mode_solver.
+      arewrite (⦗Q⦘ ⨾ sb ⊆ bob).
       rels; unionL; try solve [rewrite ct_end; hahn_frame_l; eauto with hahn].
+      apply ct_unit.
   Qed.
 
 Lemma external_alt2 WF CON (RMW_CTRL: rmw ⨾ sb ⊆ ctrl) :
   acyclic (obs' ∪ dob ∪ aob ∪ bob').
 Proof.
-  forward eapply external_alt as A; ins.
+  forward eapply external_alt as AA; ins.
   unfold bob'; rewrite <- !unionA in *.
   assert (APO: acyclic sb).
     by apply trans_irr_acyclic; eauto using sb_trans, sb_irr.
@@ -397,6 +405,8 @@ Proof.
   unfold bob; relsf; rewrite ?seqA.
   arewrite_false (⦗L⦘ ⨾ coi^? ⨾ ⦗F^ld ∪₁ F^sy⦘).
   rewrite (dom_r (wf_coiD WF)); type_solver.
+  arewrite_false (⦗A⦘ ⨾ ⦗F^ld ∪₁ F^sy⦘).
+  { type_solver. }
   arewrite_id ⦗F^ld ∪₁ F^sy⦘.
   rels.
   rewrite (@sb_sb G).
