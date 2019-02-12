@@ -291,7 +291,7 @@ arewrite (hbt^+ ⊆ hbt^*) at 1.
 relsf; type_solver 21.
 Qed.
 
-Lemma ct_Xt X (XX : X ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb)
+Lemma ct_pscXt X (XX : X ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb)
       (XD : X ⊆ <| MFENCE |> ;; X ;; <| MFENCE |>) : 
   (sb^? ⨾ X ⨾ sb^?)^+ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
@@ -319,7 +319,7 @@ Qed.
 Lemma ct_psct : 
   (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
-Proof. apply (ct_Xt psct). by rewrite (@wf_pscD G) at 1. Qed.
+Proof. apply (ct_pscXt psct). by rewrite (@wf_pscD G) at 1. Qed.
 
 Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
 Proof.
@@ -344,8 +344,30 @@ Lemma ct_psc_ft :
   (sb^? ⨾ psc_f ⨾ sb^?)^+ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
-  apply (ct_Xt psc_ft).
+  apply (ct_pscXt psc_ft).
   unfold imm.psc_f. rewrite !seqA.
+  basic_solver 10.
+Qed.
+
+Lemma psc_baset : psc_base ⊆ ⦗Sc⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗Sc⦘.
+Proof.
+  unfold imm.psc_base.
+  hahn_frame.
+  rewrite !crE.
+  rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
+  unionL.
+  { hahn_frame. unfold imm.scb. rewrite hb_in.
+
+  2: by apply psct.
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL; [basic_solver|].
+  rewrite !seqA.
+  arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗W⦘) by type_solver. 
+  arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗MFENCE⦘) by type_solver. 
+  unionR right.
+  arewrite (ppot ∪ rfe ⊆ hbt).
+  { unfold TSO.hb. basic_solver 10. }
   basic_solver 10.
 Qed.
 
