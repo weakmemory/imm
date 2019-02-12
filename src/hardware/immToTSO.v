@@ -61,6 +61,7 @@ Notation "'ppo'" := G.(ppo).
 Notation "'psc'" := G.(psc).
 Notation "'psc_f'" := G.(psc_f).
 Notation "'psc_base'" := G.(psc_base).
+Notation "'scb'" := G.(scb).
 Notation "'bob'" := G.(bob).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
@@ -349,27 +350,84 @@ Proof.
   basic_solver 10.
 Qed.
 
-Lemma psc_baset : psc_base ⊆ ⦗Sc⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗Sc⦘.
-Proof.
-  unfold imm.psc_base.
-  hahn_frame.
-  rewrite !crE.
-  rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
-  unionL.
-  { hahn_frame. unfold imm.scb. rewrite hb_in.
-
-  2: by apply psct.
-  rewrite hb_in.
-  rewrite !seq_union_l, !seq_union_r.
-  unionL; [basic_solver|].
-  rewrite !seqA.
-  arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗W⦘) by type_solver. 
-  arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗MFENCE⦘) by type_solver. 
-  unionR right.
-  arewrite (ppot ∪ rfe ⊆ hbt).
-  { unfold TSO.hb. basic_solver 10. }
-  basic_solver 10.
-Qed.
+(* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?. *)
+(* Proof. *)
+(*   unfold imm.psc_base. *)
+(*   unfold imm.scb. *)
+(*   arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆ *)
+(*                hb). *)
+(*   { rewrite sb_in_hb. *)
+(*     generalize (@hb_trans G). *)
+(*     basic_solver 10. } *)
+(*   rewrite unionA. *)
+(*   arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>). *)
+(*   { rewrite wf_coD; [|by apply CON]. *)
+(*     rewrite wf_frD; [|by apply CON]. *)
+(*     unfold TSO.hb. basic_solver 10. } *)
+(*   rewrite hb_in. *)
+(*   arewrite (ppot ∪ rfe ⊆ hbt). *)
+(*   { unfold TSO.hb. basic_solver 10. } *)
+(*   rewrite crE with (r:=⦗F⦘ ⨾ (sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?)). *)
+(*   rewrite crE with (r:=(sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?) ⨾ ⦗F⦘). *)
+(*   rewrite !seq_union_r, !seq_union_l, !seq_id_l, !seqA. *)
+(*   rewrite !seq_union_r. *)
+(*   assert (sb ⨾ sb^? ⊆ sb) as SBT1. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT1. *)
+(*   assert (sb ⨾ sb ⊆ sb) as SBT2. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT2. *)
+(*   assert (sb^? ⨾ sb ⊆ sb) as SBT3. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT3. *)
+(*   assert (sb^? ⨾ sb^? ⊆ sb^?) as SBT4. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT4. *)
+(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘) as RsbpW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL; type_solver. } *)
+(*   sin_rewrite !RsbpW. *)
+(*   assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RsbW. *)
+(*   { arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf. splits; auto. *)
+(*     intros HH. desf. *)
+(*     type_solver. } *)
+(*   sin_rewrite !RsbW. *)
+(*   assert (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?) as WsbW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL. *)
+(*     { basic_solver. } *)
+(*     arewrite (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf. splits; auto. *)
+(*     intros HH. desf. *)
+(*     type_solver. } *)
+(*   sin_rewrite !WsbW. *)
+(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?) as RsbRW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL. *)
+(*     { basic_solver. } *)
+(*     arewrite (⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf; splits; auto. *)
+(*     all: intros HH; desf. *)
+(*     all: type_solver. } *)
+(*   sin_rewrite !RsbRW. *)
+(*   repeat arewrite (hbt⁺ ⨾ hbt^? ⊆ hbt⁺). *)
+(*   repeat arewrite (hbt^? ⨾ hbt⁺ ⊆ hbt⁺). *)
+(*   assert (hbt ⨾ hbt⁺ ⊆ hbt⁺) as HBHBT. *)
+(*   { rewrite ct_step with (r:=hbt) at 1. *)
+(*     apply transitiveI. apply transitive_ct. } *)
+(*   sin_rewrite !HBHBT. *)
+(*   sin_rewrite !ct_unit. *)
+(*   sin_rewrite !ct_ct. *)
+(*   unionL. *)
+(*   all: basic_solver 10. *)
+(* Qed. *)
 
 Lemma C_EXT : acyc_ext G.
 Proof.
@@ -416,9 +474,6 @@ Proof.
     rels.
     red; rels; eapply CON.
 Qed.
-
-Lemma C_SC : acyclic (psc_f ∪ psc_base).
-Proof.
 
 (******************************************************************************)
 (** * Final corollary   *)
