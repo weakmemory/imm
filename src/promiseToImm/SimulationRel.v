@@ -433,6 +433,7 @@ Definition simrel_thread_local
   exists state local,
     ⟪ TNNULL : thread <> BinNums.xH ⟫ /\
     ⟪ GPC : wf_thread_state thread state ⟫ /\
+    ⟪ XACQIN : rmw_is_xacq_instrs state.(instrs) ⟫ /\
     ⟪ LLH : IdentMap.find thread threads =
              Some (existT _ (thread_lts thread) state, local) ⟫ /\
     ⟪ PROM_DISJOINT :

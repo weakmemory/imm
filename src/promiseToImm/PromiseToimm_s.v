@@ -267,6 +267,9 @@ Hypothesis ALLRLX : G.(acts_set) \₁ is_init ⊆₁ (fun a => is_true (is_rlx G
 Hypothesis EFM : execution_final_memory G final_memory.
 
 Hypothesis PROG_EX : program_execution prog G.
+Hypothesis XACQRMW : forall thread linstr
+                            (IN : Some linstr = IdentMap.find thread prog),
+    rmw_is_xacq_instrs linstr.
 Hypothesis WF : Wf G.
 Variable sc : relation actid.
 Hypothesis IMMCON : imm_consistent G sc.
@@ -286,9 +289,10 @@ Proof.
     apply no_sb_to_init in RMW.
     apply seq_eqv_r in RMW. desf. }
   apply IdentMap.Facts.in_find_iff in TH.
-  destruct (IdentMap.find (tid x) prog) eqn: PP.
+  destruct (IdentMap.find (tid x) prog) eqn: INP.
   2: done.
-  symmetry in PP.
+  symmetry in INP.
+  set (PP:=INP).
   apply PEX in PP. desc. subst.
   red in PP. desc.
   rewrite <- PEQ in *.
@@ -308,21 +312,27 @@ Proof.
        { eexists. eauto. }
        unfold is_xacq in YY. unfold xmod in YY.
          by rewrite <- LL in YY. }
-  clear -STEPS. 
+  apply XACQRMW in INP.
+  clear -STEPS INP. 
   assert (exists thread, tid x = thread) as [thread TT] by eauto.
   rewrite TT in *. clear x TT.
   assert (w_ex_is_xacq (init l)) as HH.
   { red. unfold init. simpls. unfold init_execution.
     intros x H. red in H. simpls.
     red in H. desf. }
+
   assert (wf_thread_state thread (init l)) as II.
   { apply wf_thread_state_init. }
-  assert (w_ex_is_xacq s /\ wf_thread_state thread s) as CC; [|by apply CC].
+  assert (w_ex_is_xacq s /\ wf_thread_state thread s /\
+          instrs s = l) as CC; [|by apply CC].
+  assert (instrs (init l) = l) as LL by simpls.
+  remember (init l) as s_init. clear Heqs_init.
   induction STEPS; ins.
   2: { apply IHSTEPS2. all: by apply IHSTEPS1. }
-  split.
-  { eapply w_ex_is_xacq_thread_step; eauto. }
-  eapply wf_thread_state_step; eauto.
+  splits.
+  { eapply w_ex_is_xacq_thread_step; eauto. by rewrite LL. }
+  { eapply wf_thread_state_step; eauto. }
+  inv H. inv H0.
 Qed.
 
 Lemma conf_steps_preserve_thread tid PC PC' (STEPS : (plain_step None tid)＊ PC PC'):
@@ -618,6 +628,7 @@ Proof.
   exists (init l), (Local.init); splits; auto.
   { red; ins; desf; apply TNONULL, IdentMap.Facts.in_find_iff; congruence. }
   { apply wf_thread_state_init. }
+  { eapply XACQRMW. eauto. }
   { ins. left. apply Memory.bot_get. }
   { red. ins.
     unfold Local.init in *. simpls. 
@@ -812,8 +823,13 @@ Proof.
   destruct (classic (thread0 = thread)) as [|NEQ]; subst.
   { rewrite IdentMap.gss. 
     eexists; eexists. splits.
-    1,3: done.
+    1,4: done.
     all: eauto.
+    { arewrite (instrs state' = instrs state); auto.
+      clear -STATE1. cdes STATE1.
+      clear -STEPS. induction STEPS; auto.
+      2: by rewrite IHSTEPS2.
+      inv H. inv H0. }
     { ins. left. rewrite PBOT. apply Memory.bot_get. }
     red. splits.
     { by rewrite EII. }

@@ -10,6 +10,7 @@ Require Import Setoid.
 Require Import MaxValue ViewRel.
 Require Import SimulationRel.
 Require Import Promise.
+Require Import ProgToExecution.
 
 Lemma rtc_lang_tau_step_rtc_thread_tau_step
       thread st1 st2 lc sc mem
@@ -37,4 +38,52 @@ Proof.
   ins. split; ins.
   { apply PCOV. apply COVSTEP; eauto. }
   apply CINCL. by apply PCOV.
+Qed.
+
+Lemma tau_steps_same_instrs thread 
+      (s1 s2 : Thread.t (thread_lts thread))
+      (ESTEPS : rtc (Thread.tau_step (lang:=thread_lts thread)) s1 s2) :
+  instrs (Thread.state s2) = instrs (Thread.state s1).
+Proof.
+  induction ESTEPS; ins; desf.
+  destruct y; simpls.
+  rewrite IHESTEPS.
+  clear dependent z.
+  inv H. inv TSTEP. inv STEP; inv STEP0.
+  simpls. inv STATE. desc.
+    by cdes ISTEP.
+Qed.
+
+Lemma tau_steps_rmw_is_xacq (PC : Configuration.t) thread
+      (state : ProgToExecution.state)
+      (local : Local.t)
+      (XACQIN : ProgToExecutionProperties.rmw_is_xacq_instrs (instrs state))
+      (ev : ProgramEvent.t)
+      (state'' state''' : ProgToExecution.state)
+      (ESTEPS : rtc (Thread.tau_step (lang:=thread_lts thread))
+                    (Thread.mk (thread_lts thread)
+                               state local
+                               PC.(Configuration.sc)
+                               PC.(Configuration.memory))
+                    (Thread.mk (thread_lts thread)
+                               state'' local
+                               PC.(Configuration.sc)
+                               PC.(Configuration.memory)))
+      (STEP : lts_step thread ev state'' state''') :
+  ProgToExecutionProperties.rmw_is_xacq_instrs (instrs state''').
+Proof.
+  cdes STEP. cdes ISTEP. rewrite <- INSTRS.
+  arewrite (instrs state'' = instrs state); auto.
+  clear -ESTEPS.
+  remember (Thread.mk (thread_lts thread)
+                      state local
+                      PC.(Configuration.sc)
+                           PC.(Configuration.memory)) as s1.
+  remember (Thread.mk (thread_lts thread)
+                      state'' local
+                      PC.(Configuration.sc)
+                           PC.(Configuration.memory)) as s2.
+  arewrite (state   = Thread.state s1) by desf.
+  arewrite (state'' = Thread.state s2) by desf.
+  eapply tau_steps_same_instrs; eauto.
 Qed.

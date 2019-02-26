@@ -492,6 +492,7 @@ Proof.
       all: type_solver. }
     rewrite IdentMap.gss.
     eexists; eexists; eexists; splits; eauto; simpls.
+    { eapply tau_steps_rmw_is_xacq; eauto. }
     { ins. rewrite IdentMap.gso in TID'; auto.
       edestruct (PROM_DISJOINT thread') as [H|]; eauto.
       left. erewrite Memory.remove_o; eauto. desf. }
@@ -997,6 +998,7 @@ Proof.
       all: type_solver. }
     rewrite IdentMap.gss.
     eexists; eexists; eexists; splits; eauto; simpls.
+    { eapply tau_steps_rmw_is_xacq; eauto. }
     { ins. eapply PROM_DISJOINT0; eauto.
       rewrite IdentMap.gso in *; eauto.
       rewrite IdentMap.gso in *; eauto. }

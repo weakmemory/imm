@@ -223,6 +223,7 @@ Proof.
       all: by apply CLOSED_SC. }
     rewrite IdentMap.gss.
     eexists; eexists; eexists; splits; eauto; simpls.
+    { eapply tau_steps_rmw_is_xacq; eauto. }
     { ins.
       rewrite IdentMap.gso in TID'; auto.
       eapply PROM_DISJOINT; eauto. }

@@ -721,10 +721,11 @@ Qed.
 Lemma receptiveness_sim_cas_fail (tid : thread_id)
   s1 s2 (INSTRS0 : instrs s1 = instrs s2)
   (expr_old expr_new : Instr.expr)
+  xmod
 (ordr ordw : mode)
 (reg : Reg.t)
 (lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) ordr ordw reg lexpr) =
+(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr) =
         nth_error (instrs s1) (pc s1))
 (val_ : value)
 (NEXPECTED : val_ <> RegFile.eval_expr (regf s1) expr_old)
@@ -828,18 +829,20 @@ Qed.
 
 Lemma receptiveness_sim_cas_suc (tid : thread_id)
   s1 s2 (INSTRS0 : instrs s1 = instrs s2)
+  (XACQIN : rmw_is_xacq_instrs s1.(instrs))
   (expr_old expr_new : Instr.expr)
+  xmod
 (ordr ordw : mode)
 (reg : Reg.t)
 (lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) ordr ordw reg lexpr) =
+(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr) =
         nth_error (instrs s1) (pc s1))
 (UPC : pc s2 = pc s1 + 1)
 (UG : G s2 =
      add_rmw (G s1) tid (eindex s1)
        (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr)
           (RegFile.eval_expr (regf s1) expr_old))
-       (Astore Xacq ordw (RegFile.eval_lexpr (regf s1) lexpr)
+       (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
           (RegFile.eval_expr (regf s1) expr_new))
        (DepsFile.expr_deps (depf s1) expr_new)
        (DepsFile.lexpr_deps (depf s1) lexpr) (ectrl s1)
@@ -858,6 +861,9 @@ Lemma receptiveness_sim_cas_suc (tid : thread_id)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
+  assert (xmod = Xacq); subst.
+  { eapply rmw_is_xacq_instr_xmod; eauto. }
+
 red in SIM; desc.
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
@@ -977,17 +983,19 @@ Qed.
 
 Lemma receptiveness_sim_inc (tid : thread_id)
   s1 s2 (INSTRS0 : instrs s1 = instrs s2)
+  (XACQIN : rmw_is_xacq_instrs s1.(instrs))
  (expr_add : Instr.expr)
+ xmod
 (ordr ordw : mode)
 (reg : Reg.t)
 (lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.fetch_add expr_add) ordr ordw reg lexpr) =
+(ISTEP : Some (Instr.update (Instr.fetch_add expr_add) xmod ordr ordw reg lexpr) =
         nth_error (instrs s1) (pc s1))
 (val_ : nat)
 (UPC : pc s2 = pc s1 + 1)
 (UG : G s2 =
      add_rmw (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) val_)
-       (Astore Xacq ordw (RegFile.eval_lexpr (regf s1) lexpr)
+       (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
           (val_ + RegFile.eval_expr (regf s1) expr_add))
        ((eq (ThreadEvent tid s1.(eindex))) ∪₁ (DepsFile.expr_deps s1.(depf) expr_add))
        (DepsFile.lexpr_deps (depf s1) lexpr)
@@ -1006,6 +1014,9 @@ Lemma receptiveness_sim_inc (tid : thread_id)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
+  assert (xmod = Xacq); subst.
+  { eapply rmw_is_xacq_instr_xmod; eauto. }
+
 red in SIM; desc.
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
@@ -1116,7 +1127,9 @@ do 7 eexists; splits; red; splits.
 Qed.
 
 Lemma receptiveness_sim_step (tid : thread_id)
-  s1 s2 (STEP : (step tid) s1 s2) 
+  s1 s2
+  (XACQIN : rmw_is_xacq_instrs s1.(instrs))
+  (STEP : (step tid) s1 s2) 
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
@@ -1144,7 +1157,9 @@ Qed.
 
 
 Lemma receptiveness_sim (tid : thread_id)
-  s1 s2 (STEPS : (step tid)＊ s1 s2)
+  s1 s2
+  (XACQIN : rmw_is_xacq_instrs s1.(instrs))
+  (STEPS : (step tid)＊ s1 s2)
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
@@ -1184,12 +1199,17 @@ exploit IHSTEPS.
   eapply receptiveness_sim_step in x0; eauto; desf.
   + exists s2'0; splits; eauto. 
     by eapply rt_trans; [eauto | econs].
+  + arewrite (instrs y = instrs s1); auto.
+    clear -STEPS.
+    induction STEPS; auto.
+    cdes H. cdes H0. by rewrite <- INSTRS.
   + eapply thread_wf_steps; try edone.
     by apply clos_rtn1_rt.
 Qed.
 
 Lemma receptiveness_helper (tid : thread_id)
       s_init s
+      (XACQIN : rmw_is_xacq_instrs s_init.(instrs))
       (GPC : wf_thread_state tid s_init)
       (new_val : actid -> value)
       (new_rfi : relation actid)
@@ -1248,6 +1268,7 @@ Qed.
 
 Lemma receptiveness_ectrl_helper (tid : thread_id) 
       s_init s 
+      (XACQIN : rmw_is_xacq_instrs s_init.(instrs))
       (GPC : wf_thread_state tid s_init)
       (STEPS : (step tid)＊ s_init s)
       MOD (NCTRL: MOD ∩₁ dom_rel (s.(G).(ctrl)) ⊆₁ ∅) 
@@ -1278,6 +1299,7 @@ Qed.
 
 Lemma receptiveness_full (tid : thread_id)
       s_init s
+      (XACQIN : rmw_is_xacq_instrs s_init.(instrs))
       (new_val : actid -> value)
       (new_rfi : relation actid)
       (MOD: actid -> Prop)

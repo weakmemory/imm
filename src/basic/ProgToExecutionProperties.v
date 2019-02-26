@@ -106,6 +106,15 @@ Qed.
 
 End StateWF.
 
+Definition rmw_is_xacq_instr (i : Instr.t) :=
+  match i with
+  | Instr.update _ Xpln _ _  _ _ => False
+  | _ => True
+  end.
+
+Definition rmw_is_xacq_instrs (il : list Instr.t) :=
+  forall (i : Instr.t) (IN : In i il), rmw_is_xacq_instr i.
+
 Definition w_ex_is_xacq s :=
   W_ex (ProgToExecution.G s) ⊆₁
   W_ex (ProgToExecution.G s) ∩₁ is_xacq (lab (ProgToExecution.G s)).
@@ -166,7 +175,20 @@ Proof.
   desf. omega.
 Qed.
 
+Lemma rmw_is_xacq_instr_xmod rmw xmod ordr ordw reg lexpr s
+      (XACQIN : rmw_is_xacq_instrs s.(instrs))
+      (ISTEP :
+         Some
+           (Instr.update rmw xmod ordr ordw reg
+                         lexpr) = nth_error (instrs s) (pc s)) :
+  xmod = Xacq.
+Proof.
+  symmetry in ISTEP; apply nth_error_In in ISTEP.
+  apply XACQIN in ISTEP; simpls; desf.
+Qed.
+
 Lemma w_ex_is_xacq_thread_step thread s s'
+      (XACQIN : rmw_is_xacq_instrs s.(instrs))
       (WF : wf_thread_state thread s)
       (STEP : step thread s s')
       (SS : w_ex_is_xacq s) :
@@ -177,7 +199,9 @@ Proof.
   destruct ISTEP0.
   1,2: by rewrite UG.
   1-4: by eapply w_ex_is_xacq_add_preserves; eauto.
-  all: eapply w_ex_is_xacq_add_rmw_preserves; eauto.
+  all: assert (xmod = Xacq); subst;
+    [ |eapply w_ex_is_xacq_add_rmw_preserves; eauto].
+  all: eapply rmw_is_xacq_instr_xmod; eauto.
 Qed.
 
 Lemma wf_thread_state_init l thread:
