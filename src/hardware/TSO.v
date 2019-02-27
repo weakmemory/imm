@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of the Power memory model *)
+(** * Definition of the x86-TSO memory model *)
 (******************************************************************************)
 From hahn Require Import Hahn.
 Require Import AuxRel.
