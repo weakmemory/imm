@@ -1568,7 +1568,7 @@ Proof.
     assert (Time.le (f_to wprev) (f_from wnext)) as LEWPWTO.
     { destruct (classic (is_init wprev)) as [WPINIT|WPNINIT].
       2: by apply FCOH; eauto.
-      assert (f_to wprev = tmin) as HH.
+      assert (f_to wprev = tid_init) as HH.
       { apply FCOH. by split. }
       rewrite HH. apply Time.bot_spec. }
 
@@ -1577,7 +1577,7 @@ Proof.
       unfold n_to.
       apply Time.middle_spec. by apply FCOH. }
 
-    assert (DenseOrder.lt tmin n_to) as NTOBOT.
+    assert (DenseOrder.lt tid_init n_to) as NTOBOT.
     { unfold n_to.
       eapply TimeFacts.le_lt_lt; eauto.
       apply Time.bot_spec. }

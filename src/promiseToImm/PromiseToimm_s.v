@@ -257,7 +257,7 @@ Qed.
 Section PromiseToIMM.
   
 Variable prog : Prog.t.
-Hypothesis TNONULL : ~ IdentMap.In BinNums.xH prog.
+Hypothesis TNONULL : ~ IdentMap.In tid_init prog.
 
 Variable G : execution.
 Variable final_memory : location -> value.
@@ -538,7 +538,7 @@ Proof.
 Qed.
 
 Lemma simrel_init :
-  simrel G sc (conf_init prog) (init_trav G) (fun _ => tmin) (fun _ => tmin).
+  simrel G sc (conf_init prog) (init_trav G) (fun _ => tid_init) (fun _ => tid_init).
 Proof.
   red; splits; red; splits. 
   { apply w_ex_is_xacq. }

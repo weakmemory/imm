@@ -10,6 +10,8 @@ Require Import AuxRel.
 Set Implicit Arguments.
 
 Definition thread_id := Basic.Ident.t.
+Definition tid_init := Coq.Numbers.BinNums.xH.
+
 Definition location := Loc.t.
 Definition value := Const.t.
 
@@ -23,7 +25,7 @@ Inductive actid :=
 
 Definition tid a := 
   match a with
-    | InitEvent l => Coq.Numbers.BinNums.xH
+    | InitEvent l => tid_init 
     | ThreadEvent i _ => i
   end.
 

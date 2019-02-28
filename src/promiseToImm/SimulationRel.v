@@ -57,11 +57,10 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 Notation "'W_ex'" := G.(W_ex).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
-  Definition tmin := xH.
   Definition f_to_coherent (I : actid -> Prop) (f_to f_from : actid -> Time.t) :=
-    (* ⟪ NW  : forall a, ~ is_w lab a -> f_to a = tmin ⟫ /\ *)
-    ⟪ TINITTO : forall x, (is_init ∩₁ E) x -> f_to x = tmin ⟫ /\
-    ⟪ TINITFROM : forall x, (is_init ∩₁ E) x -> f_from x = tmin ⟫ /\
+    (* ⟪ NW  : forall a, ~ is_w lab a -> f_to a = tid_init ⟫ /\ *)
+    ⟪ TINITTO : forall x, (is_init ∩₁ E) x -> f_to x = tid_init ⟫ /\
+    ⟪ TINITFROM : forall x, (is_init ∩₁ E) x -> f_from x = tid_init ⟫ /\
     ⟪ TTOFROM : forall x,
          I x -> ~ is_init x -> Time.lt (f_from x) (f_to x) ⟫ /\
     ⟪ TCO : forall x y,
@@ -140,7 +139,7 @@ Lemma lt_init_ts T f_to f_from
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
-  Time.lt tmin (f_to e).
+  Time.lt tid_init (f_to e).
 Proof.
   unfold is_w in *.
   destruct e; desf.
@@ -166,7 +165,7 @@ Lemma le_init_ts T f_to f_from
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) :
-  Time.le tmin (f_to e).
+  Time.le tid_init (f_to e).
 Proof.
   unfold is_w in *.
   destruct e; desf.
@@ -183,7 +182,7 @@ Lemma le_init_ts_from T f_to f_from
       (TCCOH : tc_coherent G sc T)
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
-  Time.le tmin (f_from e).
+  Time.le tid_init (f_from e).
 Proof.
   unfold is_w in *.
   destruct e; desf.
@@ -431,7 +430,7 @@ Definition simrel_thread_local
   let memory := PC.(Configuration.memory) in
   let threads := PC.(Configuration.threads) in
   exists state local,
-    ⟪ TNNULL : thread <> BinNums.xH ⟫ /\
+    ⟪ TNNULL : thread <> tid_init ⟫ /\
     ⟪ GPC : wf_thread_state thread state ⟫ /\
     ⟪ XACQIN : rmw_is_xacq_instrs state.(instrs) ⟫ /\
     ⟪ LLH : IdentMap.find thread threads =
