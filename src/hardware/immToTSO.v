@@ -350,84 +350,84 @@ Proof.
   basic_solver 10.
 Qed.
 
-(* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?. *)
-(* Proof. *)
-(*   unfold imm.psc_base. *)
-(*   unfold imm.scb. *)
-(*   arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆ *)
-(*                hb). *)
-(*   { rewrite sb_in_hb. *)
-(*     generalize (@hb_trans G). *)
-(*     basic_solver 10. } *)
-(*   rewrite unionA. *)
-(*   arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>). *)
-(*   { rewrite wf_coD; [|by apply CON]. *)
-(*     rewrite wf_frD; [|by apply CON]. *)
-(*     unfold TSO.hb. basic_solver 10. } *)
-(*   rewrite hb_in. *)
-(*   arewrite (ppot ∪ rfe ⊆ hbt). *)
-(*   { unfold TSO.hb. basic_solver 10. } *)
-(*   rewrite crE with (r:=⦗F⦘ ⨾ (sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?)). *)
-(*   rewrite crE with (r:=(sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?) ⨾ ⦗F⦘). *)
-(*   rewrite !seq_union_r, !seq_union_l, !seq_id_l, !seqA. *)
-(*   rewrite !seq_union_r. *)
-(*   assert (sb ⨾ sb^? ⊆ sb) as SBT1. *)
-(*   { generalize (@sb_trans G). basic_solver 10. } *)
-(*   sin_rewrite !SBT1. *)
-(*   assert (sb ⨾ sb ⊆ sb) as SBT2. *)
-(*   { generalize (@sb_trans G). basic_solver 10. } *)
-(*   sin_rewrite !SBT2. *)
-(*   assert (sb^? ⨾ sb ⊆ sb) as SBT3. *)
-(*   { generalize (@sb_trans G). basic_solver 10. } *)
-(*   sin_rewrite !SBT3. *)
-(*   assert (sb^? ⨾ sb^? ⊆ sb^?) as SBT4. *)
-(*   { generalize (@sb_trans G). basic_solver 10. } *)
-(*   sin_rewrite !SBT4. *)
-(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘) as RsbpW. *)
-(*   { rewrite crE, seq_union_l, seq_union_r. *)
-(*     unionL; type_solver. } *)
-(*   sin_rewrite !RsbpW. *)
-(*   assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RsbW. *)
-(*   { arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
-(*     2: unfold TSO.hb; basic_solver 10. *)
-(*     unfold TSO.ppo. *)
-(*     unfolder. ins. desf. splits; auto. *)
-(*     intros HH. desf. *)
-(*     type_solver. } *)
-(*   sin_rewrite !RsbW. *)
-(*   assert (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?) as WsbW. *)
-(*   { rewrite crE, seq_union_l, seq_union_r. *)
-(*     unionL. *)
-(*     { basic_solver. } *)
-(*     arewrite (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
-(*     2: unfold TSO.hb; basic_solver 10. *)
-(*     unfold TSO.ppo. *)
-(*     unfolder. ins. desf. splits; auto. *)
-(*     intros HH. desf. *)
-(*     type_solver. } *)
-(*   sin_rewrite !WsbW. *)
-(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?) as RsbRW. *)
-(*   { rewrite crE, seq_union_l, seq_union_r. *)
-(*     unionL. *)
-(*     { basic_solver. } *)
-(*     arewrite (⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot). *)
-(*     2: unfold TSO.hb; basic_solver 10. *)
-(*     unfold TSO.ppo. *)
-(*     unfolder. ins. desf; splits; auto. *)
-(*     all: intros HH; desf. *)
-(*     all: type_solver. } *)
-(*   sin_rewrite !RsbRW. *)
-(*   repeat arewrite (hbt⁺ ⨾ hbt^? ⊆ hbt⁺). *)
-(*   repeat arewrite (hbt^? ⨾ hbt⁺ ⊆ hbt⁺). *)
-(*   assert (hbt ⨾ hbt⁺ ⊆ hbt⁺) as HBHBT. *)
-(*   { rewrite ct_step with (r:=hbt) at 1. *)
-(*     apply transitiveI. apply transitive_ct. } *)
-(*   sin_rewrite !HBHBT. *)
-(*   sin_rewrite !ct_unit. *)
-(*   sin_rewrite !ct_ct. *)
-(*   unionL. *)
-(*   all: basic_solver 10. *)
-(* Qed. *)
+Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?.
+Proof.
+  unfold imm.psc_base.
+  unfold imm.scb.
+  arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆
+               hb).
+  { rewrite sb_in_hb.
+    generalize (@hb_trans G).
+    basic_solver 10. }
+  rewrite unionA.
+  arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>).
+  { rewrite wf_coD; [|by apply CON].
+    rewrite wf_frD; [|by apply CON].
+    unfold TSO.hb. basic_solver 10. }
+  rewrite hb_in.
+  arewrite (ppot ∪ rfe ⊆ hbt).
+  { unfold TSO.hb. basic_solver 10. }
+  rewrite crE with (r:=⦗F⦘ ⨾ (sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?)).
+  rewrite crE with (r:=(sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?) ⨾ ⦗F⦘).
+  rewrite !seq_union_r, !seq_union_l, !seq_id_l, !seqA.
+  rewrite !seq_union_r.
+  assert (sb ⨾ sb^? ⊆ sb) as SBT1.
+  { generalize (@sb_trans G). basic_solver 10. }
+  sin_rewrite !SBT1.
+  assert (sb ⨾ sb ⊆ sb) as SBT2.
+  { generalize (@sb_trans G). basic_solver 10. }
+  sin_rewrite !SBT2.
+  assert (sb^? ⨾ sb ⊆ sb) as SBT3.
+  { generalize (@sb_trans G). basic_solver 10. }
+  sin_rewrite !SBT3.
+  assert (sb^? ⨾ sb^? ⊆ sb^?) as SBT4.
+  { generalize (@sb_trans G). basic_solver 10. }
+  sin_rewrite !SBT4.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘) as RsbpW.
+  { rewrite crE, seq_union_l, seq_union_r.
+    unionL; type_solver. }
+  sin_rewrite !RsbpW.
+  assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RsbW.
+  { arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
+    2: unfold TSO.hb; basic_solver 10.
+    unfold TSO.ppo.
+    unfolder. ins. desf. splits; auto.
+    intros HH. desf.
+    type_solver. }
+  sin_rewrite !RsbW.
+  assert (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?) as WsbW.
+  { rewrite crE, seq_union_l, seq_union_r.
+    unionL.
+    { basic_solver. }
+    arewrite (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
+    2: unfold TSO.hb; basic_solver 10.
+    unfold TSO.ppo.
+    unfolder. ins. desf. splits; auto.
+    intros HH. desf.
+    type_solver. }
+  sin_rewrite !WsbW.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?) as RsbRW.
+  { rewrite crE, seq_union_l, seq_union_r.
+    unionL.
+    { basic_solver. }
+    arewrite (⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot).
+    2: unfold TSO.hb; basic_solver 10.
+    unfold TSO.ppo.
+    unfolder. ins. desf; splits; auto.
+    all: intros HH; desf.
+    all: type_solver. }
+  sin_rewrite !RsbRW.
+  repeat arewrite (hbt⁺ ⨾ hbt^? ⊆ hbt⁺).
+  repeat arewrite (hbt^? ⨾ hbt⁺ ⊆ hbt⁺).
+  assert (hbt ⨾ hbt⁺ ⊆ hbt⁺) as HBHBT.
+  { rewrite ct_step with (r:=hbt) at 1.
+    apply transitiveI. apply transitive_ct. }
+  sin_rewrite !HBHBT.
+  sin_rewrite !ct_unit.
+  sin_rewrite !ct_ct.
+  unionL.
+  all: basic_solver 10.
+Qed.
 
 Lemma C_EXT : acyc_ext G.
 Proof.
@@ -474,6 +474,136 @@ Proof.
     rels.
     red; rels; eapply CON.
 Qed.
+
+Lemma wf_psc_baseD : psc_base ≡ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘.
+Proof.
+  split; [|basic_solver].
+  unfold imm.psc_base.
+  basic_solver 42.
+Qed.
+
+Lemma wf_psc_fD : psc_f ≡ ⦗Sc⦘ ⨾ psc_f ⨾ ⦗Sc⦘.
+Proof.
+  split; [|basic_solver].
+  unfold imm.psc_f.
+  basic_solver 42.
+Qed.
+
+Lemma hbt_mfencesb_ac : acyclic (hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb).
+Proof.
+  rewrite unionA.
+  rewrite unionC.
+  apply acyclic_union.
+  { arewrite (sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb ⊆ sb).
+    apply trans_irr_acyclic.
+    { apply sb_irr. }
+    apply sb_trans. }
+  rewrite WF.(wf_hbD). rewrite !seqA.
+  apply acyclic_seqC. rewrite !seqA.
+  arewrite (⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb)＊ ⨾ ⦗RW⦘ ⊆
+            ⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ⨾ sb)^? ⨾ ⦗RW⦘).
+  2: { arewrite (⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ⨾ sb)^? ⨾ ⦗RW⦘ ⊆ hbt^?).
+       { rewrite crE. rewrite seq_union_l, seq_union_r.
+         unionL; [basic_solver|].
+         rewrite crE. unionR right. rewrite !seqA.
+         unfold TSO.hb, TSO.fence. eauto with hahn. }
+       rewrite ct_step with (r:=hbt) at 1.
+       rewrite ct_cr. red. rewrite ct_of_ct.
+       apply CON. }
+  rewrite rtE, crE.
+  rewrite !seq_union_l, !seq_union_r. apply union_mori; [done|].
+  rewrite ct_begin, !seqA.
+  arewrite (⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb) ⊆
+            ⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘).
+  { rewrite seq_union_r. unionL; [done|].
+    unfolder. type_solver. }
+  rewrite rtE.
+  rewrite !seq_union_l, !seq_union_r, seq_id_l.
+  arewrite (⦗MFENCE⦘ ⨾ ⦗RW⦘ ⊆ ∅₂).
+  { unfolder. type_solver. }
+  unionL; [basic_solver|].
+  rewrite ct_end, !seqA.
+  arewrite ((sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb) ⨾ ⦗RW⦘ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘).
+  { rewrite seq_union_l, !seqA. unionL; [|done].
+    unfolder. type_solver. }
+  arewrite (sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb ⊆ sb).
+  arewrite (sb＊ ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb).
+  2: done.
+  arewrite_id ⦗MFENCE⦘. rewrite seq_id_l.
+  rewrite <- ct_end. apply ct_of_trans.
+  apply sb_trans.
+Qed.
+
+Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
+                  sb ;; <|MFENCE|> ;; sb) :
+  acyclic (psc_f ∪ psc_base).
+Proof.
+  assert (<| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
+          <| W |> ;; sb ;; <|MFENCE|> ;; sb ;; <| R |>)
+    as SCFF.
+  { arewrite (⦗W ∩₁ Sc⦘ ⊆ ⦗W⦘ ⨾ ⦗W ∩₁ Sc⦘) by basic_solver.
+    arewrite (⦗R ∩₁ Sc⦘ ⊆ ⦗R ∩₁ Sc⦘ ⨾ ⦗R⦘) by basic_solver.
+    sin_rewrite SCF. by rewrite !seqA. }
+  assert (<| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆ fence) as SCFA.
+  { unfold TSO.fence. rewrite SCFF. basic_solver 10. }
+  assert (<| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆ hbt) as SCFB.
+  { rewrite SCFA. unfold TSO.hb. eauto with hahn. }
+  assert (<|Sc|> ;; sb ;; <|Sc|> ⊆
+            hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb) as SCFC.
+  { arewrite (sb ⊆ <|F ∪₁ RW|> ;; sb) at 1.
+    { unfolder. type_solver. }
+    rewrite id_union.
+    rewrite !seq_union_l, !seq_union_r.
+    arewrite (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) by basic_solver.
+    unionL; [basic_solver|].
+    arewrite (sb ⊆ sb ;; <|F ∪₁ RW|>) at 1.
+    { unfolder. type_solver. }
+    arewrite (⦗F ∪₁ RW⦘ ⊆ ⦗F⦘ ∪ ⦗RW⦘) by basic_solver.
+    rewrite !seq_union_l, !seq_union_r.
+    arewrite (⦗F⦘ ⨾ ⦗Sc⦘ ⊆ ⦗MFENCE⦘) by basic_solver.
+    unionL; [basic_solver 10|].
+    rewrite id_union.
+    rewrite !seq_union_l, !seq_union_r.
+    unionR left -> left.
+    unionL.
+    3: { generalize SCFB. basic_solver 10. }
+    all: arewrite_id ⦗Sc⦘.
+    all: rewrite seq_id_l, seq_id_r.
+    all: unfold TSO.hb; repeat unionR left.
+    all: unfold TSO.ppo.
+    all: unfolder; ins; desf; splits; auto; intros HH; type_solver. }
+Admitted.
+
+  (* rewrite wf_psc_fD, wf_psc_baseD. *)
+  (* rewrite <- seq_union_r, <- seq_union_l. *)
+  (* arewrite (psc_f ∪ psc_base ⊆ sb ∪ sb^? ⨾ hbt⁺ ⨾ sb^?). *)
+  (* { unionL. *)
+  (*   2: by apply psc_baset. *)
+  (*   rewrite psc_ft. basic_solver 10. } *)
+  (* rewrite seq_union_l, seq_union_r. *)
+  (* apply acyclic_union. *)
+  (* { admit. (* trivial *) } *)
+
+
+  (* apply trans_irr_acyclic. *)
+  (* 2: { unfolder. ins. desf; splits; auto. *)
+  (*      all: try (generalize (@sb_trans G); basic_solver 20). *)
+  (*      all: try by (right; eexists; splits; eauto; *)
+  (*                   eexists; splits; [|by eauto]; *)
+  (*                   eapply transitive_ct; eauto). *)
+  (*      { right. eexists. splits; eauto. *)
+  (*        eexists. *)
+
+  (*      { right. eexists. splits; eauto. eexists. splits; [|by eauto]. *)
+  (*        eapply transitive_ct; eauto. } *)
+
+  (*      { left. eapply sb_trans; eauto. } *)
+  (*      all: try by (right; eexists; splits; eauto). *)
+  (*      all: right; eexists; splits. *)
+  (*      { by left. } *)
+  (*      { eexists. splits; eauto. right. eapply sb_trans; eauto. } *)
+
+
 
 (******************************************************************************)
 (** * Final corollary   *)
