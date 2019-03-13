@@ -670,7 +670,32 @@ Qed.
 
 Lemma psc_base_in_ehbt : psc_base ⊆ ehbt⁺.
 Proof.
+  assert (hb ⨾ hb ⨾ hb ⊆ hb) as HBA.
+  { generalize (@hb_trans G). basic_solver. }
+  assert (scb ⊆ hb ∪ eco) as HBB.
+  { unfold imm.scb.
+    arewrite (sb \ same_loc ⊆ sb).
+    rewrite sb_in_hb.
+    rewrite co_in_eco, fr_in_eco.
+    rewrite HBA.
+    unionL; eauto with hahn. }
   unfold imm.psc_base.
+  rewrite !crE.
+  rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
+  assert (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) as SCF by basic_solver.
+  sin_rewrite !SCF.
+  assert (⦗F⦘ ⨾ ⦗Sc⦘ ⊆ ⦗MFENCE⦘) as FSC by basic_solver.
+  sin_rewrite !FSC.
+  unionL.
+  4: { rewrite HBB.
+       arewrite (hb ⨾ (hb ∪ eco) ⨾ hb ⊆ hb ;; (eco ;; hb)^?).
+       { rewrite !seq_union_l, !seq_union_r.
+         rewrite HBA. basic_solver 10. }
+       apply psc_f_in_ehbt. }
+  3: { rewrite HBB.
+       rewrite 
+
+  unfold imm.scb.
 
 Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
                   sb ;; <|MFENCE|> ;; sb) :
