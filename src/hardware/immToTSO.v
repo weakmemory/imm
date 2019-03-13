@@ -293,7 +293,7 @@ relsf; type_solver 21.
 Qed.
 
 Lemma ct_pscXt X (XX : X ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb)
-      (XD : X ⊆ <| MFENCE |> ;; X ;; <| MFENCE |>) : 
+      (XD : X ⊆ ⦗ MFENCE ⦘ ⨾ X ⨾ ⦗ MFENCE ⦘) : 
   (sb^? ⨾ X ⨾ sb^?)^+ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
@@ -360,7 +360,7 @@ Qed.
 (*     generalize (@hb_trans G). *)
 (*     basic_solver 10. } *)
 (*   rewrite unionA. *)
-(*   arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>). *)
+(*   arewrite (co ∪ fr ⊆ ⦗RW⦘ ⨾ hbt ⨾ ⦗W⦘). *)
 (*   { rewrite wf_coD; [|by apply CON]. *)
 (*     rewrite wf_frD; [|by apply CON]. *)
 (*     unfold TSO.hb. basic_solver 10. } *)
@@ -490,7 +490,7 @@ Proof.
 Qed.
 
 Definition ehbt := 
-  hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb.
+  hbt ∪ sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb.
 
 Lemma ehbt_ac : acyclic ehbt.
 Proof.
@@ -638,7 +638,7 @@ Proof.
   { apply fsc_hb_fsc_in_ehbt. }
   rewrite (dom_l WF.(wf_ecoD)). rewrite !seqA.
   sin_rewrite fsc_hb_rw_in_ehbt.
-  arewrite (eco ⊆ (hbt)^* ;; <| RW |> ;; rfi^?).
+  arewrite (eco ⊆ (hbt)^* ⨾ ⦗ RW ⦘ ⨾ rfi^?).
   { rewrite WF.(eco_alt).
     rewrite (dom_r WF.(wf_coD)).
     rewrite (dom_r WF.(wf_frD)).
@@ -696,8 +696,8 @@ Proof.
 Qed.
 
 Lemma psc_base_in_ehbt
-      (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
-                sb ;; <|MFENCE|> ;; sb) :
+      (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆
+                sb ⨾ ⦗MFENCE⦘ ⨾ sb) :
   psc_base ⊆ ehbt⁺.
 Proof.
   assert (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ ehbt⁺) as SCSB.
@@ -785,7 +785,7 @@ Proof.
   sin_rewrite !FSC.
   unionL.
   4: { rewrite HBECO.
-       arewrite (hb ⨾ (hb ∪ eco) ⨾ hb ⊆ hb ;; (eco ;; hb)^?).
+       arewrite (hb ⨾ (hb ∪ eco) ⨾ hb ⊆ hb ⨾ (eco ⨾ hb)^?).
        { rewrite !seq_union_l, !seq_union_r.
          rewrite HBA. basic_solver 10. }
        apply psc_f_in_ehbt. }
@@ -800,7 +800,7 @@ Proof.
     all: arewrite (hbt ⊆ ehbt); rewrite <- ct_step; basic_solver. }
   { rewrite HBB.
     rewrite unionA.
-    arewrite (co ∪ fr ⊆ hbt ;; <| W |>).
+    arewrite (co ∪ fr ⊆ hbt ⨾ ⦗ W ⦘).
     { rewrite (dom_r WF.(wf_coD)).
       rewrite (dom_r WF.(wf_frD)).
       arewrite (co ⊆ hbt).
@@ -815,7 +815,7 @@ Proof.
     rewrite ct_ct. basic_solver. }
   rewrite HBB.
   rewrite unionA.
-  arewrite (co ∪ fr ⊆ <| RW |> ;; hbt).
+  arewrite (co ∪ fr ⊆ ⦗ RW ⦘ ⨾ hbt).
   { rewrite (dom_l WF.(wf_coD)).
     rewrite (dom_l WF.(wf_frD)).
     arewrite (co ⊆ hbt).
@@ -829,8 +829,8 @@ Proof.
   sin_rewrite ct_ct. basic_solver.
 Qed.
 
-Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
-                  sb ;; <|MFENCE|> ;; sb) :
+Lemma C_SC (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆
+                  sb ⨾ ⦗MFENCE⦘ ⨾ sb) :
   acyclic (psc_f ∪ psc_base).
 Proof.
   rewrite psc_f_in_ehbt.

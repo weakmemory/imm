@@ -255,7 +255,7 @@ Proof.
     do 2 (arewrite_id ⦗RW∩₁Sc⦘ at 2; rewrite seq_id_l).
     generalize (@eco_trans G). basic_solver 10. }
   { arewrite_id ⦗F∩₁Sc⦘ at 1. rewrite seq_id_l.
-    arewrite (hb ;; hb ⊆ hb). by apply hb_irr. }
+    arewrite (hb ⨾ hb ⊆ hb). by apply hb_irr. }
   { generalize (eco_irr WF). basic_solver 10. }
   arewrite (⦗F∩₁Sc⦘ ⊆ ⦗F∩₁Sc⦘ ⨾ ⦗F∩₁Sc⦘) by basic_solver.
   do 2 (apply acyclic_seqC; try rewrite !seqA).

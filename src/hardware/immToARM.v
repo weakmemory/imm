@@ -640,7 +640,7 @@ Qed.
 Lemma C_SC: acyclic (psc_f ∪ psc_base).
 Proof.
   rewrite psc_base_in_ord.
-  arewrite (psc_f ⊆ sb^? ;; psc_f ;; sb^?).
+  arewrite (psc_f ⊆ sb^? ⨾ psc_f ⨾ sb^?).
   { basic_solver 10. }
   rewrite psc_f_in_ord.
   rewrite unionK.

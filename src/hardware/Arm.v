@@ -370,7 +370,7 @@ Proof.
       rewrite (dom_r (wf_coD WF)) at 1.
       rewrite (dom_l (wf_frD WF)) at 1.
       type_solver.
-      arewrite (⦗A⦘ ⊆ ⦗A⦘ ;; ⦗A⦘) by basic_solver.
+      arewrite (⦗A⦘ ⊆ ⦗A⦘ ⨾ ⦗A⦘) by basic_solver.
       arewrite (⦗L⦘ ⨾ sb ⨾ ⦗A⦘ ⊆ bob).
       arewrite (A ⊆₁ Q) by mode_solver.
       arewrite (⦗Q⦘ ⨾ sb ⊆ bob).
