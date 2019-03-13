@@ -538,36 +538,139 @@ Proof.
   apply sb_trans.
 Qed.
 
-Lemma psc_f_in_ehbt : psc_f ⊆ ehbt⁺.
+Lemma fsc_hb_rw_in_ehbt : ⦗MFENCE⦘ ⨾ hb ⨾ ⦗RW⦘ ⊆ ehbt⁺.
 Proof.
+  assert (ppot ∪ rfe ⊆ hbt) as EE.
+  { unfold TSO.hb. unionL; eauto 10 with hahn. }
   assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
     by type_solver 10.
   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ sb ⨾ ⦗MFENCE⦘) as BB
     by type_solver 10.
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL.
+  { rewrite <- ct_step.
+    unfold ehbt. eauto with hahn hahn_full. }
+  rewrite !seqA. sin_rewrite AA.
+  arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?).
+  { rewrite !crE.
+    rewrite !seq_union_l, !seq_union_r.
+    apply union_mori; [basic_solver|].
+    unfold TSO.hb. repeat (unionR left).
+    unfold TSO.ppo. unfolder. ins. desf.
+    all: splits; auto; intros HH; desf.
+    all: type_solver. }
+  arewrite (⦗MFENCE⦘ ⨾ sb ⊆ ehbt).
+  rewrite EE.
+  arewrite (hbt ⊆ ehbt).
+  rewrite ct_cr.
+  rewrite ct_step with (r:=ehbt) at 1.
+  apply ct_ct.
+Qed.
+
+Lemma rw_hb_fsc_in_ehbt : ⦗RW⦘ ⨾ hb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺.
+Proof.
+  assert (ppot ∪ rfe ⊆ hbt) as EE.
+  { unfold TSO.hb. unionL; eauto 10 with hahn. }
+  assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
+    by type_solver 10.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ sb ⨾ ⦗MFENCE⦘) as BB
+    by type_solver 10.
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  unionL.
+  { arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
+    rewrite <- ct_step. basic_solver. }
+  arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?).
+  { rewrite !crE.
+    rewrite !seq_union_l, !seq_union_r.
+    apply union_mori; [basic_solver|].
+    arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
+    2: { unfold TSO.hb. eauto with hahn. }
+    unfold TSO.ppo.
+    unfolder. ins. desf.
+    all: splits; auto.
+    all: intros HH; type_solver. }
+  rewrite EE. sin_rewrite BB.
+  arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
+  arewrite (hbt ⊆ ehbt).
+  rewrite ct_unit.
+  apply cr_ct.
+Qed.
+
+Lemma fsc_hb_fsc_in_ehbt : ⦗MFENCE⦘ ⨾ hb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺.
+Proof.
+  assert (ppot ∪ rfe ⊆ hbt) as EE.
+  { unfold TSO.hb. unionL; eauto 10 with hahn. }
+  assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
+    by type_solver 10.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ sb ⨾ ⦗MFENCE⦘) as BB
+    by type_solver 10.
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  unionL.
+  { arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
+    rewrite <- ct_step. basic_solver. }
+  sin_rewrite AA. sin_rewrite BB.
+  arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
+  arewrite (⦗MFENCE⦘ ⨾ sb ⊆ ehbt).
+  rewrite EE.
+  arewrite (hbt ⊆ ehbt).
+  rewrite ct_unit.
+  arewrite (ehbt ⊆ ehbt⁺).
+  apply ct_ct.
+Qed.
+
+Lemma psc_f_in_ehbt : psc_f ⊆ ehbt⁺.
+Proof.
+  assert (ppot ∪ rfe ⊆ hbt) as EE.
+  { unfold TSO.hb. unionL; eauto 10 with hahn. }
+  assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
+    by type_solver 10.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ sb ⨾ ⦗MFENCE⦘) as BB
+    by type_solver 10.
+  assert (hbt ⨾ ⦗RW⦘ ⊆ (hbt ⨾ ⦗RW⦘)＊) as FF.
+  { red. ins. apply rt_step; eauto. }
   unfold imm.psc_f.
   rewrite crE.
   rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
-  rewrite hb_in at 1.
-  rewrite !seq_union_l, !seq_union_r, !seqA.
   unionL.
-  { unfold ehbt. rewrite <- ct_step. eauto with hahn hahn_full. }
-  { sin_rewrite AA. sin_rewrite BB. 
-    arewrite (ppot ∪ rfe ⊆ hbt).
-    { unfold TSO.hb. unionL; eauto 10 with hahn. }
-    arewrite (⦗MFENCE⦘ ⨾ sb ⊆ ehbt).
-    arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
-    arewrite (hbt ⊆ ehbt).
-    rewrite ct_unit.
-    rewrite ct_step with (r:=ehbt) at 1.
-    apply ct_ct. }
+  { apply fsc_hb_fsc_in_ehbt. }
+  rewrite (dom_l WF.(wf_ecoD)). rewrite !seqA.
+  sin_rewrite fsc_hb_rw_in_ehbt.
+  arewrite (eco ⊆ (hbt)^* ;; <| RW |> ;; rfi^?).
+  { rewrite WF.(eco_alt).
+    rewrite (dom_r WF.(wf_coD)).
+    rewrite (dom_r WF.(wf_frD)).
+    arewrite (co ⊆ hbt).
+    arewrite (fr ⊆ hbt).
+    rewrite !unionK.
+    rewrite rfi_union_rfe.
+    rewrite (dom_r WF.(wf_rfeD)).
+    arewrite (rfe ⊆ hbt).
+    rewrite seq_union_r.
+    unionL.
+    { arewrite (hbt ⊆ hbt＊). basic_solver 10. }
+    2: { arewrite_id ⦗W⦘. rewrite seq_id_r.
+         arewrite (hbt ⊆ hbt＊) at 2.
+         arewrite (hbt^? ⨾ hbt＊ ⊆ hbt＊).
+         basic_solver 10. }
+    arewrite_id ⦗W⦘. rewrite seq_id_r.
+    arewrite (hbt^? ⊆ hbt＊).
+    rewrite (dom_l WF.(wf_rfiD)).
+    basic_solver 10. }
+  arewrite (rfi^? ⊆ sb^?).
+  rewrite sb_in_hb.
+  sin_rewrite rewrite_trans_seq_cr_l.
+  2: { unfold imm_hb.hb. apply transitive_ct. }
+  rewrite rw_hb_fsc_in_ehbt.
+  arewrite (hbt ⊆ ehbt).
+  rewrite rt_ct. apply ct_ct.
+Qed.
 
-
-  rewrite hb_in.
-  rewrite !seq_union_l, !seq_union_r, !seqA.
-  sin_rewrite !AA. sin_rewrite !BB.
-  unionL.
-Admitted.
-
+Lemma psc_base_in_ehbt : psc_base ⊆ ehbt⁺.
+Proof.
+  unfold imm.psc_base.
 
 Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
                   sb ;; <|MFENCE|> ;; sb) :
