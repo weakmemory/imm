@@ -350,84 +350,84 @@ Proof.
   basic_solver 10.
 Qed.
 
-Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?.
-Proof.
-  unfold imm.psc_base.
-  unfold imm.scb.
-  arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆
-               hb).
-  { rewrite sb_in_hb.
-    generalize (@hb_trans G).
-    basic_solver 10. }
-  rewrite unionA.
-  arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>).
-  { rewrite wf_coD; [|by apply CON].
-    rewrite wf_frD; [|by apply CON].
-    unfold TSO.hb. basic_solver 10. }
-  rewrite hb_in.
-  arewrite (ppot ∪ rfe ⊆ hbt).
-  { unfold TSO.hb. basic_solver 10. }
-  rewrite crE with (r:=⦗F⦘ ⨾ (sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?)).
-  rewrite crE with (r:=(sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?) ⨾ ⦗F⦘).
-  rewrite !seq_union_r, !seq_union_l, !seq_id_l, !seqA.
-  rewrite !seq_union_r.
-  assert (sb ⨾ sb^? ⊆ sb) as SBT1.
-  { generalize (@sb_trans G). basic_solver 10. }
-  sin_rewrite !SBT1.
-  assert (sb ⨾ sb ⊆ sb) as SBT2.
-  { generalize (@sb_trans G). basic_solver 10. }
-  sin_rewrite !SBT2.
-  assert (sb^? ⨾ sb ⊆ sb) as SBT3.
-  { generalize (@sb_trans G). basic_solver 10. }
-  sin_rewrite !SBT3.
-  assert (sb^? ⨾ sb^? ⊆ sb^?) as SBT4.
-  { generalize (@sb_trans G). basic_solver 10. }
-  sin_rewrite !SBT4.
-  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘) as RsbpW.
-  { rewrite crE, seq_union_l, seq_union_r.
-    unionL; type_solver. }
-  sin_rewrite !RsbpW.
-  assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RsbW.
-  { arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
-    2: unfold TSO.hb; basic_solver 10.
-    unfold TSO.ppo.
-    unfolder. ins. desf. splits; auto.
-    intros HH. desf.
-    type_solver. }
-  sin_rewrite !RsbW.
-  assert (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?) as WsbW.
-  { rewrite crE, seq_union_l, seq_union_r.
-    unionL.
-    { basic_solver. }
-    arewrite (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot).
-    2: unfold TSO.hb; basic_solver 10.
-    unfold TSO.ppo.
-    unfolder. ins. desf. splits; auto.
-    intros HH. desf.
-    type_solver. }
-  sin_rewrite !WsbW.
-  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?) as RsbRW.
-  { rewrite crE, seq_union_l, seq_union_r.
-    unionL.
-    { basic_solver. }
-    arewrite (⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot).
-    2: unfold TSO.hb; basic_solver 10.
-    unfold TSO.ppo.
-    unfolder. ins. desf; splits; auto.
-    all: intros HH; desf.
-    all: type_solver. }
-  sin_rewrite !RsbRW.
-  repeat arewrite (hbt⁺ ⨾ hbt^? ⊆ hbt⁺).
-  repeat arewrite (hbt^? ⨾ hbt⁺ ⊆ hbt⁺).
-  assert (hbt ⨾ hbt⁺ ⊆ hbt⁺) as HBHBT.
-  { rewrite ct_step with (r:=hbt) at 1.
-    apply transitiveI. apply transitive_ct. }
-  sin_rewrite !HBHBT.
-  sin_rewrite !ct_unit.
-  sin_rewrite !ct_ct.
-  unionL.
-  all: basic_solver 10.
-Qed.
+(* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?. *)
+(* Proof. *)
+(*   unfold imm.psc_base. *)
+(*   unfold imm.scb. *)
+(*   arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆ *)
+(*                hb). *)
+(*   { rewrite sb_in_hb. *)
+(*     generalize (@hb_trans G). *)
+(*     basic_solver 10. } *)
+(*   rewrite unionA. *)
+(*   arewrite (co ∪ fr ⊆ <|RW|> ;; hbt ;; <|W|>). *)
+(*   { rewrite wf_coD; [|by apply CON]. *)
+(*     rewrite wf_frD; [|by apply CON]. *)
+(*     unfold TSO.hb. basic_solver 10. } *)
+(*   rewrite hb_in. *)
+(*   arewrite (ppot ∪ rfe ⊆ hbt). *)
+(*   { unfold TSO.hb. basic_solver 10. } *)
+(*   rewrite crE with (r:=⦗F⦘ ⨾ (sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?)). *)
+(*   rewrite crE with (r:=(sb ∪ sb^? ⨾ ⦗W⦘ ⨾ hbt⁺ ⨾ ⦗R⦘ ⨾ sb^?) ⨾ ⦗F⦘). *)
+(*   rewrite !seq_union_r, !seq_union_l, !seq_id_l, !seqA. *)
+(*   rewrite !seq_union_r. *)
+(*   assert (sb ⨾ sb^? ⊆ sb) as SBT1. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT1. *)
+(*   assert (sb ⨾ sb ⊆ sb) as SBT2. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT2. *)
+(*   assert (sb^? ⨾ sb ⊆ sb) as SBT3. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT3. *)
+(*   assert (sb^? ⨾ sb^? ⊆ sb^?) as SBT4. *)
+(*   { generalize (@sb_trans G). basic_solver 10. } *)
+(*   sin_rewrite !SBT4. *)
+(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘) as RsbpW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL; type_solver. } *)
+(*   sin_rewrite !RsbpW. *)
+(*   assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RsbW. *)
+(*   { arewrite (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf. splits; auto. *)
+(*     intros HH. desf. *)
+(*     type_solver. } *)
+(*   sin_rewrite !RsbW. *)
+(*   assert (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?) as WsbW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL. *)
+(*     { basic_solver. } *)
+(*     arewrite (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf. splits; auto. *)
+(*     intros HH. desf. *)
+(*     type_solver. } *)
+(*   sin_rewrite !WsbW. *)
+(*   assert (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ hbt^?) as RsbRW. *)
+(*   { rewrite crE, seq_union_l, seq_union_r. *)
+(*     unionL. *)
+(*     { basic_solver. } *)
+(*     arewrite (⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot). *)
+(*     2: unfold TSO.hb; basic_solver 10. *)
+(*     unfold TSO.ppo. *)
+(*     unfolder. ins. desf; splits; auto. *)
+(*     all: intros HH; desf. *)
+(*     all: type_solver. } *)
+(*   sin_rewrite !RsbRW. *)
+(*   repeat arewrite (hbt⁺ ⨾ hbt^? ⊆ hbt⁺). *)
+(*   repeat arewrite (hbt^? ⨾ hbt⁺ ⊆ hbt⁺). *)
+(*   assert (hbt ⨾ hbt⁺ ⊆ hbt⁺) as HBHBT. *)
+(*   { rewrite ct_step with (r:=hbt) at 1. *)
+(*     apply transitiveI. apply transitive_ct. } *)
+(*   sin_rewrite !HBHBT. *)
+(*   sin_rewrite !ct_unit. *)
+(*   sin_rewrite !ct_ct. *)
+(*   unionL. *)
+(*   all: basic_solver 10. *)
+(* Qed. *)
 
 Lemma C_EXT : acyc_ext G.
 Proof.
@@ -695,10 +695,42 @@ Proof.
   unfold ehbt. basic_solver.
 Qed.
 
-Lemma psc_base_in_ehbt : psc_base ⊆ ehbt⁺.
+Lemma psc_base_in_ehbt
+      (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
+                sb ;; <|MFENCE|> ;; sb) :
+  psc_base ⊆ ehbt⁺.
 Proof.
   assert (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ ehbt⁺) as SCSB.
-  { admit. }
+  { arewrite (sb ⊆ ⦗F ∪₁ RW⦘ ⨾ sb) by type_solver 10.
+    rewrite id_union.
+    rewrite !seq_union_l, !seq_union_r.
+    arewrite (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) by basic_solver.
+    unionL.
+    { rewrite <- ct_step. unfold ehbt. basic_solver. }
+    arewrite (sb ⊆ sb ⨾ ⦗F ∪₁ RW⦘) by type_solver 10.
+    rewrite id_union with (s:=F).
+    rewrite !seq_union_l, !seq_union_r.
+    unionL.
+    { rewrite <- ct_step. unfold ehbt. basic_solver 10. }
+    arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ppot ∪ ⦗W⦘ ⨾ sb ⨾ ⦗R⦘).
+    { unfold TSO.ppo.
+      unfolder. ins. desf.
+      2: { right. splits; auto. }
+      all: left; splits; auto.
+      all: intros HH; type_solver 10. }
+    rewrite !seq_union_l, !seq_union_r.
+    unionL.
+    { rewrite ppot_in_ehbt. rewrite <- ct_step.
+      basic_solver. }
+    rewrite !seqA.
+    arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗W∩₁Sc⦘) by basic_solver.
+    arewrite (⦗R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗R∩₁Sc⦘) by basic_solver.
+    rewrite SCF.
+    rewrite <- seq_eqvK, !seqA.
+    arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺).
+    arewrite (⦗MFENCE⦘ ⨾ sb ⊆ ehbt⁺).
+    apply ct_ct. }
+  
   assert (⦗Sc⦘ ⨾ hb ⨾ ⦗Sc⦘ ⊆ ehbt⁺) as SCHB.
   { rewrite hb_in.
     rewrite !seq_union_l, !seq_union_r, !seqA.
@@ -747,8 +779,8 @@ Proof.
   unfold imm.psc_base.
   rewrite !crE.
   rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
-  assert (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) as SCF by basic_solver.
-  sin_rewrite !SCF.
+  assert (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) as SCFM by basic_solver.
+  sin_rewrite !SCFM.
   assert (⦗F⦘ ⨾ ⦗Sc⦘ ⊆ ⦗MFENCE⦘) as FSC by basic_solver.
   sin_rewrite !FSC.
   unionL.
@@ -795,14 +827,14 @@ Proof.
   sin_rewrite fsc_hb_rw_in_ehbt.
   arewrite (hbt ⊆ ehbt⁺).
   sin_rewrite ct_ct. basic_solver.
-Admitted.
+Qed.
 
 Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
                   sb ;; <|MFENCE|> ;; sb) :
   acyclic (psc_f ∪ psc_base).
 Proof.
   rewrite psc_f_in_ehbt.
-  rewrite psc_base_in_ehbt.
+  rewrite psc_base_in_ehbt; auto.
   rewrite unionK.
   red. rewrite ct_of_ct.
   apply ehbt_ac.
