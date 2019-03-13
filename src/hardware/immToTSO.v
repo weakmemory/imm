@@ -489,8 +489,12 @@ Proof.
   basic_solver 42.
 Qed.
 
-Lemma hbt_mfencesb_ac : acyclic (hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb).
+Definition ehbt := 
+  hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb.
+
+Lemma ehbt_ac : acyclic ehbt.
 Proof.
+  unfold ehbt.
   rewrite unionA.
   rewrite unionC.
   apply acyclic_union.
@@ -534,17 +538,34 @@ Proof.
   apply sb_trans.
 Qed.
 
-Lemma AAA :
-  psc_f ⊆
-  <|MFENCE|> ;; (hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb)⁺
-    ;; <|MFENCE|>.
+Lemma psc_f_in_ehbt : psc_f ⊆ ehbt⁺.
 Proof.
+  assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
+    by type_solver 10.
+  assert (⦗R⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⊆ sb ⨾ ⦗MFENCE⦘) as BB
+    by type_solver 10.
   unfold imm.psc_f.
-  arewrite (⦗MFENCE⦘ ⨾ hb ⊆ ⦗MFENCE⦘ ⨾ ⦗MFENCE⦘ ⨾ hb)
-    by basic_solver.
+  rewrite crE.
+  rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
   rewrite hb_in at 1.
-  arewrite (⦗R⦘ ⨾ sb^? ⊆ hbt^?).
-  { admit. }
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  unionL.
+  { unfold ehbt. rewrite <- ct_step. eauto with hahn hahn_full. }
+  { sin_rewrite AA. sin_rewrite BB. 
+    arewrite (ppot ∪ rfe ⊆ hbt).
+    { unfold TSO.hb. unionL; eauto 10 with hahn. }
+    arewrite (⦗MFENCE⦘ ⨾ sb ⊆ ehbt).
+    arewrite (sb ⨾ ⦗MFENCE⦘ ⊆ ehbt).
+    arewrite (hbt ⊆ ehbt).
+    rewrite ct_unit.
+    rewrite ct_step with (r:=ehbt) at 1.
+    apply ct_ct. }
+
+
+  rewrite hb_in.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  sin_rewrite !AA. sin_rewrite !BB.
+  unionL.
 Admitted.
 
 
