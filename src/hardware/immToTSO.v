@@ -534,6 +534,20 @@ Proof.
   apply sb_trans.
 Qed.
 
+Lemma AAA :
+  psc_f ⊆
+  <|MFENCE|> ;; (hbt ∪ sb ;; <|MFENCE|> ∪ <|MFENCE|> ;; sb)⁺
+    ;; <|MFENCE|>.
+Proof.
+  unfold imm.psc_f.
+  arewrite (⦗MFENCE⦘ ⨾ hb ⊆ ⦗MFENCE⦘ ⨾ ⦗MFENCE⦘ ⨾ hb)
+    by basic_solver.
+  rewrite hb_in at 1.
+  arewrite (⦗R⦘ ⨾ sb^? ⊆ hbt^?).
+  { admit. }
+Admitted.
+
+
 Lemma C_SC (SCF : <| W∩₁Sc |> ;; sb ;; <| R∩₁Sc|> ⊆
                   sb ;; <|MFENCE|> ;; sb) :
   acyclic (psc_f ∪ psc_base).
