@@ -86,6 +86,7 @@ Definition imm_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cint : coherence G ⟫ /\
   ⟪ Cext : acyc_ext ⟫ /\
+  ⟪ Cpsc : acyclic (psc_f ∪ psc_base) ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫.
 
 Implicit Type WF : Wf G.
