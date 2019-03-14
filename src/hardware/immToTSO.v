@@ -844,12 +844,15 @@ Qed.
 (** * Final corollary   *)
 (******************************************************************************)
 
-Lemma IMM_consistent : imm_consistent G.
+Lemma IMM_consistent
+      (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆ sb ⨾ ⦗MFENCE⦘ ⨾ sb):
+  imm_consistent G.
 Proof.
 cdes CON.
 red; splits; eauto.
 apply Coherence.
 apply C_EXT.
+by apply C_SC.
 Qed.
 
 End immToTSO.

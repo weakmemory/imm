@@ -652,10 +652,20 @@ Qed.
 
 Lemma IMM_consistent : imm_consistent G.
 Proof.
-cdes CON.
-red; splits; eauto.
-apply COH.
-apply C_EXT.
+  cdes CON.
+  assert (acyc_ext G) as AC by apply C_EXT.
+  red; splits; eauto.
+  { apply COH. }
+  rewrite psc_base_in_psc_f; auto.
+  rewrite unionK.
+  arewrite (psc_f G ⊆ (ar G)⁺).
+  2: { red. by rewrite ct_of_ct. }
+  unfold psc_f, imm.psc. rewrite crE.
+  rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
+  unionL.
+  { by apply f_sc_hb_f_sc_in_ar. }
+  arewrite (⦗F^sync⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗F^sync⦘ ⊆ psc).
+  rewrite <- ct_step. unfold ar. eauto with hahn.
 Qed.
 
 End immToPower.

@@ -654,6 +654,7 @@ cdes CON.
 red; splits; eauto.
 apply COH.
 apply C_EXT.
+apply C_SC.
 Qed.
 
 End immToARM.
