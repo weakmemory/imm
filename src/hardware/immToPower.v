@@ -83,6 +83,7 @@ Notation "'F^isync'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^lwsync'" := (F ∩₁ (fun a => is_true (is_ra lab a))).
 Notation "'F^sync'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
+Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis NO_W_REL : W∩₁Rel ≡₁ ∅.
 Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾  sb^?.
 (* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
@@ -651,10 +652,20 @@ Qed.
 
 Lemma IMM_consistent : imm_consistent G.
 Proof.
-cdes CON.
-red; splits; eauto.
-apply COH.
-apply C_EXT.
+  cdes CON.
+  assert (acyc_ext G) as AC by apply C_EXT.
+  red; splits; eauto.
+  { apply COH. }
+  rewrite psc_base_in_psc_f; auto.
+  rewrite unionK.
+  arewrite (psc_f G ⊆ (ar G)⁺).
+  2: { red. by rewrite ct_of_ct. }
+  unfold psc_f, imm.psc. rewrite crE.
+  rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
+  unionL.
+  { by apply f_sc_hb_f_sc_in_ar. }
+  arewrite (⦗F^sync⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗F^sync⦘ ⊆ psc).
+  rewrite <- ct_step. unfold ar. eauto with hahn.
 Qed.
 
 End immToPower.

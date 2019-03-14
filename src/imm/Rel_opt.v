@@ -80,6 +80,8 @@ Notation "'rs''" := G'.(rs).
 Notation "'hb''" := G'.(hb).
 Notation "'ppo''" := G'.(ppo).
 Notation "'psc''" := G'.(psc).
+Notation "'psc_f''" := G'.(psc_f).
+Notation "'psc_base''" := G'.(psc_base).
 Notation "'bob''" := G'.(bob).
 
 Notation "'Pln''" := (fun a => is_true (is_only_pln lab' a)).
@@ -139,6 +141,8 @@ Notation "'rs'" := G.(rs).
 Notation "'hb'" := G.(hb).
 Notation "'ppo'" := G.(ppo).
 Notation "'psc'" := G.(psc).
+Notation "'psc_f'" := G.(psc_f).
+Notation "'psc_base'" := G.(psc_base).
 Notation "'bob'" := G.(bob).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
@@ -154,6 +158,7 @@ Implicit Type COMP : complete G.
 Implicit Type COH : coherence G.
 Implicit Type SC_PER_LOC : sc_per_loc G.
 
+Hypothesis SC_F : Sc ⊆₁ F∩₁Sc.
 Hypothesis W_REL : sb ⨾ ⦗W∩₁Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb ∪ rmw.
 
 Lemma non_rmw_w_rel : (sb \ rmw) ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb.
@@ -408,48 +413,67 @@ Qed.
 Lemma psc_eq WF WFp SC_PER_LOC COMP COHp COMPp: 
   psc ⊆ psc'.
 Proof.
-unfold imm.psc.
-rewrite (hb_eq1 WF WFp) at 1 2.
+  unfold imm.psc.
+  rewrite (hb_eq1 WF WFp) at 1 2.
 
-arewrite (⦗F ∩₁ Sc⦘ ⨾ (hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?) ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb').
-by rewrite (dom_l (wf_rmwD WFp)); type_solver 12.
+  arewrite (⦗F ∩₁ Sc⦘ ⨾ (hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?) ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb').
+  { rewrite (dom_l (wf_rmwD WFp)). type_solver 12. }
 
-set (X:= ⦗W⦘ ∪ rmw).
-rewrite F_Sc_eq.
-relsf; unionL; [by rewrite eco_eq|].
-unfold X; clear X.
+  set (X:= ⦗W⦘ ∪ rmw).
+  rewrite F_Sc_eq.
+  relsf; unionL; [by rewrite eco_eq|].
+  unfold X; clear X.
 
-
-(*arewrite (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe' ⊆ (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾ ⦗R'⦘).
+  (*arewrite (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe' ⊆ (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾ ⦗R'⦘).
 rewrite (dom_r (wf_rfiD WFp)) at 1.
 rewrite (dom_r (wf_rfeD WFp)) at 1.
 basic_solver 12.
-*)
-sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC COMP).
-rewrite !seqA.
+   *)
+  sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC COMP).
+  rewrite !seqA.
 
 
-arewrite ((⦗W⦘ ∪ rmw)  ⨾ (⦗F ∩₁ Rel⦘ ⨾ sb)^? ⊆ ⦗W⦘ ∪ rmw).
-by rewrite (dom_r (wf_rmwD WF)); type_solver 12.
+  arewrite ((⦗W⦘ ∪ rmw)  ⨾ (⦗F ∩₁ Rel⦘ ⨾ sb)^? ⊆ ⦗W⦘ ∪ rmw).
+  { rewrite (dom_r (wf_rmwD WF)). type_solver 12. }
 
-arewrite ((sb ⨾ ⦗F ∩₁ Acq⦘)^? ⨾ hb'^? ⊆ hb'^?).
-rewrite <- sb_eq.
-unfold imm_hb.hb.
-arewrite (sb' ⊆ (sb' ∪ sw')) at 1; rels.
+  arewrite ((sb ⨾ ⦗F ∩₁ Acq⦘)^? ⨾ hb'^? ⊆ hb'^?).
+  rewrite <- sb_eq.
+  unfold imm_hb.hb.
+  arewrite (sb' ⊆ (sb' ∪ sw')) at 1; rels.
 
-arewrite_id ⦗F ∩₁ Acq⦘.
-relsf.
+  arewrite_id ⦗F ∩₁ Acq⦘.
+  relsf.
 
-arewrite ((⦗W⦘ ∪ rmw) ⊆ eco^?).
-by rewrite (rmw_in_fr WF SC_PER_LOC COMP), fr_in_eco; basic_solver.
+  arewrite ((⦗W⦘ ∪ rmw) ⊆ eco^?).
+  { rewrite (rmw_in_fr WF SC_PER_LOC COMP), fr_in_eco. basic_solver. }
 
-generalize (eco_trans WF); ins; relsf.
-arewrite (eco ⨾ hb'^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ eco ⨾ hb' ⨾ ⦗F ∩₁ Sc⦘).
-by rewrite (dom_r (wf_ecoD WF)) at 1; type_solver 12.
-done.
+  generalize (eco_trans WF); ins; relsf.
+  arewrite (eco ⨾ hb'^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ eco ⨾ hb' ⨾ ⦗F ∩₁ Sc⦘).
+  2: done.
+  rewrite (dom_r (wf_ecoD WF)) at 1. type_solver 12.
 Qed.
 
+Lemma psc_f_eq WF WFp SC_PER_LOC COMP COHp COMPp: 
+  psc_f ⊆ psc_f'.
+Proof.
+  unfold imm.psc_f at 1.
+  rewrite crE.
+  rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
+  unionL.
+  2: { assert (psc' ⊆ psc_f') as HH.
+       2: { rewrite <- HH. by apply psc_eq. }
+       unfold imm.psc_f, imm.psc.
+       assert (eco' ⨾ hb' ⊆ (eco' ⨾ hb')^?) as HH.
+       2: by sin_rewrite HH.
+       eauto with hahn. }
 
+  rewrite (hb_eq1 WF WFp).
+
+  arewrite (⦗F ∩₁ Sc⦘ ⨾ (hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?) ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb').
+  { rewrite (dom_l (wf_rmwD WFp)). type_solver 12. }
+  unfold imm.psc_f.
+  rewrite F_Sc_eq. basic_solver 10.
+Qed.
 
 Lemma wf_eq: Wf G' -> Wf G.
 Proof.
@@ -521,11 +545,11 @@ rewrite crE at 1; relsf; apply irreflexive_union.
 eauto using eco_irr.
 Qed.
 
-
-
 Lemma acyc_ext_eq WF WFp SC_PER_LOC COMP COHp COMPp: acyc_ext G' -> acyc_ext G.
 Proof.
-unfold acyc_ext, ar, ar_int; intro.
+unfold acyc_ext.
+intros HH.
+unfold ar, ar_int in *.
 rewrite (psc_eq WF WFp SC_PER_LOC COMP COHp COMPp).
 rewrite <- ppo_eq.
 rewrite <- rfe_eq.
@@ -634,9 +658,20 @@ Qed.
 
 Lemma rel_opt WFp COMPp  (CONSp: imm_consistent G'): imm_consistent G.
 Proof.
-unfold imm_consistent in *; unnw.
-generalize coherence_sc_per_loc, wf_eq, complete_eq, sc_per_loc_eq, coherence_eq, acyc_ext_eq, rmw_atomicity_eq.
-basic_solver 12.
+  cdes CONSp.
+  assert (Wf G) as WF by (by apply wf_eq).
+  assert (complete G) as COM by (by apply complete_eq).
+  assert (sc_per_loc G) as SPL.
+  { apply sc_per_loc_eq. by apply coherence_sc_per_loc. }
+  assert (coherence G) as COH by (by apply coherence_eq).
+  assert (acyc_ext G) as CextG by (by apply acyc_ext_eq).
+
+  red. splits; auto.
+  rewrite psc_base_in_psc_f; auto.
+  rewrite unionK.
+  rewrite psc_f_eq; auto.
+  arewrite (psc_f' ⊆ psc_f' ∪ psc_base').
+  done.
 Qed.
 
 End Rel_opt.
