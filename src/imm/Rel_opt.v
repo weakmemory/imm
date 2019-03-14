@@ -475,31 +475,6 @@ Proof.
   rewrite F_Sc_eq. basic_solver 10.
 Qed.
 
-Lemma psc_base_in_psc_f WF WFp SC_PER_LOC COMP COHp COMPp: 
-  psc_base ⊆ psc_f.
-Proof.
-  unfold imm.psc_base, imm.scb.
-  arewrite (sb \ same_loc ⊆ sb).
-  arewrite (sb ⊆ hb).
-  arewrite (hb ⨾ hb ⨾ hb ⊆ hb).
-  { unfold imm_hb.hb. by rewrite !ct_ct. }
-  arewrite (hb ∪ hb ∪ hb ∩ same_loc ⊆ hb).
-  rewrite co_in_eco, fr_in_eco.
-  rewrite unionA, unionK.
-  rewrite SC_F. 
-  rewrite !seq_union_l, !seq_union_r.
-  arewrite ((⦗F⦘ ⨾ hb)^? ⨾ hb ⨾ (hb ⨾ ⦗F⦘)^? ⊆ hb).
-  { generalize (@hb_trans G). basic_solver 10. }
-  unionL.
-  { unfold imm.psc_f. basic_solver 10. }
-  rewrite WF.(wf_ecoD), !seqA.
-  arewrite (⦗F ∩₁ Sc⦘ ⨾ (⦗F⦘ ⨾ hb)^? ⨾ ⦗RW⦘ ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb)
-    by type_solver 10.
-  arewrite (⦗RW⦘ ⨾ (hb ⨾ ⦗F⦘)^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ hb ⨾ ⦗F ∩₁ Sc⦘)
-    by type_solver 10.
-  unfold imm.psc_f. basic_solver 10.
-Qed.
-
 Lemma wf_eq: Wf G' -> Wf G.
 Proof.
 intros WF.
