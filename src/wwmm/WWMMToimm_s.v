@@ -91,9 +91,19 @@ Proof.
   apply dom_helper_3. by apply wf_hbE.
 Qed.
 
-Lemma hb_ww_co_fr_ac :
+Lemma hb_ww_co_fr_ac sc (IPC : imm_s.imm_psc_consistent G sc) :
   acyclic (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘).
 Proof.
+  cdes IPC. cdes IC.
+  apply acyclic_union.
+  { rewrite hb_ww_in_hb.
+    red. unfold imm_s_hb.hb. rewrite ct_of_ct.
+    apply hb_irr; auto. }
+  unfold WWMM.hb. rewrite rt_of_ct.
+  (* TODO : use path_* lemmas, which can be found by running
+     `SearchAbout (clos_trans seq eqv_rel union).`
+   *)
+
 (* A proof idea: *)
 (* ————————————— *)
 (* acyclic     (hb ∪ [SC]; (fr ∪ co); [SC])                  ⇐ *)
