@@ -189,4 +189,15 @@ apply acyc_ext_implies_s_acyc_ext in Cext; eauto; desf.
 exists sc; splits; eauto 10 using coherence_implies_s_coherence.
 Qed.
 
+Lemma imm_consistentimplies_s_imm_psc_consistent (WF: Wf G)
+      (IC : imm.imm_consistent G) :
+  exists sc, imm_s.imm_psc_consistent G sc.
+Proof.
+  edestruct imm_consistentimplies_s_imm_consistent as [sc];
+    eauto.
+  exists sc. red. splits; auto.
+  unfold psc_f, psc_base, scb. rewrite s_hb_in_hb.
+  apply IC.
+Qed.
+
 End S_IMM_TO_IMM.

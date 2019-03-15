@@ -3,7 +3,7 @@
 (******************************************************************************)
 From hahn Require Import Hahn.
 Require Import AuxRel.
-Require Import Events Execution Execution_eco imm_s_hb.
+Require Import Events Execution Execution_eco imm_s_hb imm_s.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -40,8 +40,6 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition psc := ⦗F∩₁Sc⦘ ⨾ (hb ∪ hb ⨾ eco ⨾ hb) ⨾ ⦗F∩₁Sc⦘.
-
 (* This definition of consistency differs to one from [Batty et al. POPL11]:
    it is (strictly) stronger since it follows a fix from [Lahav et al. PLDI17].
  *)
@@ -49,6 +47,6 @@ Definition c11_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Coh : coherence G ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫ /\
-  ⟪ Csc : acyclic psc ⟫.
+  ⟪ Csc : acyclic (psc_f G ∪ psc_base G) ⟫.
 
 End C11.

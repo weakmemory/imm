@@ -40,7 +40,6 @@ Notation "'rs'" := G.(rs).
 Notation "'release'" := G.(release).
 Notation "'sw'" := G.(sw).
 Notation "'hb'" := G.(hb).
-Notation "'psc'" := G.(psc).
 
 Notation "'ar_int'" := G.(ar_int).
 Notation "'ppo'" := G.(ppo).
@@ -67,35 +66,13 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** relations are contained in the corresponding ones **  *)
 (******************************************************************************)
 
-Lemma sc_order_implies_psc_acyclicity (WF : Wf G) sc 
-  (Wf_sc : wf_sc G sc)
-  (Csc : coh_sc G sc)
-  (Cint : coherence G) :
-  acyclic psc.
-Proof.
-  destruct Wf_sc.
-  arewrite (psc ⊆ sc); [|by red; relsf]. 
-  unfold RC11.psc.
-  rewrite !seq_union_l, !seq_union_r, !seqA.
-  rewrite wf_hbE, ?seqA; ins. 
-  seq_rewrite <- !id_inter. 
-  rewrite !inclusion_seq_eqv_l with (dom := E).
-  unfolder; ins; desf.
-  all: destruct (classic (x = y)) as [|NEQ]; desf.
-  { exfalso. eapply hb_irr; eauto. }
-  { eapply wf_sc_total in NEQ; desf; vauto.
-    edestruct Csc; unfolder; eauto 10. }
-  { by destruct Cint with z0; unfolder; unfold imm_s_hb.hb in *; eauto using t_trans. }
-  eapply wf_sc_total in NEQ; desf; vauto.
-  edestruct Csc; unfolder; eauto 10.
-Qed.
-
 Lemma s_imm_consistentimplies_rc11_consistent (WF: Wf G) 
-      (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ∪ rmw) sc : 
-  imm_s.imm_consistent G sc -> rc11_consistent G.
+      (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ∪ rmw) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  rc11_consistent G.
 Proof.
-  unfold imm_s.imm_consistent, rc11_consistent; ins; desf; splits; ins.
-    by eapply sc_order_implies_psc_acyclicity; eauto.
+  cdes IPC. cdes IC.
+  red. splits; auto.
   rewrite rfi_union_rfe with (G:=G). 
   unfold Execution.rfi; rewrite inclusion_inter_l2, <- unionA, unionK.
   eapply acyclic_ud with (adom := W) (bdom := R); eauto using sb_acyclic.

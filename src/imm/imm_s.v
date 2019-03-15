@@ -72,6 +72,11 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 (* Definition psc := ⦗F∩₁Sc⦘ ⨾  hb ⨾ eco ⨾ hb ⨾ ⦗F∩₁Sc⦘. *)
 
+Definition scb := sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪
+                     (hb ∩ same_loc) ∪ co ∪ fr.
+Definition psc_base := ⦗ Sc ⦘ ⨾ (⦗ F ⦘ ⨾ hb)^? ⨾ scb ⨾ (hb ⨾ ⦗ F ⦘)^? ⨾ ⦗ Sc ⦘.
+Definition psc_f    := ⦗F∩₁Sc⦘ ⨾  hb ⨾ (eco ⨾ hb)^? ⨾ ⦗F∩₁Sc⦘.
+
 Definition ar := sc ∪ rfe ∪ ar_int.
 
 (******************************************************************************)
@@ -97,6 +102,10 @@ Definition imm_consistent :=
   ⟪ Cint  : coherence G ⟫ /\
   ⟪ Cext  : acyc_ext ⟫ /\
   ⟪ Cat   : rmw_atomicity G ⟫.
+
+Definition imm_psc_consistent :=
+  ⟪ IC   : imm_consistent ⟫ /\
+  ⟪ Cpsc : acyclic (psc_f ∪ psc_base) ⟫.
 
 Implicit Type WF : Wf G.
 Implicit Type WF_SC : wf_sc.
