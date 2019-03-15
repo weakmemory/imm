@@ -103,6 +103,7 @@ Lemma s_imm_consistent_implies_wwmm_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   exists mo, wwmm_consistent G mo.
 Proof.
+  cdes IPC. cdes IC.
   exists (tot_ext (acts G)
                   (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘)).
   red. splits.
@@ -110,7 +111,35 @@ Proof.
   { rewrite <- tot_ext_extends. eauto with hahn. }
   { rewrite hb_ww_in_hb, rf_in_eco.
     arewrite (eco ⊆ eco^?). apply IPC. }
-  1-4: admit.
+  { unfolder. intros w' [r [HBWR HH]].
+    destruct HH as [w [RF [[HBWW AA] WW']]].
+    assert (hb w w') as HB by (by apply hb_ww_in_hb).
+    apply WF.(wf_hbE) in HB.
+    apply seq_eqv_l in HB. destruct HB as [EW HB].
+    apply seq_eqv_r in HB. destruct HB as [HB EW'].
+    apply (dom_l WF.(wf_rfD)) in RF.
+    apply seq_eqv_l in RF. destruct RF as [WW RF].
+    assert (exists l, loc w = Some l) as [l LL].
+    { admit. }
+    assert (w <> w') as NEQ.
+    { intros HH. subst.
+      eapply hb_irr; eauto. }
+    edestruct WF.(wf_co_total).
+    3: by eauto.
+    1,2: by unfolder; splits.
+    { eapply Cint. exists r. split.
+      { apply hb_ww_in_hb. eauto. }
+      right. apply fr_in_eco. eexists. eauto. }
+    eapply Cint. exists w'. split; eauto.
+    right. by apply co_in_eco. }
+  { intros w' HH.
+    apply seq_eqv_l in HH. destruct HH as [WW' HH].
+    destruct HH as [r [MO HH]].
+    apply seq_eqv_l in HH. destruct HH as [RR HH].
+    destruct HH as [w [RF HH]].
+    apply seq_eqv_l in HH. destruct HH as [WW [MOWW SL]].
+    admit. }
+  1-2: admit.
 Admitted.
 
 End WWMM_TO_IMM_S.
