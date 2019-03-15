@@ -42,20 +42,20 @@ Definition hb := (sb ∪ sw)⁺.
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition wwmm_consistent :=
-  exists mo,
-    ⟪ Cmo   : is_total E mo ⟫ /\
-    ⟪ Chbmo : hb ⊆ mo ⟫ /\
-    ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
-    ⟪ Chbrfhb :
-        irreflexive (hb ⨾ rf⁻¹ ⨾ (hb ∩ same_loc) ⨾ ⦗ W ⦘) ⟫ /\
-    ⟪ Cirr1 :
-        irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
-                     rf⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
-    ⟪ Cirr2 :
-        irreflexive (⦗W∩₁Sc⦘ ⨾ hb ⨾ (hb ∩ rf)⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾
-                     (mo ∩ same_loc)) ⟫ /\
-    ⟪ Cirr3 :
-        irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
-                     (hb ∩ rf)⁻¹ ⨾ (hb ∩ same_loc)) ⟫.
+Definition wwmm_consistent mo :=
+  ⟪ Cmo   : is_total E mo ⟫ /\
+  ⟪ Chbmo : hb ⊆ mo ⟫ /\
+  ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
+  ⟪ Chbrfhb :
+      irreflexive (hb ⨾ rf⁻¹ ⨾ (hb ∩ same_loc) ⨾ ⦗ W ⦘) ⟫ /\
+  ⟪ Cirr1 :
+      irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
+                   rf⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
+  ⟪ Cirr2 :
+      irreflexive (⦗W∩₁Sc⦘ ⨾ hb ⨾
+                   (hb ∩ rf)⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
+  ⟪ Cirr3 :
+      irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
+                   (hb ∩ rf)⁻¹ ⨾ (hb ∩ same_loc)) ⟫.
+
 End WWMM.
