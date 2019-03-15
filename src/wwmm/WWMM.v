@@ -35,7 +35,7 @@ Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
-Definition sw := <| Sc |> ;; rf ;; <| Sc |>.
+Definition sw := ⦗ Sc ⦘ ⨾ rf ⨾ ⦗ Sc ⦘.
 Definition hb := (sb ∪ sw)⁺.
 
 (******************************************************************************)
@@ -46,16 +46,16 @@ Definition wwmm_consistent :=
   exists mo,
     ⟪ Cmo   : is_total E mo ⟫ /\
     ⟪ Chbmo : hb ⊆ mo ⟫ /\
-    ⟪ Chbrf : irreflexive (hb ;; rf) ⟫ /\
+    ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
     ⟪ Chbrfhb :
-        irreflexive (hb ;; rf⁻¹ ;; (hb ∩ same_loc) ;; <| W |>) ⟫ /\
+        irreflexive (hb ⨾ rf⁻¹ ⨾ (hb ∩ same_loc) ⨾ ⦗ W ⦘) ⟫ /\
     ⟪ Cirr1 :
-        irreflexive (<|W∩₁Sc|> ;; mo ;; <|R∩₁Sc|> ;;
-                     rf⁻¹ ;; <|W∩₁Sc|> ;; (mo ∩ same_loc)) ⟫ /\
+        irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
+                     rf⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
     ⟪ Cirr2 :
-        irreflexive (<|W∩₁Sc|> ;; hb ;; (hb ∩ rf)⁻¹ ;; <|W∩₁Sc|> ;;
+        irreflexive (⦗W∩₁Sc⦘ ⨾ hb ⨾ (hb ∩ rf)⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾
                      (mo ∩ same_loc)) ⟫ /\
     ⟪ Cirr3 :
-        irreflexive (<|W∩₁Sc|> ;; mo ;; <|R∩₁Sc|> ;;
-                     (hb ∩ rf)⁻¹ ;; (hb ∩ same_loc)) ⟫.
+        irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
+                     (hb ∩ rf)⁻¹ ⨾ (hb ∩ same_loc)) ⟫.
 End WWMM.
