@@ -85,45 +85,108 @@ Qed.
 Lemma hb_ww_in_hb : hb_ww ⊆ hb.
 Proof. unfold imm_s_hb.hb, WWMM.hb. by rewrite sw_ww_in_sw. Qed.
 
-Lemma hb_wwE : hb_ww ≡ <|E|> ;; hb_ww ;; <|E|>.
+Lemma hb_wwE : hb_ww ≡ ⦗E⦘ ⨾ hb_ww ⨾ ⦗E⦘.
 Proof.
   apply dom_helper_3. rewrite hb_ww_in_hb.
   apply dom_helper_3. by apply wf_hbE.
+Qed.
+
+Lemma sw_ww_sc : sw_ww ≡ ⦗Sc⦘ ⨾ sw_ww ⨾ ⦗Sc⦘.
+Proof. apply dom_helper_3. unfold WWMM.sw. basic_solver. Qed.
+
+Lemma sc_hb_ww_sc_in_sc_ct :
+  ⦗Sc⦘ ⨾ hb_ww ⨾ ⦗Sc⦘ ⊆
+  (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺.
+Proof.
+  unfold WWMM.hb, WWMM.sw.
+  rewrite path_tur with (adom:=Sc) (bdom:=Sc).
+  3,4: basic_solver.
+  2: by apply sb_trans.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL.
+  { rewrite <- ct_step. by unionR left. }
+  rewrite !seqA.
+  arewrite ((⦗Sc⦘ ⨾ sb)^? ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ (⦗Sc⦘ ⨾ sb)^? ⨾ ⦗Sc⦘).
+  { basic_solver 10. }
+  arewrite (⦗Sc⦘ ⨾ (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘ ⊆
+            (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺).
+  2: { rewrite crE.
+       rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
+       unionL.
+       { basic_solver. }
+       arewrite 
+       (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆
+             (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺) at 2.
+       apply ct_ct. }
+  arewrite (⦗Sc⦘ ⨾ (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘ ⊆
+            ⦗Sc⦘ ⨾ (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺).
+  (* TODO: generalize the next code to a lemma about
+           the transitive closure! *)
+  red. intros x y HH.
+  apply seq_eqv_l in HH. destruct HH as [SCX HH].
+  induction HH.
+  { apply ct_step. generalize SCX H.
+    basic_solver 10. }
+  apply ct_ct. exists y. split; auto.
+  apply IHHH2.
+  clear -HH1.
+  assert (((sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘) x y) as AA.
+  2: { apply seq_eqv_r in AA. desf. }
+  assert ((sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺ ⊆
+          (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘ ) as BB.
+  2: by apply BB.
+  arewrite (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆
+            (sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) ⨾ ⦗Sc⦘).
+  { basic_solver. }
+  apply inclusion_ct_seq_eqv_r.
 Qed.
 
 Lemma hb_ww_co_fr_ac sc (IPC : imm_s.imm_psc_consistent G sc) :
   acyclic (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘).
 Proof.
   cdes IPC. cdes IC.
-  apply acyclic_union.
+  assert (acyclic hb_ww) as HBWWAC.
   { rewrite hb_ww_in_hb.
     red. unfold imm_s_hb.hb. rewrite ct_of_ct.
     apply hb_irr; auto. }
-  unfold WWMM.hb. rewrite rt_of_ct.
-  (* TODO : use path_* lemmas, which can be found by running
-     `SearchAbout (clos_trans seq eqv_rel union).`
-   *)
-
-(* A proof idea: *)
-(* ————————————— *)
-(* acyclic     (hb ∪ [SC]; (fr ∪ co); [SC])                  ⇐ *)
-(* acyclic     ([SC]; (hb⁺ ∪ fr ∪ co); [SC])                 ⇐ *)
-(*   (via hb transitivity) *)
-(* acyclic     ([SC]; (hb ∪ fr ∪ co); [SC])                  ⇐ *)
-(* acyclic     ([SC]; (po ∪ rfe ∪ fr ∪ co); [SC])            ⇐ *)
-(* acyclic     ([SC]; (po ∪ hb|loc ∪ fr ∪ co); [SC])         ⇐ *)
-(* acyclic     ([SC]; scb; [SC]) *)
-Admitted.
+  apply acyclic_ud with (adom:=Sc) (bdom:=Sc); auto.
+  1,2: basic_solver.
+  arewrite (hb_ww⁺ ⊆ hb_ww).
+  rewrite sc_hb_ww_sc_in_sc_ct.
+  arewrite (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ psc_base G).
+  { unfold psc_base, scb. basic_solver 40. }
+  arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ psc_base G).
+  { unfold psc_base, scb.
+    arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆
+                   ⦗Sc⦘ ⨾ (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) ⨾ ⦗Sc⦘).
+    { basic_solver. }
+    hahn_frame.
+    arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ hb ∩ same_loc).
+    2: basic_solver 20.
+    apply inclusion_inter_r.
+    2: rewrite wf_rfl; auto; basic_solver.
+    rewrite <- hb_ww_in_hb.
+    unfold WWMM.hb.
+    rewrite <- ct_step. by right. }
+  arewrite (⦗Sc⦘ ⨾ (fr ∪ co) ⨾ ⦗Sc⦘ ⊆ psc_base G).
+  { unfold psc_base, scb. basic_solver 40. }
+  rewrite unionK.
+  arewrite ((psc_base G)⁺ ∪ psc_base G ⊆ (psc_base G)⁺).
+  red. rewrite ct_of_ct.
+  eapply inclusion_acyclic.
+  2: by apply Cpsc.
+  done.
+Qed.
 
 Theorem s_imm_consistent_implies_wwmm_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   exists mo, wwmm_consistent G mo.
 Proof.
   cdes IPC. cdes IC.
-  exists (<|E|> ;;
+  exists (⦗E⦘ ⨾
             tot_ext (acts G)
-            (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘) ;;
-          <|E|>).
+            (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘) ⨾
+          ⦗E⦘).
   red. splits.
   { red. ins.
     edestruct tot_ext_total.
@@ -174,12 +237,12 @@ Proof.
     assert (w <> w') as NEQ.
     { intros HH. subst.
       eapply tot_ext_irr; [|by eauto].
-      apply hb_ww_co_fr_ac. }
+      eapply hb_ww_co_fr_ac; eauto. }
     edestruct WF.(wf_co_total).
     3: by eauto.
     1,2: by unfolder; splits.
     all: eapply tot_ext_irr;
-         [by apply hb_ww_co_fr_ac|].
+         [by eapply hb_ww_co_fr_ac; eauto|].
     { eapply tot_ext_trans.
       { generalize MO. basic_solver. }
       apply tot_ext_extends.
@@ -206,7 +269,7 @@ Proof.
     assert (w <> w') as NEQ.
     { intros HH. subst.
       eapply tot_ext_irr; [|by eauto].
-      apply hb_ww_co_fr_ac. }
+      eapply hb_ww_co_fr_ac; eauto. }
     edestruct WF.(wf_co_total).
     3: by eauto.
     1,2: by unfolder; splits.
@@ -215,7 +278,7 @@ Proof.
       { apply hb_ww_in_hb. apply HBWR'. }
       right. apply fr_in_eco.
       eexists. eauto. }
-    eapply tot_ext_irr; [by apply hb_ww_co_fr_ac|].
+    eapply tot_ext_irr; [by eapply hb_ww_co_fr_ac; eauto|].
     eapply tot_ext_trans; eauto.
     apply tot_ext_extends.
     right.
@@ -242,7 +305,7 @@ Proof.
   edestruct WF.(wf_co_total).
   3: by eauto.
   1,2: by unfolder; splits.
-  { eapply tot_ext_irr; [by apply hb_ww_co_fr_ac|].
+  { eapply tot_ext_irr; [by eapply hb_ww_co_fr_ac; eauto|].
     eapply tot_ext_trans.
     { generalize MO. basic_solver. }
     apply tot_ext_extends.
