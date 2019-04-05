@@ -3,7 +3,6 @@ From promising Require Import Event Language Cell Memory Configuration Thread Ba
 Require Import Prog.
 Require Import ProgToExecution.
 Require Import Events.
-Require Import Execution.
 Require Import Event_imm_promise.
 
 Set Implicit Arguments.

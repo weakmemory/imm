@@ -1,4 +1,3 @@
-Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 
 From promising Require Import View Time Event.

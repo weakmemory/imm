@@ -1,7 +1,3 @@
-Require Import Classical Peano_dec.
-
-Require Import Setoid.
-
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder Event.
 Require Import AuxRel.

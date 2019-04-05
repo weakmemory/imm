@@ -1,4 +1,3 @@
-Require Import Classical List Relations Peano_dec.
 From hahn Require Import Hahn.
 From promising Require Import Time.
 Require Import Events.

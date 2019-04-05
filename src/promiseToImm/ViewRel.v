@@ -1,5 +1,3 @@
-Require Import Classical Peano_dec.
-Require Import Setoid.
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
@@ -13,7 +11,8 @@ Require Import imm_common.
 
 Require Import PArith.
 Require Import Event_imm_promise.
-Require Import CombRelations CombRelationsMore.
+Require Import CombRelations.
+Require Import CombRelationsMore.
 Require Import TraversalConfig.
 Require Import MaxValue.
 Require Import ViewRelHelpers.

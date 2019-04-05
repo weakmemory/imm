@@ -1,17 +1,10 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
-Require Import ClassicalDescription.
 From hahn Require Import Hahn.
 Require Import Omega.
 
-Require Import AuxRel.
-
 Require Import Events.
 Require Import Execution.
-Require Import Execution_eco.
 Require Import imm_s.
-Require Import imm_s_hb.
-Require Import imm_common.
-Require Import CombRelations.
 Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.

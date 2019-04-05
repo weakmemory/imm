@@ -1,5 +1,3 @@
-Require Import Classical Peano_dec.
-Require Import Setoid.
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
@@ -30,7 +28,8 @@ Require Import PlainStepBasic.
 Require Import ReadPlainStepHelper.
 
 Require Import SimStateHelper.
-Require Import Promise ProgToExecution.
+Require Import Promise.
+Require Import ProgToExecution.
 Require Import Arith.
 Require Import MemoryAux.
 

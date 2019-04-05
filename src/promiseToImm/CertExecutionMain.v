@@ -1,7 +1,3 @@
-Require Import Classical Peano_dec.
-Require Import Setoid.
-Require Import ClassicalDescription.
-
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.

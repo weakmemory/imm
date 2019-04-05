@@ -5,7 +5,6 @@ Require Import Events.
 Require Import Execution.
 Require Import Prog.
 Require Import ProgToExecution.
-Require Import AuxRel.
 
 Set Implicit Arguments.
 

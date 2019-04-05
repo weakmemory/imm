@@ -1,7 +1,5 @@
 From hahn Require Import Hahn.
 
-(* Require Import Basic. *)
-
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 

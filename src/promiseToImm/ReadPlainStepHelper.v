@@ -1,5 +1,3 @@
-Require Import Classical Peano_dec.
-Require Import Setoid.
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
@@ -26,7 +24,8 @@ Require Import SimulationRel.
 Require Import Prog.
 Require Import ProgToExecution.
 Require Import SimulationPlainStepAux.
-Require Import SimulationRelAux MemoryAux.
+Require Import SimulationRelAux.
+Require Import MemoryAux.
 
 Require Import Promise.
 

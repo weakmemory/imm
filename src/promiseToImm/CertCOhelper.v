@@ -1,7 +1,4 @@
-Require Import Classical Peano_dec.
-Require Import Setoid.
 From hahn Require Import Hahn.
-Require Import AuxRel.
 
 Require Import Events.
 Require Import Execution.

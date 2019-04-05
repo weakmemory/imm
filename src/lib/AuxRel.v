@@ -1,7 +1,6 @@
 From hahn Require Import Hahn.
 
 Require Import Setoid.
-Require Import Coq.Logic.FunctionalExtensionality.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

@@ -1,5 +1,3 @@
-Require Import RelationClasses.
-Require Import List.
 From promising Require Import Basic Event.
 Require Import Events.
 

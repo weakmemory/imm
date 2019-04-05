@@ -1,7 +1,3 @@
-Require Import Classical Peano_dec.
-
-Require Import Setoid.
-
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder Event.
 Require Import AuxRel.
@@ -9,7 +5,6 @@ Require Import Events.
 Require Import Execution.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_common.
 Require Import CombRelations. 
 
 Set Implicit Arguments.
