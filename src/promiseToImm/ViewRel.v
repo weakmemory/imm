@@ -5,8 +5,11 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 Require Import AuxRel.
 
-Require Import Events Execution.
-Require Import imm_s imm_s_hb imm_common.
+Require Import Events.
+Require Import Execution.
+Require Import imm_s.
+Require Import imm_s_hb.
+Require Import imm_common.
 
 Require Import PArith.
 Require Import Event_imm_promise.

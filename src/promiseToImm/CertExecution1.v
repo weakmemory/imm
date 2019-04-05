@@ -5,13 +5,16 @@ Require Import ClassicalDescription.
 From hahn Require Import Hahn.
 Require Import AuxRel.
 
-Require Import Events Execution Execution_eco.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
 Require Import imm_common imm_s_hb imm_s.
 Require Import SubExecution.
 Require Import CertCOhelper.
 
 Require Import CombRelations.
-Require Import TraversalConfig TraversalConfigAlt.
+Require Import TraversalConfig.
+Require Import TraversalConfigAlt.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

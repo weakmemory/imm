@@ -3,9 +3,14 @@ From hahn Require Import Hahn.
 
 Require Import AuxRel.
 
-Require Import Events Execution Execution_eco.
-Require Import imm_s_hb imm_s imm_common.
-Require Import CombRelations AuxRel.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
+Require Import imm_s_hb.
+Require Import imm_s.
+Require Import imm_common.
+Require Import CombRelations.
+Require Import AuxRel.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

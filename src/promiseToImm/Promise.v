@@ -1,7 +1,10 @@
 From hahn Require Import Hahn.
 From promising Require Import Event Language Cell Memory Configuration Thread Basic.
-Require Import Prog ProgToExecution.
-Require Import Events Execution Event_imm_promise.
+Require Import Prog.
+Require Import ProgToExecution.
+Require Import Events.
+Require Import Execution.
+Require Import Event_imm_promise.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

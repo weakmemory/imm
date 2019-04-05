@@ -7,7 +7,9 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution Execution_eco.
-Require Import imm_common imm_hb imm.
+Require Import imm_common.
+Require Import imm_hb.
+Require Import imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

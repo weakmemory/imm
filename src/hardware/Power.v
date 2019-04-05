@@ -3,8 +3,11 @@
 (******************************************************************************)
 From hahn Require Import Hahn.
 Require Import AuxRel.
-Require Import Events Execution Execution_eco.
-Require Import Power_fences Power_ppo.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
+Require Import Power_fences.
+Require Import Power_ppo.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

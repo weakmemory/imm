@@ -4,7 +4,9 @@ From hahn Require Import Hahn.
 Require Import AuxRel.
 
 Require Import Events Execution.
-Require Import imm_s imm_s_hb imm_common.
+Require Import imm_s.
+Require Import imm_s_hb.
+Require Import imm_common.
 Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.

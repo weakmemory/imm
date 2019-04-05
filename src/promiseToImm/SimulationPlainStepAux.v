@@ -7,7 +7,8 @@ Require Import Events Execution.
 Require Import PArith.
 Require Import AuxRel.
 Require Import Setoid.
-Require Import MaxValue ViewRel.
+Require Import MaxValue.
+Require Import ViewRel.
 Require Import SimulationRel.
 Require Import Promise.
 Require Import ProgToExecution.

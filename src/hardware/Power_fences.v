@@ -2,7 +2,8 @@
 (** * Definition of the Power memory model *)
 (******************************************************************************)
 From hahn Require Import Hahn.
-Require Import Events Execution.
+Require Import Events.
+Require Import Execution.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

@@ -7,15 +7,19 @@ From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 
-Require Import Prog ProgToExecution.
-Require Import Events Execution.
+Require Import Prog.
+Require Import ProgToExecution.
+Require Import Events.
+Require Import Execution.
 Require Import imm_s.
-Require Import Traversal TraversalConfig.
+Require Import Traversal.
+Require Import TraversalConfig.
 Require Import SimTraversal.
 Require Import SimulationRel.
 Require Import PlainStepBasic.
 Require Import SimulationPlainStep.
-Require Import MaxValue CombRelations.
+Require Import MaxValue.
+Require Import CombRelations.
 Require Import AuxRel.
 
 Require Import Promise.

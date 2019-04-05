@@ -4,13 +4,19 @@ Require Import Setoid.
 From hahn Require Import Hahn.
 Require Import AuxRel.
 
-Require Import Events Execution Execution_eco.
-Require Import imm_common imm_s_hb imm_s imm_common_more.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
+Require Import imm_common.
+Require Import imm_s_hb.
+Require Import imm_s.
+Require Import imm_common_more.
 Require Import SubExecution.
 Require Import CertCOhelper.
 
 Require Import CombRelations.
-Require Import TraversalConfig TraversalConfigAlt.
+Require Import TraversalConfig.
+Require Import TraversalConfigAlt.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

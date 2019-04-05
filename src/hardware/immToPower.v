@@ -4,9 +4,15 @@
 
 From hahn Require Import Hahn.
 Require Import AuxRel.
-Require Import Events Execution Execution_eco.
-Require Import Power_fences Power_ppo Power.
-Require Import imm_common imm_hb imm.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
+Require Import Power_fences.
+Require Import Power_ppo.
+Require Import Power.
+Require Import imm_common.
+Require Import imm_hb.
+Require Import imm.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

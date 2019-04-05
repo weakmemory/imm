@@ -7,16 +7,22 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 Require Import AuxRel.
 
-Require Import Events Execution Execution_eco.
-Require Import imm_common imm_s_hb imm_s.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
+Require Import imm_common.
+Require Import imm_s_hb.
+Require Import imm_s.
 Require Import SubExecution.
 Require Import CertCOhelper.
-Require Import CertExecution1 CertExecution2.
+Require Import CertExecution1.
+Require Import CertExecution2.
 
 Require Import CombRelations.
 Require Import TraversalConfig.
 
-Require Import Prog Receptiveness.
+Require Import Prog.
+Require Import Receptiveness.
 Require Import ProgToExecution ProgToExecutionProperties.
 
 Require Import MaxValue ViewRel.

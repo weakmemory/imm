@@ -1,8 +1,10 @@
 Require Import RelationClasses List Omega.
 From promising Require Import Basic Axioms Event Language.
 From hahn Require Import Hahn.
-Require Import Events Execution.
-Require Import Prog ProgToExecution.
+Require Import Events.
+Require Import Execution.
+Require Import Prog.
+Require Import ProgToExecution.
 Require Import AuxRel.
 
 Set Implicit Arguments.

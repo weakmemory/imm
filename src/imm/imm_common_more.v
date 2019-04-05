@@ -6,7 +6,9 @@ Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxRel.
 
-Require Import Events Execution Execution_eco.
+Require Import Events.
+Require Import Execution.
+Require Import Execution_eco.
 Require Import imm_common.
 
 Set Implicit Arguments.

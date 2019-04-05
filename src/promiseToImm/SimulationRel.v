@@ -4,14 +4,16 @@ From promising Require Import Basic DenseOrder
      TView View Time Event Cell Thread Language Memory Configuration.
 
 Require Import Events Execution.
-Require Import imm_s_hb imm_s.
+Require Import imm_s_hb.
+Require Import imm_s.
 
 Require Import PArith.
 Require Import CombRelations.
 Require Import AuxRel.
 Require Import TraversalConfig.
 Require Import Setoid.
-Require Import MaxValue ViewRel.
+Require Import MaxValue.
+Require Import ViewRel.
 Require Import Event_imm_promise.
 Require Import Promise ProgToExecution.
 Require Import ProgToExecutionProperties.
