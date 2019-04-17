@@ -88,6 +88,22 @@ Proof.
     by apply sim_trav_step_coherence.
 Qed.
 
+Lemma sim_trav_step_issued_le (C C' : trav_config) (T : sim_trav_step G sc C C') :
+  issued C ⊆₁ issued C'.
+Proof.
+  red in T. destruct T as [thread T].
+  destruct T.
+  all: basic_solver.
+Qed.
+
+Lemma sim_trav_steps_issued_le (C C' : trav_config) (T : (sim_trav_step G sc)＊ C C') :
+  issued C ⊆₁ issued C'.
+Proof.
+  induction T; auto.
+  { by apply sim_trav_step_issued_le. }
+  etransitivity; eauto.
+Qed.
+
 Lemma sim_trav_step_covered_le (C C' : trav_config) (T : sim_trav_step G sc C C') :
   covered C ⊆₁ covered C'.
 Proof.
@@ -184,6 +200,31 @@ Proof.
   2: done.
   { eapply sim_trav_step_rmw_covered; eauto. }
   apply IHT2. by apply IHT1.
+Qed.
+
+Lemma sim_trav_step_in_trav_steps : sim_trav_step G sc ⊆ (trav_step G sc)⁺.
+Proof.
+  intros C C' [tid TT].
+  inv TT.
+  1-4: by apply t_step; eexists; eauto.
+  1,2: by eapply t_trans; apply t_step; eexists; eauto.
+  eapply t_trans.
+  2: by apply t_step; eexists; eauto.
+  eapply t_trans; apply t_step; eexists; eauto.
+Qed.
+
+Lemma isim_trav_step_new_e_tid thread (C C' : trav_config)
+      (T : isim_trav_step G sc thread C C') :
+  covered C' ∪₁ issued C' ≡₁
+  covered C ∪₁ issued C ∪₁ (covered C' ∪₁ issued C') ∩₁ Tid_ thread.
+Proof.
+  inv T; simpls.
+  all: split; [|basic_solver].
+  all: unionL; eauto with hahn.
+  all: unionR right.
+  1-7,9: basic_solver.
+  all: arewrite (tid r = tid w); [|basic_solver].
+  all: eapply wf_rmwt; eauto.
 Qed.
 
 End SimTraversalProperties.
