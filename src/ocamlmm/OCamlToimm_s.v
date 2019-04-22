@@ -75,7 +75,7 @@ Hypothesis LSM : forall l,
     << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
 
 Hypothesis WSCRMW : W∩₁Sc ≡₁ codom_rel rmw.
-Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
+Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
 
 Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
 Hypothesis RSCF : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
@@ -84,17 +84,17 @@ Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
 Proof.
-  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘).
+  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ;; co ;; ⦗Sc⦘).
   4: { generalize WF.(co_trans). basic_solver. }
   3: { generalize WF.(co_irr). basic_solver. }
-  2: { arewrite (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ co) by basic_solver.
+  2: { arewrite (⦗Sc⦘ ;; co ;; ⦗Sc⦘ ⊆ co) by basic_solver.
        rewrite WF.(wf_coE). unfold acts_set.
        red. ins. eexists. basic_solver. }
   
   assert (transitive hb) as THB by apply hb_trans.
   apply inclusion_t_ind; auto.
-  arewrite (immediate (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘) ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⨾ sb).
-  2: { arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
+  arewrite (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘) ⊆ ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb).
+  2: { arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
        2: { rewrite sw_in_hb, sb_in_hb.
             apply rewrite_trans; auto. }
        arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
