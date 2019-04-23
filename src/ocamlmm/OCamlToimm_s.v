@@ -84,18 +84,18 @@ Lemma rf_sb_on_SC_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb ⊆ hb.
 Proof.
-   arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
-   2: { rewrite sw_in_hb, sb_in_hb.
-         (* error occurs without admit; in original proof it wasn't *)
-        apply rewrite_trans; auto. admit. }
-   arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
-   arewrite (Sc ⊆₁ Acq)      by mode_solver.
-   unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
-   rewrite !seqA.
-   hahn_frame.
-   rewrite (dom_l WF.(wf_rfD)) at 1.
-   basic_solver 40.
-Admitted. (* due to error with 'focus' *)
+  assert (transitive hb) as hb_is_transitive by apply hb_trans.  
+  arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
+  2: { rewrite sw_in_hb, sb_in_hb.
+       apply rewrite_trans; auto. }
+  arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
+  arewrite (Sc ⊆₁ Acq)      by mode_solver.
+  unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
+  rewrite !seqA.
+  hahn_frame.
+  rewrite (dom_l WF.(wf_rfD)) at 1.
+  basic_solver 40.
+Qed.
 
 Lemma co_immediates_closure_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
@@ -106,14 +106,13 @@ Proof.
     auto. (* ';': run auto on all subgoals *) (* ? only _sub_ goals ? *)
   (* prove that given relation belongs to a subset of hb *)
   arewrite (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘) ⊆ ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb).
-  2: {apply (rf_sb_on_SC_in_hb WF IPC). }
+  2: { eapply rf_sb_on_SC_in_hb; eauto. }
   
   rewrite (dom_r WF.(wf_coD)).  (* ? why only right part of co is extended ? *)
   rewrite !seqA. (* ? exclamation ? *) (* use associativity *)
   rewrite <- id_inter.          (* intersect (why only last ?) *)
   rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *)
-  intros w_cur w_next.                   (* ? where are they coming from ? *)
-  intros T.
+  intros w_cur w_next T.                   (* ? where are they coming from ? *)
   destruct T as [w_cur_next_co w_next_succs_cur]. (* ? how 'immediate' is being destructed ? *)
   (* now the goal is to show rf;sb between cur and next *)
   apply seq_eqv_l in w_cur_next_co. destruct w_cur_next_co as [w_cur_is_SC w_cur_next_co].
@@ -152,7 +151,6 @@ Proof.
   assert (W w_of_r_next) as w_of_r_next_is_write. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
 
-  
   destruct (classic (w_cur = w_of_r_next)) as [|NEQ]; desf. 
   (* ? Was original case processed ? *)
   (* now show contradiction with w_cur != w_of_r_next *)
@@ -165,104 +163,97 @@ Proof.
     apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
 
   assert (writes_co: co w_of_r_next w_cur \/ co w_cur w_of_r_next).
-  { (* apply (is_total w_cur w_next NEQ). *) admit.  }
+  { eapply WF.(wf_co_total); eauto.
+    all: split; [split|]; eauto.
+    all: admit. }
+  cdes IPC. cdes IC.
   destruct writes_co as [w_of_r_next_co_before | w_of_r_next_co_after].
   (* ? unable to set 1:, 2: ? *)
   2: { (* w_cur before w_of_r_next *)
     (* cycle: hb_loc(@l), (co)^*, rf *)
     (* show hb_loc *)
     (* appeal to coherence *)
-    unfold imm_psc_consistent in IPC. destruct IPC as [IMMcons _].
-    unfold imm_consistent in IMMcons.
-    destruct IMMcons as [_ [_ [_ [Coh _]]]].
-    (* rewrite coherence_expanded_eq in Coh.  *)  (* ? cannot find it ?*)
-    (* assert (Coh_exp: coherent_expanded G).  *) (* ? also fails ?*)
-    assert (irr_co_rf_hb: irreflexive (co ;; rf ;; hb)).
-    {admit. }
-    assert (irr_co_hb: irreflexive (co ;; hb)).
-    {admit. }
-    (* w_of_r_next is either w_next or after it *)
-    destruct (classic (w_of_r_next = w_next))
-      as [w_of_r_next_same | w_of_r_next_other](* ; auto.  *). (* ? *)
-    2: { assert (w_of_r_next_co_after_w_next: co w_next w_of_r_next).
-         {admit. }    (* ? use classic again or call solver ? *)
-         (* now we can show a cycle with co *)
-         admit. 
-    }
-    1: {
-      (* here we can show a cycle without co *)
-      admit. 
-    }
+    admit.
+
+    (* rewrite coherence_expanded_eq in Coh.  ? cannot find it ? *)
+    (* (* assert (Coh_exp: coherent_expanded G).  *) (* ? also fails ?*) *)
+    (* assert (irr_co_rf_hb: irreflexive (co ;; rf ;; hb)). *)
+    (* { admit. } *)
+    (* assert (irr_co_hb: irreflexive (co ;; hb)). *)
+    (* { admit. } *)
+    (* (* w_of_r_next is either w_next or after it *) *)
+    (* destruct (classic (w_of_r_next = w_next)) *)
+    (*   as [w_of_r_next_same | w_of_r_next_other](* ; auto.  *). (* ? *) *)
+    (* 2: { assert (w_of_r_next_co_after_w_next: co w_next w_of_r_next). *)
+    (*      { admit. }    (* ? use classic again or call solver ? *) *)
+    (*      (* now we can show a cycle with co *) *)
+    (*      admit. *)
+    (* } *)
+    (* (* here we can show a cycle without co *) *)
+    (* admit. *)
   }
-  1: {    
-    (* w_of_r_next is before w_cur - it contradicts RMW atomicity *)
-    unfold imm_psc_consistent in IPC. destruct IPC as [IMMcons _].
-    unfold imm_consistent in IMMcons.
-    destruct IMMcons as [_ [_ [_ [_ [_ RMW_ATOM]]]]].
-    unfold rmw_atomicity in RMW_ATOM.
-    assert (r_next_fr_w_cur: fr r_next w_cur).
-    { generalize w_of_r_next_co_before. generalize RF.
-      (* basic_solver 100. *) admit. 
-    }    
-    assert (w_cur_breaks_atomicity: ((fr ;; co) r_next w_next) = rmw r_next w_next). 
-    { admit. }
-    exfalso. (* will give a counterexample to RMW_ATOM *)
-    admit.    
-    
-  }  
-  (* done  *)
-  
-  (*  *)
-  (* prev proof rest below *)
-  destruct (classic (Init w_of_r_next)) as [INIT|NINIT].
-  { admit. }
-  (* assume that w_of_r_next is not an initializer *)
-  assert (Sc w_of_r_next) as SCV.
-  { specialize (LocSameMode l).
-    destruct LocSameMode as [CC|CC].
-    2: { apply CC. split; auto. }
-    exfalso.
-    assert (~ is_init r_next) as NINITZ.
-    { eapply read_or_fence_is_not_init; eauto. }
-    assert ((Loc_ l \₁ Init) r_next) as DD.
-    { split; auto. }
-   apply CC in DD.
-   destruct DD. desf. }
+  (* w_of_r_next is before w_cur - it contradicts RMW atomicity *)
 
-  assert (codom_rel rmw w_of_r_next) as RMWV.
-  { apply Wsc_is_succ_RMW. split; auto. }
-
-  assert (E w_cur) as EX.
-  { apply (dom_l WF.(wf_coE)) in w_cur_next_co.
-    generalize w_cur_next_co. basic_solver. }
-  assert (W w_cur) as WX.
-  { apply (dom_l WF.(wf_coD)) in w_cur_next_co.
-    generalize w_cur_next_co. basic_solver. }
-  
-  eapply wf_co_total in NEQ; eauto.
-  3: { split; [split|]; auto. }
-  2: { split; [split|]; auto.
-       rewrite w_of_r_next_at_l, <- r_next_at_l.
-       arewrite (loc r_next = loc w_next) by (by apply WF.(wf_rmwl)).
-       apply WF.(wf_col); auto. }
-
-  cdes IPC. cdes IC.
-  assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc).
-  
-  exfalso.
-  destruct NEQ as [NEQ|NEQ].
-  2: { eapply atomicity_alt; eauto.
-       split; eauto.
-       do 2 (eexists; split; eauto). }
-  apply w_next_succs_cur with (c:=w_of_r_next).
-  { apply seq_eqv_l. split; auto.
-    apply seq_eqv_r. split; auto. }
-  apply seq_eqv_l. split; auto.
-  apply seq_eqv_r. split; auto.
-  2: { eexists; eauto. }
-  apply rf_rmw_in_co; auto.
-  eexists. eauto.
+  exfalso. (* will give a counterexample to RMW_ATOM *)
+  eapply atomicity_alt; eauto.
+  { by apply coherence_sc_per_loc. }
+  split; eauto.
+  exists w_cur.
+  split; auto.
+  red. basic_solver.
 Admitted.
+  
+(*   (*  *) *)
+(*   (* prev proof rest below *) *)
+(*   destruct (classic (Init w_of_r_next)) as [INIT|NINIT]. *)
+(*   { admit. } *)
+(*   (* assume that w_of_r_next is not an initializer *) *)
+(*   assert (Sc w_of_r_next) as SCV. *)
+(*   { specialize (LocSameMode l). *)
+(*     destruct LocSameMode as [CC|CC]. *)
+(*     2: { apply CC. split; auto. } *)
+(*     exfalso. *)
+(*     assert (~ is_init r_next) as NINITZ. *)
+(*     { eapply read_or_fence_is_not_init; eauto. } *)
+(*     assert ((Loc_ l \₁ Init) r_next) as DD. *)
+(*     { split; auto. } *)
+(*    apply CC in DD. *)
+(*    destruct DD. desf. } *)
+
+(*   assert (codom_rel rmw w_of_r_next) as RMWV. *)
+(*   { apply Wsc_is_succ_RMW. split; auto. } *)
+
+(*   assert (E w_cur) as EX. *)
+(*   { apply (dom_l WF.(wf_coE)) in w_cur_next_co. *)
+(*     generalize w_cur_next_co. basic_solver. } *)
+(*   assert (W w_cur) as WX. *)
+(*   { apply (dom_l WF.(wf_coD)) in w_cur_next_co. *)
+(*     generalize w_cur_next_co. basic_solver. } *)
+  
+(*   eapply wf_co_total in NEQ; eauto. *)
+(*   3: { split; [split|]; auto. } *)
+(*   2: { split; [split|]; auto. *)
+(*        rewrite w_of_r_next_at_l, <- r_next_at_l. *)
+(*        arewrite (loc r_next = loc w_next) by (by apply WF.(wf_rmwl)). *)
+(*        apply WF.(wf_col); auto. } *)
+
+(*   cdes IPC. cdes IC. *)
+(*   assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc). *)
+  
+(*   exfalso. *)
+(*   destruct NEQ as [NEQ|NEQ]. *)
+(*   2: { eapply atomicity_alt; eauto. *)
+(*        split; eauto. *)
+(*        do 2 (eexists; split; eauto). } *)
+(*   apply w_next_succs_cur with (c:=w_of_r_next). *)
+(*   { apply seq_eqv_l. split; auto. *)
+(*     apply seq_eqv_r. split; auto. } *)
+(*   apply seq_eqv_l. split; auto. *)
+(*   apply seq_eqv_r. split; auto. *)
+(*   2: { eexists; eauto. } *)
+(*   apply rf_rmw_in_co; auto. *)
+(*   eexists. eauto. *)
+(* Admitted. *)
 
 
 Lemma co_sc_in_hb (WF : Wf G) sc
@@ -290,7 +281,7 @@ Proof.
   (* prove initial statement with Sc;co;Sc replaced by immediates' closure *)
   (* ? why it's easier ? *)
   (* ? why we should specify exactly these arguments ? *)
-  apply (co_immediates_closure_in_hb WF IPC).
+  eapply co_immediates_closure_in_hb; eauto.
 Qed.
   
  
