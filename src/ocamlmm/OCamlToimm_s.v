@@ -70,107 +70,177 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'Init'" := (fun a => is_true (is_init a)).
 
-Hypothesis LSM : forall l,
+Hypothesis LocSameMode : forall l,
     << LM : Loc_ l \₁ Init  ⊆₁ Rlx \₁ Sc >> \/
     << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
 
-Hypothesis WSCRMW : W∩₁Sc ≡₁ codom_rel rmw.
-Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
+Hypothesis Wsc_is_succ_RMW : W∩₁Sc ≡₁ codom_rel rmw.
+Hypothesis RMW_always_sc  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
 
-Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
-Hypothesis RSCF : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
+Hypothesis Wrlx_succs_Facqrel : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
+Hypothesis Rsc_succs_Facq : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
-Lemma co_sc_in_hb (WF : Wf G) sc
+Lemma rf_sb_on_SC_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
+  ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb ⊆ hb.
 Proof.
-  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ;; co ;; ⦗Sc⦘).
-  4: { generalize WF.(co_trans). basic_solver. }
-  3: { generalize WF.(co_irr). basic_solver. }
-  2: { arewrite (⦗Sc⦘ ;; co ;; ⦗Sc⦘ ⊆ co) by basic_solver.
-       rewrite WF.(wf_coE). unfold acts_set.
-       red. ins. eexists. basic_solver. }
-  
-  assert (transitive hb) as THB by apply hb_trans.
-  apply inclusion_t_ind; auto.
+   arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
+   2: { rewrite sw_in_hb, sb_in_hb.
+         (* error occurs without admit; in original proof it wasn't *)
+        apply rewrite_trans; auto. admit. }
+   arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
+   arewrite (Sc ⊆₁ Acq)      by mode_solver.
+   unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
+   rewrite !seqA.
+   hahn_frame.
+   rewrite (dom_l WF.(wf_rfD)) at 1.
+   basic_solver 40.
+Admitted. (* due to error with 'focus' *)
+
+Lemma co_immediates_closure_in_hb (WF : Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘))⁺ ⊆ hb.
+Proof.
+  assert (transitive hb) as hb_is_transitive by apply hb_trans.  
+  apply inclusion_t_ind; (* only show that single edge is in hb *)
+    auto. (* ';': run auto on all subgoals *) (* ? only _sub_ goals ? *)
+  (* prove that given relation belongs to a subset of hb *)
   arewrite (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘) ⊆ ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb).
-  2: { arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
-       2: { rewrite sw_in_hb, sb_in_hb.
-            apply rewrite_trans; auto. }
-       arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
-       arewrite (Sc ⊆₁ Acq)      by mode_solver.
-       unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
-       rewrite !seqA.
-       hahn_frame.
-       rewrite (dom_l WF.(wf_rfD)) at 1.
-       basic_solver 40. }
-  rewrite (dom_r WF.(wf_coD)).
-  rewrite !seqA.
-  rewrite <- id_inter.
-  rewrite WSCRMW.
-  intros x y [HH AA].
-  apply seq_eqv_l in HH. destruct HH as [SCX HH].
-  apply seq_eqv_r in HH. destruct HH as [HH RMWY].
-  destruct RMWY as [z ZY].
-  apply seq_eqv_l. split; auto.
-  assert (Sc z) as SCZ.
-  { apply RMWSC in ZY. generalize ZY. basic_solver. }
+  2: {apply (rf_sb_on_SC_in_hb WF IPC). }
+  
+  rewrite (dom_r WF.(wf_coD)).  (* ? why only right part of co is extended ? *)
+  rewrite !seqA. (* ? exclamation ? *) (* use associativity *)
+  rewrite <- id_inter.          (* intersect (why only last ?) *)
+  rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *)
+  intros w_cur w_next.                   (* ? where are they coming from ? *)
+  intros T.
+  destruct T as [w_cur_next_co w_next_succs_cur]. (* ? how 'immediate' is being destructed ? *)
+  (* now the goal is to show rf;sb between cur and next *)
+  apply seq_eqv_l in w_cur_next_co. destruct w_cur_next_co as [w_cur_is_SC w_cur_next_co].
+  apply seq_eqv_r in w_cur_next_co. destruct w_cur_next_co as [w_cur_next_co w_next_by_rmw].
+  (* ? implicit relation argument ? *)
+  destruct w_next_by_rmw as [r_next rw_next_rmw].
+  apply seq_eqv_l.
+  split; (* subgoal is is_sc lab w_cur *)
+    auto.
+  assert (Sc r_next) as r_next_is_SC.    (* not used ?  *)
+  { apply RMW_always_sc in rw_next_rmw. generalize rw_next_rmw. basic_solver. }
 
-  assert (E z) as EZ.
-  { apply (dom_l WF.(wf_rmwE)) in ZY.
-    generalize ZY. basic_solver. }
-  assert (R z) as EW.
-  { apply (dom_l WF.(wf_rmwD)) in ZY.
-    generalize ZY. type_solver. }
+  assert (E r_next) as EZ.      (* ? why ever prove that events belong to graph ? *)
+  { (* ? why E is introduced only at left ? *)
+    apply (dom_l WF.(wf_rmwE)) in rw_next_rmw.
+    generalize rw_next_rmw.
+    basic_solver.               (* ? works only with goal like X->Y ? *)
+  }
+  assert (R r_next) as r_next_is_read.
+  { apply (dom_l WF.(wf_rmwD)) in rw_next_rmw.
+    generalize rw_next_rmw. type_solver. }
 
-  exists z. split.
+  (* goal: rf;SC;po between w_cur and w_next *)
+  exists r_next.                (* ? where substitution is being done ? *)
+  (* ? r_next is inserted between writes ? *)
+  (* goal is transformed to rf to r_next and po from r_next*)
+  split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
-  assert (exists v, rf v z) as [v RF].
-  { apply IPC. split; auto. }
-  destruct (classic (x = v)) as [|NEQ]; desf.
 
-  assert (E v) as EV. 
+  (* introduce the write that r_next reads from *)
+  assert (exists v, rf v r_next) as [w_of_r_next RF].
+  { apply IPC. split; auto. }
+  assert (E w_of_r_next) as EV. 
   { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
-  assert (W v) as WV. 
+  assert (W w_of_r_next) as w_of_r_next_is_write. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
+
+  destruct (classic (w_cur = w_of_r_next)) as [|NEQ]; desf. 
+  (* ? Was original case processed ? *)
+  (* now show contradiction with w_cur != w_of_r_next *)
   
-  set (GG := WV).
-  apply is_w_loc in GG. desf.
+  set (w_of_r_next_at_l := w_of_r_next_is_write).
+  apply is_w_loc in w_of_r_next_at_l. desf. 
   
-  assert (loc z = Some l) as LOCZ.
-  { rewrite <- GG. symmetry.
-    apply wf_rfl; auto. }
+  assert (loc r_next = Some l) as r_next_at_l.
+  { rewrite <- w_of_r_next_at_l. symmetry.
+    apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
+
+  assert (writes_co: co w_of_r_next w_cur \/ co w_cur w_of_r_next).
+  {admit. }
+  destruct writes_co as [w_of_r_next_co_before | w_of_r_next_co_after].
+  (* ? unable to set 1:, 2: ? *)
+  2: { (* w_cur before w_of_r_next *)
+    (* cycle: hb_loc(@l), (co)^*, rf *)
+    (* show hb_loc *)
+    (* appeal to coherence *)
+    unfold imm_psc_consistent in IPC. destruct IPC as [IMMcons _].
+    unfold imm_consistent in IMMcons.
+    destruct IMMcons as [_ [_ [_ [Coh _]]]].
+    (* rewrite coherence_expanded_eq in Coh.  *)  (* ? cannot find it ?*)
+    (* assert (Coh_exp: coherent_expanded G).  *) (* ? also fails ?*)
+    assert (irr_co_rf_hb: irreflexive (co ;; rf ;; hb)).
+    {admit. }
+    assert (irr_co_hb: irreflexive (co ;; hb)).
+    {admit. }
+    (* w_of_r_next is either w_next or after it *)
+    destruct (classic (w_of_r_next = w_next))
+      as [w_of_r_next_same | w_of_r_next_other](* ; auto.  *). (* ? *)
+    2: { assert (w_of_r_next_co_after_w_next: co w_next w_of_r_next).
+         {admit. }    (* ? use classic again or call solver ? *)
+         (* now we can show a cycle with co *)
+         admit. 
+    }
+    1: {
+      (* here we can show a cycle without co *)
+      admit. 
+    }
+  }
+  1: {    
+    (* w_of_r_next is before w_cur - it contradicts RMW atomicity *)
+    unfold imm_psc_consistent in IPC. destruct IPC as [IMMcons _].
+    unfold imm_consistent in IMMcons.
+    destruct IMMcons as [_ [_ [_ [_ [_ RMW_ATOM]]]]].
+    unfold rmw_atomicity in RMW_ATOM.
+    assert (r_next_fr_w_cur: fr r_next w_cur).
+    { generalize w_of_r_next_co_before. generalize RF.
+      (* basic_solver 100. *) admit. 
+    }    
+    assert (w_cur_breaks_atomicity: ((fr ;; co) r_next w_next) = rmw r_next w_next). 
+    { admit. }
+    admit. 
+  }  
+  (* done  *)
   
-  destruct (classic (Init v)) as [INIT|NINIT].
+  (*  *)
+  (* prev proof rest below *)
+  destruct (classic (Init w_of_r_next)) as [INIT|NINIT].
   { admit. }
-  assert (Sc v) as SCV.
-  { specialize (LSM l).
-    destruct LSM as [CC|CC].
+  (* assume that w_of_r_next is not an initializer *)
+  assert (Sc w_of_r_next) as SCV.
+  { specialize (LocSameMode l).
+    destruct LocSameMode as [CC|CC].
     2: { apply CC. split; auto. }
     exfalso.
-    assert (~ is_init z) as NINITZ.
+    assert (~ is_init r_next) as NINITZ.
     { eapply read_or_fence_is_not_init; eauto. }
-    assert ((Loc_ l \₁ Init) z) as DD.
+    assert ((Loc_ l \₁ Init) r_next) as DD.
     { split; auto. }
    apply CC in DD.
    destruct DD. desf. }
 
-  assert (codom_rel rmw v) as RMWV.
-  { apply WSCRMW. split; auto. }
+  assert (codom_rel rmw w_of_r_next) as RMWV.
+  { apply Wsc_is_succ_RMW. split; auto. }
 
-  assert (E x) as EX.
-  { apply (dom_l WF.(wf_coE)) in HH.
-    generalize HH. basic_solver. }
-  assert (W x) as WX.
-  { apply (dom_l WF.(wf_coD)) in HH.
-    generalize HH. basic_solver. }
-
+  assert (E w_cur) as EX.
+  { apply (dom_l WF.(wf_coE)) in w_cur_next_co.
+    generalize w_cur_next_co. basic_solver. }
+  assert (W w_cur) as WX.
+  { apply (dom_l WF.(wf_coD)) in w_cur_next_co.
+    generalize w_cur_next_co. basic_solver. }
+  
   eapply wf_co_total in NEQ; eauto.
   3: { split; [split|]; auto. }
   2: { split; [split|]; auto.
-       rewrite GG, <- LOCZ.
-       arewrite (loc z = loc y) by (by apply WF.(wf_rmwl)).
+       rewrite w_of_r_next_at_l, <- r_next_at_l.
+       arewrite (loc r_next = loc w_next) by (by apply WF.(wf_rmwl)).
        apply WF.(wf_col); auto. }
 
   cdes IPC. cdes IC.
@@ -181,7 +251,7 @@ Proof.
   2: { eapply atomicity_alt; eauto.
        split; eauto.
        do 2 (eexists; split; eauto). }
-  apply AA with (c:=v).
+  apply w_next_succs_cur with (c:=w_of_r_next).
   { apply seq_eqv_l. split; auto.
     apply seq_eqv_r. split; auto. }
   apply seq_eqv_l. split; auto.
@@ -191,6 +261,36 @@ Proof.
   eexists. eauto.
 Admitted.
 
+
+Lemma co_sc_in_hb (WF : Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
+Proof.
+  (* replace co chain with its immediate edges  *)
+  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ;; co ;; ⦗Sc⦘).
+  (* prove premises to this rewrite *)
+  (* 4: co is transitive *)
+  4: { generalize WF.(co_trans). (* ? just puts it into context ? *)
+       basic_solver. }           (* ? auto: the proof is focused ?  *)
+  (* 3: co is irreflexive; same as above *)
+  3: { generalize WF.(co_irr). basic_solver. }
+  (* 2: has finite amount of predecessors *)
+  2: { (* ? replaces with more general hypothesis ? *)
+       arewrite (⦗Sc⦘ ;; co ;; ⦗Sc⦘ ⊆ co) by basic_solver.
+       rewrite WF.(wf_coE). unfold acts_set. (* ? fun+rel composition ? *)
+       red.                     (* ??? *)
+       ins.                     (* ~intros y *)
+       (* current goal: there exists a finite set containing all co-precs of y *)
+       eexists.                 (* ? '?findom' ? *)
+       basic_solver. }
+
+  (* prove initial statement with Sc;co;Sc replaced by immediates' closure *)
+  (* ? why it's easier ? *)
+  (* ? why we should specify exactly these arguments ? *)
+  apply (co_immediates_closure_in_hb WF IPC).
+Qed.
+  
+ 
 Lemma s_imm_consistentimplies_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
