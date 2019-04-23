@@ -152,6 +152,7 @@ Proof.
   assert (W w_of_r_next) as w_of_r_next_is_write. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
 
+  
   destruct (classic (w_cur = w_of_r_next)) as [|NEQ]; desf. 
   (* ? Was original case processed ? *)
   (* now show contradiction with w_cur != w_of_r_next *)
@@ -164,7 +165,7 @@ Proof.
     apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
 
   assert (writes_co: co w_of_r_next w_cur \/ co w_cur w_of_r_next).
-  {admit. }
+  { (* apply (is_total w_cur w_next NEQ). *) admit.  }
   destruct writes_co as [w_of_r_next_co_before | w_of_r_next_co_after].
   (* ? unable to set 1:, 2: ? *)
   2: { (* w_cur before w_of_r_next *)
@@ -205,7 +206,9 @@ Proof.
     }    
     assert (w_cur_breaks_atomicity: ((fr ;; co) r_next w_next) = rmw r_next w_next). 
     { admit. }
-    admit. 
+    exfalso. (* will give a counterexample to RMW_ATOM *)
+    admit.    
+    
   }  
   (* done  *)
   
