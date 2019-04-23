@@ -203,58 +203,6 @@ Proof.
   red. basic_solver.
 Admitted.
   
-(*   (*  *) *)
-(*   (* prev proof rest below *) *)
-(*   destruct (classic (Init w_of_r_next)) as [INIT|NINIT]. *)
-(*   { admit. } *)
-(*   (* assume that w_of_r_next is not an initializer *) *)
-(*   assert (Sc w_of_r_next) as SCV. *)
-(*   { specialize (LocSameMode l). *)
-(*     destruct LocSameMode as [CC|CC]. *)
-(*     2: { apply CC. split; auto. } *)
-(*     exfalso. *)
-(*     assert (~ is_init r_next) as NINITZ. *)
-(*     { eapply read_or_fence_is_not_init; eauto. } *)
-(*     assert ((Loc_ l \₁ Init) r_next) as DD. *)
-(*     { split; auto. } *)
-(*    apply CC in DD. *)
-(*    destruct DD. desf. } *)
-
-(*   assert (codom_rel rmw w_of_r_next) as RMWV. *)
-(*   { apply Wsc_is_succ_RMW. split; auto. } *)
-
-(*   assert (E w_cur) as EX. *)
-(*   { apply (dom_l WF.(wf_coE)) in w_cur_next_co. *)
-(*     generalize w_cur_next_co. basic_solver. } *)
-(*   assert (W w_cur) as WX. *)
-(*   { apply (dom_l WF.(wf_coD)) in w_cur_next_co. *)
-(*     generalize w_cur_next_co. basic_solver. } *)
-  
-(*   eapply wf_co_total in NEQ; eauto. *)
-(*   3: { split; [split|]; auto. } *)
-(*   2: { split; [split|]; auto. *)
-(*        rewrite w_of_r_next_at_l, <- r_next_at_l. *)
-(*        arewrite (loc r_next = loc w_next) by (by apply WF.(wf_rmwl)). *)
-(*        apply WF.(wf_col); auto. } *)
-
-(*   cdes IPC. cdes IC. *)
-(*   assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc). *)
-  
-(*   exfalso. *)
-(*   destruct NEQ as [NEQ|NEQ]. *)
-(*   2: { eapply atomicity_alt; eauto. *)
-(*        split; eauto. *)
-(*        do 2 (eexists; split; eauto). } *)
-(*   apply w_next_succs_cur with (c:=w_of_r_next). *)
-(*   { apply seq_eqv_l. split; auto. *)
-(*     apply seq_eqv_r. split; auto. } *)
-(*   apply seq_eqv_l. split; auto. *)
-(*   apply seq_eqv_r. split; auto. *)
-(*   2: { eexists; eauto. } *)
-(*   apply rf_rmw_in_co; auto. *)
-(*   eexists. eauto. *)
-(* Admitted. *)
-
 
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
