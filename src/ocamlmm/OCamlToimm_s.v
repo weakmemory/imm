@@ -199,10 +199,18 @@ Proof.
     assert (r2_cycle: (hb ⨾ eco^?) r2 r2).
     {red. unfold Execution_eco.eco.  exists w2.
      split.
-     {unfold imm_s_hb.hb. apply WF.(wf_rmwi) in rw2_rmw.
-      (* ? how to easily get plain sb from it ? *)
-      (* ? incorrect: rewrite (HahnRelationsBasic.immediate Execution.sb) in rw2_rmw.  ? *)
-      admit. }
+     { 
+       (* ? how to easily get plain sb from it ? *)
+       (* unfold Relations.clos_trans. *)
+       (* ? incorrect: rewrite (HahnRelationsBasic.immediate Execution.sb) in rw2_rmw.  ? *)
+       assert (rmw_hb: rmw <<= hb).
+       {unfold imm_s_hb.hb. rewrite WF.(wf_rmwi).
+        apply WF.(wf_rmwi) in rw2_rmw.
+        rewrite <- (inclusion_union_r1) with (r:=sb) (r':=sw).
+        basic_solver. 
+       }
+       basic_solver. 
+     }
      red. right. red. left.
      (* unfold union.  *)
      assert (co_opt_rf_in_eco: (co^? ;; rf) <<= (rf ∪ co ⨾ rf^?)).
