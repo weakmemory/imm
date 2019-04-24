@@ -112,86 +112,86 @@ Proof.
   rewrite !seqA. (* ? exclamation ? *) (* use associativity *)
   rewrite <- id_inter.          (* intersect (why only last ?) *)
   rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *)
-  intros w_cur w_next T.                   (* ? where are they coming from ? *)
-  destruct T as [w_cur_next_co w_next_succs_cur]. (* ? how 'immediate' is being destructed ? *)
+  intros w1 w2 T.                   (* ? where are they coming from ? *)
+  destruct T as [w1_co_w2 w2_succs_w1]. (* ? how 'immediate' is being destructed ? *)
   (* now the goal is to show rf;sb between cur and next *)
-  apply seq_eqv_l in w_cur_next_co. destruct w_cur_next_co as [w_cur_is_SC w_cur_next_co].
-  apply seq_eqv_r in w_cur_next_co. destruct w_cur_next_co as [w_cur_next_co w_next_by_rmw].
+  apply seq_eqv_l in w1_co_w2. destruct w1_co_w2 as [w1_is_SC w1_co_w2].
+  apply seq_eqv_r in w1_co_w2. destruct w1_co_w2 as [w1_co_w2 w2_by_rmw].
   (* ? implicit relation argument ? *)
-  destruct w_next_by_rmw as [r_next rw_next_rmw].
+  destruct w2_by_rmw as [r2 rw2_rmw].
   apply seq_eqv_l.
-  split; (* subgoal is is_sc lab w_cur *)
+  split; (* subgoal is is_sc lab w1 *)
     auto.
-  assert (Sc r_next) as r_next_is_SC.    (* not used ?  *)
-  { apply RMW_always_sc in rw_next_rmw. generalize rw_next_rmw. basic_solver. }
+  assert (Sc r2) as r2_is_SC.    (* not used ?  *)
+  { apply RMW_always_sc in rw2_rmw. generalize rw2_rmw. basic_solver. }
 
-  assert (E r_next) as EZ.      (* ? why ever prove that events belong to graph ? *)
+  assert (E r2) as EZ.      (* ? why ever prove that events belong to graph ? *)
   { (* ? why E is introduced only at left ? *)
-    apply (dom_l WF.(wf_rmwE)) in rw_next_rmw.
-    generalize rw_next_rmw.
+    apply (dom_l WF.(wf_rmwE)) in rw2_rmw.
+    generalize rw2_rmw.
     basic_solver.               (* ? works only with goal like X->Y ? *)
   }
-  assert (R r_next) as r_next_is_read.
-  { apply (dom_l WF.(wf_rmwD)) in rw_next_rmw.
-    generalize rw_next_rmw. type_solver. }
+  assert (R r2) as r2_is_read.
+  { apply (dom_l WF.(wf_rmwD)) in rw2_rmw.
+    generalize rw2_rmw. type_solver. }
 
-  (* goal: rf;SC;po between w_cur and w_next *)
-  exists r_next.                (* ? where substitution is being done ? *)
-  (* ? r_next is inserted between writes ? *)
-  (* goal is transformed to rf to r_next and po from r_next*)
+  (* goal: rf;SC;po between w1 and w2 *)
+  exists r2.                (* ? where substitution is being done ? *)
+  (* ? r2 is inserted between writes ? *)
+  (* goal is transformed to rf to r2 and po from r2*)
   split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
 
-  (* introduce the write that r_next reads from *)
-  assert (exists v, rf v r_next) as [w_of_r_next RF].
+  (* introduce the write that r2 reads from *)
+  assert (exists v, rf v r2) as [w' RF].
   { apply IPC. split; auto. }
-  assert (E w_of_r_next) as EV. 
+  assert (E w') as EV. 
   { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
-  assert (W w_of_r_next) as w_of_r_next_is_write. 
+  assert (W w') as w'_is_write. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
 
-  destruct (classic (w_cur = w_of_r_next)) as [|NEQ]; desf. 
+  destruct (classic (w1 = w')) as [|NEQ]; desf. 
   (* ? Was original case processed ? *)
-  (* now show contradiction with w_cur != w_of_r_next *)
+  (* now show contradiction with w1 != w' *)
   
-  set (w_of_r_next_at_l := w_of_r_next_is_write).
-  apply is_w_loc in w_of_r_next_at_l. desf. 
+  set (w'_at_l := w'_is_write).
+  apply is_w_loc in w'_at_l. desf. 
   
-  assert (loc r_next = Some l) as r_next_at_l.
-  { rewrite <- w_of_r_next_at_l. symmetry.
+  assert (loc r2 = Some l) as r2_at_l.
+  { rewrite <- w'_at_l. symmetry.
     apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
 
-  assert (writes_co: co w_of_r_next w_cur \/ co w_cur w_of_r_next).
+  assert (writes_co: co w' w1 \/ co w1 w').
   (* proposed proof is MUCH shorter, should understand where simplification is done *)
   { (* ? see wf_co_total def: where is the second condition needed by is_total ? *)
     eapply WF.(wf_co_total). (* ; eauto.  *)
-    (* prove that w_of_r_next satisfies condition in wf_co_total *)
+    (* prove that w' satisfies condition in wf_co_total *)
     (* namely, it is a graph event, a write and accesses some location *)
     - split.                    (* first two *)
       + split.                  (* split further *)
         * apply EV.
-        * apply w_of_r_next_is_write.
-      + apply w_of_r_next_at_l. (* give a witness for location *)
+        * apply w'_is_write.
+      + apply w'_at_l. (* give a witness for location *)
     - split.                    (* same *)
       + split.
-        * apply (WF.(wf_coE)) in w_cur_next_co.
-          generalize w_cur_next_co. basic_solver.
-        * apply (WF.(wf_coD)) in w_cur_next_co.
-          generalize w_cur_next_co. basic_solver.
-      + apply (WF.(wf_col)) in w_cur_next_co. (* ? check how \subset is rewritten ? *)
-        rewrite <- r_next_at_l.
+        * apply (WF.(wf_coE)) in w1_co_w2.
+          generalize w1_co_w2. basic_solver.
+        * apply (WF.(wf_coD)) in w1_co_w2.
+          generalize w1_co_w2. basic_solver.
+      + apply (WF.(wf_col)) in w1_co_w2. (* ? check how \subset is rewritten ? *)
+        rewrite <- r2_at_l.
         (* ? cannot unfold same_loc ? *)
-        apply (WF.(wf_rmwl)) in rw_next_rmw.
-        apply same_loc_sym in rw_next_rmw. 
-        apply (same_loc_trans w_cur_next_co rw_next_rmw). 
+        apply (WF.(wf_rmwl)) in rw2_rmw.
+        apply same_loc_sym in rw2_rmw. 
+        apply (same_loc_trans w1_co_w2 rw2_rmw). 
     - auto. 
   }
   
   cdes IPC. cdes IC.
-  destruct writes_co as [w_of_r_next_co_before | w_of_r_next_co_after].
+  destruct writes_co as [w'_co_before | w'_co_after].
   (* ? unable to set 1:, 2: ? *)
-  2: { (* w_cur before w_of_r_next *)
+  2: { (* w1 before w' *)
     (* cycle: hb_loc(@l), (co)^*, rf *)
     (* show hb_loc *)
     (* appeal to coherence *)
@@ -203,10 +203,10 @@ Proof.
     (* { admit. } *)
     (* assert (irr_co_hb: irreflexive (co ;; hb)). *)
     (* { admit. } *)
-    (* (* w_of_r_next is either w_next or after it *) *)
-    (* destruct (classic (w_of_r_next = w_next)) *)
-    (*   as [w_of_r_next_same | w_of_r_next_other](* ; auto.  *). (* ? *) *)
-    (* 2: { assert (w_of_r_next_co_after_w_next: co w_next w_of_r_next). *)
+    (* (* w' is either w2 or after it *) *)
+    (* destruct (classic (w' = w2)) *)
+    (*   as [w'_same | w'_other](* ; auto.  *). (* ? *) *)
+    (* 2: { assert (w'_co_after_w2: co w2 w'). *)
     (*      { admit. }    (* ? use classic again or call solver ? *) *)
     (*      (* now we can show a cycle with co *) *)
     (*      admit. *)
@@ -214,13 +214,13 @@ Proof.
     (* (* here we can show a cycle without co *) *)
     (* admit. *)
   }
-  (* w_of_r_next is before w_cur - it contradicts RMW atomicity *)
+  (* w' is before w1 - it contradicts RMW atomicity *)
 
   exfalso. (* will give a counterexample to RMW_ATOM *)
   eapply atomicity_alt; eauto.
   { by apply coherence_sc_per_loc. }
   split; eauto.
-  exists w_cur.
+  exists w1.
   split; auto.
   red. basic_solver.
 Admitted.
