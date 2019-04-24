@@ -112,7 +112,10 @@ Proof.
   rewrite !seqA. (* ? exclamation ? *) (* use associativity *)
   rewrite <- id_inter.          (* intersect (why only last ?) *)
   rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *)
-  intros w1 w2 T.                   (* ? where are they coming from ? *)
+  (* w1 and w2 are co-immediate writes, r2 is w2-rmw-corresponding read  *)
+  (* we want to show "rf w1 r2" *)
+  (* later, we'll show a contradiction for "rf w' r2", where w' != w1 *)
+  intros w1 w2 T.
   destruct T as [w1_co_w2 w2_succs_w1]. (* ? how 'immediate' is being destructed ? *)
   (* now the goal is to show rf;sb between cur and next *)
   apply seq_eqv_l in w1_co_w2. destruct w1_co_w2 as [w1_is_SC w1_co_w2].
@@ -151,10 +154,9 @@ Proof.
   assert (W w') as w'_is_write. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
 
-  destruct (classic (w1 = w')) as [|NEQ]; desf. 
-  (* ? Was original case processed ? *)
-  (* now show contradiction with w1 != w' *)
+  destruct (classic (w1 = w')) as [|NEQ]; desf. (* eq processed by desf *)
   
+  (* now show contradiction with w1 != w' *)
   set (w'_at_l := w'_is_write).
   apply is_w_loc in w'_at_l. desf. 
   
@@ -187,36 +189,39 @@ Proof.
         apply (same_loc_trans w1_co_w2 rw2_rmw). 
     - auto. 
   }
-  
+
   cdes IPC. cdes IC.
-  destruct writes_co as [w'_co_before | w'_co_after].
-  (* ? unable to set 1:, 2: ? *)
-  2: { (* w1 before w' *)
-    (* cycle: hb_loc(@l), (co)^*, rf *)
-    (* show hb_loc *)
-    (* appeal to coherence *)
-    admit.
-
-    (* rewrite coherence_expanded_eq in Coh.  ? cannot find it ? *)
-    (* (* assert (Coh_exp: coherent_expanded G).  *) (* ? also fails ?*) *)
-    (* assert (irr_co_rf_hb: irreflexive (co ;; rf ;; hb)). *)
-    (* { admit. } *)
-    (* assert (irr_co_hb: irreflexive (co ;; hb)). *)
-    (* { admit. } *)
-    (* (* w' is either w2 or after it *) *)
-    (* destruct (classic (w' = w2)) *)
-    (*   as [w'_same | w'_other](* ; auto.  *). (* ? *) *)
-    (* 2: { assert (w'_co_after_w2: co w2 w'). *)
-    (*      { admit. }    (* ? use classic again or call solver ? *) *)
-    (*      (* now we can show a cycle with co *) *)
-    (*      admit. *)
-    (* } *)
-    (* (* here we can show a cycle without co *) *)
-    (* admit. *)
+  destruct writes_co as [w'_co_w1 | w1_co_w'].
+  2: { (* w1 before w', so w' is either w2 or its co-child *)
+    unfold coherence in Cint. unfold irreflexive in Cint.
+    (* unfold Execution_eco.eco in Cint. *)
+    exfalso. 
+    assert (r2_cycle: (hb ⨾ eco^?) r2 r2).
+    {red. unfold Execution_eco.eco.  exists w2.
+     split.
+     {unfold imm_s_hb.hb. apply WF.(wf_rmwi) in rw2_rmw.
+      (* ? how to easily get plain sb from it ? *)
+      (* ? incorrect: rewrite (HahnRelationsBasic.immediate Execution.sb) in rw2_rmw.  ? *)
+      admit. }
+     red. right. red. left.
+     (* unfold union.  *)
+     assert (co_opt_rf_in_eco: (co^? ;; rf) <<= (rf ∪ co ⨾ rf^?)).
+     {basic_solver 50. }
+     assert (w'_geq_w2: co^? w2 w').
+     {destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2].
+      - basic_solver.
+      - unfold clos_refl. right.
+        (* would write more generic lemma about co relating all three writes *)
+        admit.
+     }
+     apply (co_opt_rf_in_eco).
+     exists w'. auto. 
+    }
+    apply Cint in r2_cycle. auto. 
   }
-  (* w' is before w1 - it contradicts RMW atomicity *)
 
-  exfalso. (* will give a counterexample to RMW_ATOM *)
+  (* w' is before w1 - it contradicts RMW atomicity *)
+  exfalso.
   eapply atomicity_alt; eauto.
   { by apply coherence_sc_per_loc. }
   split; eauto.
