@@ -90,7 +90,7 @@ Proof.
        apply rewrite_trans; auto. }
   arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
   arewrite (Sc ⊆₁ Acq)      by mode_solver.
-  unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
+  unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.  
   rewrite !seqA.
   hahn_frame.
   rewrite (dom_l WF.(wf_rfD)) at 1.
@@ -163,9 +163,31 @@ Proof.
     apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
 
   assert (writes_co: co w_of_r_next w_cur \/ co w_cur w_of_r_next).
-  { eapply WF.(wf_co_total); eauto.
-    all: split; [split|]; eauto.
-    all: admit. }
+  (* proposed proof is MUCH shorter, should understand where simplification is done *)
+  { (* ? see wf_co_total def: where is the second condition needed by is_total ? *)
+    eapply WF.(wf_co_total). (* ; eauto.  *)
+    (* prove that w_of_r_next satisfies condition in wf_co_total *)
+    (* namely, it is a graph event, a write and accesses some location *)
+    - split.                    (* first two *)
+      + split.                  (* split further *)
+        * apply EV.
+        * apply w_of_r_next_is_write.
+      + apply w_of_r_next_at_l. (* give a witness for location *)
+    - split.                    (* same *)
+      + split.
+        * apply (WF.(wf_coE)) in w_cur_next_co.
+          generalize w_cur_next_co. basic_solver.
+        * apply (WF.(wf_coD)) in w_cur_next_co.
+          generalize w_cur_next_co. basic_solver.
+      + apply (WF.(wf_col)) in w_cur_next_co. (* ? check how \subset is rewritten ? *)
+        rewrite <- r_next_at_l.
+        (* ? cannot unfold same_loc ? *)
+        apply (WF.(wf_rmwl)) in rw_next_rmw.
+        apply same_loc_sym in rw_next_rmw. 
+        apply (same_loc_trans w_cur_next_co rw_next_rmw). 
+    - auto. 
+  }
+  
   cdes IPC. cdes IC.
   destruct writes_co as [w_of_r_next_co_before | w_of_r_next_co_after].
   (* ? unable to set 1:, 2: ? *)
