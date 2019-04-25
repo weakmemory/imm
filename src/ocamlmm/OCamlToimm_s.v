@@ -172,10 +172,48 @@ Proof.
   assert (loc r2 = Some l) as LOCR2.
   { rewrite <- GG. symmetry.
     apply wf_rfl; auto. }
+
+  assert (same_loc_w1_w': same_loc w1 w').
+  { red. rewrite GG. rewrite <- LOCR2.
+    apply WF.(wf_col) in co_rmw_w1_w2. red in co_rmw_w1_w2.
+    apply WF.(wf_rmwl) in rw_r2_w2. red in rw_r2_w2.
+    symmetry in rw_r2_w2.
+    apply (same_loc_trans co_rmw_w1_w2 rw_r2_w2).
+  }
   
   destruct (classic (Init w')) as [INIT|NINIT].
   { (* show a cycle: r2 -hb- w2 *)
-    admit. }
+    assert (co_w'_w1: co w' w1).
+    {specialize (init_begins_co WF IPC).
+     intros H. apply H with (l:=l). split.
+     - split; auto. split; auto. split; auto.
+     - split; auto.
+       + split.
+         2: {apply WF.(wf_coD) in co_rmw_w1_w2.
+             generalize co_rmw_w1_w2. basic_solver. }
+         split.
+         {apply WF.(wf_coE) in co_rmw_w1_w2.
+          generalize co_rmw_w1_w2. basic_solver. }
+         red in same_loc_w1_w'. rewrite same_loc_w1_w'.  auto. 
+       + destruct (classic (is_init w1)).
+         2: {auto. }
+         exfalso.
+         assert (same_inits: w1 = w').
+         {apply (init_same_loc WF); auto.  }
+         auto.
+    }
+    exfalso.
+    assert (atom: rmw ∩ (fr ⨾ co) ⊆ ∅₂). (* ? is there a way to not duplicate? *)
+    { apply atomicity_alt; auto.
+      all: cdes IPC; cdes IC; auto. 
+      apply coherence_sc_per_loc in Cint. auto.
+    }
+    red in atom. apply (atom r2 w2). split; auto. 
+    red. exists w1. split.
+    - red. basic_solver.
+    - auto.
+  }
+
   assert (Sc w') as SCW'.
   { specialize (LSM l).
     destruct LSM as [CC|CC].
@@ -200,10 +238,7 @@ Proof.
 
   eapply wf_co_total in NEQ; eauto.
   3: { split; [split|]; auto. }
-  2: { split; [split|]; auto.
-       rewrite GG, <- LOCR2.
-       arewrite (loc r2 = loc w2) by (by apply WF.(wf_rmwl)).
-       apply WF.(wf_col); auto. }
+  2: { split; [split|]; auto. }
   
   cdes IPC. cdes IC.
   assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc).
@@ -221,8 +256,8 @@ Proof.
   2: { eexists; eauto. }
   apply rf_rmw_in_co; auto.
   eexists. eauto.
-Admitted.
-
+Qed. 
+  
 Lemma s_imm_consistentimplies_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
