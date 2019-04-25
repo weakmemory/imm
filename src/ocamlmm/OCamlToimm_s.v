@@ -89,25 +89,26 @@ Proof.
   destruct w_props as [[[]]].   
   destruct w0_props as [[[]]].   
   destruct (classic (w0 = w)) as [WEQ|WNEQ].
-  - exfalso. rewrite WEQ in H6. auto.
-  - eapply wf_co_total in WNEQ; eauto. 
-    3: { split; [split|];  auto. }
-    2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
-    destruct WNEQ as [co_w0_w | co_w_w0]; auto.
-    assert (sb_w0_w: sb w0 w).
-    {destruct w0.
-     - destruct w.
-       + exfalso. auto.
-       + unfold ext_sb; auto. unfold Execution.sb. basic_solver. 
-     - destruct w; exfalso; auto.     
-    }
-    exfalso.
-    cdes IPC. cdes IC. red in Cint. red in Cint. 
-    apply Cint with (x:=w0). red. exists w. split.    
-    assert (hb_w0_w: (sb ∪ sw)  w0 w). 
-    {basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
-    {red. basic_solver. }
-    red. right. red. red. left. red. right. basic_solver. 
+  {exfalso. rewrite WEQ in H6. auto. }
+  eapply wf_co_total in WNEQ; eauto. 
+  3: { split; [split|];  auto. }
+  2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
+  destruct WNEQ as [co_w0_w | co_w_w0]; auto.
+  assert (sb_w0_w: sb w0 w).
+  {destruct w0.
+   {destruct w.
+    {exfalso. auto. }
+    unfold ext_sb; auto. unfold Execution.sb. basic_solver.
+   }
+   destruct w; exfalso; auto.     
+  }
+  exfalso.
+  cdes IPC. cdes IC. red in Cint. red in Cint. 
+  apply Cint with (x:=w0). red. exists w. split.    
+  assert (hb_w0_w: (sb ∪ sw)  w0 w). 
+  {basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
+  {red. basic_solver. }
+  red. right. red. red. left. red. right. basic_solver. 
 Qed. 
          
 Lemma co_sc_in_hb (WF : Wf G) sc
