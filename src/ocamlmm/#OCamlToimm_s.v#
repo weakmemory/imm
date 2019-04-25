@@ -108,27 +108,27 @@ Proof.
   rewrite !seqA.
   rewrite <- id_inter.
   rewrite WSCRMW.
-  intros w1 w2 [co_rmw_w1_w2 imm_w1_w2].
-  apply seq_eqv_l in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [SCW1 co_rmw_w1_w2].
-  apply seq_eqv_r in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [co_rmw_w1_w2 RMWW2].
-  destruct RMWW2 as [r2 rw_r2_w2].  
+  intros x y [HH AA].
+  apply seq_eqv_l in HH. destruct HH as [SCX HH].
+  apply seq_eqv_r in HH. destruct HH as [HH RMWY].
+  destruct RMWY as [z ZY].
   apply seq_eqv_l. split; auto.
-  assert (Sc r2) as SCR2.
-  { apply RMWSC in rw_r2_w2. generalize rw_r2_w2. basic_solver. }
+  assert (Sc z) as SCZ.
+  { apply RMWSC in ZY. generalize ZY. basic_solver. }
 
-  assert (E r2) as ER2.
-  { apply (dom_l WF.(wf_rmwE)) in rw_r2_w2.
-    generalize rw_r2_w2. basic_solver. }
-  assert (R r2) as EW.
-  { apply (dom_l WF.(wf_rmwD)) in rw_r2_w2.
-    generalize rw_r2_w2. type_solver. }
+  assert (E z) as EZ.
+  { apply (dom_l WF.(wf_rmwE)) in ZY.
+    generalize ZY. basic_solver. }
+  assert (R z) as EW.
+  { apply (dom_l WF.(wf_rmwD)) in ZY.
+    generalize ZY. type_solver. }
 
-  exists r2. split.
+  exists z. split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
-  assert (exists v, rf v r2) as [v RF].
+  assert (exists v, rf v z) as [v RF].
   { apply IPC. split; auto. }
-  destruct (classic (w1 = v)) as [|NEQ]; desf.
+  destruct (classic (x = v)) as [|NEQ]; desf.
 
   assert (E v) as EV. 
   { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
@@ -138,7 +138,7 @@ Proof.
   set (GG := WV).
   apply is_w_loc in GG. desf.
   
-  assert (loc r2 = Some l) as LOCR2.
+  assert (loc z = Some l) as LOCZ.
   { rewrite <- GG. symmetry.
     apply wf_rfl; auto. }
   
@@ -149,9 +149,9 @@ Proof.
     destruct LSM as [CC|CC].
     2: { apply CC. split; auto. }
     exfalso.
-    assert (~ is_init r2) as NINITR2.
+    assert (~ is_init z) as NINITZ.
     { eapply read_or_fence_is_not_init; eauto. }
-    assert ((Loc_ l \₁ Init) r2) as DD.
+    assert ((Loc_ l \₁ Init) z) as DD.
     { split; auto. }
    apply CC in DD.
    destruct DD. desf. }
@@ -159,18 +159,18 @@ Proof.
   assert (codom_rel rmw v) as RMWV.
   { apply WSCRMW. split; auto. }
 
-  assert (E w1) as EW1.
-  { apply (dom_l WF.(wf_coE)) in co_rmw_w1_w2.
-    generalize co_rmw_w1_w2. basic_solver. }
-  assert (W w1) as WW1.
-  { apply (dom_l WF.(wf_coD)) in co_rmw_w1_w2.
-    generalize co_rmw_w1_w2. basic_solver. }
+  assert (E x) as EX.
+  { apply (dom_l WF.(wf_coE)) in HH.
+    generalize HH. basic_solver. }
+  assert (W x) as WX.
+  { apply (dom_l WF.(wf_coD)) in HH.
+    generalize HH. basic_solver. }
 
   eapply wf_co_total in NEQ; eauto.
   3: { split; [split|]; auto. }
   2: { split; [split|]; auto.
-       rewrite GG, <- LOCR2.
-       arewrite (loc r2 = loc w2) by (by apply WF.(wf_rmwl)).
+       rewrite GG, <- LOCZ.
+       arewrite (loc z = loc y) by (by apply WF.(wf_rmwl)).
        apply WF.(wf_col); auto. }
 
   cdes IPC. cdes IC.
@@ -181,7 +181,7 @@ Proof.
   2: { eapply atomicity_alt; eauto.
        split; eauto.
        do 2 (eexists; split; eauto). }
-  apply imm_w1_w2 with (c:=v).
+  apply AA with (c:=v).
   { apply seq_eqv_l. split; auto.
     apply seq_eqv_r. split; auto. }
   apply seq_eqv_l. split; auto.
