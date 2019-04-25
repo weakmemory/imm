@@ -72,7 +72,9 @@ Notation "'Init'" := (fun a => is_true (is_init a)).
 
 Hypothesis LocSameMode : forall l,
     << LM : Loc_ l \₁ Init  ⊆₁ Rlx \₁ Sc >> \/
-    << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
+            << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
+
+Hypothesis LocSameMode': forall l, (forall e, E e -> loc e = Some l -> ~ is_init e -> is_sc lab e) \/ (forall e, E e -> loc e = Some l  ->  ~ is_init e -> ~ is_sc lab e). 
 
 Hypothesis Wsc_is_succ_RMW : W∩₁Sc ≡₁ codom_rel rmw.
 Hypothesis RMW_always_sc  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
@@ -80,23 +82,16 @@ Hypothesis RMW_always_sc  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
 Hypothesis Wrlx_succs_Facqrel : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
 Hypothesis Rsc_succs_Facq : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
-(* Lemma no_co_to_init' (WF: Wf G) *)
-(*       sc *)
-(*       (IPC : imm_s.imm_psc_consistent G sc) : *)
-(*   co ⊆ co ⨾  ⦗fun x => ~ is_init x⦘. *)
+(* Lemma rf_same_sc_type  (WF : Wf G) sc *)
+(*       (IPC : imm_s.imm_psc_consistent G sc): *)
+(*   forall w r, rf w r -> E w -> E r -> (is_sc lab w <-> is_sc lab r). *)
 (* Proof. *)
-(* rewrite wf_coE at 1; try done. *)
-(* unfolder; ins; splits; auto; desf; intro. *)
-(* cdes IPC. cdes IC. apply coherence_sc_per_loc in Cint.  *)
-(* eapply SC_PER_LOC; exists x; splits; [|eby apply co_in_eco]. *)
-(* unfold Execution.sb; unfolder; splits; try done. *)
-(* cut (~ is_init x). *)
-(* by destruct x, y; ins. *)
-(* intro. *)
-(* assert (x=y). *)
-(* eby apply (loceq_co WF) in H0; eapply init_same_loc. *)
-(* eby subst; eapply (co_irr WF). *)
-(* Qed. *)
+(*   intros w r H. *)
+(*   split. *)
+(*   - intros H'. edestruct LocSameMode'; auto.  *)
+(*     + auto.  *)
+                                        
+  
 
 
 Lemma rf_sb_on_SC_in_hb (WF : Wf G) sc
@@ -234,29 +229,60 @@ Proof.
      assert (co_opt_rf_in_eco: (co^? ;; rf) <<= (rf ∪ co ⨾ rf^?)).
      {basic_solver 50. }
      assert (w'_geq_w2: co^? w2 w').
-     {destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2].
-      - basic_solver.
-      - unfold clos_refl. right.
-        assert (co': co w2 w' \/ co w' w2).
-        {eapply WF.(wf_co_total); eauto.
-         - split; auto. split; auto.
-         - split. 
-           + split; auto.
-           + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2.
-             apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).             
-        }
-        destruct co'.
-        + auto.
-        + destruct (classic (is_sc lab w')) as [w'_SC | w'_RLX].
-          * exfalso. apply w2_succs_w1 with (c:=w'); basic_solver.
-          * (* exfalso. apply w2_succs_w1 with (c:=w').  *)
-            (* all: apply seq_eqv_lr; splits; auto. *)
-            (* apply no_co_to_init in w1_co_w'.  *)
-            (* apply seq_eqv_r in w1_co_w'. destruct w1_co_w'. *)
-            (* destruct LocSameMode with (l:=l). *)
-            (* ++ red in H2. simpl in H2. apply H2 in H1.  *)
-            {admit. }
+     { destruct (classic (is_init w')) as [w'_INIT | w'_NINIT].
+       - exfalso. apply no_co_to_init in w1_co_w'; auto.
+         + apply seq_eqv_r in w1_co_w'. destruct w1_co_w'. auto.
+         + apply coherence_sc_per_loc. auto.
+       - assert (w'_SC: is_sc lab w').
+         {admit. }
+         exfalso. 
+         apply w2_succs_w1 with (c:=w').
+         all: apply seq_eqv_lr; split; auto.
+         split; auto. 
+         destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2].
+         + exfalso. apply Cint with (x:=r2).
+           red. exists w2. split.
+           * apply WF.(wf_rmwi) in rw2_rmw.
+             admit.
+           * red. right. red. basic_solver.
+         + assert (co': co w2 w' \/ co w' w2).
+           {eapply WF.(wf_co_total); eauto.
+            - split; auto. split; auto.
+            - split. 
+              + split; auto.
+              + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2.
+                apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).             
+           }
+           destruct co'; admit. 
      }
+
+
+     (* {destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2]. *)
+     (*  - basic_solver. *)
+     (*  - unfold clos_refl. right. *)
+     (*    assert (co': co w2 w' \/ co w' w2). *)
+     (*    {eapply WF.(wf_co_total); eauto. *)
+     (*     - split; auto. split; auto. *)
+     (*     - split.  *)
+     (*       + split; auto. *)
+     (*       + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2. *)
+     (*         apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).              *)
+     (*    }         *)
+     (*    destruct co'. *)
+     (*    + auto. *)
+     (*    + destruct (classic (is_sc lab w')) as [w'_SC | w'_RLX]. *)
+     (*      * exfalso. apply w2_succs_w1 with (c:=w'); basic_solver. *)
+     (*      * exfalso. apply w2_succs_w1 with (c:=w'). *)
+     (*        all: apply seq_eqv_lr; splits; auto. *)
+     (*        apply no_co_to_init in w1_co_w'; auto. *)
+     (*        ++ destruct (classic (is_init w')). *)
+     (*           +++  *)
+     (*        (* apply seq_eqv_r in w1_co_w'. *) *)
+     (*        (* ++ admit. *) *)
+     (*        (* all: auto. *) *)
+            
+               
+     (* } *)
      apply (co_opt_rf_in_eco).
      exists w'. auto. 
     }
@@ -271,7 +297,7 @@ Proof.
   exists w1.
   split; auto.
   red. basic_solver.
-Qed.   
+Admitted. 
 
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
