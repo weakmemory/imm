@@ -80,6 +80,36 @@ Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
 Hypothesis RSCF : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
+Lemma init_begins_co (WF : Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  forall l, (E ∩₁ Loc_ l ∩₁ W ∩₁ Init) × ((E ∩₁ Loc_ l ∩₁ W) \₁ Init) ⊆ co.
+Proof.
+  intros l. intros w0 w [w0_props w_props].
+  (* how to write these properly? *)
+  destruct w_props as [[[]]].   
+  destruct w0_props as [[[]]].   
+  destruct (classic (w0 = w)) as [WEQ|WNEQ].
+  - exfalso. rewrite WEQ in H6. auto.
+  - eapply wf_co_total in WNEQ; eauto. 
+    3: { split; [split|];  auto. }
+    2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
+    destruct WNEQ as [co_w0_w | co_w_w0]; auto.
+    assert (sb_w0_w: sb w0 w).
+    {destruct w0.
+     - destruct w.
+       + exfalso. auto.
+       + unfold ext_sb; auto. unfold Execution.sb. basic_solver. 
+     - destruct w; exfalso; auto.     
+    }
+    exfalso.
+    cdes IPC. cdes IC. red in Cint. red in Cint. 
+    apply Cint with (x:=w0). red. exists w. split.    
+    assert (hb_w0_w: (sb ∪ sw)  w0 w). 
+    {basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
+    {red. basic_solver. }
+    red. right. red. red. left. red. right. basic_solver. 
+Qed. 
+         
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
@@ -126,25 +156,26 @@ Proof.
   exists r2. split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
-  assert (exists v, rf v r2) as [v RF].
+  assert (exists w', rf w' r2) as [w' RF].
   { apply IPC. split; auto. }
-  destruct (classic (w1 = v)) as [|NEQ]; desf.
+  destruct (classic (w1 = w')) as [|NEQ]; desf.
 
-  assert (E v) as EV. 
+  assert (E w') as EW'. 
   { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
-  assert (W v) as WV. 
+  assert (W w') as WW'. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
   
-  set (GG := WV).
+  set (GG := WW').
   apply is_w_loc in GG. desf.
   
   assert (loc r2 = Some l) as LOCR2.
   { rewrite <- GG. symmetry.
     apply wf_rfl; auto. }
   
-  destruct (classic (Init v)) as [INIT|NINIT].
-  { admit. }
-  assert (Sc v) as SCV.
+  destruct (classic (Init w')) as [INIT|NINIT].
+  { (* show a cycle: r2 -hb- w2 *)
+    admit. }
+  assert (Sc w') as SCW'.
   { specialize (LSM l).
     destruct LSM as [CC|CC].
     2: { apply CC. split; auto. }
@@ -153,10 +184,10 @@ Proof.
     { eapply read_or_fence_is_not_init; eauto. }
     assert ((Loc_ l \₁ Init) r2) as DD.
     { split; auto. }
-   apply CC in DD.
-   destruct DD. desf. }
+    apply CC in DD.
+    destruct DD. auto. (* ? desf *)  }   
 
-  assert (codom_rel rmw v) as RMWV.
+  assert (codom_rel rmw w') as RMWW'.
   { apply WSCRMW. split; auto. }
 
   assert (E w1) as EW1.
@@ -172,7 +203,7 @@ Proof.
        rewrite GG, <- LOCR2.
        arewrite (loc r2 = loc w2) by (by apply WF.(wf_rmwl)).
        apply WF.(wf_col); auto. }
-
+  
   cdes IPC. cdes IC.
   assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc).
   
@@ -181,7 +212,7 @@ Proof.
   2: { eapply atomicity_alt; eauto.
        split; eauto.
        do 2 (eexists; split; eauto). }
-  apply imm_w1_w2 with (c:=v).
+  apply imm_w1_w2 with (c:=w').
   { apply seq_eqv_l. split; auto.
     apply seq_eqv_r. split; auto. }
   apply seq_eqv_l. split; auto.
