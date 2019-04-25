@@ -89,25 +89,25 @@ Proof.
   destruct w_props as [[[]]].   
   destruct w0_props as [[[]]].   
   destruct (classic (w0 = w)) as [WEQ|WNEQ].
-  {exfalso. rewrite WEQ in H6. auto. }
+  { exfalso. rewrite WEQ in H6. auto. }
   eapply wf_co_total in WNEQ; eauto. 
   3: { split; [split|];  auto. }
   2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
   destruct WNEQ as [co_w0_w | co_w_w0]; auto.
   assert (sb_w0_w: sb w0 w).
-  {destruct w0.
-   {destruct w.
-    {exfalso. auto. }
-    unfold ext_sb; auto. unfold Execution.sb. basic_solver.
-   }
-   destruct w; exfalso; auto.     
+  { destruct w0.
+    { destruct w.
+      { exfalso. auto. }
+      unfold ext_sb; auto. unfold Execution.sb. basic_solver.
+    }
+    destruct w; exfalso; auto.     
   }
   exfalso.
   cdes IPC. cdes IC. red in Cint. red in Cint. 
   apply Cint with (x:=w0). red. exists w. split.    
   assert (hb_w0_w: (sb ∪ sw)  w0 w). 
-  {basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
-  {red. basic_solver. }
+  { basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
+  { red. basic_solver. }
   red. right. red. red. left. red. right. basic_solver. 
 Qed. 
          
@@ -184,23 +184,23 @@ Proof.
   destruct (classic (Init w')) as [INIT|NINIT].
   { (* show a cycle: r2 -hb- w2 *)
     assert (co_w'_w1: co w' w1).
-    {specialize (init_begins_co WF IPC).
-     intros H. apply H with (l:=l). split.
-     - split; auto. split; auto. split; auto.
-     - split; auto.
-       + split.
-         2: {apply WF.(wf_coD) in co_rmw_w1_w2.
+    { specialize (init_begins_co WF IPC).
+      intros H. apply H with (l:=l). split.
+      { do 3 (split; auto). }
+      split; auto.
+      { split.
+        2: { apply WF.(wf_coD) in co_rmw_w1_w2.
              generalize co_rmw_w1_w2. basic_solver. }
-         split.
-         {apply WF.(wf_coE) in co_rmw_w1_w2.
+        split.
+        { apply WF.(wf_coE) in co_rmw_w1_w2.
           generalize co_rmw_w1_w2. basic_solver. }
-         red in same_loc_w1_w'. rewrite same_loc_w1_w'.  auto. 
-       + destruct (classic (is_init w1)).
-         2: {auto. }
-         exfalso.
-         assert (same_inits: w1 = w').
-         {apply (init_same_loc WF); auto.  }
-         auto.
+        red in same_loc_w1_w'. rewrite same_loc_w1_w'.  auto. }
+      destruct (classic (is_init w1)).
+      2: {auto. }
+      exfalso.
+      assert (same_inits: w1 = w').
+      { apply (init_same_loc WF); auto.  }
+      auto.
     }
     exfalso.
     assert (atom: rmw ∩ (fr ⨾ co) ⊆ ∅₂). (* ? is there a way to not duplicate? *)
