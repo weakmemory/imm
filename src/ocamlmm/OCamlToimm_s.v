@@ -70,264 +70,194 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'Init'" := (fun a => is_true (is_init a)).
 
-Hypothesis LocSameMode : forall l,
+Hypothesis LSM : forall l,
     << LM : Loc_ l \₁ Init  ⊆₁ Rlx \₁ Sc >> \/
-            << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
+    << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
 
-Hypothesis LocSameMode': forall l, (forall e, E e -> loc e = Some l -> ~ is_init e -> is_sc lab e) \/ (forall e, E e -> loc e = Some l  ->  ~ is_init e -> ~ is_sc lab e). 
+Hypothesis WSCRMW : W∩₁Sc ≡₁ codom_rel rmw.
+Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
-Hypothesis Wsc_is_succ_RMW : W∩₁Sc ≡₁ codom_rel rmw.
-Hypothesis RMW_always_sc  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
+Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
+Hypothesis RSCF : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
-Hypothesis Wrlx_succs_Facqrel : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
-Hypothesis Rsc_succs_Facq : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
-
-(* Lemma rf_same_sc_type  (WF : Wf G) sc *)
-(*       (IPC : imm_s.imm_psc_consistent G sc): *)
-(*   forall w r, rf w r -> E w -> E r -> (is_sc lab w <-> is_sc lab r). *)
-(* Proof. *)
-(*   intros w r H. *)
-(*   split. *)
-(*   - intros H'. edestruct LocSameMode'; auto.  *)
-(*     + auto.  *)
-                                        
-  
-
-
-Lemma rf_sb_on_SC_in_hb (WF : Wf G) sc
+Lemma init_begins_co (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb ⊆ hb.
+  forall l, (E ∩₁ Loc_ l ∩₁ W ∩₁ Init) × ((E ∩₁ Loc_ l ∩₁ W) \₁ Init) ⊆ co.
 Proof.
-  assert (transitive hb) as hb_is_transitive by apply hb_trans.  
-  arewrite (⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ⊆ sw).
-  2: { rewrite sw_in_hb, sb_in_hb.
-       apply rewrite_trans; auto. }
-  arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
-  arewrite (Sc ⊆₁ Acq)      by mode_solver.
-  unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.  
-  rewrite !seqA.
-  hahn_frame.
-  rewrite (dom_l WF.(wf_rfD)) at 1.
-  basic_solver 40.
-Qed.
-
-Lemma co_immediates_closure_in_hb (WF : Wf G) sc
-      (IPC : imm_s.imm_psc_consistent G sc) :
-  (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘))⁺ ⊆ hb.
-Proof.
-  assert (transitive hb) as hb_is_transitive by apply hb_trans.  
-  apply inclusion_t_ind; (* only show that single edge is in hb *)
-    auto. (* ';': run auto on all subgoals *) (* ? only _sub_ goals ? *)
-  (* prove that given relation belongs to a subset of hb *)
-  arewrite (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘) ⊆ ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb).
-  2: { eapply rf_sb_on_SC_in_hb; eauto. }
-  
-  (* rewrite (dom_r WF.(wf_coD)).  (* ? why only right part of co is extended ? *) *)
-  (* rewrite !seqA. (* ? exclamation ? *) (* use associativity *) *)
-  (* rewrite <- id_inter.          (* intersect (why only last ?) *) *)
-  (* rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *) *)
-
-  (* w1 and w2 are co-immediate writes, r2 is w2-rmw-corresponding read  *)
-  (* we want to show "rf w1 r2" *)
-  (* later, we'll show a contradiction for "rf w' r2", where w' != w1 *)  
-  intros w1 w2 T.
-  destruct T as [w1_co_w2 w2_succs_w1]. (* ? how 'immediate' is being destructed ? *)
-  apply seq_eqv_lr in w1_co_w2. destruct w1_co_w2 as [w1_SC [w1_co_w2 w2_SC]].
-  assert (w1_w2_writes: W w1 /\ W w2).
-  {apply (WF.(wf_coD)) in w1_co_w2. generalize w1_co_w2. basic_solver. } 
-  assert (w1_w2_events: E w1 /\ E w2).
-  {apply (WF.(wf_coE)) in w1_co_w2. generalize w1_co_w2. basic_solver. }
-  destruct w1_w2_writes as [w1_W w2_W]. destruct w1_w2_events as [w1_E w2_E].
-  (* now the goal is to show rf;sb between cur and next *)
-  (* apply seq_eqv_r in w1_co_w2. destruct w1_co_w2 as [w1_co_w2 w2_by_rmw]. *)
-  assert (w2_by_rmw: codom_rel rmw w2).
-  {apply Wsc_is_succ_RMW. basic_solver. }
-
-  (* ? implicit relation argument ? *)
-  destruct w2_by_rmw as [r2 rw2_rmw].
-  apply seq_eqv_l.
-  split; (* subgoal is is_sc lab w1 *)
-    auto.
-  assert (Sc r2) as r2_is_SC.    (* not used ?  *)
-  { apply RMW_always_sc in rw2_rmw. generalize rw2_rmw. basic_solver. }
-
-  assert (E r2) as EZ.      (* ? why ever prove that events belong to graph ? *)
-  { apply (dom_l WF.(wf_rmwE)) in rw2_rmw.
-    generalize rw2_rmw.
-    basic_solver. }
-  assert (R r2) as r2_is_read.
-  { apply (dom_l WF.(wf_rmwD)) in rw2_rmw.
-    generalize rw2_rmw. type_solver. }
-  exists r2.
-  split.
-  2: { apply seq_eqv_l. split; auto.
-       apply rmw_in_sb; auto. }
-
-  (* introduce the write that r2 reads from *)
-  assert (exists v, rf v r2) as [w' RF].
-  { apply IPC. split; auto. }
-  assert (E w') as w'_E. 
-  { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
-  assert (W w') as w'_W. 
-  { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
-  (* assert (Sc w') as w'_SC. *)
-  (* { apply WF.(wf_rfD) in RF. generalize RF.  } *)
-
-  destruct (classic (w1 = w')) as [|NEQ]; desf. (* eq processed by desf *)
-  
-  (* now show contradiction with w1 != w' *)
-  set (w'_at_l := w'_W).
-  apply is_w_loc in w'_at_l. desf. 
-  
-  assert (loc r2 = Some l) as r2_at_l.
-  { rewrite <- w'_at_l. symmetry.
-    apply wf_rfl; auto. }       (* ? when to use ; instead of . ? *)
-
-  assert (writes_co: co w' w1 \/ co w1 w').
-  (* proposed proof is MUCH shorter, should understand where simplification is done *)
-  { (* ? see wf_co_total def: where is the second condition needed by is_total ? *)
-    eapply WF.(wf_co_total). (* ; eauto.  *)
-    (* prove that w' satisfies condition in wf_co_total *)
-    (* namely, it is a graph event, a write and accesses some location *)
-    - split.                    (* first two *)
-      + split; auto.            (* split further *)
-      + apply w'_at_l. (* give a witness for location *)
-    - split.                    (* same *)
-      + split; auto. 
-      + apply (WF.(wf_col)) in w1_co_w2. (* ? check how \subset is rewritten ? *)
-        rewrite <- r2_at_l.
-        (* ? cannot unfold same_loc ? *)
-        apply (WF.(wf_rmwl)) in rw2_rmw.
-        apply same_loc_sym in rw2_rmw. 
-        apply (same_loc_trans w1_co_w2 rw2_rmw). 
-    - auto. 
-  }
-
-  cdes IPC. cdes IC.
-  destruct writes_co as [w'_co_w1 | w1_co_w'].
-  2: { (* w1 before w', so w' is either w2 or its co-child *)
-    unfold coherence in Cint. unfold irreflexive in Cint.
-    (* unfold Execution_eco.eco in Cint. *)
-    exfalso. 
-    assert (r2_cycle: (hb ⨾ eco^?) r2 r2).
-    {red. unfold Execution_eco.eco.  exists w2.
-     split.
-     { 
-       (* ? how to easily get plain sb from it ? *)
-       (* unfold Relations.clos_trans. *)
-       (* ? incorrect: rewrite (HahnRelationsBasic.immediate Execution.sb) in rw2_rmw.  ? *)
-       assert (rmw_hb: rmw <<= hb).
-       {unfold imm_s_hb.hb. rewrite WF.(wf_rmwi).
-        apply WF.(wf_rmwi) in rw2_rmw.
-        rewrite <- (inclusion_union_r1) with (r:=sb) (r':=sw).
-        basic_solver. 
-       }
-       basic_solver. 
-     }
-     red. right. red. left.
-     (* unfold union.  *)
-     assert (co_opt_rf_in_eco: (co^? ;; rf) <<= (rf ∪ co ⨾ rf^?)).
-     {basic_solver 50. }
-     assert (w'_geq_w2: co^? w2 w').
-     { destruct (classic (is_init w')) as [w'_INIT | w'_NINIT].
-       - exfalso. apply no_co_to_init in w1_co_w'; auto.
-         + apply seq_eqv_r in w1_co_w'. destruct w1_co_w'. auto.
-         + apply coherence_sc_per_loc. auto.
-       - assert (w'_SC: is_sc lab w').
-         {admit. }
-         exfalso. 
-         apply w2_succs_w1 with (c:=w').
-         all: apply seq_eqv_lr; split; auto.
-         split; auto. 
-         destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2].
-         + exfalso. apply Cint with (x:=r2).
-           red. exists w2. split.
-           * apply WF.(wf_rmwi) in rw2_rmw.
-             admit.
-           * red. right. red. basic_solver.
-         + assert (co': co w2 w' \/ co w' w2).
-           {eapply WF.(wf_co_total); eauto.
-            - split; auto. split; auto.
-            - split. 
-              + split; auto.
-              + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2.
-                apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).             
-           }
-           destruct co'; admit. 
-     }
-
-
-     (* {destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2]. *)
-     (*  - basic_solver. *)
-     (*  - unfold clos_refl. right. *)
-     (*    assert (co': co w2 w' \/ co w' w2). *)
-     (*    {eapply WF.(wf_co_total); eauto. *)
-     (*     - split; auto. split; auto. *)
-     (*     - split.  *)
-     (*       + split; auto. *)
-     (*       + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2. *)
-     (*         apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).              *)
-     (*    }         *)
-     (*    destruct co'. *)
-     (*    + auto. *)
-     (*    + destruct (classic (is_sc lab w')) as [w'_SC | w'_RLX]. *)
-     (*      * exfalso. apply w2_succs_w1 with (c:=w'); basic_solver. *)
-     (*      * exfalso. apply w2_succs_w1 with (c:=w'). *)
-     (*        all: apply seq_eqv_lr; splits; auto. *)
-     (*        apply no_co_to_init in w1_co_w'; auto. *)
-     (*        ++ destruct (classic (is_init w')). *)
-     (*           +++  *)
-     (*        (* apply seq_eqv_r in w1_co_w'. *) *)
-     (*        (* ++ admit. *) *)
-     (*        (* all: auto. *) *)
-            
-               
-     (* } *)
-     apply (co_opt_rf_in_eco).
-     exists w'. auto. 
+  intros l. intros w0 w [w0_props w_props].
+  (* how to write these properly? *)
+  destruct w_props as [[[]]].   
+  destruct w0_props as [[[]]].   
+  destruct (classic (w0 = w)) as [WEQ|WNEQ].
+  { exfalso. rewrite WEQ in H6. auto. }
+  eapply wf_co_total in WNEQ; eauto. 
+  3: { split; [split|];  auto. }
+  2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
+  destruct WNEQ as [co_w0_w | co_w_w0]; auto.
+  assert (sb_w0_w: sb w0 w).
+  { destruct w0.
+    { destruct w.
+      { exfalso. auto. }
+      unfold ext_sb; auto. unfold Execution.sb. basic_solver.
     }
-    apply Cint in r2_cycle. auto. 
+    destruct w; exfalso; auto.     
   }
-
-  (* w' is before w1 - it contradicts RMW atomicity *)
   exfalso.
-  eapply atomicity_alt; eauto.
-  { by apply coherence_sc_per_loc. }
-  split; eauto.
-  exists w1.
-  split; auto.
-  red. basic_solver.
-Admitted. 
-
+  cdes IPC. cdes IC. red in Cint. red in Cint. 
+  apply Cint with (x:=w0). red. exists w. split.    
+  assert (hb_w0_w: (sb ∪ sw)  w0 w). 
+  { basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
+  { red. basic_solver. }
+  red. right. red. red. left. red. right. basic_solver. 
+Qed. 
+         
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
 Proof.
-  (* replace co chain with its immediate edges  *)
-  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ;; co ;; ⦗Sc⦘).
-  (* prove premises to this rewrite *)
-  (* 4: co is transitive *)
-  4: { generalize WF.(co_trans). (* ? just puts it into context ? *)
-       basic_solver. }           (* ? auto: the proof is focused ?  *)
-  (* 3: co is irreflexive; same as above *)
+  rewrite fsupp_imm_t with (r:=⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘).
+  4: { generalize WF.(co_trans). basic_solver. }
   3: { generalize WF.(co_irr). basic_solver. }
-  (* 2: has finite amount of predecessors *)
-  2: { (* ? replaces with more general hypothesis ? *)
-       arewrite (⦗Sc⦘ ;; co ;; ⦗Sc⦘ ⊆ co) by basic_solver.
-       rewrite WF.(wf_coE). unfold acts_set. (* ? fun+rel composition ? *)
-       red.                     (* ??? *)
-       ins.                     (* ~intros y *)
-       (* current goal: there exists a finite set containing all co-precs of y *)
-       eexists.                 (* ? '?findom' ? *)
-       basic_solver. }
-
-  (* prove initial statement with Sc;co;Sc replaced by immediates' closure *)
-  (* ? why it's easier ? *)
-  (* ? why we should specify exactly these arguments ? *)
-  eapply co_immediates_closure_in_hb; eauto.
-Qed.
+  2: { arewrite (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ co) by basic_solver.
+       rewrite WF.(wf_coE). unfold acts_set.
+       red. ins. eexists. basic_solver. }
   
- 
+  assert (transitive hb) as THB by apply hb_trans.
+  apply inclusion_t_ind; auto.
+  arewrite (immediate (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘) ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⨾ sb).
+  2: { arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
+       2: { rewrite sw_in_hb, sb_in_hb.
+            apply rewrite_trans; auto. }
+       arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
+       arewrite (Sc ⊆₁ Acq)      by mode_solver.
+       unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
+       rewrite !seqA.
+       hahn_frame.
+       rewrite (dom_l WF.(wf_rfD)) at 1.
+       basic_solver 40. }
+  rewrite (dom_r WF.(wf_coD)).
+  rewrite !seqA.
+  rewrite <- id_inter.
+  rewrite WSCRMW.
+  intros w1 w2 [co_rmw_w1_w2 imm_w1_w2].
+  apply seq_eqv_l in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [SCW1 co_rmw_w1_w2].
+  apply seq_eqv_r in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [co_rmw_w1_w2 RMWW2].
+  destruct RMWW2 as [r2 rw_r2_w2].  
+  apply seq_eqv_l. split; auto.
+  assert (Sc r2) as SCR2.
+  { apply RMWSC in rw_r2_w2. generalize rw_r2_w2. basic_solver. }
+
+  assert (E r2) as ER2.
+  { apply (dom_l WF.(wf_rmwE)) in rw_r2_w2.
+    generalize rw_r2_w2. basic_solver. }
+  assert (R r2) as EW.
+  { apply (dom_l WF.(wf_rmwD)) in rw_r2_w2.
+    generalize rw_r2_w2. type_solver. }
+
+  exists r2. split.
+  2: { apply seq_eqv_l. split; auto.
+       apply rmw_in_sb; auto. }
+  assert (exists w', rf w' r2) as [w' RF].
+  { apply IPC. split; auto. }
+  destruct (classic (w1 = w')) as [|NEQ]; desf.
+
+  assert (E w') as EW'. 
+  { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
+  assert (W w') as WW'. 
+  { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
+  
+  set (GG := WW').
+  apply is_w_loc in GG. desf.
+  
+  assert (loc r2 = Some l) as LOCR2.
+  { rewrite <- GG. symmetry.
+    apply wf_rfl; auto. }
+
+  assert (same_loc_w1_w': same_loc w1 w').
+  { red. rewrite GG. rewrite <- LOCR2.
+    apply WF.(wf_col) in co_rmw_w1_w2. red in co_rmw_w1_w2.
+    apply WF.(wf_rmwl) in rw_r2_w2. red in rw_r2_w2.
+    symmetry in rw_r2_w2.
+    apply (same_loc_trans co_rmw_w1_w2 rw_r2_w2).
+  }
+  
+  destruct (classic (Init w')) as [INIT|NINIT].
+  { (* show a cycle: r2 -hb- w2 *)
+    assert (co_w'_w1: co w' w1).
+    { specialize (init_begins_co WF IPC).
+      intros H. apply H with (l:=l). split.
+      { do 3 (split; auto). }
+      split; auto.
+      { split.
+        2: { apply WF.(wf_coD) in co_rmw_w1_w2.
+             generalize co_rmw_w1_w2. basic_solver. }
+        split.
+        { apply WF.(wf_coE) in co_rmw_w1_w2.
+          generalize co_rmw_w1_w2. basic_solver. }
+        red in same_loc_w1_w'. rewrite same_loc_w1_w'.  auto. }
+      destruct (classic (is_init w1)).
+      2: {auto. }
+      exfalso.
+      assert (same_inits: w1 = w').
+      { apply (init_same_loc WF); auto.  }
+      auto.
+    }
+    exfalso.
+    assert (atom: rmw ∩ (fr ⨾ co) ⊆ ∅₂). (* ? is there a way to not duplicate? *)
+    { apply atomicity_alt; auto.
+      all: cdes IPC; cdes IC; auto. 
+      apply coherence_sc_per_loc in Cint. auto.
+    }
+    red in atom. apply (atom r2 w2). split; auto. 
+    red. exists w1. split.
+    - red. basic_solver.
+    - auto.
+  }
+
+  assert (Sc w') as SCW'.
+  { specialize (LSM l).
+    destruct LSM as [CC|CC].
+    2: { apply CC. split; auto. }
+    exfalso.
+    assert (~ is_init r2) as NINITR2.
+    { eapply read_or_fence_is_not_init; eauto. }
+    assert ((Loc_ l \₁ Init) r2) as DD.
+    { split; auto. }
+    apply CC in DD.
+    destruct DD. auto. (* ? desf *)  }   
+
+  assert (codom_rel rmw w') as RMWW'.
+  { apply WSCRMW. split; auto. }
+
+  assert (E w1) as EW1.
+  { apply (dom_l WF.(wf_coE)) in co_rmw_w1_w2.
+    generalize co_rmw_w1_w2. basic_solver. }
+  assert (W w1) as WW1.
+  { apply (dom_l WF.(wf_coD)) in co_rmw_w1_w2.
+    generalize co_rmw_w1_w2. basic_solver. }
+
+  eapply wf_co_total in NEQ; eauto.
+  3: { split; [split|]; auto. }
+  2: { split; [split|]; auto. }
+  
+  cdes IPC. cdes IC.
+  assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc).
+  
+  exfalso.
+  destruct NEQ as [NEQ|NEQ].
+  2: { eapply atomicity_alt; eauto.
+       split; eauto.
+       do 2 (eexists; split; eauto). }
+  apply imm_w1_w2 with (c:=w').
+  { apply seq_eqv_l. split; auto.
+    apply seq_eqv_r. split; auto. }
+  apply seq_eqv_l. split; auto.
+  apply seq_eqv_r. split; auto.
+  2: { eexists; eauto. }
+  apply rf_rmw_in_co; auto.
+  eexists. eauto.
+Qed. 
+  
 Lemma s_imm_consistentimplies_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
