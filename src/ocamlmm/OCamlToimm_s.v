@@ -80,6 +80,25 @@ Hypothesis RMW_always_sc  : rmw ≡ ⦗Sc⦘ ;; rmw ;; ⦗Sc⦘.
 Hypothesis Wrlx_succs_Facqrel : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
 Hypothesis Rsc_succs_Facq : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
+(* Lemma no_co_to_init' (WF: Wf G) *)
+(*       sc *)
+(*       (IPC : imm_s.imm_psc_consistent G sc) : *)
+(*   co ⊆ co ⨾  ⦗fun x => ~ is_init x⦘. *)
+(* Proof. *)
+(* rewrite wf_coE at 1; try done. *)
+(* unfolder; ins; splits; auto; desf; intro. *)
+(* cdes IPC. cdes IC. apply coherence_sc_per_loc in Cint.  *)
+(* eapply SC_PER_LOC; exists x; splits; [|eby apply co_in_eco]. *)
+(* unfold Execution.sb; unfolder; splits; try done. *)
+(* cut (~ is_init x). *)
+(* by destruct x, y; ins. *)
+(* intro. *)
+(* assert (x=y). *)
+(* eby apply (loceq_co WF) in H0; eapply init_same_loc. *)
+(* eby subst; eapply (co_irr WF). *)
+(* Qed. *)
+
+
 Lemma rf_sb_on_SC_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb ⊆ hb.
@@ -108,18 +127,27 @@ Proof.
   arewrite (immediate (⦗Sc⦘ ;; co ;; ⦗Sc⦘) ⊆ ⦗Sc⦘ ;; rf ;; ⦗Sc⦘ ;; sb).
   2: { eapply rf_sb_on_SC_in_hb; eauto. }
   
-  rewrite (dom_r WF.(wf_coD)).  (* ? why only right part of co is extended ? *)
-  rewrite !seqA. (* ? exclamation ? *) (* use associativity *)
-  rewrite <- id_inter.          (* intersect (why only last ?) *)
-  rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *)
+  (* rewrite (dom_r WF.(wf_coD)).  (* ? why only right part of co is extended ? *) *)
+  (* rewrite !seqA. (* ? exclamation ? *) (* use associativity *) *)
+  (* rewrite <- id_inter.          (* intersect (why only last ?) *) *)
+  (* rewrite Wsc_is_succ_RMW.      (* treat Wsc as codom of rmw *) *)
+
   (* w1 and w2 are co-immediate writes, r2 is w2-rmw-corresponding read  *)
   (* we want to show "rf w1 r2" *)
-  (* later, we'll show a contradiction for "rf w' r2", where w' != w1 *)
+  (* later, we'll show a contradiction for "rf w' r2", where w' != w1 *)  
   intros w1 w2 T.
   destruct T as [w1_co_w2 w2_succs_w1]. (* ? how 'immediate' is being destructed ? *)
+  apply seq_eqv_lr in w1_co_w2. destruct w1_co_w2 as [w1_SC [w1_co_w2 w2_SC]].
+  assert (w1_w2_writes: W w1 /\ W w2).
+  {apply (WF.(wf_coD)) in w1_co_w2. generalize w1_co_w2. basic_solver. } 
+  assert (w1_w2_events: E w1 /\ E w2).
+  {apply (WF.(wf_coE)) in w1_co_w2. generalize w1_co_w2. basic_solver. }
+  destruct w1_w2_writes as [w1_W w2_W]. destruct w1_w2_events as [w1_E w2_E].
   (* now the goal is to show rf;sb between cur and next *)
-  apply seq_eqv_l in w1_co_w2. destruct w1_co_w2 as [w1_is_SC w1_co_w2].
-  apply seq_eqv_r in w1_co_w2. destruct w1_co_w2 as [w1_co_w2 w2_by_rmw].
+  (* apply seq_eqv_r in w1_co_w2. destruct w1_co_w2 as [w1_co_w2 w2_by_rmw]. *)
+  assert (w2_by_rmw: codom_rel rmw w2).
+  {apply Wsc_is_succ_RMW. basic_solver. }
+
   (* ? implicit relation argument ? *)
   destruct w2_by_rmw as [r2 rw2_rmw].
   apply seq_eqv_l.
@@ -129,19 +157,13 @@ Proof.
   { apply RMW_always_sc in rw2_rmw. generalize rw2_rmw. basic_solver. }
 
   assert (E r2) as EZ.      (* ? why ever prove that events belong to graph ? *)
-  { (* ? why E is introduced only at left ? *)
-    apply (dom_l WF.(wf_rmwE)) in rw2_rmw.
+  { apply (dom_l WF.(wf_rmwE)) in rw2_rmw.
     generalize rw2_rmw.
-    basic_solver.               (* ? works only with goal like X->Y ? *)
-  }
+    basic_solver. }
   assert (R r2) as r2_is_read.
   { apply (dom_l WF.(wf_rmwD)) in rw2_rmw.
     generalize rw2_rmw. type_solver. }
-
-  (* goal: rf;SC;po between w1 and w2 *)
-  exists r2.                (* ? where substitution is being done ? *)
-  (* ? r2 is inserted between writes ? *)
-  (* goal is transformed to rf to r2 and po from r2*)
+  exists r2.
   split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
@@ -149,15 +171,17 @@ Proof.
   (* introduce the write that r2 reads from *)
   assert (exists v, rf v r2) as [w' RF].
   { apply IPC. split; auto. }
-  assert (E w') as EV. 
+  assert (E w') as w'_E. 
   { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
-  assert (W w') as w'_is_write. 
+  assert (W w') as w'_W. 
   { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
+  (* assert (Sc w') as w'_SC. *)
+  (* { apply WF.(wf_rfD) in RF. generalize RF.  } *)
 
   destruct (classic (w1 = w')) as [|NEQ]; desf. (* eq processed by desf *)
   
   (* now show contradiction with w1 != w' *)
-  set (w'_at_l := w'_is_write).
+  set (w'_at_l := w'_W).
   apply is_w_loc in w'_at_l. desf. 
   
   assert (loc r2 = Some l) as r2_at_l.
@@ -171,16 +195,10 @@ Proof.
     (* prove that w' satisfies condition in wf_co_total *)
     (* namely, it is a graph event, a write and accesses some location *)
     - split.                    (* first two *)
-      + split.                  (* split further *)
-        * apply EV.
-        * apply w'_is_write.
+      + split; auto.            (* split further *)
       + apply w'_at_l. (* give a witness for location *)
     - split.                    (* same *)
-      + split.
-        * apply (WF.(wf_coE)) in w1_co_w2.
-          generalize w1_co_w2. basic_solver.
-        * apply (WF.(wf_coD)) in w1_co_w2.
-          generalize w1_co_w2. basic_solver.
+      + split; auto. 
       + apply (WF.(wf_col)) in w1_co_w2. (* ? check how \subset is rewritten ? *)
         rewrite <- r2_at_l.
         (* ? cannot unfold same_loc ? *)
@@ -219,8 +237,25 @@ Proof.
      {destruct (classic (w2 = w')) as [w'_eq_w2 | w'_neq_w2].
       - basic_solver.
       - unfold clos_refl. right.
-        (* would write more generic lemma about co relating all three writes *)
-        admit.
+        assert (co': co w2 w' \/ co w' w2).
+        {eapply WF.(wf_co_total); eauto.
+         - split; auto. split; auto.
+         - split. 
+           + split; auto.
+           + apply WF.(wf_col) in w1_co_w'. apply WF.(wf_col) in w1_co_w2.
+             apply same_loc_sym in w1_co_w'. apply (same_loc_trans w1_co_w' w1_co_w2).             
+        }
+        destruct co'.
+        + auto.
+        + destruct (classic (is_sc lab w')) as [w'_SC | w'_RLX].
+          * exfalso. apply w2_succs_w1 with (c:=w'); basic_solver.
+          * (* exfalso. apply w2_succs_w1 with (c:=w').  *)
+            (* all: apply seq_eqv_lr; splits; auto. *)
+            (* apply no_co_to_init in w1_co_w'.  *)
+            (* apply seq_eqv_r in w1_co_w'. destruct w1_co_w'. *)
+            (* destruct LocSameMode with (l:=l). *)
+            (* ++ red in H2. simpl in H2. apply H2 in H1.  *)
+            {admit. }
      }
      apply (co_opt_rf_in_eco).
      exists w'. auto. 
@@ -236,8 +271,7 @@ Proof.
   exists w1.
   split; auto.
   red. basic_solver.
-Admitted.
-  
+Qed.   
 
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
