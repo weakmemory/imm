@@ -106,10 +106,8 @@ Proof.
   }
   exfalso.
   cdes IPC. cdes IC. red in Cint. red in Cint. 
-  apply Cint with (x:=w0). red. exists w. split.    
-  assert (hb_w0_w: (sb ∪ sw)  w0 w). 
-  { basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
-  { red. basic_solver. }
+  apply Cint with (x:=w0). red. exists w. split.
+  { red. apply ct_step. basic_solver. }
   red. right. red. red. left. red. right. basic_solver. 
 Qed.
 
@@ -269,14 +267,11 @@ Proof.
    assert (dismiss_hbinit:
              ocaml_coherent G <->
              irreflexive ((sb ∪ (on_sc G (coe ∪ rf))) ;; (co ∪ fr))).
-   {admit. }
+   { admit. }
    apply dismiss_hbinit.
    assert (seq_dist_union_l: forall r1 r2 r3 : relation actid,
               (r1 ∪ r2) ;; r3 ≡ r1;;r3 ∪ r2;;r3).
-   {admit. }
-   assert (seq_dist_union_r: forall r1 r2 r3 : relation actid,
-              r1 ;; (r2 ∪ r3) ≡ r1;;r2 ∪ r1;;r3).
-   {admit. }
+   { basic_solver. }
    rewrite seq_dist_union_l. 
    red. intros x H.
    red in Cint. apply Cint with (x:=x). unfold Execution_eco.eco.
