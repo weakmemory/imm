@@ -44,7 +44,7 @@ Notation "'detour'" := G.(detour).
 Notation "'rs'" := G.(rs).
 Notation "'release'" := G.(release).
 Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(hb).
+Notation "'hb'" := G.(imm_s_hb.hb). (* ? clashes with OCaml's hb *)
 
 Notation "'ar_int'" := G.(ar_int).
 Notation "'ppo'" := G.(ppo).
@@ -69,6 +69,8 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'Init'" := (fun a => is_true (is_init a)).
+
+Notation "'hbo'" := G.(OCaml.hb).
 
 Hypothesis LSM : forall l,
     << LM : Loc_ l \₁ Init  ⊆₁ Rlx \₁ Sc >> \/
@@ -109,8 +111,8 @@ Proof.
   { basic_solver. } (* ? how to employ obvious r <<= r+ instead of this hack? *)
   { red. basic_solver. }
   red. right. red. red. left. red. right. basic_solver. 
-Qed. 
-         
+Qed.
+
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
@@ -266,7 +268,7 @@ Proof.
   red. splits; auto.
 
   rewrite co_in_eco.
-  2: rewrite fr_in_eco. 
+  2: rewrite fr_in_eco.
   1,2: by arewrite (eco ⊆ eco^?); apply Cint.
 
 Admitted.
