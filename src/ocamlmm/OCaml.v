@@ -21,11 +21,12 @@ Notation "'acts'" := G.(acts).
 Notation "'lab'" := G.(lab).
 Notation "'sb'" := G.(sb).
 Notation "'rf'" := G.(rf).
+Notation "'rfe'" := G.(rfe).
 Notation "'co'" := G.(co).
+Notation "'coe'" := G.(coe).
 Notation "'rmw'" := G.(rmw).
 Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'hb'" := G.(hb).
+Notation "'fre'" := G.(fre).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -43,12 +44,21 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** ** Consistency  *)
 (******************************************************************************)
 
+Definition on_sc rel := (<|Sc|>;;rel;;<|Sc|>). 
+
+Definition hbinit e0 e := 
+  match e0, e with 
+  | InitEvent _, ThreadEvent _ _ => True
+  | _, _ => False
+  end.
+Definition hb := hbinit ∪ sb ∪ (on_sc (coe ∪ rf)). (* see p. 6 *)
+
 Definition ocaml_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫ /\
-  ⟪ CoWW : irreflexive (hb ;; co) ⟫ /\
+  ⟪ CoWW : irreflexive (hb ;; co) ⟫ /\ (* see p. 6 *)
   ⟪ CoWR : irreflexive (hb ;; fr) ⟫ /\
-  ⟪ Coh : acyclic (sb ∪ <|Sc|> ;; (co ∪ fr) ;; <|Sc|> ∪ rf) ⟫.
+  ⟪ Caus : acyclic (sb ∪ (on_sc (co ∪ fr)) ∪ rf) ⟫. (* see expanded definition at p. 17 *)
 
 End OCamlMM.
 
