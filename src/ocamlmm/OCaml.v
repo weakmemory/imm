@@ -53,12 +53,14 @@ Definition hbinit e0 e :=
   end.
 Definition hb := hbinit ∪ sb ∪ (on_sc (coe ∪ rf)). (* see p. 6 *)
 
+Definition ocaml_causal := acyclic (sb ∪ (on_sc (co ∪ fr)) ∪ rf). (* see expanded definition at p. 17 *)
+Definition ocaml_coherent := irreflexive (hb ;; (co ∪ fr)). (* see p. 6 *)
+
 Definition ocaml_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫ /\
-  ⟪ CoWW : irreflexive (hb ;; co) ⟫ /\ (* see p. 6 *)
-  ⟪ CoWR : irreflexive (hb ;; fr) ⟫ /\
-  ⟪ Caus : acyclic (sb ∪ (on_sc (co ∪ fr)) ∪ rf) ⟫. (* see expanded definition at p. 17 *)
+  ocaml_coherent /\
+  ocaml_causal. 
 
 End OCamlMM.
 

@@ -260,16 +260,85 @@ Proof.
   eexists. eauto.
 Qed. 
   
+Lemma s_imm_consistentimplies_ocaml_coherent (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  ocaml_coherent G.
+Proof.
+   cdes IPC. cdes IC. red in Cint. 
+   red. unfold OCaml.hb.
+   assert (dismiss_hbinit:
+             ocaml_coherent G <->
+             irreflexive ((sb ∪ (on_sc G (coe ∪ rf))) ;; (co ∪ fr))).
+   {admit. }
+   apply dismiss_hbinit.
+   assert (seq_dist_union_l: forall r1 r2 r3 : relation actid,
+              (r1 ∪ r2) ;; r3 ≡ r1;;r3 ∪ r2;;r3).
+   {admit. }
+   assert (seq_dist_union_r: forall r1 r2 r3 : relation actid,
+              r1 ;; (r2 ∪ r3) ≡ r1;;r2 ∪ r1;;r3).
+   {admit. }
+   rewrite seq_dist_union_l. 
+   red. intros x H.
+   red in Cint. apply Cint with (x:=x). unfold Execution_eco.eco.
+   destruct H.
+   { destruct H as [y [sb_x_y eco'_y_x]].
+     apply sb_in_hb in sb_x_y. 
+     exists y. split; auto. red. right.
+     apply unionA.              (* ? why rewrite fails here ? *)
+     red. right. apply seq_dist_union_l. (* and here *)
+     basic_solver.
+   }
+   unfold on_sc in H. apply seqA in H.
+   apply seq_eqv_l in H.
+   destruct H as [SCx [y [hb'_x_y eco_y_x]]].
+   apply seq_eqv_r in hb'_x_y. destruct hb'_x_y as [hb'_x_y SCy]. 
+   assert (hb_x_y: hb x y). 
+   { red in hb'_x_y. destruct hb'_x_y as [coe_x_y | rf_x_y].
+     { apply inclusion_minus_rel in coe_x_y.
+       apply ((co_sc_in_hb WF IPC) x y). 
+       basic_solver.
+     }
+     red. unfold imm_s_hb.sw. apply ct_step. red. right.
+     exists x. split.
+     { red. unfold imm_s_hb.rs.
+       assert (REL_x: Rel x).
+       { unfold is_rel. unfold is_sc in SCx. basic_solver 100.  }
+       assert (W_x: W x).
+       { apply WF.(wf_rfD) in rf_x_y.
+         generalize rf_x_y. basic_solver.
+       }
+       assert (clos_refl_trans_opt: forall r r' : relation actid, r ⊆ r ⨾ clos_refl_trans r').
+       { intros r r'. basic_solver 50. }
+       (* ? how to simplify it ? *)
+       apply seq_eqv_l; split; auto. 
+       exists x. split; auto.
+       apply seq_eqv_l; split; auto. 
+       exists x. split; auto.
+       apply clos_refl_trans_opt. 
+       basic_solver. 
+     }
+     apply seqA. apply seq_eqv_r; split; auto. 
+     exists y. split; auto.
+     unfold is_acq. unfold is_sc in SCy. basic_solver 100. 
+   }
+   exists y. split; auto.
+   red. right. apply unionA. red. right.
+   apply seq_dist_union_l.
+   basic_solver. 
+Admitted.
+
+
 Lemma s_imm_consistentimplies_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
 Proof.
   cdes IPC. cdes IC.
   red. splits; auto.
-
-  rewrite co_in_eco.
-  2: rewrite fr_in_eco.
-  1,2: by arewrite (eco ⊆ eco^?); apply Cint.
+  (* 3: {apply (s_imm_consistentimplies_ocaml_causal WF IPC). }  *)
+  
+  (* rewrite co_in_eco. *)
+  (* 2: rewrite fr_in_eco. *)
+  (* 1,2: by arewrite (eco ⊆ eco^?); apply Cint. *)
 
 Admitted.
 
