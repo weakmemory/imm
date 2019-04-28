@@ -44,23 +44,14 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition on_sc rel := (<|Sc|>;;rel;;<|Sc|>). 
-
-Definition hbinit e0 e := 
-  match e0, e with 
-  | InitEvent _, ThreadEvent _ _ => True
-  | _, _ => False
-  end.
-Definition hb := hbinit ∪ sb ∪ (on_sc (coe ∪ rf)). (* see p. 6 *)
-
-Definition ocaml_causal := acyclic (sb ∪ (on_sc (co ∪ fr)) ∪ rf). (* see expanded definition at p. 17 *)
-Definition ocaml_coherent := irreflexive (hb ;; (co ∪ fr)). (* see p. 6 *)
+Definition hb := sb ∪ (<|Sc|> ;; (co ∪ rf) ;; <|Sc|>). (* see p. 6 *)
 
 Definition ocaml_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫ /\
-  ocaml_coherent /\
-  ocaml_causal. 
+  ⟪ CoWW : irreflexive (hb ;; co) ⟫ /\ (* see p. 6 *)
+  ⟪ CoWR : irreflexive (hb ;; fr) ⟫ /\
+  ⟪ Caus : acyclic (sb ∪ rfe ∪ (<|Sc|> ;; (coe ∪ fre) ;; <|Sc|>)) ⟫. (* see expanded definition at p. 17 *)
 
 End OCamlMM.
 
