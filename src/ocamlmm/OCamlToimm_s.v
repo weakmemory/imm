@@ -22,6 +22,8 @@ Section OCamlMM_TO_IMM_S.
 Variable G : execution.
 
 Notation "'E'" := G.(acts_set).
+Notation "'Einit'" := (E ∩₁ is_init).
+Notation "'Eninit'" := (E \₁ is_init).
 Notation "'sb'" := G.(sb).
 Notation "'rf'" := G.(rf).
 Notation "'co'" := G.(co).
@@ -68,48 +70,44 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
-Notation "'Init'" := (fun a => is_true (is_init a)).
 
-Notation "'hbo'" := G.(OCaml.hb).
+Notation "'ohb'" := G.(OCaml.hb).
 
 Hypothesis LSM : forall l,
-    << LM : Loc_ l \₁ Init  ⊆₁ Rlx \₁ Sc >> \/
-    << LM : Loc_ l \₁ Init  ⊆₁ Sc >>.
+    << LM : Loc_ l \₁ is_init  ⊆₁ Rlx \₁ Sc >> \/
+    << LM : Loc_ l \₁ is_init ⊆₁ Sc >>.
 
 Hypothesis WSCRMW : W∩₁Sc ≡₁ codom_rel rmw.
 Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
 Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
-Hypothesis RSCF : R∩₁Sc ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
+Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
-Lemma init_begins_co (WF : Wf G) sc
-      (IPC : imm_s.imm_psc_consistent G sc) :
-  forall l, (E ∩₁ Loc_ l ∩₁ W ∩₁ Init) × ((E ∩₁ Loc_ l ∩₁ W) \₁ Init) ⊆ co.
-Proof.
-  intros l. intros w0 w [w0_props w_props].
-  (* how to write these properly? *)
-  destruct w_props as [[[]]].   
-  destruct w0_props as [[[]]].   
-  destruct (classic (w0 = w)) as [WEQ|WNEQ].
-  { exfalso. rewrite WEQ in H6. auto. }
-  eapply wf_co_total in WNEQ; eauto. 
-  3: { split; [split|];  auto. }
-  2: { split; [split|]; auto. rewrite <- H0 in H4. auto. }
-  destruct WNEQ as [co_w0_w | co_w_w0]; auto.
-  assert (sb_w0_w: sb w0 w).
-  { destruct w0.
-    { destruct w.
-      { exfalso. auto. }
-      unfold ext_sb; auto. unfold Execution.sb. basic_solver.
-    }
-    destruct w; exfalso; auto.     
-  }
-  exfalso.
-  cdes IPC. cdes IC. red in Cint. red in Cint. 
-  apply Cint with (x:=w0). red. exists w. split.
-  { red. apply ct_step. basic_solver. }
-  red. right. red. red. left. red. right. basic_solver. 
-Qed.
+(* Lemma init_begins_co (WF : Wf G) sc *)
+(*       (IPC : imm_s.imm_psc_consistent G sc) : *)
+(*   forall l, (Einit ∩₁ Loc_ l ∩₁ W) × (Eninit ∩₁ Loc_ l ∩₁ W) ⊆ co. *)
+(* Proof. *)
+(*   intros l.  *)
+(*   unfolder. ins. desf. *)
+(*   eapply co_from_init; auto. *)
+(*   { apply coherence_sc_per_loc. apply IPC. } *)
+(*   unfolder. splits; desf. *)
+(*   { red. by rewrite H5. } *)
+(*   destruct (classic (x = y)) as [|NEQ]; desf. *)
+(* Qed. *)
+(*   intros l. *)
+(*   unfolder. ins. desf. *)
+(*   assert (sb x y) as SB by (by apply init_ninit_sb). *)
+(*   destruct (classic (x = y)) as [|NEQ]; desf. *)
+(*   eapply wf_co_total in NEQ; eauto.  *)
+(*   2,3: by unfolder; eauto. *)
+(*   desf. *)
+(*   exfalso. *)
+(*   cdes IPC. cdes IC. eapply Cint. *)
+(*   eexists. split. *)
+(*   { apply sb_in_hb; eauto. } *)
+(*   right. by apply co_in_eco. *)
+(* Qed. *)
 
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
@@ -123,6 +121,9 @@ Proof.
        red. ins. eexists. basic_solver. }
   
   assert (transitive hb) as THB by apply hb_trans.
+  assert (sc_per_loc G) as SPL.
+  { apply coherence_sc_per_loc. apply IPC. }
+           
   apply inclusion_t_ind; auto.
   arewrite (immediate (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘) ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⨾ sb).
   2: { arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
@@ -140,8 +141,10 @@ Proof.
   rewrite <- id_inter.
   rewrite WSCRMW.
   intros w1 w2 [co_rmw_w1_w2 imm_w1_w2].
-  apply seq_eqv_l in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [SCW1 co_rmw_w1_w2].
-  apply seq_eqv_r in co_rmw_w1_w2. destruct co_rmw_w1_w2 as [co_rmw_w1_w2 RMWW2].
+  apply seq_eqv_l in co_rmw_w1_w2.
+  destruct co_rmw_w1_w2 as [SCW1 co_rmw_w1_w2].
+  apply seq_eqv_r in co_rmw_w1_w2.
+  destruct co_rmw_w1_w2 as [co_rmw_w1_w2 RMWW2].
   destruct RMWW2 as [r2 rw_r2_w2].  
   apply seq_eqv_l. split; auto.
   assert (Sc r2) as SCR2.
@@ -178,41 +181,25 @@ Proof.
     apply WF.(wf_col) in co_rmw_w1_w2. red in co_rmw_w1_w2.
     apply WF.(wf_rmwl) in rw_r2_w2. red in rw_r2_w2.
     symmetry in rw_r2_w2.
-    apply (same_loc_trans co_rmw_w1_w2 rw_r2_w2).
-  }
+    apply (same_loc_trans co_rmw_w1_w2 rw_r2_w2). }
   
-  destruct (classic (Init w')) as [INIT|NINIT].
+  assert (E w1) as EW1.
+  { apply (dom_l WF.(wf_coE)) in co_rmw_w1_w2.
+    generalize co_rmw_w1_w2. basic_solver. }
+  assert (W w1) as WW1.
+  { apply (dom_l WF.(wf_coD)) in co_rmw_w1_w2.
+    generalize co_rmw_w1_w2. basic_solver. }
+  
+  destruct (classic (is_init w')) as [INIT|NINIT].
   { (* show a cycle: r2 -hb- w2 *)
-    assert (co_w'_w1: co w' w1).
-    { specialize (init_begins_co WF IPC).
-      intros H. apply H with (l:=l). split.
-      { do 3 (split; auto). }
-      split; auto.
-      { split.
-        2: { apply WF.(wf_coD) in co_rmw_w1_w2.
-             generalize co_rmw_w1_w2. basic_solver. }
-        split.
-        { apply WF.(wf_coE) in co_rmw_w1_w2.
-          generalize co_rmw_w1_w2. basic_solver. }
-        red in same_loc_w1_w'. rewrite same_loc_w1_w'.  auto. }
-      destruct (classic (is_init w1)).
-      2: {auto. }
-      exfalso.
-      assert (same_inits: w1 = w').
-      { apply (init_same_loc WF); auto.  }
-      auto.
-    }
+    assert (co w' w1) as CO.
+    { apply co_from_init; auto.
+      unfolder. splits; eauto; desf. }
     exfalso.
-    assert (atom: rmw ∩ (fr ⨾ co) ⊆ ∅₂). (* ? is there a way to not duplicate? *)
-    { apply atomicity_alt; auto.
-      all: cdes IPC; cdes IC; auto. 
-      apply coherence_sc_per_loc in Cint. auto.
-    }
-    red in atom. apply (atom r2 w2). split; auto. 
-    red. exists w1. split.
-    - red. basic_solver.
-    - auto.
-  }
+    eapply atomicity_alt; eauto.
+    { apply IPC. }
+    split; eauto.
+    do 2 (eexists; split; eauto). }
 
   assert (Sc w') as SCW'.
   { specialize (LSM l).
@@ -221,28 +208,16 @@ Proof.
     exfalso.
     assert (~ is_init r2) as NINITR2.
     { eapply read_or_fence_is_not_init; eauto. }
-    assert ((Loc_ l \₁ Init) r2) as DD.
-    { split; auto. }
-    apply CC in DD.
-    destruct DD. auto. (* ? desf *)  }   
+    assert ((Loc_ l \₁ is_init) r2) as DD by (by split).
+    apply CC in DD. by destruct DD.  }
 
   assert (codom_rel rmw w') as RMWW'.
-  { apply WSCRMW. split; auto. }
-
-  assert (E w1) as EW1.
-  { apply (dom_l WF.(wf_coE)) in co_rmw_w1_w2.
-    generalize co_rmw_w1_w2. basic_solver. }
-  assert (W w1) as WW1.
-  { apply (dom_l WF.(wf_coD)) in co_rmw_w1_w2.
-    generalize co_rmw_w1_w2. basic_solver. }
+  { apply WSCRMW. by split. }
 
   eapply wf_co_total in NEQ; eauto.
-  3: { split; [split|]; auto. }
-  2: { split; [split|]; auto. }
+  2,3: split; [split|]; auto.
   
   cdes IPC. cdes IC.
-  assert (sc_per_loc G) as SCPL by (by apply coherence_sc_per_loc).
-  
   exfalso.
   destruct NEQ as [NEQ|NEQ].
   2: { eapply atomicity_alt; eauto.
@@ -257,65 +232,81 @@ Proof.
   apply rf_rmw_in_co; auto.
   eexists. eauto.
 Qed. 
-  
-Lemma s_imm_consistentimplies_ocaml_coherent (WF: Wf G) sc
+
+Lemma ohb_in_hb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  irreflexive (hbo ;; (co ∪ fr)).
+  ohb ⊆ hb.
 Proof.
-  assert (hbo_in_hb: hbo ⊆ hb).
-  { unfold OCaml.hb.
-    (* ? why there are three goals after rewrite ? *)
-    rewrite inclusion_union_l with (r'':=hb); try basic_solver.
-    { unfold imm_s_hb.hb. (* ? how to access t_step here ? *)
-      rewrite <- inclusion_union_r1 with (r':=sw).
-      basic_solver. 
-    }
-    case_union co rf.
-    rewrite seq_union_r.
-    rewrite inclusion_union_l with (r'':=hb); try basic_solver.
-    { apply (co_sc_in_hb WF IPC). }
-    unfold imm_s_hb.hb. intros x y rf_x_y.
-    apply t_step. red. right.
-    apply release_rf_in_sw; auto.
-    apply seq_eqv_lr in rf_x_y. destruct rf_x_y as [SCx [rf_x_y SCy]].
-    unfold imm_s_hb.release.
-    (* ? is there a shorter way to show Sc;;rf;;Sc in hb ? *)
-    assert (REL_x: Rel x).
-    { unfold is_rel. unfold is_sc in SCx. basic_solver 100. }
-    assert (ACQ_y: Acq y).
-    { unfold is_acq. unfold is_sc in SCy. basic_solver 100. }
-    apply seqA. apply seq_eqv_l. split; auto.
-    apply seqA with (r3:=⦗Acq⦘). apply seq_eqv_r. split; auto.
-    exists x. split; auto.
-    exists x. split; auto.
-    apply wf_rsE; auto. red. left.
-    assert (W_x: W x).
-    { apply (dom_l WF.(wf_rfD)) in rf_x_y.
-      generalize rf_x_y. basic_solver.  }
-    basic_solver. 
-  }
-  rewrite hbo_in_hb. 
-  cdes IPC. cdes IC. red in Cint. 
-  unfold Execution_eco.eco in Cint.
-  (* ? how to use r_step to get rid of ^? in Cint ? *)
-  assert (simpl_eco: co ∪ fr ⊆ (rf ∪ co ⨾ rf^? ∪ fr ⨾ rf^?)^?). 
-  { basic_solver 100. }
-  rewrite simpl_eco. 
-  auto. 
+  unfold OCaml.hb.
+  rewrite !seq_union_l, !seq_union_r.
+  rewrite co_sc_in_hb; eauto.
+  arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
+  2: { rewrite sb_in_hb, sw_in_hb, !unionK.
+       unfold imm_s_hb.hb. by rewrite ct_of_ct. }
+  arewrite (⦗Sc⦘ ⊆ ⦗Rel⦘) at 1 by mode_solver.
+  arewrite (⦗Sc⦘ ⊆ ⦗Acq⦘) by mode_solver.
+  unfold imm_s_hb.sw. hahn_frame.
+  rewrite (dom_l WF.(wf_rfD)) at 1.
+  arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⊆ release).
+  2: basic_solver 10.
+  unfold imm_s_hb.release, imm_s_hb.rs.
+  basic_solver 40.
+Qed.
+  
+Lemma imm_to_ocaml_coherent (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  irreflexive (ohb ;; (co ∪ fr)).
+Proof.
+  rewrite ohb_in_hb; eauto. 
+  arewrite (co ∪ fr ⊆ eco^?).
+  { rewrite co_in_eco, fr_in_eco. basic_solver. }
+  apply IPC.
 Qed.
 
-Lemma s_imm_consistentimplies_ocaml_consistent (WF: Wf G) sc
+Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  <|Sc|> ;; (sb ∪ rfe)⁺ ;; <|Sc|> ⊆ hb.
+Proof.
+Admitted.
+
+Lemma imm_to_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
 Proof.
   cdes IPC. cdes IC.
+  assert (irreflexive (ohb ;; (co ∪ fr))) as HH.
+  { eapply imm_to_ocaml_coherent; eauto. }
   red. splits; auto.
-  (* 3: {apply (s_imm_consistentimplies_ocaml_causal WF IPC). }  *)
-  
-  (* rewrite co_in_eco. *)
-  (* 2: rewrite fr_in_eco. *)
-  (* 1,2: by arewrite (eco ⊆ eco^?); apply Cint. *)
+  1,2: eapply irreflexive_mori; eauto.
+  1,2: red; basic_solver 10.
 
+  apply acyclic_union1.
+  { admit. }
+  { admit. }
+  arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
+  { admit. }
+  rewrite <- seq_eqvK.
+  rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
+  sin_rewrite sb_rfe_sc_in_hb; eauto.
+  assert (forall l,
+             acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (coe ∪ fre G)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘))
+    as BB.
+  { ins.
+    rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
+    arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc).
+    { unfold Events.same_loc.
+      unfolder. ins. desf. rewrite H. eauto. }
+    rewrite <- seq_eqvK.
+    rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
+    arewrite (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘ ⊆ psc_base G).
+    { admit. }
+    arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ psc_base G).
+    { admit. }
+    red.
+    arewrite (psc_base G ⊆ (psc_base G)⁺).
+    rewrite ct_ct, ct_of_ct. 
+    arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
+    apply IPC. }
 Admitted.
 
 End OCamlMM_TO_IMM_S.
