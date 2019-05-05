@@ -286,14 +286,35 @@ Proof.
   red. splits; auto.
   1,2: eapply irreflexive_mori; eauto.
   1,2: red; basic_solver 10.
-
+  
   apply acyclic_union1.
   { admit. }
   { (* arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ (coe ∪ fre G)) by basic_solver. *)
     (* cdes IC. red in Cint.  *) admit. 
   }
-  arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
-  { 
+  arewrite (coe ⊆ co). arewrite ((fre G) ⊆ fr). 
+  (* arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘). *)
+  arewrite ((⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘).
+  { rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r.
+    do 2 rewrite <- restr_eqv_def.
+    apply restr_rel_mori; auto.
+    rewrite ct_begin.
+    rewrite seq_union_l.
+    assert (co;;(co ∪ fr)＊ ≡ co) as exclude_fr.
+    { admit. }
+    apply inclusion_union_l. 
+    { arewrite (co ⨾ (co ∪ fr)＊ ≡ co ∪ co ⨾ (co ∪ fr)^+) by basic_solver 100.
+      rewrite inclusion_union_l with (r'':=co ∪ fr); try basic_solver.
+      rewrite ct_begin.
+      rewrite <- seqA. rewrite seq_union_r.
+      rewrite seq_union_l.
+      rewrite (co_fr WF). rewrite seq_false_l, union_false_r.
+      rewrite (co_co WF). rewrite exclude_fr.
+      basic_solver. }
+    arewrite (fr ⨾ (co ∪ fr)＊ ≡ fr ∪ fr ⨾ (co ∪ fr)^+) by basic_solver 100. 
+    rewrite inclusion_union_l with (r'':=co ∪ fr); try basic_solver.
+    (* arewrite (coe ⊆ coe ;; ⦗W⦘). *)
+      (* { unfold Execution.coe. rewrite WF.(wf_coD). basic_solver. } *)
     admit. }
   rewrite <- seq_eqvK.
   rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
