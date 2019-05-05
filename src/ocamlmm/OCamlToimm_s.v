@@ -289,9 +289,12 @@ Proof.
 
   apply acyclic_union1.
   { admit. }
-  { admit. }
+  { (* arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ (coe ∪ fre G)) by basic_solver. *)
+    (* cdes IC. red in Cint.  *) admit. 
+  }
   arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
-  { admit. }
+  { 
+    admit. }
   rewrite <- seq_eqvK.
   rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
   sin_rewrite sb_rfe_sc_in_hb; eauto.
@@ -306,9 +309,22 @@ Proof.
     rewrite <- seq_eqvK.
     rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
     arewrite (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    { admit. }
+    { unfold psc_base. rewrite <- restr_eqv_def.
+      (* some problems with rewrite, so force brackets order *)
+      rewrite <- seqA with (r1:= scb G) (* (r2:=(hb ⨾ ⦗F⦘)^?) (r3:=⦗Sc⦘) *).
+      rewrite <- seqA with (r1:= (⦗F⦘ ⨾ hb)^?).
+      rewrite <- restr_eqv_def.
+      apply restr_rel_mori; auto.
+      arewrite (hb ∩ same_loc ⊆ scb G).
+      arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. 
+    }
+      
+      rewrite <- restr_rel_mori_Proper.
+      unfold scb.
+      
+      admit. }
     arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    { admit. }
+    {  admit. }
     red.
     arewrite (psc_base G ⊆ (psc_base G)⁺).
     rewrite ct_ct, ct_of_ct. 
