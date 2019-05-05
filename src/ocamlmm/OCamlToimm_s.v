@@ -235,13 +235,12 @@ Proof.
     apply WSCFACQRMW. by split. }
   apply seq_eqv_l. split; auto.
   apply seq_eqv_r. split; auto.
-  2: { (* how to use WSCFACQRMW here ?*)
-    exists f2.  rewrite <- seqA2. exists r2. split; auto. }
+  2: { eexists. rewrite <- seqA2. eexists r2. split; eauto. }
   apply rf_rmw_in_co; auto.
   eexists. eauto.
 Qed. 
 
-Lemma ohb_in_hb (WF: Wf G) sc     
+Lemma ohb_in_hb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ohb ⊆ hb.
 Proof.
