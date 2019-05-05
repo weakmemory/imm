@@ -235,7 +235,7 @@ Proof.
     apply WSCFACQRMW. by split. }
   apply seq_eqv_l. split; auto.
   apply seq_eqv_r. split; auto.
-  2: { eexists. rewrite <- seqA2. eexists r2. split; eauto. }
+  2: { eexists. rewrite <- seqA2. eexists. split; eauto. }
   apply rf_rmw_in_co; auto.
   eexists. eauto.
 Qed. 
@@ -249,7 +249,7 @@ Proof.
   rewrite co_sc_in_hb; eauto.
   arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
   2: { rewrite sb_in_hb, sw_in_hb, !unionK.
-       unfold imm_s_hb.hb. by rewrite ct_of_ct. }
+       unfold imm_s_hb.hb. basic_solver. }
   arewrite (⦗Sc⦘ ⊆ ⦗Rel⦘) at 1 by mode_solver.
   arewrite (⦗Sc⦘ ⊆ ⦗Acq⦘) by mode_solver.
   unfold imm_s_hb.sw. hahn_frame.
