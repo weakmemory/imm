@@ -77,7 +77,7 @@ Hypothesis LSM : forall l,
     << LM : Loc_ l \₁ is_init  ⊆₁ Rlx \₁ Sc >> \/
     << LM : Loc_ l \₁ is_init ⊆₁ Sc >>.
 
-Hypothesis WSCRMW : W∩₁Sc ≡₁ codom_rel rmw.
+Hypothesis WSCFACQRMW : W∩₁Sc ≡₁ codom_rel (<|F∩₁ Acq|> ;; immediate sb ;; rmw).
 Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
 Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
@@ -123,6 +123,8 @@ Proof.
   assert (transitive hb) as THB by apply hb_trans.
   assert (sc_per_loc G) as SPL.
   { apply coherence_sc_per_loc. apply IPC. }
+  assert (W ∩₁ Sc ⊆₁ codom_rel rmw) as WSCRMW. 
+  { rewrite WSCFACQRMW. basic_solver. }
            
   apply inclusion_t_ind; auto.
   arewrite (immediate (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘) ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⨾ sb).
@@ -139,13 +141,17 @@ Proof.
   rewrite (dom_r WF.(wf_coD)).
   rewrite !seqA.
   rewrite <- id_inter.
-  rewrite WSCRMW.
+  rewrite WSCFACQRMW.
   intros w1 w2 [co_rmw_w1_w2 imm_w1_w2].
   apply seq_eqv_l in co_rmw_w1_w2.
   destruct co_rmw_w1_w2 as [SCW1 co_rmw_w1_w2].
   apply seq_eqv_r in co_rmw_w1_w2.
-  destruct co_rmw_w1_w2 as [co_rmw_w1_w2 RMWW2].
-  destruct RMWW2 as [r2 rw_r2_w2].  
+  destruct co_rmw_w1_w2 as [co_rmw_w1_w2 tmp].
+  (* [f2 [r2 [FF2 rw_r2_w2]]] *)
+  (* why "rewrite <- seqA in tmp." doesn't work here ? *)
+  destruct tmp as [f2 tmp].
+  rewrite <- seqA2 in tmp.
+  destruct tmp as [r2 [SB_f2_r2 rw_r2_w2]]. 
   apply seq_eqv_l. split; auto.
   assert (Sc r2) as SCR2.
   { apply RMWSC in rw_r2_w2. generalize rw_r2_w2. basic_solver. }
@@ -225,15 +231,17 @@ Proof.
        do 2 (eexists; split; eauto). }
   apply imm_w1_w2 with (c:=w').
   { apply seq_eqv_l. split; auto.
-    apply seq_eqv_r. split; auto. }
+    apply seq_eqv_r. split; auto.
+    apply WSCFACQRMW. by split. }
   apply seq_eqv_l. split; auto.
   apply seq_eqv_r. split; auto.
-  2: { eexists; eauto. }
+  2: { (* how to use WSCFACQRMW here ?*)
+    exists f2.  rewrite <- seqA2. exists r2. split; auto. }
   apply rf_rmw_in_co; auto.
   eexists. eauto.
 Qed. 
 
-Lemma ohb_in_hb (WF: Wf G) sc
+Lemma ohb_in_hb (WF: Wf G) sc     
       (IPC : imm_s.imm_psc_consistent G sc) :
   ohb ⊆ hb.
 Proof.
