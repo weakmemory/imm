@@ -334,25 +334,35 @@ Proof.
     arewrite (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘ ⊆ psc_base G).
     { unfold psc_base. rewrite <- restr_eqv_def.
       (* some problems with rewrite, so force brackets order *)
-      rewrite <- seqA with (r1:= scb G) (* (r2:=(hb ⨾ ⦗F⦘)^?) (r3:=⦗Sc⦘) *).
+      rewrite <- seqA with (r1:= scb G).
       rewrite <- seqA with (r1:= (⦗F⦘ ⨾ hb)^?).
       rewrite <- restr_eqv_def.
       apply restr_rel_mori; auto.
       arewrite (hb ∩ same_loc ⊆ scb G).
       arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. 
     }
-      
-      rewrite <- restr_rel_mori_Proper.
-      unfold scb.
-      
-      admit. }
-    arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    {  admit. }
-    red.
-    arewrite (psc_base G ⊆ (psc_base G)⁺).
-    rewrite ct_ct, ct_of_ct. 
+    arewrite (coe ∪ fre G ⊆ scb G) by auto.
+    arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
+    arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100.
+    apply acyc_simple_helper. rewrite unionK.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
-    apply IPC. }
+    auto. }
+  
+  arewrite (⦗Sc⦘ ≡ ⦗Sc⦘;;⦗Sc⦘) by basic_solver. 
+  arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G).
+  { (* to refactor *)
+    arewrite (co ∪ fr ⊆ scb G) by auto.
+    arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
+    arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100.
+    basic_solver. }
+  rewrite <- seqA. rewrite <- seqA.
+  rewrite <- acyclic_rotl. 
+  red.
+
+  arewrite (psc_base G ⊆ (psc_base G)⁺).
+  rewrite ct_ct, ct_of_ct. 
+  arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
+  apply IPC. 
 Admitted.
 
 End OCamlMM_TO_IMM_S.
