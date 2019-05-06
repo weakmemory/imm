@@ -305,7 +305,10 @@ Proof.
     rewrite path_ut_first.
     repeat rewrite seq_union_r.
     assert (co^*;;fr ≡ fr) as exclude_co. 
-    { admit. }
+    { rewrite seq_rtE_l. rewrite <- seqA, <- ct_end, ct_of_trans.
+      2: { apply WF.(co_trans). }
+      rewrite co_fr.
+      basic_solver. auto. }
     repeat rewrite <- seqA, exclude_co.
     rewrite ct_of_trans.
     rewrite fr_co.
