@@ -298,30 +298,29 @@ Proof.
   { rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r.
     do 2 rewrite <- restr_eqv_def.
     apply restr_rel_mori; auto.
-    rewrite ct_begin.
-    rewrite seq_union_l.
-    assert (co;;(co ∪ fr)＊ ≡ co) as exclude_fr.
+    rewrite path_ut_first.
+    rewrite seq_rtE_r.
+    rewrite seqA.
+    rewrite <- ct_begin. 
+    rewrite path_ut_first.
+    repeat rewrite seq_union_r.
+    assert (co^*;;fr ≡ fr) as exclude_co. 
     { admit. }
-    apply inclusion_union_l. 
-    { arewrite (co ⨾ (co ∪ fr)＊ ≡ co ∪ co ⨾ (co ∪ fr)^+) by basic_solver 100.
-      rewrite inclusion_union_l with (r'':=co ∪ fr); try basic_solver.
-      rewrite ct_begin.
-      rewrite <- seqA. rewrite seq_union_r.
-      rewrite seq_union_l.
-      rewrite (co_fr WF). rewrite seq_false_l, union_false_r.
-      rewrite (co_co WF). rewrite exclude_fr.
-      basic_solver. }
-    arewrite (fr ⨾ (co ∪ fr)＊ ≡ fr ∪ fr ⨾ (co ∪ fr)^+) by basic_solver 100. 
-    rewrite inclusion_union_l with (r'':=co ∪ fr); try basic_solver.
-    (* arewrite (coe ⊆ coe ;; ⦗W⦘). *)
-      (* { unfold Execution.coe. rewrite WF.(wf_coD). basic_solver. } *)
-    admit. }
+    repeat rewrite <- seqA, exclude_co.
+    rewrite ct_of_trans.
+    rewrite fr_co.
+    repeat apply inclusion_union_l; try basic_solver. 
+    rewrite <- seqA. 
+    rewrite seq_rtE_r with (r:=fr) (r':=co). 
+    rewrite seqA. rewrite <- ct_begin. rewrite ct_of_trans. rewrite fr_co.
+    rewrite unionK. rewrite <- seqA. rewrite fr_fr. basic_solver.
+    all: auto. 
+    all: apply WF.(co_trans). } 
+      
   rewrite <- seq_eqvK.
   rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
   sin_rewrite sb_rfe_sc_in_hb; eauto.
-  assert (forall l,
-             acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (coe ∪ fre G)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘))
-    as BB.
+  assert (forall l, acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (coe ∪ fre G)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘)) as BB.
   { ins.
     rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
     arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc).
