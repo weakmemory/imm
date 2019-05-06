@@ -323,7 +323,7 @@ Proof.
   rewrite <- seq_eqvK.
   rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
   sin_rewrite sb_rfe_sc_in_hb; eauto.
-  assert (forall l, acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (coe ∪ fre G)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘)) as BB.
+  assert (forall l, acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘)) as BB.
   { ins.
     rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
     arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc).
@@ -341,28 +341,34 @@ Proof.
       arewrite (hb ∩ same_loc ⊆ scb G).
       arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. 
     }
-    arewrite (coe ∪ fre G ⊆ scb G) by auto.
+    arewrite (co ∪ fr ⊆ scb G) by auto.
     arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
     arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100.
     apply acyc_simple_helper. rewrite unionK.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
-    auto. }
+    auto. }  
+  assert (exists l, ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘). 
+  { (* to refactor (should extract Loc_ and same_loc relation) *)
+    arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc). }
+  destruct H.
+  rewrite H. 
+  apply BB. 
   
-  arewrite (⦗Sc⦘ ≡ ⦗Sc⦘;;⦗Sc⦘) by basic_solver. 
-  arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G).
-  { (* to refactor *)
-    arewrite (co ∪ fr ⊆ scb G) by auto.
-    arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100.
-    basic_solver. }
-  rewrite <- seqA. rewrite <- seqA.
-  rewrite <- acyclic_rotl. 
-  red.
+  (* arewrite (⦗Sc⦘ ≡ ⦗Sc⦘;;⦗Sc⦘) by basic_solver.  *)
+  (* arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G). *)
+  (* { (* to refactor *) *)
+  (*   arewrite (co ∪ fr ⊆ scb G) by auto. *)
+  (*   arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G). *)
+  (*   arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. *)
+  (*   basic_solver. } *)
+  (* rewrite <- seqA. rewrite <- seqA. *)
+  (* rewrite <- acyclic_rotl.  *)
+  (* red. *)
 
-  arewrite (psc_base G ⊆ (psc_base G)⁺).
-  rewrite ct_ct, ct_of_ct. 
-  arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
-  apply IPC. 
+  (* arewrite (psc_base G ⊆ (psc_base G)⁺). *)
+  (* rewrite ct_ct, ct_of_ct.  *)
+  (* arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). *)
+  (* apply IPC.  *)
 Admitted.
 
 End OCamlMM_TO_IMM_S.
