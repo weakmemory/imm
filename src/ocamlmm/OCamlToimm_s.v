@@ -83,32 +83,6 @@ Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
 Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
-(* Lemma init_begins_co (WF : Wf G) sc *)
-(*       (IPC : imm_s.imm_psc_consistent G sc) : *)
-(*   forall l, (Einit ∩₁ Loc_ l ∩₁ W) × (Eninit ∩₁ Loc_ l ∩₁ W) ⊆ co. *)
-(* Proof. *)
-(*   intros l.  *)
-(*   unfolder. ins. desf. *)
-(*   eapply co_from_init; auto. *)
-(*   { apply coherence_sc_per_loc. apply IPC. } *)
-(*   unfolder. splits; desf. *)
-(*   { red. by rewrite H5. } *)
-(*   destruct (classic (x = y)) as [|NEQ]; desf. *)
-(* Qed. *)
-(*   intros l. *)
-(*   unfolder. ins. desf. *)
-(*   assert (sb x y) as SB by (by apply init_ninit_sb). *)
-(*   destruct (classic (x = y)) as [|NEQ]; desf. *)
-(*   eapply wf_co_total in NEQ; eauto.  *)
-(*   2,3: by unfolder; eauto. *)
-(*   desf. *)
-(*   exfalso. *)
-(*   cdes IPC. cdes IC. eapply Cint. *)
-(*   eexists. split. *)
-(*   { apply sb_in_hb; eauto. } *)
-(*   right. by apply co_in_eco. *)
-(* Qed. *)
-
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
@@ -249,7 +223,7 @@ Proof.
   rewrite co_sc_in_hb; eauto.
   arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
   2: { rewrite sb_in_hb, sw_in_hb, !unionK.
-       unfold imm_s_hb.hb. basic_solver. }
+       unfold imm_s_hb.hb. by rewrite ct_of_ct. }
   arewrite (⦗Sc⦘ ⊆ ⦗Rel⦘) at 1 by mode_solver.
   arewrite (⦗Sc⦘ ⊆ ⦗Acq⦘) by mode_solver.
   unfold imm_s_hb.sw. hahn_frame.
@@ -276,18 +250,11 @@ Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
 Proof.
 Admitted.
 
-Lemma same_loc_cycle:
-  forall (r r': relation actid) x y, r' ⊆ same_loc -> r x y -> r' y x -> (r ∩ same_loc) x y. 
-Proof.
-  ins. red. split; auto.
-  apply H in H1. apply same_loc_sym. auto.
-Qed.
-  
 Lemma sb_rfe_co_fr_cycle_implies_pscb_cycle (WF: Wf G) sc
-      (IPC : imm_s.imm_psc_consistent G sc) :
-  forall n x, (⦗Sc⦘ ;; (sb ∪ rfe)^+ ;; ⦗Sc⦘ ;; (co ∪ fr)) ^^ (S n) x x -> psc_base G x x. 
+      (IPC : imm_s.imm_psc_consistent G sc) n :
+  eq ∩ (⦗Sc⦘ ;; (sb ∪ rfe)^+ ;; ⦗Sc⦘ ;; (co ∪ fr)) ^^ (S n) ⊆ psc_base G. 
 Proof.
-  intros n x H. 
+  intros z x [EQ H]; subst.
   induction n as [| n' IHn'].
   { red in H.
     (* ? rewrite doesn't work with relations applied to arguments *)
@@ -317,6 +284,32 @@ Proof.
       repeat split; auto. red in SL. red in SC. 
       admit. (* show that same_loc implies is_sc equivalence *) }
 Admitted.
+
+Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) :
+  (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘.
+Proof.
+  rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r.
+  hahn_frame.
+  rewrite path_ut_first.
+  unionL.
+  { unionR left. apply ct_of_trans. apply WF. }
+  arewrite (co＊ ⨾ fr ⊆ fr).
+  { rewrite seq_rtE_l. unionL; [done|].
+    sin_rewrite co_fr; auto. basic_solver. }
+  rewrite seq_rtE_r.
+  unionL; [basic_solver|].
+  rewrite seqA.
+  rewrite <- ct_begin. 
+  rewrite path_ut_first.
+  rewrite !seq_union_r.
+  assert (fr ⨾ co⁺ ⊆ fr) as AA.
+  { rewrite ct_of_trans; [|by apply WF].
+      by rewrite WF.(fr_co). }
+  arewrite (fr ⨾ co＊ ⊆ fr).
+  { rewrite rtE, seq_union_r, seq_id_r. rewrite AA. by unionL. }
+  arewrite (fr ⨾ fr ⊆ ∅₂) by apply WF.(fr_fr).
+  rewrite AA. basic_solver.
+Qed.
   
 Lemma imm_to_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
@@ -334,84 +327,11 @@ Proof.
   { (* arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ (coe ∪ fre G)) by basic_solver. *)
     (* cdes IC. red in Cint.  *) admit. 
   }
-  arewrite (coe ⊆ co). arewrite ((fre G) ⊆ fr). 
+  arewrite (coe ⊆ co).
+  arewrite ((fre G) ⊆ fr). 
   (* arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘). *)
-  arewrite ((⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘).
-  { rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r.
-    do 2 rewrite <- restr_eqv_def.
-    apply restr_rel_mori; auto.
-    rewrite path_ut_first.
-    rewrite seq_rtE_r.
-    rewrite seqA.
-    rewrite <- ct_begin. 
-    rewrite path_ut_first.
-    repeat rewrite seq_union_r.
-    assert (co^*;;fr ≡ fr) as exclude_co. 
-    { rewrite seq_rtE_l. rewrite <- seqA, <- ct_end, ct_of_trans.
-      2: { apply WF.(co_trans). }
-      rewrite co_fr.
-      basic_solver. auto. }
-    repeat rewrite <- seqA, exclude_co.
-    rewrite ct_of_trans.
-    rewrite fr_co.
-    repeat apply inclusion_union_l; try basic_solver. 
-    rewrite <- seqA. 
-    rewrite seq_rtE_r with (r:=fr) (r':=co). 
-    rewrite seqA. rewrite <- ct_begin. rewrite ct_of_trans. rewrite fr_co.
-    rewrite unionK. rewrite <- seqA. rewrite fr_fr. basic_solver.
-    all: auto. 
-    all: apply WF.(co_trans). } 
-      
-  rewrite <- seq_eqvK.
-  rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
-  sin_rewrite sb_rfe_sc_in_hb; eauto.
-  assert (forall l, acyclic (hb ⨾ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr)⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘)) as BB.
-  { ins.
-    rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
-    arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc).
-    { unfold Events.same_loc.
-      unfolder. ins. desf. rewrite H. eauto. }
-    rewrite <- seq_eqvK.
-    rewrite <- !seqA. apply acyclic_rotl. rewrite !seqA.
-    arewrite (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    { unfold psc_base. rewrite <- restr_eqv_def.
-      (* some problems with rewrite, so force brackets order *)
-      rewrite <- seqA with (r1:= scb G).
-      rewrite <- seqA with (r1:= (⦗F⦘ ⨾ hb)^?).
-      rewrite <- restr_eqv_def.
-      apply restr_rel_mori; auto.
-      arewrite (hb ∩ same_loc ⊆ scb G).
-      arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. 
-    }
-    arewrite (co ∪ fr ⊆ scb G) by auto.
-    arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
-    arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100.
-    apply acyc_simple_helper. rewrite unionK.
-    arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
-    auto. }  
-  assert (exists l, ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘). 
-  { (* INVALID STATEMENT: actually trying to prove that ALL co/fr belong to same location *)
-    (* arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc). *)
-   admit. }
-  destruct H.
-  rewrite H. 
-  apply BB. 
-  
-  (* arewrite (⦗Sc⦘ ≡ ⦗Sc⦘;;⦗Sc⦘) by basic_solver.  *)
-  (* arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G). *)
-  (* { (* to refactor *) *)
-  (*   arewrite (co ∪ fr ⊆ scb G) by auto. *)
-  (*   arewrite (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G). *)
-  (*   arewrite (scb G ⊆ (⦗F⦘ ⨾ hb)^? ⨾ scb G ⨾ (hb ⨾ ⦗F⦘)^?) by basic_solver 100. *)
-  (*   basic_solver. } *)
-  (* rewrite <- seqA. rewrite <- seqA. *)
-  (* rewrite <- acyclic_rotl.  *)
-  (* red. *)
 
-  (* arewrite (psc_base G ⊆ (psc_base G)⁺). *)
-  (* rewrite ct_ct, ct_of_ct.  *)
-  (* arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). *)
-  (* apply IPC.  *)
+  rewrite sc_co_fr_ct_in_co_fr; auto.
 Admitted.
 
 End OCamlMM_TO_IMM_S.
