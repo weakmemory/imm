@@ -390,8 +390,9 @@ Proof.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G).
     auto. }  
   assert (exists l, ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ ⦗Loc_ l⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⨾ ⦗Loc_ l⦘). 
-  { (* to refactor (should extract Loc_ and same_loc relation) *)
-    arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc). }
+  { (* INVALID STATEMENT: actually trying to prove that ALL co/fr belong to same location *)
+    (* arewrite (⦗Loc_ l⦘ ⨾ hb ⨾ ⦗Loc_ l⦘ ⊆ hb ∩ same_loc). *)
+   admit. }
   destruct H.
   rewrite H. 
   apply BB. 
