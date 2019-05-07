@@ -276,6 +276,48 @@ Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
 Proof.
 Admitted.
 
+Lemma same_loc_cycle:
+  forall (r r': relation actid) x y, r' ⊆ same_loc -> r x y -> r' y x -> (r ∩ same_loc) x y. 
+Proof.
+  ins. red. split; auto.
+  apply H in H1. apply same_loc_sym. auto.
+Qed.
+  
+Lemma sb_rfe_co_fr_cycle_implies_pscb_cycle (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  forall n x, (⦗Sc⦘ ;; (sb ∪ rfe)^+ ;; ⦗Sc⦘ ;; (co ∪ fr)) ^^ (S n) x x -> psc_base G x x. 
+Proof.
+  intros n x H. 
+  induction n as [| n' IHn'].
+  { red in H.
+    (* ? rewrite doesn't work with relations applied to arguments *)
+    apply same_relation_exp with (r:=(⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr))) (r':=(⦗fun _ : actid => True⦘ ⨾ ⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr))) in H.
+    2: { rewrite seq_id_l. auto. } 
+    rewrite <- seqA2, <- seqA2 in H. 
+    destruct H as [y [PORFE PSC]].
+    assert (same_loc y x) as SL.
+    { destruct PSC.
+      { apply WF.(wf_col); auto. }
+      apply WF.(wf_frl); auto. }
+    assert ((hb ∩ same_loc) x y) as HBL.
+    { red; split.
+      2: { apply same_loc_sym; auto. }
+      rewrite seqA2 in PORFE.
+      apply hahn_inclusion_exp with (r:=(⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘)).
+      { apply (sb_rfe_sc_in_hb WF IPC). }
+      auto. }
+    assert (Sc x) as SC.
+    { apply seqA2 in PORFE. apply seq_eqv_lr in PORFE; destruct PORFE. auto. }
+    assert (scb G x y) as SCB.
+    { red. basic_solver. }
+    assert (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G) as SCB_PSC.
+    { unfold psc_base. basic_solver 200. }
+    assert (psc_base G x y) as PSC'.    
+    { apply SCB_PSC. apply seq_eqv_lr. 
+      repeat split; auto. red in SL. red in SC. 
+      admit. (* show that same_loc implies is_sc equivalence *) }
+Admitted.
+  
 Lemma imm_to_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
