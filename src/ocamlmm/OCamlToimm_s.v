@@ -223,7 +223,7 @@ Proof.
   rewrite co_sc_in_hb; eauto.
   arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
   2: { rewrite sb_in_hb, sw_in_hb, !unionK.
-       unfold imm_s_hb.hb. by rewrite ct_of_ct. }
+       unfold imm_s_hb.hb. basic_solver. }
   arewrite (⦗Sc⦘ ⊆ ⦗Rel⦘) at 1 by mode_solver.
   arewrite (⦗Sc⦘ ⊆ ⦗Acq⦘) by mode_solver.
   unfold imm_s_hb.sw. hahn_frame.
@@ -248,41 +248,6 @@ Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   <|Sc|> ;; (sb ∪ rfe)⁺ ;; <|Sc|> ⊆ hb.
 Proof.
-Admitted.
-
-Lemma sb_rfe_co_fr_cycle_implies_pscb_cycle (WF: Wf G) sc
-      (IPC : imm_s.imm_psc_consistent G sc) n :
-  eq ∩ (⦗Sc⦘ ;; (sb ∪ rfe)^+ ;; ⦗Sc⦘ ;; (co ∪ fr)) ^^ (S n) ⊆ psc_base G. 
-Proof.
-  intros z x [EQ H]; subst.
-  induction n as [| n' IHn'].
-  { red in H.
-    (* ? rewrite doesn't work with relations applied to arguments *)
-    apply same_relation_exp with (r:=(⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr))) (r':=(⦗fun _ : actid => True⦘ ⨾ ⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr))) in H.
-    2: { rewrite seq_id_l. auto. } 
-    rewrite <- seqA2, <- seqA2 in H. 
-    destruct H as [y [PORFE PSC]].
-    assert (same_loc y x) as SL.
-    { destruct PSC.
-      { apply WF.(wf_col); auto. }
-      apply WF.(wf_frl); auto. }
-    assert ((hb ∩ same_loc) x y) as HBL.
-    { red; split.
-      2: { apply same_loc_sym; auto. }
-      rewrite seqA2 in PORFE.
-      apply hahn_inclusion_exp with (r:=(⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘)).
-      { apply (sb_rfe_sc_in_hb WF IPC). }
-      auto. }
-    assert (Sc x) as SC.
-    { apply seqA2 in PORFE. apply seq_eqv_lr in PORFE; destruct PORFE. auto. }
-    assert (scb G x y) as SCB.
-    { red. basic_solver. }
-    assert (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G) as SCB_PSC.
-    { unfold psc_base. basic_solver 200. }
-    assert (psc_base G x y) as PSC'.    
-    { apply SCB_PSC. apply seq_eqv_lr. 
-      repeat split; auto. red in SL. red in SC. 
-      admit. (* show that same_loc implies is_sc equivalence *) }
 Admitted.
 
 Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) :
@@ -310,6 +275,54 @@ Proof.
   arewrite (fr ⨾ fr ⊆ ∅₂) by apply WF.(fr_fr).
   rewrite AA. basic_solver.
 Qed.
+
+Lemma WIP_po_rfe_co_fr (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  (* (⦗Sc⦘ ⨾ (sb ∪ rfe) ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ (psc_base G)⁺. *)
+  acyclic (sb ∪ rfe ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
+Proof.
+
+  assert (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ psc_base G) as COE_FRE_PSCB.
+  { unfold psc_base. hahn_frame.
+    arewrite (coe ∪ fre G ⊆ co ∪ fr). arewrite (co ∪ fr ⊆ scb G).
+    basic_solver 10. }
+
+  apply acyclic_union1.
+  { admit. }
+  { rewrite COE_FRE_PSCB. cdes IPC.
+    arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). auto. }
+  rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r.
+  rewrite <- seqA, <- seqA. rewrite acyclic_rotl. rewrite seqA.
+
+  assert (⦗Sc⦘ ⨾ (sb ⨾ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as CT_SB_RFE_PSCB.
+  { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⨾ rfe).
+    { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗W⦘ ⨾ rfe).
+      { rewrite WF.(wf_rfeD). basic_solver 100. }
+      admit. }
+    rewrite <- seq_eqvK with (dom:=F ∩₁ Acq/Rel).
+    rewrite seqA. rewrite <- seqA with (r2:=⦗F ∩₁ Acq/Rel⦘).
+    rewrite ct_rotl.
+    admit. }
+    
+  assert (⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as SC_SB_RFE_PSCB.
+  { rewrite ct_unionE.
+    arewrite (rfe⁺ ≡ rfe).
+    { admit. }
+    arewrite (rfe＊ ≡ rfe^?).
+    { admit. }
+    case_union _ _.  
+    rewrite seq_union_r.
+    unionL.
+    { arewrite (⦗Sc⦘ ⨾ rfe ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘).
+      { admit. }
+      rewrite <- ct_step. unfold psc_base.
+      hahn_frame.
+      arewrite (hb ∩ same_loc ⊆ scb G).
+      basic_solver 50. }
+    
+  (*   { unfold scb. basic_solver 200.  *)
+  (*   case_union coe (fre G). rewrite seq_union_r.  *)
+Admitted. 
   
 Lemma imm_to_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
