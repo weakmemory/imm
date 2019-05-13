@@ -66,7 +66,7 @@ Notation "'F'" := (fun a => is_true (is_f lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
 Notation "'Acq'" := (fun a => is_true (is_acq lab a)).
 Notation "'Rel'" := (fun a => is_true (is_rel lab a)).
-Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
+Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
@@ -80,7 +80,7 @@ Hypothesis LSM : forall l,
 Hypothesis WSCFACQRMW : W∩₁Sc ≡₁ codom_rel (<|F∩₁ Acq|> ;; immediate sb ;; rmw).
 Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
-Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acq/Rel|> ;; immediate sb).
+Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acqrel|> ;; immediate sb).
 Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
 Lemma co_sc_in_hb (WF : Wf G) sc
@@ -301,9 +301,23 @@ Proof.
   arewrite (coe ∪ fre G ⊆ co ∪ fr).
   sin_rewrite sc_co_fr_ct_in_co_fr; auto. 
   sin_rewrite COE_FRE_PSCB. 
-  
+
+  assert (⦗F ∩₁ Acqrel⦘⨾ sb ⨾ rfe ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb) as F_HB.
+  { rewrite <- sw_in_hb. unfold imm_s_hb.sw.
+    do 2 rewrite id_inter.
+    arewrite (Acqrel ⊆₁ Rel) by mode_solver.  
+    unfold imm_s_hb.release.
+    rewrite <- !seqA, seq_eqvC, !seqA.
+    arewrite (sb ⨾ ⦗F⦘ ⊆ (sb ⨾ ⦗F⦘)^?). arewrite ( (⦗F⦘ ⨾ sb) ⊆ (⦗F⦘ ⨾ sb)^?). 
+    arewrite (rfe ⊆ rf).
+    arewrite (rf ≡ ⦗W⦘⨾ rf) at 1.
+    { rewrite WF.(wf_rfD). basic_solver. }    
+    arewrite (⦗W⦘ ⊆ imm_s_hb.rs G).
+    { unfold imm_s_hb.rs. basic_solver 100. }
+    hahn_frame. basic_solver. }  
+    
   assert (⦗Sc⦘ ⨾ (sb ⨾ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as CT_SB_RFE_PSCB.
-  { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⨾ rfe).
+  { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rfe).
     { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗W⦘ ⨾ rfe).
       { rewrite WF.(wf_rfeD). basic_solver 100. }
       admit. }
@@ -313,25 +327,25 @@ Proof.
     admit. }
 
   assert (⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as SC_SB_RFE_PSCB.
-  { (* rewrite ct_unionE. *)
-    (* arewrite (rfe⁺ ≡ rfe). *)
-    (* { admit. } *)
-    (* arewrite (rfe＊ ≡ rfe^?). *)
-    (* { admit. } *)
-    (* case_union _ _.   *)
-    (* rewrite seq_union_r. *)
-    (* unionL. *)
-    (* { arewrite (⦗Sc⦘ ⨾ rfe ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘). *)
-    (*   { admit. } *)
-    (*   rewrite <- ct_step. unfold psc_base. *)
-    (*   hahn_frame. *)
-    (*   arewrite (hb ∩ same_loc ⊆ scb G). *)
-    (*   basic_solver 50. } *)
-
-    (* rewrite unionC.  *)
-    (* rewrite ct_begin.  *)
+  { rewrite ct_unionE.
+    arewrite (rfe⁺ ≡ rfe).
+    { admit. }
+    arewrite (rfe＊ ≡ rfe^?).
+    { admit. }
+    case_union _ _.
+    rewrite seq_union_r.
+    unionL.
+    { arewrite (⦗Sc⦘ ⨾ rfe ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘).
+      { admit. }
+      rewrite <- ct_step. unfold psc_base.
+      hahn_frame.
+      arewrite (hb ∩ same_loc ⊆ scb G).
+      basic_solver 50. }
+    arewrite ((sb ⨾ rfe^?) ≡ (sb ∪ sb ⨾ rfe)) by basic_solver 100. 
+    (* rewrite unionC. *)
+    (* rewrite ct_begin. *)
     (* rewrite path_ut. *)
-    (* arewrite (rfe⁺ ≡ rfe) by admit.  *)
+    (* arewrite (rfe⁺ ≡ rfe) by admit. *)
     (* arewrite (rfe＊ ≡ rfe^?) by admit. *)
     (* case_union _ _. *)
     (* 2: { apply sb_trans. } *)
