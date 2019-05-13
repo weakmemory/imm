@@ -250,10 +250,12 @@ Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
 Proof.
 Admitted.
 
+(* Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) : *)
+(*   (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘. *)
 Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) :
-  (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘.
+  ⦗Sc⦘ ⨾ (co ∪ fr)⁺ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘.
 Proof.
-  rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r.
+  (* rewrite inclusion_ct_seq_eqv_l. rewrite inclusion_ct_seq_eqv_r. *)
   hahn_frame.
   rewrite path_ut_first.
   unionL.
@@ -282,18 +284,24 @@ Lemma WIP_po_rfe_co_fr (WF: Wf G) sc
   acyclic (sb ∪ rfe ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
 Proof.
 
-  assert (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ psc_base G) as COE_FRE_PSCB.
+  assert (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G) as COE_FRE_PSCB.
   { unfold psc_base. hahn_frame.
-    arewrite (coe ∪ fre G ⊆ co ∪ fr). arewrite (co ∪ fr ⊆ scb G).
+    arewrite (co ∪ fr ⊆ scb G).
     basic_solver 10. }
-
+  
   apply acyclic_union1.
   { admit. }
-  { rewrite COE_FRE_PSCB. cdes IPC.
+  { arewrite (coe ∪ fre G ⊆ co ∪ fr).
+    rewrite COE_FRE_PSCB. cdes IPC.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). auto. }
   rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r.
-  rewrite <- seqA, <- seqA. rewrite acyclic_rotl. rewrite seqA.
-
+  rewrite <- seq_eqvK.
+  rewrite <- !seqA. rewrite acyclic_rotl. rewrite !seqA.
+  
+  arewrite (coe ∪ fre G ⊆ co ∪ fr).
+  sin_rewrite sc_co_fr_ct_in_co_fr; auto. 
+  sin_rewrite COE_FRE_PSCB. 
+  
   assert (⦗Sc⦘ ⨾ (sb ⨾ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as CT_SB_RFE_PSCB.
   { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⨾ rfe).
     { arewrite (sb ⨾ rfe ≡ sb ⨾ ⦗W⦘ ⨾ rfe).
@@ -303,25 +311,37 @@ Proof.
     rewrite seqA. rewrite <- seqA with (r2:=⦗F ∩₁ Acq/Rel⦘).
     rewrite ct_rotl.
     admit. }
-    
+
   assert (⦗Sc⦘ ⨾ (sb ∪ rfe)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as SC_SB_RFE_PSCB.
-  { rewrite ct_unionE.
-    arewrite (rfe⁺ ≡ rfe).
-    { admit. }
-    arewrite (rfe＊ ≡ rfe^?).
-    { admit. }
-    case_union _ _.  
-    rewrite seq_union_r.
-    unionL.
-    { arewrite (⦗Sc⦘ ⨾ rfe ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘).
-      { admit. }
-      rewrite <- ct_step. unfold psc_base.
-      hahn_frame.
-      arewrite (hb ∩ same_loc ⊆ scb G).
-      basic_solver 50. }
-    
-  (*   { unfold scb. basic_solver 200.  *)
-  (*   case_union coe (fre G). rewrite seq_union_r.  *)
+  { (* rewrite ct_unionE. *)
+    (* arewrite (rfe⁺ ≡ rfe). *)
+    (* { admit. } *)
+    (* arewrite (rfe＊ ≡ rfe^?). *)
+    (* { admit. } *)
+    (* case_union _ _.   *)
+    (* rewrite seq_union_r. *)
+    (* unionL. *)
+    (* { arewrite (⦗Sc⦘ ⨾ rfe ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘). *)
+    (*   { admit. } *)
+    (*   rewrite <- ct_step. unfold psc_base. *)
+    (*   hahn_frame. *)
+    (*   arewrite (hb ∩ same_loc ⊆ scb G). *)
+    (*   basic_solver 50. } *)
+
+    (* rewrite unionC.  *)
+    (* rewrite ct_begin.  *)
+    (* rewrite path_ut. *)
+    (* arewrite (rfe⁺ ≡ rfe) by admit.  *)
+    (* arewrite (rfe＊ ≡ rfe^?) by admit. *)
+    (* case_union _ _. *)
+    (* 2: { apply sb_trans. } *)
+    admit. }
+  rewrite <- seqA with (r2:=⦗Sc⦘) (r3:=psc_base G). rewrite <- seqA.   
+  rewrite SC_SB_RFE_PSCB.
+  rewrite ct_unit.
+  cdes IPC. arewrite ((psc_base G)⁺ ⊆ (psc_base G ∪ psc_f G)⁺).
+  red. red in Cpsc.
+  rewrite ct_of_ct. rewrite unionC. auto.   
 Admitted. 
   
 Lemma imm_to_ocaml_consistent (WF: Wf G) sc
