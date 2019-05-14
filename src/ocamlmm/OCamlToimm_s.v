@@ -223,7 +223,7 @@ Proof.
   rewrite co_sc_in_hb; eauto.
   arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw).
   2: { rewrite sb_in_hb, sw_in_hb, !unionK.
-       unfold imm_s_hb.hb. basic_solver. }
+       unfold imm_s_hb.hb. by rewrite ct_of_ct. }
   arewrite (⦗Sc⦘ ⊆ ⦗Rel⦘) at 1 by mode_solver.
   arewrite (⦗Sc⦘ ⊆ ⦗Acq⦘) by mode_solver.
   unfold imm_s_hb.sw. hahn_frame.
@@ -332,8 +332,7 @@ Proof.
     arewrite (Acqrel ⊆₁ Acq) at 3 by mode_solver. rewrite F_HB.
     arewrite (F ∩₁ Acqrel ⊆₁ F) by mode_solver. 
     rewrite rt_of_trans by apply hb_trans.
-    arewrite (⦗F⦘ ⨾ hb^? ≡ ⦗F⦘ ∪ ⦗F⦘ ⨾ hb).
-    { basic_solver 100. }
+    arewrite (⦗F⦘ ⨾ hb^? ≡ ⦗F⦘ ∪ ⦗F⦘ ⨾ hb) by basic_solver.
     rewrite SC_R_RF. rewrite <- seq_eqvK at 2. rewrite !seqA.
     sin_rewrite SC_RF_PSCB. 
     rewrite ct_end. hahn_frame.
@@ -349,15 +348,21 @@ Proof.
     arewrite ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G).
     rewrite SC_SCB_PSCB. basic_solver. }
   
-  assert (⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as SC_SB_RF_PSCB.
+  assert (⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)^*) as SC_SB_RF_PSCB.
   { rewrite ct_unionE.
     arewrite (rf⁺ ≡ rf) by admit. 
     arewrite (rf＊ ≡ rf^?) by admit.
     case_union _ _. rewrite seq_union_r. unionL.
     { rewrite SC_RF_PSCB. basic_solver. }
     rewrite cr_seq. case_union _ _. rewrite seq_union_r.
-    arewrite ((sb ⨾ rf^?)⁺ ≡ (sb ⨾ rf)^* ⨾ sb^?).
-    { admit. }
+    arewrite ((sb ⨾ rf^?)⁺ ⊆ (sb ⨾ rf)^* ⨾ sb^?).
+    { rewrite crE, seq_union_r, seq_id_r.
+      rewrite unionC.
+      rewrite path_absorb_rt.
+      3: by apply sb_trans.
+      2: left; generalize (@sb_trans G); basic_solver.
+      rewrite crE, seq_union_r, seq_id_r.
+      apply union_mori; eauto with hahn. }
     (* seq_rewrite !SC_L_RF. rewrite SC_RF_PSCB.  *)
     admit. }
 
