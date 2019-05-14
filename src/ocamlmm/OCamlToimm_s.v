@@ -63,6 +63,7 @@ Notation "'same_loc'" := (same_loc lab).
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
 Notation "'F'" := (fun a => is_true (is_f lab a)).
+Notation "'ORlx'" := (fun a => is_true (is_only_rlx lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
 Notation "'Acq'" := (fun a => is_true (is_acq lab a)).
 Notation "'Rel'" := (fun a => is_true (is_rel lab a)).
@@ -74,13 +75,13 @@ Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'ohb'" := G.(OCaml.hb).
 
 Hypothesis LSM : forall l,
-    << LM : Loc_ l \₁ is_init  ⊆₁ Rlx \₁ Sc >> \/
+    << LM : Loc_ l \₁ is_init ⊆₁ ORlx >> \/
     << LM : Loc_ l \₁ is_init ⊆₁ Sc >>.
 
 Hypothesis WSCFACQRMW : W∩₁Sc ≡₁ codom_rel (<|F∩₁ Acq|> ;; immediate sb ;; rmw).
 Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
-Hypothesis WRLXF : W∩₁Rlx ⊆₁ codom_rel (<|F∩₁Acqrel|> ;; immediate sb).
+Hypothesis WRLXF : W∩₁ORlx ⊆₁ codom_rel (<|F∩₁Acqrel|> ;; immediate sb).
 Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
 
 Lemma co_sc_in_hb (WF : Wf G) sc
