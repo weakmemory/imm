@@ -309,7 +309,7 @@ Definition same_lab_u2v_dom  :=
     same_label_u2v (lab1 e) (lab2 e).
 
 Hint Unfold eq_dom loc mod xmod is_r is_w is_f is_acq is_rel is_rlx is_acqrel R_ex
-     is_only_pln is_sc is_ra is_xacq
+     is_only_pln is_only_rlx is_sc is_ra is_xacq
      same_lab_u2v_dom same_label_u2v :
   same_lab_unfoldDb.
 
@@ -352,6 +352,10 @@ Proof. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_only_pln (SAME: same_lab_u2v_dom) :
   s ∩₁ is_only_pln lab1 ≡₁ s ∩₁ is_only_pln lab2.
+Proof. same_lab_set_solver_s SAME; desf. Qed.
+
+Lemma same_lab_u2v_dom_is_only_rlx (SAME: same_lab_u2v_dom) :
+  s ∩₁ is_only_rlx lab1 ≡₁ s ∩₁ is_only_rlx lab2.
 Proof. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_rlx (SAME: same_lab_u2v_dom) :
@@ -433,6 +437,10 @@ Proof. generalize (same_lab_u2v_dom_R_ex SAME). relsf. Qed.
 Lemma same_lab_u2v_is_only_pln (SAME: same_lab_u2v) :
   is_only_pln lab1 ≡₁ is_only_pln lab2.
 Proof. generalize (same_lab_u2v_dom_is_only_pln SAME). relsf. Qed.
+
+Lemma same_lab_u2v_is_only_rlx (SAME: same_lab_u2v) :
+  is_only_rlx lab1 ≡₁ is_only_rlx lab2.
+Proof. generalize (same_lab_u2v_dom_is_only_rlx SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_rlx (SAME: same_lab_u2v) :
   is_rlx lab1 ≡₁ is_rlx lab2.
@@ -614,7 +622,7 @@ Tactic Notation "type_solver" int_or_var(index) :=
 Tactic Notation "type_solver" :=  type_solver 4.
 
 Hint Unfold set_union set_inter is_r is_w is_f R_ex : mode_unfolderDb.
-Hint Unfold is_only_pln is_rlx is_rel is_acq is_acqrel is_sc is_ra is_xacq : mode_unfolderDb.
+Hint Unfold is_only_pln is_only_rlx is_rlx is_rel is_acq is_acqrel is_sc is_ra is_xacq : mode_unfolderDb.
 Tactic Notation "mode_unfolder" :=  repeat autounfold with mode_unfolderDb in *.
 
 Tactic Notation "mode_solver" int_or_var(index) := 
