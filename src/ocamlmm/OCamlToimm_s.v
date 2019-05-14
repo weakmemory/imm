@@ -190,7 +190,7 @@ Proof.
     assert (~ is_init r2) as NINITR2.
     { eapply read_or_fence_is_not_init; eauto. }
     assert ((Loc_ l \₁ is_init) r2) as DD by (by split).
-    apply CC in DD. by destruct DD.  }
+    apply CC in DD. clear -SCR2 DD. mode_solver. }
 
   assert (codom_rel rmw w') as RMWW'.
   { apply WSCRMW. by split. }
@@ -284,7 +284,7 @@ Lemma WIP_po_rfe_co_fr (WF: Wf G) sc
   (* (⦗Sc⦘ ⨾ (sb ∪ rfe) ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ (psc_base G)⁺. *)
   acyclic (sb ∪ rfe ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
 Proof.
-  arewrite (rfe ⊆ rf). arewrite (coe ⊆ co).  arewrite (fre G ⊆ fr). 
+  arewrite (rfe ⊆ rf). arewrite (coe ⊆ co). arewrite (fre G ⊆ fr). 
   assert (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘ ⊆ psc_base G) as CO_FR_PSCB.
   { unfold psc_base. hahn_frame.
     arewrite (co ∪ fr ⊆ scb G).
@@ -304,19 +304,17 @@ Proof.
   assert (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G) as SC_SCB_PSCB.
   { unfold psc_base. basic_solver 200. } 
 
-  assert (⦗F ∩₁ Acqrel⦘⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb) as F_HB.
+  assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb) as F_HB.
   { rewrite <- sw_in_hb. unfold imm_s_hb.sw.
-    do 2 rewrite id_inter.
-    arewrite (Acqrel ⊆₁ Rel) by mode_solver.  
-    unfold imm_s_hb.release.
-    rewrite <- !seqA, seq_eqvC, !seqA.
-    arewrite (sb ⨾ ⦗F⦘ ⊆ (sb ⨾ ⦗F⦘)^?). arewrite ( (⦗F⦘ ⨾ sb) ⊆ (⦗F⦘ ⨾ sb)^?). 
-    arewrite (rf ≡ ⦗W⦘⨾ rf) at 1.
-    { rewrite WF.(wf_rfD). basic_solver. }    
-    arewrite (⦗W⦘ ⊆ imm_s_hb.rs G).
-    { unfold imm_s_hb.rs. basic_solver 100. }
-    hahn_frame. basic_solver. }  
-    
+    rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA.
+    arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ release).
+    2: basic_solver 10.
+    unfold imm_s_hb.release, imm_s_hb.rs.
+    arewrite (⦗W⦘ ⊆ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw)＊).
+    { basic_solver 10. }
+    arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⊆ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?); [|done].
+    mode_solver 10. }
+
   assert (sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_R_RF by admit.
   assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
   assert (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ (psc_base G)) as SC_RF_PSCB by admit.
