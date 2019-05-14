@@ -195,6 +195,13 @@ Definition is_only_pln a : bool :=
   | Opln => true
   | _ => false
   end.
+
+Definition is_only_rlx a : bool :=
+  match mod a with
+  | Orlx => true
+  | _ => false
+  end.
+
 Definition is_rlx a : bool := mode_le Orlx (mod a).
 Definition is_acq a : bool := mode_le Oacq (mod a).
 Definition is_rel a : bool := mode_le Orel (mod a).
