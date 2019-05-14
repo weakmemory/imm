@@ -89,7 +89,7 @@ Notation "'L'" := (W ∩₁ (fun a => is_true (is_rel lab a))).
 Notation "'Q'" := (R ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 
-Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
+Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
