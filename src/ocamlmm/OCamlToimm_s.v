@@ -316,9 +316,11 @@ Proof.
     { unfold imm_s_hb.rs. basic_solver 100. }
     hahn_frame. basic_solver. }  
     
+  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_R_RF by admit.
+  assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
   assert (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ (psc_base G)) as SC_RF_PSCB by admit.
 
-  assert (⦗Sc⦘ ⨾ (sb ⨾ rf)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺) as CT_SB_RF_PSCB.
+  assert (⦗Sc⦘ ⨾ (sb ⨾ rf)⁺ ⨾ (* sb^? ⨾ *) ⦗Sc⦘ ⊆ (psc_base G)⁺) as CT_SB_RF_PSCB.
   { arewrite (sb ⨾ rf ≡ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf).
     { arewrite (sb ⨾ rf ≡ sb ⨾ ⦗W⦘ ⨾ rf).
       { rewrite WF.(wf_rfD). basic_solver 100. }
@@ -328,12 +330,11 @@ Proof.
     rewrite ct_rotl.
     rewrite !seqA.
     arewrite (Acqrel ⊆₁ Acq) at 3 by mode_solver. rewrite F_HB.
-    assert (rf ⨾ ⦗Sc⦘ ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_RF by admit.
     arewrite (F ∩₁ Acqrel ⊆₁ F) by mode_solver. 
     rewrite rt_of_trans by apply hb_trans.
     arewrite (⦗F⦘ ⨾ hb^? ≡ ⦗F⦘ ∪ ⦗F⦘ ⨾ hb).
     { basic_solver 100. }
-    rewrite SC_RF. rewrite <- seq_eqvK at 2. rewrite !seqA.
+    rewrite SC_R_RF. rewrite <- seq_eqvK at 2. rewrite !seqA.
     sin_rewrite SC_RF_PSCB. 
     rewrite ct_end. hahn_frame.
     case_union _ _. rewrite !seq_union_r. unionL.
@@ -355,6 +356,9 @@ Proof.
     case_union _ _. rewrite seq_union_r. unionL.
     { rewrite SC_RF_PSCB. basic_solver. }
     rewrite cr_seq. case_union _ _. rewrite seq_union_r.
+    arewrite ((sb ⨾ rf^?)⁺ ≡ (sb ⨾ rf)^* ⨾ sb^?).
+    { admit. }
+    (* seq_rewrite !SC_L_RF. rewrite SC_RF_PSCB.  *)
     admit. }
 
   rewrite <- seqA with (r2:=⦗Sc⦘) (r3:=psc_base G). rewrite <- seqA.   
