@@ -395,17 +395,18 @@ Proof.
   rewrite <- seq_eqvK.
   rewrite <- !seqA. rewrite acyclic_rotl. rewrite !seqA.
   
-  sin_rewrite sc_co_fr_ct_in_co_fr; auto. 
+  sin_rewrite sc_co_fr_ct_in_co_fr; auto.
+  arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ≡ ⦗R ∪₁ W⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr)) by admit. 
   sin_rewrite CO_FR_PSCB.
   
-  assert (⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ (* ⨾ ⦗R ∪₁ W⦘ *) ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
+  assert (⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⨾ ⦗R ∪₁ W⦘ ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
   { 
     rewrite ct_unionE.
     arewrite (rf⁺ ≡ rf) by admit. 
     arewrite (rf＊ ≡ rf^?) by admit.
-    (* rewrite <- !seqA. rewrite seqA with (r3:=⦗Sc⦘). *)
+    rewrite <- !seqA. rewrite seqA with (r3:=⦗Sc⦘).
     case_union _ _.
-    rewrite seq_union_r.    
+    rewrite seq_union_r, seq_union_l.     
     unionL.
     { rewrite (sc_rf_pscb WF IPC). basic_solver. }
     rewrite cr_seq. case_union _ _. rewrite seq_union_r.
@@ -418,22 +419,23 @@ Proof.
       rewrite crE, seq_union_r, seq_id_r.
       apply union_mori; eauto with hahn. }
     assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
-    assert (⦗Sc⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb^? ⨾ ⦗Sc⦘ ⊆ (psc_base G)＊) as SB_RF'.
+    rewrite seq_union_l. 
+    assert (⦗Sc⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb^? ⨾ ⦗Sc⦘ ⨾ ⦗R ∪₁ W⦘ ⊆ (psc_base G)＊) as SB_RF'.
     { rewrite cr_seq, !seq_union_r. unionL.
-      { generalize WIP_sc_sb_rf_ct_pscb. basic_solver 10. }
-      (* generalize WIP_sc_sb_rf_ending_sb_ct_pscb. basic_solver 20. *)
-      admit. (* should somehow employ R \cup W info here *)
-    }
+      { generalize (WIP_sc_sb_rf_ct_pscb WF IPC). basic_solver 10. }
+      rewrite seq_rtE_l, seq_union_r. unionL.
+      { arewrite (sb ⊆ scb G). sin_rewrite sc_scb_pscb. basic_solver. }
+      pose proof ct_end. symmetry in H. seq_rewrite H. 
+      generalize (WIP_sc_sb_rf_ending_sb_ct_pscb WF IPC). basic_solver 10. }
     unionL.
-    { auto. }
+    { rewrite !seqA. auto. }
     rewrite <- !seqA, SC_L_RF. rewrite <- seq_eqvK at 2.
     rewrite !seqA.
     sin_rewrite (sc_rf_pscb WF IPC). 
     apply inclusion_seq_rt; try basic_solver; auto. 
   }
   
-  rewrite <- seqA with (r2:=⦗Sc⦘) (r3:=psc_base G). rewrite <- seqA.   
-  rewrite SC_SB_RF_PSCB.
+  sin_rewrite SC_SB_RF_PSCB. 
   rewrite <- ct_end.
   cdes IPC. arewrite ((psc_base G)⁺ ⊆ (psc_base G ∪ psc_f G)⁺).
   red. red in Cpsc.
