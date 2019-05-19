@@ -1,7 +1,6 @@
 (******************************************************************************)
 (** * OCaml MM is weaker than IMM_S   *)
 (******************************************************************************)
-
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxRel.
@@ -399,8 +398,12 @@ Proof.
   assert (⦗(W ∪₁ R)⦘ ⨾ ⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
   { 
     rewrite ct_unionE.
-    arewrite (rf⁺ ≡ rf) by admit. 
-    arewrite (rf＊ ≡ rf^?) by admit.
+    assert (rf⁺ ≡ rf) as RF1. 
+    { rewrite ct_begin. rewrite rtE. rewrite seq_union_r. rewrite ct_begin.
+      seq_rewrite (rf_rf WF). basic_solver. }
+    seq_rewrite RF1. 
+    arewrite (rf＊ ≡ rf^?).
+    { rewrite rtE. rewrite RF1. basic_solver. }
     rewrite <- !seqA. rewrite seqA with (r3:=⦗Sc⦘).
     rewrite seqA with (r1:=⦗(W ∪₁ R)⦘).
     case_union _ _.
