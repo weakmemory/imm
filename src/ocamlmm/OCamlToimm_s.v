@@ -251,8 +251,6 @@ Lemma sb_rfe_sc_in_hb (WF: Wf G) sc
 Proof.
 Admitted.
 
-(* Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) : *)
-(*   (⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘. *)
 Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) :
   ⦗Sc⦘ ⨾ (co ∪ fr)⁺ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘.
 Proof.
@@ -290,13 +288,11 @@ Proof.
   unfold psc_base. basic_solver 10. 
 Qed. 
 
-Lemma WIP_sc_sb_rf_ct_pscb (WF: Wf G) sc
-      (IPC : imm_s.imm_psc_consistent G sc) :
-  (⦗Sc⦘ ⨾ (sb ⨾ rf)⁺ ⨾ (* sb^? ⨾ *) ⦗Sc⦘ ⊆ (psc_base G)⁺).
+
+Lemma SC_R_RF: sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘. Proof. Admitted. 
+Lemma SC_L_RF: (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘). Proof. Admitted. 
+Lemma F_HB (WF: Wf G): (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb).
 Proof. 
-  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_R_RF by admit.
-  assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
-  assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb) as F_HB.
   { rewrite <- sw_in_hb. unfold imm_s_hb.sw.
     rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA.
     arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ release).
@@ -306,76 +302,67 @@ Proof.
     { basic_solver 10. }
     arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⊆ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?); [|done].
     mode_solver 10. }
-
-  arewrite (sb ⨾ rf ≡ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf).
+Qed.
+Lemma SB_F_SB_RF (WF: Wf G): (sb ⨾ rf ≡ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf).
+Proof.
   { arewrite (rf ≡ ⦗W⦘ ⨾ rf).
     { eapply dom_l. apply WF.(wf_rfD). }
     admit. }
-  rewrite <- seq_eqvK with (dom:=F ∩₁ Acqrel).
-  rewrite seqA. rewrite <- seqA with (r2:=⦗F ∩₁ Acqrel⦘).
-  rewrite ct_rotl.
-  rewrite !seqA.
-  arewrite (Acqrel ⊆₁ Acq) at 3 by mode_solver. rewrite F_HB.
-  arewrite (F ∩₁ Acqrel ⊆₁ F) by mode_solver. 
-  rewrite rt_of_trans by apply hb_trans.
-  arewrite (⦗F⦘ ⨾ hb^? ≡ ⦗F⦘ ∪ ⦗F⦘ ⨾ hb) by basic_solver.
-  rewrite SC_R_RF. rewrite <- seq_eqvK at 2. rewrite !seqA.
-  sin_rewrite (sc_rf_pscb WF IPC); auto. 
-  rewrite ct_end. hahn_frame.
-  case_union _ _. rewrite !seq_union_r. unionL.
-  { do 2 rewrite inclusion_seq_eqv_l with (dom:=F).
-    sin_rewrite rewrite_trans.
-    2: { apply sb_trans. }
-    arewrite (sb ⊆ scb G). rewrite sc_scb_pscb.  basic_solver. }
-  assert (sb ⨾ ⦗F⦘ ⊆ sb \ same_loc) as SB_F_NOSL by admit. 
-  assert (⦗F⦘ ⨾ sb ⊆ sb \ same_loc) as F_SB_NOSL by admit.
-  rewrite !seqA. 
-  sin_rewrite SB_F_NOSL. sin_rewrite F_SB_NOSL.
-  arewrite ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G).
-  rewrite sc_scb_pscb. basic_solver.
 Admitted.
-
 
 Lemma WIP_sc_sb_rf_ending_sb_ct_pscb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  (⦗Sc⦘ ⨾ (sb ⨾ rf)⁺ ⨾ sb ⨾ ⦗Sc ∩₁ (W ∪₁ R)⦘ ⊆ (psc_base G)⁺).
-Proof. 
-  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_R_RF by admit.
-  assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
-  assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⊆ hb) as F_HB.
-  { rewrite <- sw_in_hb. unfold imm_s_hb.sw.
-    rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA.
-    arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ release).
-    2: basic_solver 10.
-    unfold imm_s_hb.release, imm_s_hb.rs.
-    arewrite (⦗W⦘ ⊆ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw)＊).
-    { basic_solver 10. }
-    arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⊆ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?); [|done].
-    mode_solver 10. }
-
-  arewrite (sb ⨾ rf ≡ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf).
-  { arewrite (rf ≡ ⦗W⦘ ⨾ rf).
-    { eapply dom_l. apply WF.(wf_rfD). }
-    admit. }
-  arewrite (sb ⨾ ⦗Sc ∩₁ (W ∪₁ R)⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗Sc⦘).
+  (⦗Sc ∩₁ W⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ psc_base G).
+Proof.
+  rewrite seq_rtE_l, seq_union_r. unionL.
+  { arewrite (sb ⊆ scb G).
+    arewrite (Sc ∩₁ W ⊆₁ Sc) by type_solver.
+    arewrite ((W ∪₁ R) ∩₁ Sc ⊆₁ Sc) by type_solver.
+    rewrite sc_scb_pscb. basic_solver. }
+  pose ct_end as CE. symmetry in CE. seq_rewrite CE.
+  rewrite !id_inter, !seqA.
+  rewrite <- sc_scb_pscb. hahn_frame.
+  
+  seq_rewrite (SB_F_SB_RF WF).
+  arewrite (sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘).
   { admit. }
   rewrite <- seq_eqvK with (dom:=F ∩₁ Acqrel).
   rewrite seqA. rewrite <- seqA with (r2:=⦗F ∩₁ Acqrel⦘).
   rewrite ct_rotl.
-  rewrite !seqA.
-  arewrite (Acqrel ⊆₁ Acq) at 3 by mode_solver.
-  rewrite <- seq_eqvK with (dom:=F ∩₁ Acq) at 2. rewrite !seqA.
+  assert ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G) as SCB'.
+  { unfold scb. basic_solver 20. }
+  rewrite <- SCB'.
+
+  do 2 rewrite seqA. 
+  arewrite (⦗W⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ sb \ same_loc).
+  { admit. }
+  rewrite <- seq_eqvK with (dom:=F ∩₁ Acq). rewrite !seqA.
+  arewrite (⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb \ same_loc).  
+  { admit. }
+  hahn_frame. 
+  
+  arewrite (Acqrel ⊆₁ Acq) at 2 by mode_solver.
   arewrite ((⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘)＊⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ≡ (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘)^+) by rewrite <- ct_end; auto. 
-  rewrite F_HB.
-  arewrite (F ∩₁ Acqrel ⊆₁ F) by mode_solver. arewrite (F ∩₁ Acq ⊆₁ F) by mode_solver. 
-  rewrite ct_of_trans by apply hb_trans.
-  assert (sb ⨾ ⦗F⦘ ⊆ sb \ same_loc) as SB_F_NOSL by admit. 
-  assert (⦗F⦘ ⨾ sb ⊆ sb \ same_loc) as F_SB_NOSL by admit.
-  sin_rewrite SB_F_NOSL. sin_rewrite F_SB_NOSL.
-  arewrite ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G).
-  rewrite sc_scb_pscb. basic_solver.
+  rewrite (F_HB WF). 
+  rewrite ct_of_trans by apply hb_trans; basic_solver. 
 Admitted.
 
+
+Lemma WIP_sc_sb_rf_ct_pscb (WF: Wf G) sc
+      (IPC : imm_s.imm_psc_consistent G sc) :
+  (⦗Sc ∩₁ W⦘ ⨾ (sb ⨾ rf)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺).
+Proof.
+  rewrite ct_end, !seqA.
+  seq_rewrite SC_R_RF.
+  arewrite (rf ≡ ⦗W⦘ ⨾ rf) at 2.
+  { eapply dom_l. apply WF.(wf_rfD). } 
+  rewrite <- seq_eqvK with (dom:=Sc) at 1. rewrite !seqA.
+  seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
+  sin_rewrite (sc_rf_pscb WF IPC); auto.
+  rewrite ct_end. hahn_frame.
+  arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗(W ∪₁ R) ∩₁ Sc⦘) by mode_solver.  
+  rewrite (WIP_sc_sb_rf_ending_sb_ct_pscb WF IPC). basic_solver. 
+Qed. 
 
 Lemma WIP_po_rfe_co_fr (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
@@ -399,12 +386,13 @@ Proof.
   arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ≡ ⦗R ∪₁ W⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr)) by admit. 
   sin_rewrite CO_FR_PSCB.
   
-  assert (⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⨾ ⦗R ∪₁ W⦘ ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
+  assert ((* ⦗W⦘ ⨾ *) ⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
   { 
     rewrite ct_unionE.
     arewrite (rf⁺ ≡ rf) by admit. 
     arewrite (rf＊ ≡ rf^?) by admit.
     rewrite <- !seqA. rewrite seqA with (r3:=⦗Sc⦘).
+    (* rewrite seqA with (r1:=⦗W⦘). *)
     case_union _ _.
     rewrite seq_union_r, seq_union_l.     
     unionL.
@@ -420,13 +408,16 @@ Proof.
       apply union_mori; eauto with hahn. }
     assert (⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SC_L_RF by admit.
     rewrite seq_union_l. 
-    assert (⦗Sc⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb^? ⨾ ⦗Sc⦘ ⨾ ⦗R ∪₁ W⦘ ⊆ (psc_base G)＊) as SB_RF'.
+    assert (⦗Sc ∩₁ W⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb^? ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ (psc_base G)＊) as SB_RF'.
     { rewrite cr_seq, !seq_union_r. unionL.
       { generalize (WIP_sc_sb_rf_ct_pscb WF IPC). basic_solver 10. }
       rewrite seq_rtE_l, seq_union_r. unionL.
-      { arewrite (sb ⊆ scb G). sin_rewrite sc_scb_pscb. basic_solver. }
-      pose proof ct_end. symmetry in H. seq_rewrite H. 
-      generalize (WIP_sc_sb_rf_ending_sb_ct_pscb WF IPC). basic_solver 10. }
+      { arewrite (sb ⊆ scb G). arewrite (⦗Sc ∩₁ W⦘ ⊆ ⦗Sc⦘) by mode_solver. 
+        arewrite (⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ ⦗Sc⦘) by mode_solver. 
+        sin_rewrite sc_scb_pscb. basic_solver. }
+      pose proof ct_end. symmetry in H. seq_rewrite H.
+      rewrite inclusion_t_rt. 
+      rewrite (WIP_sc_sb_rf_ending_sb_ct_pscb WF IPC). basic_solver 10. }
     unionL.
     { rewrite !seqA. auto. }
     rewrite <- !seqA, SC_L_RF. rewrite <- seq_eqvK at 2.
