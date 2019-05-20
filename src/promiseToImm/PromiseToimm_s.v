@@ -751,7 +751,7 @@ Proof.
       apply TEH in HH. apply HH. }
     apply PCOV in CC. by apply GPC.(acts_clos). }
   assert ((istep thread nil)＊ state state') as KK.
-  { apply steps_same_E_empty; auto. }
+  { apply steps_same_E_empty_in; auto. }
   assert ((lts_step thread ProgramEvent.silent)＊ state state') as HH.
   { by hahn_rewrite <- istep_nil_eq_silent. }
   assert (state'.(eindex) = state.(eindex)) as EII.

@@ -590,11 +590,12 @@ Proof.
   eapply steps_preserve_E; eauto.
 Qed.
 
-Lemma step_same_E_empty thread state state'
+Lemma step_same_E_empty_in thread state state'
       (GPC : wf_thread_state thread state)
-      (STEP : step thread state state')
-      (IN : acts_set state'.(ProgToExecution.G) ⊆₁
-            acts_set state.(ProgToExecution.G)) :
+      (STEP : step thread state state') :
+  acts_set state'.(ProgToExecution.G) ⊆₁
+    acts_set state.(ProgToExecution.G)
+  <->
   istep thread nil state state'.
 Proof.
   assert (~ In (ThreadEvent thread (eindex state))
@@ -603,6 +604,8 @@ Proof.
     desc. inv REP. omega. }
   red in STEP. desc.
   red in STEP. desc.
+  split; intros IN.
+  2: { cdes IN. inv ISTEP2; by rewrite UG. }
   destruct ISTEP0.
   { red. splits; auto. eexists. splits; eauto.
     eapply assign; eauto. }
@@ -614,16 +617,48 @@ Proof.
     right; left.
 Qed.
 
-Lemma steps_same_E_empty thread state state'
+Lemma step_same_E_empty thread state state'
       (GPC : wf_thread_state thread state)
-      (STEP : (step thread)＊ state state')
-      (IN : acts_set state'.(ProgToExecution.G) ⊆₁
-            acts_set state.(ProgToExecution.G)) :
+      (STEP : step thread state state') :
+  acts_set state'.(ProgToExecution.G) ≡₁
+    acts_set state.(ProgToExecution.G)
+  <->
+  istep thread nil state state'.
+Proof.
+  etransitivity.
+  2: eapply step_same_E_empty_in; eauto.
+  split; [basic_solver|].
+  intros HH.
+  split; auto.
+  eapply step_preserves_E; eauto.
+Qed.
+
+Lemma steps_same_E_empty_in thread state state'
+      (GPC : wf_thread_state thread state)
+      (STEP : (step thread)＊ state state') :
+  acts_set state'.(ProgToExecution.G) ⊆₁
+    acts_set state.(ProgToExecution.G)
+  <->
   (istep thread nil)＊ state state'.
 Proof.
-  induction STEP.
+  assert (istep thread [] ⊆ step thread) as AA.
+  { unfold step. basic_solver. }
+  split.
+  2: { intros ST.
+       induction ST as [x y ST| |].
+       2: done.
+       { apply step_same_E_empty_in in ST; auto. }
+       assert (wf_thread_state thread y) as YY.
+       { eapply wf_thread_state_steps; eauto.
+         eapply clos_refl_trans_mori; eauto. }
+       etransitivity.
+       { apply IHST2; auto.
+         eapply clos_refl_trans_mori; eauto. }
+       apply IHST1; auto.
+       eapply clos_refl_trans_mori; eauto. }
+  induction STEP; intros.
   2: by apply rt_refl.
-  { apply rt_step. by apply step_same_E_empty. }
+  { apply rt_step. by apply step_same_E_empty_in. }
   assert (wf_thread_state thread y) as YY.
   { eapply wf_thread_state_steps; eauto. }
   assert (acts_set (ProgToExecution.G y) ⊆₁
@@ -633,6 +668,21 @@ Proof.
   { apply IHSTEP1; auto. by rewrite XX. }
   apply IHSTEP2; auto.
   etransitivity; eauto.
+  eapply steps_preserve_E; eauto.
+Qed.
+
+Lemma steps_same_E_empty thread state state'
+      (GPC : wf_thread_state thread state)
+      (STEP : (step thread)＊ state state') :
+  acts_set state'.(ProgToExecution.G) ≡₁
+    acts_set state.(ProgToExecution.G)
+  <->
+  (istep thread nil)＊ state state'.
+Proof.
+  etransitivity.
+  2: by eapply steps_same_E_empty_in; eauto.
+  split; [basic_solver|].
+  intros IN. split; auto.
   eapply steps_preserve_E; eauto.
 Qed.
 
