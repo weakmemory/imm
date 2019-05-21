@@ -318,8 +318,7 @@ Lemma WIP_sc_sb_rf_ending_sb_ct_pscb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   (⦗Sc ∩₁ (W ∪₁ R)⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ (psc_base G)^+).
 Proof.
-  assert (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G) as SC_SCB_PSCB by admit. 
-  rewrite <- SC_SCB_PSCB. (* cannot arewrite *)
+  rewrite <- sc_scb_pscb. (* cannot arewrite *)
   
   rewrite seq_rtE_l, seq_union_r. unionL.
   { arewrite (sb ⊆ scb G).
