@@ -590,6 +590,26 @@ Proof.
   eapply steps_preserve_E; eauto.
 Qed.
 
+Lemma step_empty_same_E thread state state'
+      (STEP : istep thread nil state state') :
+  acts_set state'.(ProgToExecution.G) ≡₁
+  acts_set state.(ProgToExecution.G).
+Proof.
+  cdes STEP. inv ISTEP0.
+  all: by rewrite UG.
+Qed.
+
+Lemma steps_empty_same_E thread state state'
+      (STEPS : (istep thread nil)＊ state state') :
+  acts_set state'.(ProgToExecution.G) ≡₁
+  acts_set state.(ProgToExecution.G).
+Proof.
+  induction STEPS.
+  2: done.
+  { eapply step_empty_same_E; eauto. }
+  etransitivity; eauto.
+Qed.
+
 Lemma step_same_E_empty_in thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
