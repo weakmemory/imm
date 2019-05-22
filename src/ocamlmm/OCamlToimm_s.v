@@ -311,7 +311,12 @@ Proof.
   arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD).
   arewrite (rf ≡ <|E|>;;rf;;<|E|>) at 1 by apply WF.(wf_rfE).
   arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
-  { admit. }
+  { rewrite <- !id_inter. apply eqv_rel_mori. red. intros x H.
+    destruct H. split; auto. red. split; [| mode_solver ]. 
+    red. split.
+    { destruct H0. auto. }
+    tertium_non_datur (is_init x); auto.
+    exfalso. apply (init_pln WF) in H1. mode_solver. }
   rewrite <- id_inter. arewrite (E ∩₁ R ⊆₁ Eninit \₁ F).
   { red. intros x H. red. split.
     { destruct H. split; auto.
