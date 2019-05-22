@@ -298,15 +298,18 @@ Proof.
   unfold psc_base. basic_solver 10. 
 Qed.
 
-Lemma sl_mode (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc)
-      r (SL: r ⊆ same_loc):
+Lemma sl_mode (WF: Wf G) r (SL: r ⊆ same_loc):
   ⦗Eninit \₁ F⦘ ⨾ r ⨾ ⦗Eninit \₁ F⦘ ⊆ ⦗Sc⦘ ⨾ r ⨾ ⦗Sc⦘ ∪ ⦗ORlx⦘ ⨾ r ⨾ ⦗ORlx⦘.
 Proof.
   red. intros x y H. 
 Admitted.
 
-Lemma SC_RF (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc):
-  ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
+Lemma wr_mode: Eninit ∩₁ (W ∪₁ R) ⊆₁ Sc ∪₁ ORlx.
+Proof.
+Admitted.
+
+
+Lemma SC_RF (WF: Wf G): ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof.
   arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD).
   arewrite (rf ≡ <|E|>;;rf;;<|E|>) at 1 by apply WF.(wf_rfE).
@@ -323,10 +326,42 @@ Proof.
       apply (read_or_fence_is_not_init WF). auto. }
     mode_solver. }
   seq_rewrite seq_eqvC. 
-  rewrite !seqA. sin_rewrite (sl_mode WF IPC); [| apply WF.(wf_rfl) ]. 
+  rewrite !seqA. sin_rewrite (sl_mode WF); [| apply WF.(wf_rfl) ]. 
   case_union _ _. unionL; [basic_solver| ].
   mode_solver. 
-Admitted.
+Qed.
+
+Lemma SB_RF_SYNC (WF: Wf G): 
+  ⦗Eninit \₁ (W ∪₁ R)⦘ ⨾ sb ⨾ rf ⊆ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ∪ rmw ⨾ rf.
+Proof.
+  arewrite (sb ⨾ rf ⊆ sb ⨾ ⦗Eninit ∩₁ (W ∪₁ R)⦘ ⨾ rf).
+  { rewrite no_sb_to_init at 1.
+    arewrite (rf ≡ ⦗E⦘ ⨾ rf) at 1 by eapply dom_l; apply WF.(wf_rfE). seq_rewrite seq_eqvC.
+    arewrite (rf ≡ ⦗W⦘ ⨾ rf) at 1 by eapply dom_l; apply WF.(wf_rfD).
+    arewrite (W ⊆₁ W ∪₁ R) at 1. basic_solver. }
+  sin_rewrite wr_mode.
+  rewrite (id_union Sc ORlx). repeat case_union _ _. unionL.
+  2: { arewrite (rf ≡ ⦗W⦘ ⨾ rf) at 1 by eapply dom_l; apply WF.(wf_rfD).
+       seq_rewrite <- id_inter. rewrite set_interC. sin_rewrite WRLXF.
+       intros e r H. rewrite <- seqA2 in H. red in H.
+       destruct H as [w [[e' [[EQee' [NIe WRe]] SBew]] H]].
+       rewrite <- EQee' in SBew. clear EQee'.
+       destruct H as [w' [[EQww' [f [f' [[EQff' FARf] SBIfw]]]] RFwr]].
+       rewrite <- EQff' in SBIfw. clear EQff'.
+       rewrite <- EQww' in RFwr. clear EQww'.
+       pose same_thread.
+       assert (sb e f) as SBef. 
+       { admit. }
+       left. 
+       rewrite <- !seqA2. unfold seq at 1. exists w. split; auto.
+       exists f. split.
+       2: { generalize SBIfw. basic_solver. }
+       exists f. split; auto. generalize FARf. basic_solver. }
+  
+  
+Admitted. 
+
+
 
 
 Lemma F_HB (WF: Wf G): ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ (rmw ⨾ rf)^* ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ hb. 
@@ -366,11 +401,8 @@ Proof.
     rewrite <- seq_eqvK at 1. rewrite seqA at 1.
     rewrite <- (seqA _ sb _). 
     rewrite <- ct_rotl. basic_solver 10. }
-    
-  arewrite (⦗W ∪₁ R⦘ ⨾ sb ⨾ rf ≡
-                     sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf
-                     ∪ rmw ⨾ rf) by admit.
-
+  
+  sin_rewrite SB_RF_SYNC. 
     
   assert (sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SB_RF_SC by admit. 
   assert (rmw ⨾ rf ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘) as RMW_RF_HBL.
