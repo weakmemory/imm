@@ -308,11 +308,15 @@ Admitted.
 Lemma SC_RF (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc):
   ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof.
-  arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD). 
-  arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
+  arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD).
+  arewrite (rf ≡ <|E|>;;rf;;<|E|>) at 1 by apply WF.(wf_rfE).
+  arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
   { admit. }
-  arewrite (⦗R⦘ ⊆ ⦗Eninit \₁ F⦘).
-  { admit. }
+  rewrite <- id_inter. arewrite (E ∩₁ R ⊆₁ Eninit \₁ F).
+  { red. intros x H. red. split.
+    { destruct H. split; auto.
+      apply (read_or_fence_is_not_init WF). auto. }
+    mode_solver. }
   seq_rewrite seq_eqvC. 
   rewrite !seqA. sin_rewrite (sl_mode WF IPC); [| apply WF.(wf_rfl) ]. 
   case_union _ _. unionL; [basic_solver| ].
