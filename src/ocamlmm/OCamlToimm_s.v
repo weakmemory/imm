@@ -298,9 +298,25 @@ Proof.
   unfold psc_base. basic_solver 10. 
 Qed.
 
-Lemma SC_RF (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc):
-  ⦗Sc⦘ ⨾ rf ≡ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
+Lemma sl_mode (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc)
+      r (SL: r ⊆ same_loc):
+  ⦗Eninit \₁ F⦘ ⨾ r ⨾ ⦗Eninit \₁ F⦘ ⊆ ⦗Sc⦘ ⨾ r ⨾ ⦗Sc⦘ ∪ ⦗ORlx⦘ ⨾ r ⨾ ⦗ORlx⦘.
 Proof.
+  red. intros x y H. 
+Admitted.
+
+Lemma SC_RF (WF: Wf G) sc (IPC : imm_s.imm_psc_consistent G sc):
+  ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
+Proof.
+  arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD). 
+  arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
+  { admit. }
+  arewrite (⦗R⦘ ⊆ ⦗Eninit \₁ F⦘).
+  { admit. }
+  seq_rewrite seq_eqvC. 
+  rewrite !seqA. sin_rewrite (sl_mode WF IPC); [| apply WF.(wf_rfl) ]. 
+  case_union _ _. unionL; [basic_solver| ].
+  mode_solver. 
 Admitted.
 
 
@@ -543,7 +559,7 @@ Proof.
     arewrite (⦗Sc ∩₁ (W ∪₁ R)⦘ ⊆ ⦗Sc⦘) by mode_solver.
     arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply dom_r; apply WF.(wf_rfD).
     arewrite (⦗R⦘ ⊆ ⦗W ∪₁R⦘) by mode_solver. 
-    seq_rewrite SC_RF. 
+    sin_rewrite (SC_RF WF IPC). 
     rewrite <- seq_eqvK at 2. rewrite !seqA.
     sin_rewrite (sc_rf_pscb WF).
     seq_rewrite <- id_inter. 
