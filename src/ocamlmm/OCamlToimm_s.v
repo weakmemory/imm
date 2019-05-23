@@ -326,32 +326,28 @@ Proof.
   all: eapply LL; split; auto.
 Qed.
 
-Lemma sc_ninit (WF: Wf G): Sc ⊆₁ fun a : actid => ~is_init a.
+Lemma sc_ninit (WF: Wf G): Sc ⊆₁ set_compl is_init.
 Proof.
-  intros x H. 
-  tertium_non_datur (is_init x); auto.
-  exfalso. apply (init_pln WF) in H0. mode_solver. 
+  unfolder. ins. intros HH.
+  apply WF.(init_pln) in HH.
+  mode_solver. 
 Qed. 
   
 Lemma sc_rf (WF: Wf G): ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof.
-  arewrite (rf ≡ <|W|>;;rf;;<|R|>) at 1 by apply WF.(wf_rfD).
-  arewrite (rf ≡ <|E|>;;rf;;<|E|>) at 1 by apply WF.(wf_rfE).
+  rewrite WF.(wf_rfD) at 1.
+  rewrite WF.(wf_rfE) at 1.
+  rewrite !seqA.
   arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
-  { rewrite <- !id_inter. apply eqv_rel_mori. red. intros x H.
-    destruct H. split; auto. red. split; [| mode_solver ]. 
-    red. split.
-    { destruct H0. auto. }
-    apply (sc_ninit WF H). }
-  rewrite <- id_inter. arewrite (E ∩₁ R ⊆₁ Eninit \₁ F).
-  { red. intros x H. red. split.
-    { destruct H. split; auto.
-      apply (read_or_fence_is_not_init WF). auto. }
-    mode_solver. }
+  { unfolder. ins. desf. splits; auto.
+    { eapply sc_ninit; eauto. }
+    type_solver. }
+  rewrite <- id_inter.
+  arewrite (E ∩₁ R ⊆₁ Eninit \₁ F).
+  { rewrite init_w; eauto. type_solver. }
   seq_rewrite seq_eqvC. 
   rewrite !seqA. sin_rewrite (sl_mode WF); [| apply WF.(wf_rfl) ]. 
-  case_union _ _. unionL; [basic_solver| ].
-  mode_solver. 
+  mode_solver.
 Qed.
 
 (* the claim is actually not exactly true, since there is only Acq fence before RMW. But the required fix won't affect the rest of proof *)
@@ -694,5 +690,3 @@ Proof.
 Admitted.
 
 End OCamlMM_TO_IMM_S.
-
-
