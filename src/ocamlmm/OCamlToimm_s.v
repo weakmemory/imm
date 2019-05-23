@@ -298,15 +298,33 @@ Proof.
   unfold psc_base. basic_solver 10. 
 Qed.
 
+Lemma wr_mode: Eninit ∩₁ (W ∪₁ R) ⊆₁ Sc ∪₁ ORlx.
+Proof.
+  unfolder. ins. desc.
+  assert (exists l, Loc_ l x) as [l LX].
+  { unfold Events.loc. unfold is_f, is_r, is_w in *.
+    destruct (lab x) eqn:AA; simpls; desf.
+    all: eauto. }
+  destruct (LSM l) as [LL|LL]; [right|left].
+  all: eapply LL; split; auto.
+Qed.
+
 Lemma sl_mode (WF: Wf G) r (SL: r ⊆ same_loc):
   ⦗Eninit \₁ F⦘ ⨾ r ⨾ ⦗Eninit \₁ F⦘ ⊆ ⦗Sc⦘ ⨾ r ⨾ ⦗Sc⦘ ∪ ⦗ORlx⦘ ⨾ r ⨾ ⦗ORlx⦘.
 Proof.
-  red. intros x y H. 
-Admitted.
-
-Lemma wr_mode: Eninit ∩₁ (W ∪₁ R) ⊆₁ Sc ∪₁ ORlx.
-Proof.
-Admitted.
+  red. intros x y HH. 
+  apply seq_eqv_lr in HH.
+  destruct HH as [[[EX NIX] NFX] [HH [[EY NIY] NFY]]].
+  assert (exists l, Loc_ l x) as [l LX].
+  { unfold Events.loc. unfold is_f in *.
+    destruct (lab x) eqn:AA; simpls.
+    all: eauto. }
+  assert (Loc_ l y) as LY.
+  { rewrite <- LX. symmetry. by apply SL. }
+  destruct (LSM l) as [LL|LL]; [right|left].
+  all: apply seq_eqv_lr; splits; auto.
+  all: eapply LL; split; auto.
+Qed.
 
 Lemma sc_ninit (WF: Wf G): Sc ⊆₁ fun a : actid => ~is_init a.
 Proof.
