@@ -350,6 +350,18 @@ Proof.
   mode_solver.
 Qed.
 
+Lemma sc_rf_r (WF: Wf G): ⦗set_compl is_init⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
+Proof.
+  rewrite WF.(wf_rfD) at 1.
+  rewrite WF.(wf_rfE) at 1.
+  rewrite !seqA.
+  arewrite (⦗set_compl is_init⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘) by type_solver.
+  arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗Eninit \₁ F⦘).
+  { rewrite init_w; eauto. type_solver. }
+  sin_rewrite (sl_mode WF); [| apply WF.(wf_rfl) ].
+  mode_solver.
+Qed.
+
 (* the claim is actually not exactly true, since there is only Acq fence before RMW. But the required fix won't affect the rest of proof *)
 Lemma sb_rf_sync (WF: Wf G): 
   ⦗Eninit \₁ (F)⦘ ⨾ sb ⨾ rf ⊆ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ∪ rmw ⨾ rf.
@@ -456,7 +468,9 @@ Proof.
   
   sin_rewrite (sb_rf_sync WF). 
     
-  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SB_RF_SC by admit. 
+  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SB_RF_SC.
+  { rewrite no_sb_to_init at 1. rewrite !seqA.
+      by sin_rewrite sc_rf_r. }
   assert (rmw ⨾ rf ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘) as RMW_Rf_hbL.
   { rewrite RMWSC, !seqA, (sc_rf_l WF). hahn_frame.
     apply inclusion_inter_r.
