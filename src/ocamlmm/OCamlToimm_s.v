@@ -413,6 +413,12 @@ Proof.
   (*   exists f. split; auto. generalize FARf. basic_solver.  *)
 Admitted. 
 
+Lemma sb_rf_sc_sc (WF : Wf G) :
+  sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
+Proof.
+  rewrite no_sb_to_init at 1. rewrite !seqA.
+    by sin_rewrite sc_rf_r.
+Qed.
 
 Lemma f_hb (WF: Wf G): ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ (rmw ⨾ rf)^* ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ hb. 
 Proof. 
@@ -468,9 +474,6 @@ Proof.
   
   sin_rewrite (sb_rf_sync WF). 
     
-  assert (sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) as SB_RF_SC.
-  { rewrite no_sb_to_init at 1. rewrite !seqA.
-      by sin_rewrite sc_rf_r. }
   assert (rmw ⨾ rf ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘) as RMW_Rf_hbL.
   { rewrite RMWSC, !seqA, (sc_rf_l WF). hahn_frame.
     apply inclusion_inter_r.
@@ -546,7 +549,7 @@ Proof.
            seq_rewrite <- ct_end.
            rewrite ct_begin at 1. rewrite <- seq_eqvK at 1. hahn_frame_l.
            rewrite ct_begin. basic_solver 10. }
-         sin_rewrite SB_RF_SC. rewrite !seqA.
+         sin_rewrite sb_rf_sc_sc; auto. rewrite !seqA.
          rewrite (dom_l WF.(wf_rfD)) at 1.
          arewrite (⦗Sc⦘ ⨾ (⦗W⦘ ⨾ rf) ≡ ⦗W⦘ ⨾ ⦗Sc⦘ ⨾ rf) by basic_solver.
          sin_rewrite WR_FB_NL.
@@ -562,7 +565,7 @@ Proof.
     sin_rewrite seq_id_l.
     assert (rf ⨾ sb ≡ rf ⨾ ⦗ORlx⦘ ⨾ sb ∪ rf ⨾ ⦗Sc⦘ ⨾ sb) as SB_BEG by admit.
     seq_rewrite SB_BEG. repeat case_union _ _. unionL. 
-    2: { rewrite !seqA. sin_rewrite SB_RF_SC.
+    2: { rewrite !seqA. sin_rewrite sb_rf_sc_sc; auto.
          rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA. 
          seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
          rewrite <- seq_eqvK at 2. rewrite <- seq_eqvK at 4. rewrite !seqA.
@@ -593,16 +596,15 @@ Lemma sc_sb_rf_ct_pscb (WF: Wf G) sc
   (⦗Sc ∩₁ (W ∪₁ R)⦘ ⨾ (sb ⨾ rf)⁺ ⨾ ⦗Sc⦘ ⊆ (psc_base G)⁺).
 Proof.
   rewrite ct_end, !seqA.
-  arewrite (sb ⨾ rf ⨾ ⦗Sc⦘ ≡ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘) by admit.
-  arewrite (rf ≡ ⦗W⦘ ⨾ rf) at 2.
-  { eapply dom_l. apply WF.(wf_rfD). } 
+  sin_rewrite sb_rf_sc_sc; auto.
+  rewrite (dom_l WF.(wf_rfD)) at 2.
   rewrite <- seq_eqvK with (dom:=Sc) at 1. rewrite !seqA.
   seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
   sin_rewrite (sc_rf_in_pscb); auto.
   rewrite ct_end. hahn_frame.
   arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗(W ∪₁ R) ∩₁ Sc⦘) by mode_solver.  
   rewrite (sc_sb_rf_ct_sb_pscb WF IPC). basic_solver. 
-Admitted. 
+Qed. 
 
 Lemma imm_to_ocaml_causal (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
