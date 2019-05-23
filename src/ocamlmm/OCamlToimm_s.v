@@ -518,8 +518,12 @@ Proof.
       { seq_rewrite seq_id_r. do 2 arewrite (sb \ same_loc ⊆ sb).
         rewrite rewrite_trans; [| apply sb_trans]. basic_solver 10. }
       rewrite ct_of_trans; [| apply hb_trans]. basic_solver 20. }
-    assert (⦗W ∪₁ R⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ sb \ same_loc) as WR_FB_NL by admit. 
-    assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb \ same_loc) as FB_WR_NL by admit. 
+    assert (⦗W ∪₁ R⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ sb \ same_loc) as WR_FB_NL.
+    { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
+      unfolder. ins. desf. }
+    assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb \ same_loc) as FB_WR_NL.
+    { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
+      unfolder. ins. desf. }
     
     unionL.
     2: { rewrite RMW_Rf_hbL.
