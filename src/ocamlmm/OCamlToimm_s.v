@@ -45,7 +45,7 @@ Notation "'detour'" := G.(detour).
 Notation "'rs'" := G.(rs).
 Notation "'release'" := G.(release).
 Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(imm_s_hb.hb). (* ? clashes with OCaml's hb *)
+Notation "'hb'" := G.(imm_s_hb.hb).
 
 Notation "'ar_int'" := G.(ar_int).
 Notation "'ppo'" := G.(ppo).
@@ -404,6 +404,107 @@ Proof.
   mode_solver 10.
 Qed.
 
+Lemma RMW_Rf_hbL (WF: Wf G):
+  rmw ⨾ rf ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘.
+Proof.
+  rewrite RMWSC, !seqA, (sc_rf_l WF). hahn_frame.
+  apply inclusion_inter_r.
+  2: { rewrite (wf_rmwl WF), (wf_rfl WF), inclusion_seq_eqv_l. 
+       rewrite rewrite_trans by apply same_loc_trans. basic_solver. }     
+  rewrite (rmw_in_sb WF), (sc_rf_l WF), (sc_rf_in_sw WF).
+  unfold imm_s_hb.hb. rewrite ct_begin, <- inclusion_t_rt, ct_begin.
+  basic_solver 10.
+Qed.
+
+Lemma RF_SCB (WF: Wf G): (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘).
+Proof.
+  rewrite <- seq_eqvK at 1. rewrite <- seq_eqvK at 3. 
+  rewrite !seqA.  hahn_frame.
+  unfold scb. arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ hb ∩ same_loc).
+  { apply inclusion_inter_r.
+    { rewrite <- sw_in_hb. apply (sc_rf_in_sw WF). }
+    rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r. apply WF.(wf_rfl). }
+  basic_solver 10.
+Qed. 
+
+Lemma WIP (WF: Wf G) sc (IPC: imm_s.imm_psc_consistent G sc):
+  (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ (rmw ⨾ rf)＊)⁺
+        ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)⁺).
+Proof.
+  rewrite <- seqA with (r1:=sb). 
+  rewrite ct_rotl.
+  rewrite !seqA. rewrite (f_hb WF). 
+  rewrite (rtE (rmw ⨾ rf)). repeat case_union _ _.
+  assert (⦗Sc⦘ ⨾ (sb \ same_loc) ⨾ hb＊ ⨾ (sb \ same_loc) ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘) as SBNL_HB_SCB. 
+  { hahn_frame. unfold scb. rewrite rtE. repeat case_union _ _.
+    unionL.
+    { seq_rewrite seq_id_r. do 2 arewrite (sb \ same_loc ⊆ sb).
+      rewrite rewrite_trans; [| apply sb_trans]. basic_solver 10. }
+    rewrite ct_of_trans; [| apply hb_trans]. basic_solver 20. }
+  assert (⦗W ∪₁ R⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ sb \ same_loc) as WR_FB_NL.
+  { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
+    unfolder. ins. desf. }
+  assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb \ same_loc) as FB_WR_NL.
+  { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
+    unfolder. ins. desf. }
+  
+  unionL.
+  2: { rewrite (RMW_Rf_hbL WF).
+       arewrite ((⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘).
+       { rewrite ct_end at 1. rewrite <- seq_eqvK at 4. hahn_frame_r. 
+         seq_rewrite <- ct_end.
+         rewrite ct_begin at 1. rewrite <- seq_eqvK at 1. hahn_frame_l.
+         rewrite ct_begin. basic_solver 10. }
+       sin_rewrite sb_rf_sc_sc; auto. rewrite !seqA.
+       rewrite (dom_l WF.(wf_rfD)) at 1.
+       arewrite (⦗Sc⦘ ⨾ (⦗W⦘ ⨾ rf) ≡ ⦗W⦘ ⨾ ⦗Sc⦘ ⨾ rf) by basic_solver.
+       sin_rewrite WR_FB_NL.
+       arewrite (⦗W⦘ ⊆ ⦗W ∪₁ R⦘) at 1 by basic_solver. sin_rewrite FB_WR_NL. 
+       sin_rewrite SBNL_HB_SCB. 
+       rewrite <- seq_eqvK at 2.
+       rewrite (ct_begin (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)). rewrite !seqA.
+       hahn_frame. sin_rewrite (RF_SCB WF).
+       arewrite (hb ∩ same_loc ⊆ scb G). arewrite (sb ⊆ scb G). arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘).
+       do 2 rewrite <- seqA. rewrite seqA with (r2:=scb G).
+       rewrite ct_unit. rewrite inclusion_t_rt.
+       rewrite <- ct_begin. basic_solver. }
+  sin_rewrite seq_id_l.
+  assert (rf ⨾ sb ≡ rf ⨾ ⦗ORlx⦘ ⨾ sb ∪ rf ⨾ ⦗Sc⦘ ⨾ sb) as SB_BEG by admit.
+  seq_rewrite SB_BEG. repeat case_union _ _. unionL. 
+  2: { rewrite !seqA. sin_rewrite sb_rf_sc_sc; auto.
+       rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA. 
+       seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
+       rewrite <- seq_eqvK at 2. rewrite <- seq_eqvK at 4. rewrite !seqA.
+       sin_rewrite WR_FB_NL.
+       arewrite (⦗W⦘ ⊆ ⦗W ∪₁ R⦘) at 1 by basic_solver. sin_rewrite FB_WR_NL. 
+       sin_rewrite SBNL_HB_SCB. sin_rewrite (RF_SCB WF). 
+       arewrite (sb ⊆ scb G). arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘).
+       do 2 rewrite ct_begin, <- inclusion_t_rt. rewrite ct_begin.
+       rewrite !seqA. hahn_frame. }
+  rewrite !seqA. 
+  arewrite (⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘) by admit. (* because the only way it could be false is when sb starts with Rsc (dom(rmw) for corresponding write), but then it should be Sc, not ORlx *)
+  rewrite <- (seq_eqvK (F ∩₁ Acqrel)) at 3. rewrite !seqA. 
+  arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ hb).
+  { arewrite (rf ⊆ rf ⨾ (rmw ⨾ rf)＊ ) by basic_solver 10. 
+    apply (f_hb WF). }
+  seq_rewrite <- ct_end. rewrite ct_of_trans; [| by apply hb_trans]. 
+  sin_rewrite WR_FB_NL. sin_rewrite FB_WR_NL.
+  arewrite (hb ⊆ hb＊). sin_rewrite SBNL_HB_SCB.
+  rewrite ct_begin. hahn_frame.
+ Admitted. 
+
+Lemma WIP' (WF: Wf G):
+  ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (rmw ⨾ rf)⁺ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)⁺.
+Proof.
+  rewrite (RMW_Rf_hbL WF). 
+  arewrite (hb ∩ same_loc ⊆ scb G).
+  arewrite ((⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⨾ ⦗Sc⦘).
+  { rewrite ct_end. rewrite <- seq_eqvK at 4. basic_solver. }
+  arewrite (⦗Sc⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)).
+  { arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘). unfold scb. basic_solver 10. }
+  rewrite ct_unit. basic_solver.
+Qed.
+
 Lemma sc_sb_rf_ct_sb_pscb (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   (⦗Sc ∩₁ (W ∪₁ R)⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ (psc_base G)^+).
@@ -419,13 +520,10 @@ Proof.
   
   arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ rf)⁺ ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗Eninit \₁ F⦘ ⨾ sb ⨾ rf)⁺).
   { rewrite ct_rotl at 1.
-    assert (rf ≡ rf ⨾ ⦗R⦘) as RF_R. 
-    { eapply dom_r. rewrite WF.(wf_rfD) at 1. auto. }
-    rewrite RF_R at 1. (* how to (a)rewrite at two places ?*)
+    arewrite (rf ≡ rf ⨾ ⦗R⦘) by eapply (dom_r WF.(wf_rfD)). 
     arewrite (rf ⨾ ⦗R⦘ ⊆ rf ⨾ ⦗Eninit \₁ F⦘).
-    { arewrite (rf ≡ rf ⨾ ⦗E⦘) at 1 by eapply dom_r; rewrite WF.(wf_rfE) at 1; basic_solver.
-      arewrite (rf ≡ rf ⨾ ⦗(fun a : actid => ~is_init a)⦘) at 1. 
-      { apply (no_rf_to_init WF). }
+    { arewrite (rf ≡ rf ⨾ ⦗E⦘) at 1 by eapply (dom_r WF.(wf_rfE)). 
+      arewrite (rf ≡ rf ⨾ ⦗(fun a : actid => ~is_init a)⦘) at 1 by apply (no_rf_to_init WF).
       arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆  ⦗E \₁ F⦘) by mode_solver. 
       hahn_frame. basic_solver. }
     arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ sb ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Eninit \₁ F⦘ ⨾ sb).
@@ -433,7 +531,7 @@ Proof.
       rewrite <- (seq_eqvK (Sc)) at 1.
       rewrite !seqA. seq_rewrite (seq_eqvC (Sc) (W ∪₁ R)). 
       arewrite (Sc ⊆₁ (fun a : actid => ~is_init a)) at 2 by apply sc_ninit. 
-      arewrite (sb ≡ ⦗E⦘ ⨾ sb) by eapply dom_l; apply wf_sbE.
+      arewrite (sb ≡ ⦗E⦘ ⨾ sb) by eapply (dom_l (wf_sbE G)). 
       arewrite (⦗W ∪₁ R⦘ ⨾ ⦗E⦘ ⊆ ⦗E \₁ F⦘) by mode_solver.
       hahn_frame. basic_solver. }
     rewrite <- seq_eqvK at 1. rewrite seqA at 1.
@@ -443,35 +541,19 @@ Proof.
   
   sin_rewrite (sb_rf_sync WF). 
     
-  assert (rmw ⨾ rf ⊆ ⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘) as RMW_Rf_hbL.
-  { rewrite RMWSC, !seqA, (sc_rf_l WF). hahn_frame.
-    apply inclusion_inter_r.
-    2: { rewrite (wf_rmwl WF), (wf_rfl WF), inclusion_seq_eqv_l. 
-         rewrite rewrite_trans by apply same_loc_trans. basic_solver. }     
-    rewrite (rmw_in_sb WF), (sc_rf_l WF), (sc_rf_in_sw WF).
-    unfold imm_s_hb.hb. rewrite ct_begin, <- inclusion_t_rt, ct_begin.
-    basic_solver 10. }
-    
   rewrite <- seq_eqvK with (dom:=F ∩₁ Acqrel).
   rewrite ct_unionE. rewrite !seq_union_l, !seq_union_r.
-  unionL.
-  { rewrite RMW_Rf_hbL. 
-    arewrite (hb ∩ same_loc ⊆ scb G).
-    arewrite ((⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⨾ ⦗Sc⦘).
-    { rewrite ct_end. rewrite <- seq_eqvK at 4. basic_solver. }
-    arewrite (⦗Sc⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)).
-    { arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘). unfold scb. basic_solver 10. }
-    rewrite ct_unit. basic_solver. }
+  unionL; [by apply (WIP' WF) |]. 
   rewrite !seqA. 
   arewrite (⦗W ∪₁ R⦘ ⨾ (rmw ⨾ rf)＊ ⊆ ⦗W ∪₁ R⦘ ⨾ (rmw ⨾ rf)＊ ⨾ ⦗W ∪₁ R⦘).
   { rewrite seq_rtE_r. unionL.
     { basic_solver. }
     rewrite seqA, <- ct_begin, ct_end. 
-    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 2 by eapply dom_r; rewrite WF.(wf_rfD) at 1; auto.
+    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 2 by eapply (dom_r WF.(wf_rfD)). 
     arewrite (⦗R⦘ ⊆ ⦗W ∪₁ R⦘). hahn_frame.
     seq_rewrite <- ct_end. basic_solver. }
 
-  rewrite RMW_Rf_hbL at 1. 
+  rewrite (RMW_Rf_hbL WF) at 1. 
   arewrite (hb ∩ same_loc ⊆ scb G).
   arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)＊ ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)＊ ⨾ ⦗Sc⦘).
   { rewrite seq_rtE_r, seq_union_r.
@@ -481,81 +563,10 @@ Proof.
     rewrite <- seq_eqvK at 5. hahn_frame.
     rewrite <- ct_end. basic_solver. }
   
-  assert ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G) as SCB_NL.
-  { unfold scb. basic_solver 20. }
-  assert (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘) as RF_SCB.
-  { rewrite <- seq_eqvK at 1. rewrite <- seq_eqvK at 3. 
-    rewrite !seqA.  hahn_frame.
-    unfold scb. arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ hb ∩ same_loc).
-    { apply inclusion_inter_r.
-      { rewrite <- sw_in_hb. apply (sc_rf_in_sw WF). }
-      rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r. apply WF.(wf_rfl). }
-    basic_solver 10. }
+  (* assert ((sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ⊆ scb G) as SCB_NL. *)
+  (* { unfold scb. basic_solver 20. } *)
   
-  assert (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ (rmw ⨾ rf)＊)⁺
-               ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)⁺).
-  { rewrite <- seqA with (r1:=sb). 
-    rewrite ct_rotl.
-    rewrite !seqA. rewrite (f_hb WF). 
-    rewrite (rtE (rmw ⨾ rf)). repeat case_union _ _.
-    assert (⦗Sc⦘ ⨾ (sb \ same_loc) ⨾ hb＊ ⨾ (sb \ same_loc) ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘) as SBNL_HB_SCB. 
-    { hahn_frame. unfold scb. rewrite rtE. repeat case_union _ _.
-      unionL.
-      { seq_rewrite seq_id_r. do 2 arewrite (sb \ same_loc ⊆ sb).
-        rewrite rewrite_trans; [| apply sb_trans]. basic_solver 10. }
-      rewrite ct_of_trans; [| apply hb_trans]. basic_solver 20. }
-    assert (⦗W ∪₁ R⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ sb \ same_loc) as WR_FB_NL.
-    { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
-      unfolder. ins. desf. }
-    assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⊆ sb \ same_loc) as FB_WR_NL.
-    { unfold Events.same_loc, Events.loc, is_w, is_f, is_r.
-      unfolder. ins. desf. }
-    
-    unionL.
-    2: { rewrite RMW_Rf_hbL.
-         arewrite ((⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (⦗Sc⦘ ⨾ hb ∩ same_loc ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘).
-         { rewrite ct_end at 1. rewrite <- seq_eqvK at 4. hahn_frame_r. 
-           seq_rewrite <- ct_end.
-           rewrite ct_begin at 1. rewrite <- seq_eqvK at 1. hahn_frame_l.
-           rewrite ct_begin. basic_solver 10. }
-         sin_rewrite sb_rf_sc_sc; auto. rewrite !seqA.
-         rewrite (dom_l WF.(wf_rfD)) at 1.
-         arewrite (⦗Sc⦘ ⨾ (⦗W⦘ ⨾ rf) ≡ ⦗W⦘ ⨾ ⦗Sc⦘ ⨾ rf) by basic_solver.
-         sin_rewrite WR_FB_NL.
-         arewrite (⦗W⦘ ⊆ ⦗W ∪₁ R⦘) at 1 by basic_solver. sin_rewrite FB_WR_NL. 
-         sin_rewrite SBNL_HB_SCB. 
-         rewrite <- seq_eqvK at 2.
-         rewrite (ct_begin (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)). rewrite !seqA.
-         hahn_frame. sin_rewrite RF_SCB.
-         arewrite (hb ∩ same_loc ⊆ scb G). arewrite (sb ⊆ scb G). arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘).
-         do 2 rewrite <- seqA. rewrite seqA with (r2:=scb G).
-         rewrite ct_unit. rewrite inclusion_t_rt.
-         rewrite <- ct_begin. basic_solver. }
-    sin_rewrite seq_id_l.
-    assert (rf ⨾ sb ≡ rf ⨾ ⦗ORlx⦘ ⨾ sb ∪ rf ⨾ ⦗Sc⦘ ⨾ sb) as SB_BEG by admit.
-    seq_rewrite SB_BEG. repeat case_union _ _. unionL. 
-    2: { rewrite !seqA. sin_rewrite sb_rf_sc_sc; auto.
-         rewrite (dom_l WF.(wf_rfD)) at 1. rewrite !seqA. 
-         seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
-         rewrite <- seq_eqvK at 2. rewrite <- seq_eqvK at 4. rewrite !seqA.
-         sin_rewrite WR_FB_NL.
-         arewrite (⦗W⦘ ⊆ ⦗W ∪₁ R⦘) at 1 by basic_solver. sin_rewrite FB_WR_NL. 
-         sin_rewrite SBNL_HB_SCB. sin_rewrite RF_SCB. 
-         arewrite (sb ⊆ scb G). arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘).
-         do 2 rewrite ct_begin, <- inclusion_t_rt. rewrite ct_begin.
-         rewrite !seqA. hahn_frame. }
-    rewrite !seqA. 
-    arewrite (⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘) by admit. (* because the only way it could be false is when sb starts with Rsc (dom(rmw) for corresponding write), but then it should be Sc, not ORlx *)
-    rewrite <- (seq_eqvK (F ∩₁ Acqrel)) at 3. rewrite !seqA. 
-    arewrite (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ hb).
-    { arewrite (rf ⊆ rf ⨾ (rmw ⨾ rf)＊ ) by basic_solver 10. 
-      apply (f_hb WF). }
-    seq_rewrite <- ct_end. rewrite ct_of_trans; [| by apply hb_trans]. 
-    sin_rewrite WR_FB_NL. sin_rewrite FB_WR_NL.
-    arewrite (hb ⊆ hb＊). sin_rewrite SBNL_HB_SCB.
-    rewrite ct_begin. hahn_frame. }
-
-  sin_rewrite H. rewrite rt_ct. 
+  sin_rewrite (WIP WF IPC). rewrite rt_ct. 
   basic_solver.
 Admitted.
 
