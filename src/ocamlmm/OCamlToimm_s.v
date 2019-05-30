@@ -356,9 +356,9 @@ Proof.
   mode_solver.
 Qed.
 
-(* the claim is actually not exactly true, since there is only Acq fence before RMW. But the required fix won't affect the rest of proof *)
+(* Should check the claim *)
 Lemma sb_rf_sync (WF: Wf G): 
-  ⦗Eninit \₁ F⦘ ⨾ sb ⨾ rf ⊆ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ rf ∪ rmw ⨾ rf.
+  ⦗Eninit \₁ F⦘ ⨾ sb ⨾ rf ⊆ sb ⨾ (⦗F ∩₁ Acqrel⦘ ⨾ sb ∪ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗Sc⦘) ⨾ rf ∪ rmw ⨾ rf.
 Proof.
   rewrite inclusion_union_minus with (r:=sb) (r':=rmw) at 1.
   rewrite !seq_union_l, !seq_union_r.
@@ -368,19 +368,46 @@ Proof.
   rewrite no_sb_to_init at 1.
   rewrite seq_eqv_minus_lr.
   rewrite !seqA.
-  arewrite (⦗set_compl is_init⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗W∩₁Sc ∪₁ W∩₁ORlx⦘).
+  arewrite (⦗set_compl is_init⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗W ∩₁ Sc ∪₁ W ∩₁ ORlx⦘).
   { unfolder. ins. desf. splits; auto.
-    edestruct wr_mode with (x:=y); eauto.
+    destruct wr_mode with (x:=y); auto.
     basic_solver. }
   rewrite id_union, !seq_union_l, !seq_union_r.
   unionL.
-  2: { rewrite WRLXF.
-       (* TODO: use sb_semi_total_r *)
-       admit. }
+  2: { unionR left. rewrite WRLXF.
+       unfolder. intros e r H'. destruct H' as [H'' [w' [H''' [w H']]]].
+       destruct H' as [[EQww' [f' [f H']]] RWwr]. desf.
+       exists f. splits.
+       2: { desf. exists f. split; auto. exists w. auto. } 
+       assert (f <> e) as NEQfe. 
+       { red. type_solver. }
+       pose (sb_semi_total_r WF H''1 NEQfe H'0 H''') as SB.
+       destruct SB; auto.
+       exfalso. specialize (H'1 e). auto. }
+  unionR right. 
   rewrite WSCFACQRMW.
-  admit.
-Admitted.
-
+  unfolder. intros e r [H' [w' [H'' [w [T H''']]]]].
+  destruct T as [EQww' [f' [f [V [r' T]]]]]. 
+  desf. exists f.
+  assert (sb r' w) as SBr'w.
+  { apply (rmw_in_sb WF) in T0. auto. }
+  split.  
+  2: { exists f. desf. split; auto. exists w. split.
+       {  apply (sb_trans T SBr'w). }
+       exists w. splits; auto.
+       apply RMWSC in T0. generalize T0. basic_solver. }
+  assert (f <> e) as NEQfe. 
+  { red. type_solver. }
+  assert (sb e r') as SBer'.  
+  { assert (r' <> e) as NEQer'. 
+    { red. type_solver. }
+    pose (sb_semi_total_r WF H'1 NEQer'  SBr'w H'' ) as SB. destruct SB; auto.
+    exfalso. apply WF.(wf_rmwi) in T0. destruct T0 as [_ T0]. 
+    specialize (T0 e). auto. }
+  pose (sb_semi_total_r WF H'1 NEQfe T SBer') as SB. destruct SB; auto.
+  exfalso. specialize (T1 e). auto.
+Qed. 
+  
 Lemma sb_rf_sc_sc (WF : Wf G) :
   sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof.
