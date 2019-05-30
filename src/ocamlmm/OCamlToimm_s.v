@@ -406,7 +406,7 @@ Proof.
     specialize (T0 e). auto. }
   pose (sb_semi_total_r WF H'1 NEQfe T SBer') as SB. destruct SB; auto.
   exfalso. specialize (T1 e). auto.
-Qed. 
+Qed.  
   
 Lemma sb_rf_sc_sc (WF : Wf G) :
   sb ⨾ rf ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
