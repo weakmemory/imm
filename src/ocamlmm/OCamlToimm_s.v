@@ -666,12 +666,12 @@ Proof.
   rewrite <- rt_ct with (r:=(⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)).
   do 2 rewrite inclusion_seq_eqv_l at 1. hahn_frame_l. 
 
-  assert True by admit. (* should change WIP statement *)
+  (* TODO: should change used lemma's statement *)
   pose (WIP WF IPC). rewrite <- !seqA with (r3:=rf) in i. rewrite <- seq_union_l in i.
   arewrite (Acqrel ⊆₁ Acq) at 1 by mode_solver. rewrite <- seq_union_r.
   do 2 sin_rewrite (@inclusion_seq_eqv_r actid _ W). 
   rewrite !seqA. rewrite !seqA in i. auto. 
-Admitted.
+Qed.
 
 
 Lemma sc_sb_rf_ct_pscb (WF: Wf G) sc
@@ -710,14 +710,12 @@ Proof.
     rewrite ct_of_trans by apply sb_trans.
     red in Cext. cdes Cext. 
     apply acyclic_union.
-    { admit. }
+    { apply acyclic_disj. rewrite WF.(wf_rfeD). mode_solver. }
     rewrite seqA, <- ct_begin.
-    arewrite (rfe⁺ ≡ rfe). (* TODO: extract duplicating claim *)
-    { (* unfold Execution.rfe.  *)
-      (* rewrite ct_begin. rewrite rtE. rewrite seq_union_r. rewrite ct_begin. *)
-      (* seq_rewrite (rf_rf WF). basic_solver.  *)
-      admit.
-    }
+    arewrite (rfe⁺ ≡ rfe). (* TODO: extract similar claim *)
+    { rewrite ct_begin, rtE, seq_union_r.
+      rewrite ct_begin. rewrite WF.(wf_rfeD) at 2. rewrite WF.(wf_rfeD) at 3. 
+      type_solver. }
     rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)).
     arewrite (rfe ⊆ rfe ⨾ ⦗fun a : actid => ~is_init a⦘).
     { unfolder. ins. splits; auto. unfold Execution.rfe in H. red in H. desf. 
@@ -745,7 +743,6 @@ Proof.
     { rewrite <- ct_ct at 1. basic_solver 10. }
     rewrite unionK. red in Cext. red.
     rewrite ct_of_ct. auto. }
-
     
   { rewrite CO_FR_PSCB. cdes IPC.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). auto. }
@@ -754,8 +751,10 @@ Proof.
   rewrite <- !seqA, acyclic_rotl, !seqA.
   
   sin_rewrite sc_co_fr_ct_in_co_fr; auto.
-  arewrite (⦗Sc⦘ ⨾ (co ∪ fr) ≡ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗W ∪₁ R⦘) by admit.
-  rewrite seq_eqvC. rewrite <- !seqA, acyclic_rotl, !seqA.
+  arewrite (co ∪ fr ⊆ ⦗W ∪₁ R⦘ ⨾ (co ∪ fr) ⨾ ⦗W ∪₁ R⦘).
+  { rewrite WF.(wf_coD), WF.(wf_frD). basic_solver. }
+  seq_rewrite (@seq_eqvC _ _ (W ∪₁ R)). rewrite seqA. rewrite seq_eqvC. 
+  rewrite <- !seqA, acyclic_rotl, !seqA.
   sin_rewrite CO_FR_PSCB.
   
   assert (⦗(W ∪₁ R)⦘ ⨾ ⦗Sc⦘ ⨾ (sb ∪ rf)⁺ ⨾ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⊆ (psc_base G)＊) as SC_SB_RF_PSCB.
@@ -813,7 +812,7 @@ Proof.
   cdes IPC. arewrite ((psc_base G)⁺ ⊆ (psc_base G ∪ psc_f G)⁺).
   red. red in Cpsc.
   rewrite ct_of_ct. rewrite unionC. auto.  
-Admitted.
+Qed.
     
 Lemma imm_to_ocaml_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
