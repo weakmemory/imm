@@ -562,42 +562,16 @@ Proof.
   { admit. }
   arewrite (⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘).
   { admit. }
-  pose (f_hb WF). 
-  
-
-  FOOBAR.
-
-
-  rewrite (dom_l WF.(wf_rfD)) at 1. seq_rewrite (seq_eqvC ORlx W).
-  rewrite !seqA. arewrite (⦗F ∩₁ Acq⦘ ⨾ ⦗F ∩₁ Acqrel⦘ ⊆ ⦗F ∩₁ Acq⦘).
-  rewrite <- seqA with (r2:=⦗W⦘). sin_rewrite SCB'.
-
-
-  
-  arewrite (sb ⨾ ⦗ORlx⦘ ⨾ rf ⨾ (rmw ⨾ rf)＊ ⨾ sb ⊆ sb ⨾ ⦗ORlx⦘ ⨾ rf ⨾ ⦗ORlx⦘ ⨾ sb). 
-  { arewrite (sb ⨾ ⦗ORlx⦘ ⨾ rf ⊆ sb ⨾ ⦗Eninit \₁ F⦘ ⨾ ⦗ORlx⦘ ⨾ rf ⨾ ⦗Eninit \₁ F⦘).
-    { arewrite (rf ≡ ⦗W⦘ ⨾ rf ⨾ ⦗R⦘) at 1 by apply WF.(wf_rfD).
-      arewrite (rf ≡ ⦗E⦘ ⨾ rf ⨾ ⦗E⦘) at 1 by apply WF.(wf_rfE).
-      rewrite (no_rf_to_init WF), (no_sb_to_init G) at 1.
-      rewrite !seqA. hahn_frame. type_solver. }
-    seq_rewrite seq_eqvC. rewrite !seqA. 
-    sin_rewrite (sl_mode WF); [| apply WF.(wf_rfl)]. 
-    repeat case_union _ _.  unionL.
-    { rewrite seqA. mode_solver. }
-    rewrite rtE. repeat case_union _ _. unionL. 
-    { rewrite !seqA. basic_solver 20. }
-    rewrite ct_begin, RMWSC, !seqA. mode_solver. }
-  arewrite (⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗ORlx⦘ ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘) by admit.
-  rewrite <- (seq_eqvK (F ∩₁ Acq)) at 3.
-  do 2 rewrite inclusion_seq_eqv_l with (dom:=ORlx).
-  arewrite (rf ⊆ rf ⨾ (rmw ⨾ rf)＊) by basic_solver 10. 
-  sin_rewrite (f_hb WF).
-  arewrite (hb＊ ⨾ ⦗F ∩₁ Acq⦘ ⨾ hb ⊆ hb).
-  { rewrite inclusion_seq_eqv_l. rewrite <- ct_end. apply ct_of_trans, hb_trans. }
-  arewrite (F ∩₁ Acq ⊆₁ F) by type_solver. 
+  pose (f_hb WF). rewrite seq_union_l,  <- inclusion_union_r1 in i. 
+  rewrite rtE, <- inclusion_union_r1, seq_id_l, !seqA in i.
+  rewrite <- seq_eqvK with (dom:=(F ∩₁ Acq)) at 3. rewrite seqA. 
+  sin_rewrite i.
+  sin_rewrite (@inclusion_seq_eqv_l actid hb (F ∩₁ Acq)).
+  seq_rewrite <- ct_end. rewrite ct_of_trans by apply hb_trans.
+  arewrite (F ∩₁ Acq ⊆₁ F) by mode_solver.
   sin_rewrite WR_FB_NL. sin_rewrite FB_WR_NL.
-  arewrite (hb ⊆ hb＊). sin_rewrite SBNL_HB_SCB.
-  apply ct_step. 
+  pose SBNL_HB_SCB. rewrite rtE, <- inclusion_union_r2, ct_of_trans in i0; [| apply hb_trans].
+  sin_rewrite i0. rewrite ct_begin. hahn_frame. 
 Admitted. 
 
 Lemma WIP' (WF: Wf G):
