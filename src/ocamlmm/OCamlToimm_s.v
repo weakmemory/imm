@@ -824,17 +824,8 @@ Proof.
   red. splits; auto.
   1,2: eapply irreflexive_mori; eauto.
   1,2: red; basic_solver 10.
+
+  apply (imm_to_ocaml_causal WF IPC). 
+Qed. 
   
-  apply acyclic_union1.
-  { admit. }
-  { (* arewrite (⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘ ⊆ (coe ∪ fre G)) by basic_solver. *)
-    (* cdes IC. red in Cint.  *) admit. 
-  }
-  arewrite (coe ⊆ co).
-  arewrite ((fre G) ⊆ fr). 
-  (* arewrite ((⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘)⁺ ⊆ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘). *)
-
-  rewrite sc_co_fr_ct_in_co_fr; auto.
-Admitted.
-
 End OCamlMM_TO_IMM_S.
