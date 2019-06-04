@@ -193,7 +193,15 @@ Proof.
             (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘) ⨾
           ⦗E⦘).
   red. splits.
-  { red. ins.
+  { red. split; [split|].
+    { rewrite <- restr_relE.
+      apply irreflexive_restr.
+      apply tot_ext_irr.
+      eapply hb_ww_co_fr_ac; eauto. }
+    { rewrite <- restr_relE.
+      apply transitive_restr.
+      apply tot_ext_trans. }
+    red. ins.
     edestruct tot_ext_total.
     3: by eauto.
     all: eauto.

@@ -45,7 +45,7 @@ Definition hb := (sb ∪ sw)⁺.
 (******************************************************************************)
 
 Definition wwmm_consistent mo :=
-  ⟪ Cmo   : is_total E mo ⟫ /\
+  ⟪ Cmo   : strict_total_order E mo ⟫ /\
   ⟪ Chbmo : hb ⊆ mo ⟫ /\
   ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
   ⟪ Chbrfhb :
