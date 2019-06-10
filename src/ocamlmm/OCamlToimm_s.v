@@ -148,14 +148,14 @@ Proof.
   apply seq_eqv_l. split; auto.
   assert (Sc r2) as SCR2.
   { apply RMWSC in rw_r2_w2. generalize rw_r2_w2. basic_solver. }
-
+  
   assert (E r2) as ER2.
   { apply (dom_l WF.(wf_rmwE)) in rw_r2_w2.
     generalize rw_r2_w2. basic_solver. }
   assert (R r2) as EW.
   { apply (dom_l WF.(wf_rmwD)) in rw_r2_w2.
     generalize rw_r2_w2. type_solver. }
-
+  
   exists r2. split.
   2: { apply seq_eqv_l. split; auto.
        apply rmw_in_sb; auto. }
@@ -174,7 +174,7 @@ Proof.
   assert (loc r2 = Some l) as LOCR2.
   { rewrite <- GG. symmetry.
     apply wf_rfl; auto. }
-
+  
   assert (same_loc_w1_w': same_loc w1 w').
   { red. rewrite GG. rewrite <- LOCR2.
     apply WF.(wf_col) in co_rmw_w1_w2. red in co_rmw_w1_w2.
@@ -208,7 +208,7 @@ Proof.
     { eapply read_or_fence_is_not_init; eauto. }
     assert ((Loc_ l \₁ is_init) r2) as DD by (by split).
     apply CC in DD. clear -SCR2 DD. mode_solver. }
-
+  
   assert (codom_rel rmw w') as RMWW'.
   { apply WSCRMW. by split. }
 
@@ -254,29 +254,13 @@ Proof.
   apply IPC.
 Qed.
 
-
-Lemma sc_co_fr_ct_in_co_fr (WF: Wf G) :
-  ⦗Sc⦘ ⨾ (co ∪ fr)⁺ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ (co ∪ fr) ⨾ ⦗Sc⦘.
+Lemma trans_co_fr (WF: Wf G) :
+  transitive (co ∪ fr).
 Proof.
-  assert (co⁺ ⊆ co) as COT.
-  { apply ct_of_trans. apply WF. }
-  hahn_frame.
-  rewrite path_ut_first.
-  unionL.
-  { by unionR left. }
-  arewrite (co＊ ⨾ fr ⊆ fr).
-  { rewrite seq_rtE_l.
-    sin_rewrite co_fr; auto. basic_solver. }
-  unionR right.
-  rewrite rtE, seq_union_r, seq_id_r. unionL; [done|].
-  rewrite path_ut_first.
-  rewrite !seq_union_r.
-  assert (fr ⨾ co⁺ ⊆ fr) as AA.
-  { rewrite COT. by rewrite WF.(fr_co). }
-  arewrite (fr ⨾ co＊ ⊆ fr).
-  { rewrite rtE, seq_union_r, seq_id_r. rewrite AA. by unionL. }
-  seq_rewrite WF.(fr_fr).
-  rewrite AA. basic_solver.
+  apply transitiveI.
+  rewrite seq_union_r. do 2 rewrite seq_union_l.
+  rewrite co_co, fr_co, fr_fr, co_fr; auto. 
+  basic_solver. 
 Qed.
 
 Lemma sc_scb_pscb: (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘ ⊆ psc_base G).
@@ -725,8 +709,8 @@ Proof.
   rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r.
   rewrite <- seq_eqvK.
   rewrite <- !seqA, acyclic_rotl, !seqA.
-  
-  sin_rewrite sc_co_fr_ct_in_co_fr; auto.
+
+  seq_rewrite (@ct_of_trans _ (co ∪ fr)); [| apply (trans_co_fr WF)].
   arewrite (co ∪ fr ⊆ ⦗W ∪₁ R⦘ ⨾ (co ∪ fr) ⨾ ⦗W ∪₁ R⦘).
   { rewrite WF.(wf_coD), WF.(wf_frD). basic_solver. }
   seq_rewrite (@seq_eqvC _ _ (W ∪₁ R)). rewrite seqA. rewrite seq_eqvC. 
