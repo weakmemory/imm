@@ -647,8 +647,56 @@ Proof.
   rewrite ct_end. hahn_frame.
   arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⊆ ⦗(W ∪₁ R) ∩₁ Sc⦘) by mode_solver.  
   rewrite (sc_sb_rf_ct_sb_pscb WF). basic_solver. 
-Qed. 
+Qed.
 
+Lemma acyclic_sb_rf (WF: Wf G) sc (IPC: imm_psc_consistent G sc):
+  acyclic (sb ∪ rf).
+Proof. 
+  cdes IPC. cdes IC.
+  rewrite rfi_union_rfe, <- unionA. arewrite (rfi ⊆ sb). rewrite unionK. 
+  apply acyclic_union. 
+  { rewrite sb_in_hb. cdes Cint.
+    red. rewrite ct_of_trans; [| apply hb_trans].
+    arewrite (hb ⊆ hb ⨾ eco^?); [basic_solver|auto]. }
+  rewrite acyclic_rotl, rtE, seq_union_l, seq_id_l.
+  rewrite ct_of_trans by apply sb_trans.
+  red in Cext. cdes Cext. 
+  apply acyclic_union.
+  { apply acyclic_disj. rewrite WF.(wf_rfeD). mode_solver. }
+  rewrite seqA, <- ct_begin.
+  arewrite (rfe⁺ ≡ rfe).
+  { rewrite ct_begin, rtE, seq_union_r.
+    rewrite ct_begin. rewrite WF.(wf_rfeD) at 2. rewrite WF.(wf_rfeD) at 3. 
+    type_solver. }
+  rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)).
+  arewrite (rfe ⊆ rfe ⨾ ⦗fun a : actid => ~is_init a⦘).
+  { unfolder. ins. splits; auto. unfold Execution.rfe in H. red in H. desf. 
+    apply (no_rf_to_init WF) in H. generalize H. basic_solver. }
+  arewrite (⦗fun a : actid => ~ is_init a⦘ ⨾ ⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗Eninit \₁ F⦘) by type_solver.
+  arewrite (rfe ⊆ ar sc). 
+  do 2 rewrite <- seqA. rewrite acyclic_rotl, !seqA.
+  sin_rewrite (sb_w_sync WF). 
+  seq_rewrite seq_union_r.
+  arewrite (F ∩₁ Acqrel ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
+  arewrite (F ∩₁ Acq ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
+  rewrite <- seq_eqvK with (dom:=(F ∩₁ Acq/Rel)), !seqA. 
+  repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_common.bob G).
+  repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_common.bob G).
+  rewrite RMWSC, WF.(wf_rmwD).
+  arewrite ((fun a : actid => R_ex lab a) ⊆₁ R) by type_solver.
+  arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
+  rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_common.bob G).
+  arewrite (imm_common.bob G ⊆ ar sc).
+  repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
+  rewrite !seqA, unionK.
+  arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).
+  { do 2 rewrite <- ct_ct at 1. basic_solver 10. }
+  arewrite (ar sc ⨾ ar sc ⊆ (ar sc)^+).
+  { rewrite <- ct_ct at 1. basic_solver 10. }
+  rewrite unionK. red in Cext. red.
+  rewrite ct_of_ct. auto.
+Qed. 
+  
 Lemma imm_to_ocaml_causal (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   acyclic (sb ∪ rfe ∪ ⦗Sc⦘ ⨾ (coe ∪ fre G) ⨾ ⦗Sc⦘).
@@ -660,52 +708,10 @@ Proof.
     basic_solver 10. }
   
   apply acyclic_union1.
-  { cdes IPC. cdes IC.
-    rewrite rfi_union_rfe, <- unionA. arewrite (rfi ⊆ sb). rewrite unionK. 
-    apply acyclic_union. 
-    { rewrite sb_in_hb. cdes Cint.
-      red. rewrite ct_of_trans; [| apply hb_trans].
-      arewrite (hb ⊆ hb ⨾ eco^?); [basic_solver|auto]. }
-    rewrite acyclic_rotl, rtE, seq_union_l, seq_id_l.
-    rewrite ct_of_trans by apply sb_trans.
-    red in Cext. cdes Cext. 
-    apply acyclic_union.
-    { apply acyclic_disj. rewrite WF.(wf_rfeD). mode_solver. }
-    rewrite seqA, <- ct_begin.
-    arewrite (rfe⁺ ≡ rfe).
-    { rewrite ct_begin, rtE, seq_union_r.
-      rewrite ct_begin. rewrite WF.(wf_rfeD) at 2. rewrite WF.(wf_rfeD) at 3. 
-      type_solver. }
-    rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)).
-    arewrite (rfe ⊆ rfe ⨾ ⦗fun a : actid => ~is_init a⦘).
-    { unfolder. ins. splits; auto. unfold Execution.rfe in H. red in H. desf. 
-      apply (no_rf_to_init WF) in H. generalize H. basic_solver. }
-    arewrite (⦗fun a : actid => ~ is_init a⦘ ⨾ ⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗Eninit \₁ F⦘) by type_solver.
-    arewrite (rfe ⊆ ar sc). 
-    do 2 rewrite <- seqA. rewrite acyclic_rotl, !seqA.
-    sin_rewrite (sb_w_sync WF). 
-    seq_rewrite seq_union_r.
-    arewrite (F ∩₁ Acqrel ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
-    arewrite (F ∩₁ Acq ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
-    rewrite <- seq_eqvK with (dom:=(F ∩₁ Acq/Rel)), !seqA. 
-    repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_common.bob G).
-    repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_common.bob G).
-    rewrite RMWSC, WF.(wf_rmwD).
-    arewrite ((fun a : actid => R_ex lab a) ⊆₁ R) by type_solver.
-    arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
-    rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_common.bob G).
-    arewrite (imm_common.bob G ⊆ ar sc).
-    repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
-    rewrite !seqA, unionK.
-    arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).
-    { do 2 rewrite <- ct_ct at 1. basic_solver 10. }
-    arewrite (ar sc ⨾ ar sc ⊆ (ar sc)^+).
-    { rewrite <- ct_ct at 1. basic_solver 10. }
-    rewrite unionK. red in Cext. red.
-    rewrite ct_of_ct. auto. }
-    
+  { apply (@acyclic_sb_rf WF _ IPC). }      
   { rewrite CO_FR_PSCB. cdes IPC.
     arewrite (psc_base G ⊆ psc_f G ∪ psc_base G). auto. }
+  
   rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r.
   rewrite <- seq_eqvK.
   rewrite <- !seqA, acyclic_rotl, !seqA.
