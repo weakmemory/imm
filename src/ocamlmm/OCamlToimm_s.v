@@ -392,14 +392,16 @@ Proof.
 Qed.
 
 Lemma sb_r_sc_sync (WF: Wf G):
-  ⦗Eninit \₁ F⦘ ⨾  sb ⨾ ⦗R⦘ ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗R⦘ ⨾ ⦗Sc⦘.
+  ⦗E \₁ F⦘ ⨾  sb ⨾ ⦗R⦘ ⨾ ⦗Sc⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗R⦘ ⨾ ⦗Sc⦘.
 Proof.
   rewrite <- id_inter. rewrite <- (seq_eqvK (R ∩₁ Sc)). rewrite RSCF at 1.
   unfolder. intros e r [A [C [[f' [f U]] V]]]. desf.
   exists f. splits; auto.
-  assert (f <> e) as NEQfe. 
+  assert (e <> f) as NEQfe. 
   { red. type_solver. }
-  pose (sb_semi_total_r WF A1 NEQfe U0 C) as SB.
+  assert (~is_init f) as NINITf.
+  { generalize (@read_or_fence_is_not_init G WF f). type_solver. }  
+  pose (sb_semi_total_r WF NINITf NEQfe C U0) as SB.
   destruct SB; auto.
   exfalso. specialize (U1 e). auto. 
 Qed. 
@@ -546,9 +548,9 @@ Proof.
   { rewrite rtE, seq_union_r. unionL; [basic_solver| ].
     rewrite ct_begin, RMWSC, !seqA. mode_solver.  }
   arewrite (rf ⨾ ⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘).
-  { rewrite (no_rf_to_init WF), (dom_r (WF.(wf_rfD))), (dom_r (WF.(wf_rfE))) at 1. 
+  { rewrite (dom_r (WF.(wf_rfD))), (dom_r (WF.(wf_rfE))) at 1. 
     rewrite !seqA. 
-    arewrite (⦗E⦘ ⨾ ⦗R⦘ ⨾ ⦗fun x : actid => ~ is_init x⦘ ⊆ ⦗(E \₁ (fun a : actid => is_init a)) \₁ F⦘) by type_solver.
+    arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗E \₁ F⦘) by type_solver.
     hahn_frame_l. seq_rewrite (@seq_eqvC _ _ ORlx). rewrite seqA. 
     rewrite id_union at 1. case_union _ _.  do 3 rewrite seq_union_r at 1. unionL.
     { hahn_frame_r. rewrite (sb_w_sync WF), seq_union_r. unionL. 
@@ -594,19 +596,16 @@ Proof.
     basic_solver. }
   rewrite !id_inter, !seqA.
   
-  arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ rf)⁺ ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗Eninit \₁ F⦘ ⨾ sb ⨾ rf)⁺).
+  arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ rf)⁺ ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗E \₁ F⦘ ⨾ sb ⨾ rf)⁺).
   { rewrite ct_rotl at 1.
     arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply (dom_r WF.(wf_rfD)).
-    arewrite (rf ⨾ ⦗R⦘ ⊆ rf ⨾ ⦗Eninit \₁ F⦘).
-    { rewrite (dom_r WF.(wf_rfE)). 
-      arewrite (rf ≡ rf ⨾ ⦗(fun a : actid => ~is_init a)⦘) at 1 by apply (no_rf_to_init WF).
-      arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆  ⦗E \₁ F⦘) by mode_solver. 
-      hahn_frame. basic_solver. }
-    arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ sb ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Eninit \₁ F⦘ ⨾ sb).
+    arewrite (rf ⨾ ⦗R⦘ ⊆ rf ⨾ ⦗E \₁ F⦘).
+    { rewrite (dom_r WF.(wf_rfE)) at 1. rewrite seqA.
+      hahn_frame. type_solver. }
+    arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ sb ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗E \₁ F⦘ ⨾ sb).
     { rewrite <- (seq_eqvK (W ∪₁ R)) at 1.
       rewrite <- (seq_eqvK (Sc)) at 1.
       rewrite !seqA. seq_rewrite (seq_eqvC (Sc) (W ∪₁ R)). 
-      arewrite (Sc ⊆₁ (fun a : actid => ~is_init a)) at 2 by apply sc_ninit. 
       arewrite (sb ≡ ⦗E⦘ ⨾ sb) by eapply (dom_l (wf_sbE G)). 
       arewrite (⦗W ∪₁ R⦘ ⨾ ⦗E⦘ ⊆ ⦗E \₁ F⦘) by mode_solver.
       hahn_frame. basic_solver. }
@@ -676,11 +675,8 @@ Proof.
   { rewrite ct_begin, rtE, seq_union_r.
     rewrite ct_begin. rewrite WF.(wf_rfeD) at 2. rewrite WF.(wf_rfeD) at 3. 
     type_solver. }
-  rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)).
-  arewrite (rfe ⊆ rfe ⨾ ⦗fun a : actid => ~is_init a⦘).
-  { unfolder. ins. splits; auto. unfold Execution.rfe in H. red in H. desf. 
-    apply (no_rf_to_init WF) in H. generalize H. basic_solver. }
-  arewrite (⦗fun a : actid => ~ is_init a⦘ ⨾ ⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗Eninit \₁ F⦘) by type_solver.
+  rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)), seqA. 
+  arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗E \₁ F⦘) by type_solver.
   arewrite (rfe ⊆ ar sc). 
   do 2 rewrite <- seqA. rewrite acyclic_rotl, !seqA.
   sin_rewrite (sb_w_sync WF). 
