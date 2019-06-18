@@ -91,7 +91,7 @@ Notation "'F^sync'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
 Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis NO_W_REL : W∩₁Rel ≡₁ ∅.
-Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾  sb^?.
+Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾ sb^? ∪ sb ⨾ ⦗F^lwsync⦘ ⨾ sb^?.
 (* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
 Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
 Hypothesis DATA_RMW : data ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl.
@@ -253,15 +253,16 @@ sin_rewrite rmw_sb_in_deps.
 by sin_rewrite (deps_in_ppo WF).
 Qed.
 
-Lemma r_acq_sb: ⦗R∩₁Acq⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ rmw ∪ ctrli ⨾ ⦗RW⦘.
+Lemma r_acq_sb: ⦗R∩₁Acq⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ rmw ∪ ctrli ⨾ ⦗RW⦘ ∪ ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘.
 Proof.
-sin_rewrite R_ACQ_SB.
-unfold Power_ppo.ctrli.
-rewrite (wf_ctrlD WF) at 1.
-relsf; rewrite !seqA.
-arewrite (⦗F^isync⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ ⦗F^isync⦘ ⨾ sb ⨾ ⦗RW⦘).
-type_solver 21.
-basic_solver 12.
+  arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R⦘ ⨾ ⦗R ∩₁ Acq⦘) by basic_solver.
+  sin_rewrite R_ACQ_SB.
+  unfold Power_ppo.ctrli.
+  rewrite (wf_ctrlD WF) at 1.
+  rewrite !seq_union_l, !seq_union_r, !seqA.
+  arewrite (⦗F^isync⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ ⦗F^isync⦘ ⨾ sb ⨾ ⦗RW⦘) by type_solver 21.
+  arewrite (⦗F^lwsync⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘) by type_solver 21.
+  unionL; [| |done]; basic_solver 12.
 Qed.
 
 (*Lemma ppo_alt: ppo ⊆ ⦗R⦘ ⨾ (deps ∪ rfi)⁺ ⨾ ⦗W⦘.
@@ -366,6 +367,8 @@ Proof.
   relsf; unionL; rewrite ?seqA.
 - sin_rewrite r_acq_sb.
   relsf.
+  arewrite (sb^? ⨾ ⦗R⦘ ⨾ sb ⊆ sb).
+  { generalize (@sb_trans G); basic_solver. }
   rewrite (dom_r (wf_rmwD WF)) at 2.
   rewrite (rmw_in_sb WF) at 2.
   generalize (@sb_trans G); ins; relsf.
@@ -374,11 +377,16 @@ Proof.
   rewrite (wf_ctrliD) at 1.
   rewrite (dom_r (wf_rmwD WF)) at 1.
   rewrite !seqA.
-  arewrite (⦗W⦘ ⨾ sb^? ⨾ ⦗R⦘ ⊆ sb).
-  by type_solver 12.
+  arewrite (⦗W⦘ ⨾ sb^? ⨾ ⦗R⦘ ⊆ sb) by type_solver 12.
   sin_rewrite rmw_sb_in_ctrl.
   rewrite (ctrl_ctrli_RW_in_ppo WF).
-  arewrite (ppop ⊆ hbp＊); relsf; basic_solver 12.
+  arewrite (rmw ⨾ sb ⊆ ⦗R⦘ ⨾ sb).
+  { rewrite (dom_l WF.(wf_rmwD)), WF.(rmw_in_sb).
+    generalize (@sb_trans G). type_solver. }
+  rewrite R_sb_F_sb_RW_in_fence.
+  arewrite (ppop ⊆ hbp＊).
+  arewrite (fence ⊆ hbp＊).
+  relsf; basic_solver 12.
 - rewrite (dom_l (wf_rmwD WF)) at 1.
   rewrite (rmw_in_sb WF); rewrite !seqA.
   generalize (@sb_trans G); ins; relsf.
@@ -391,6 +399,8 @@ Proof.
   relsf.
   rewrite (ctrli_RW_in_ppo WF).
   arewrite !(⦗R⦘ ⨾ ppop ⊆ hbp＊).
+  rewrite R_sb_F_sb_RW_in_fence.
+  arewrite (fence ⊆ hbp＊).
   relsf; basic_solver 12.
 - sin_rewrite (@R_sb_F_sb_RW_in_fence G).
   arewrite (fence ⊆ hbp＊); relsf; basic_solver 12.
@@ -620,7 +630,7 @@ apply inclusion_rt_rt; basic_solver 12.
 basic_solver 22.
 rewrite r_acq_sb, (rmw_in_ppo WF).
 arewrite_id ⦗RW⦘ at 1; rels.
-arewrite (ppo ∪ ctrli ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb ∪ ppo ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘
+arewrite (ppo ∪ ctrli ∪ ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘ ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb ∪ ppo ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘
 ⊆ ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘ ∪ sb^? ⨾ ⦗F^lwsync⦘ ⨾ sb^?).
 basic_solver 12.
 rewrite path_union.
