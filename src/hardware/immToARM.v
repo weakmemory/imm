@@ -440,7 +440,7 @@ Proof.
   unfold Arm.bob'. basic_solver 10.
 Qed.
 
-Lemma psc_f_in_ord : sb^? ⨾ psc_f ⨾ sb^? ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
+Lemma sb_psc_f_sb_in_ord : sb^? ⨾ psc_f ⨾ sb^? ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
 Proof.
   unfold imm.psc_f.
   rewrite crE with (r := eco ⨾ hb).
@@ -460,6 +460,12 @@ Proof.
   { rewrite <- ct_step. unfold X. basic_solver. }
   sin_rewrite !BB.
   relsf.
+Qed.
+
+Lemma psc_f_in_ord : psc_f ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
+Proof.
+  arewrite (psc_f ⊆ sb^? ⨾ psc_f ⨾ sb^?) by basic_solver 10.
+  apply sb_psc_f_sb_in_ord.
 Qed.
 
 Lemma sc_sb_sc_in_boba' : ⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ boba'.
@@ -643,10 +649,7 @@ Qed.
 
 Lemma C_SC: acyclic (psc_f ∪ psc_base).
 Proof.
-  rewrite psc_base_in_ord.
-  arewrite (psc_f ⊆ sb^? ⨾ psc_f ⨾ sb^?).
-  { basic_solver 10. }
-  rewrite psc_f_in_ord.
+  rewrite psc_base_in_ord, psc_f_in_ord.
   rewrite unionK.
   red. rewrite ct_of_ct.
   apply (external_alt2 WF CON rmw_sb_in_ctrl).

@@ -445,7 +445,8 @@ Proof.
   { unfold TSO.hb. rewrite <- ct_step. basic_solver 12. }
   rewrite unionA; rels.
   apply acyclic_union1.
-  - red.
+  2: { red; rels; eapply CON. }
+  { red.
     rewrite ct_psct; relsf; unionL.
     { generalize sb_irr. basic_solver 21. }
     rewrite (wf_ct_hbD WF); rotate 4.
@@ -454,29 +455,28 @@ Proof.
     arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
     arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
     rels.
-    red; rels; eapply CON.
-  - red; rels; eapply CON.
-  - rewrite ct_psct; relsf.
-    rewrite !seqA.
-    rewrite (dom_r (wf_ct_hbD WF)) at 2.
-    rewrite (dom_l (wf_ct_hbD WF)) at 3.
-    rewrite !seqA; relsf.
-    arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ fence).
-    case_refl _; [type_solver|vauto].
-    arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-    arewrite (hbt^+ ⊆ hbt^* ) at 2.
-    relsf.
-    arewrite (sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb^?).
-    basic_solver.
-    arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ hbt⁺ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ hbt⁺).
-    rewrite (dom_l (wf_ct_hbD WF)) at 1; type_solver 12.
-    rels.
-    rewrite (wf_ct_hbD WF); rotate 1.
-    arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
-    case_refl _; [type_solver|vauto].
-    arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-    rels.
-    red; rels; eapply CON.
+    red; rels; eapply CON. }
+  rewrite ct_psct; relsf.
+  rewrite !seqA.
+  rewrite (dom_r (wf_ct_hbD WF)) at 2.
+  rewrite (dom_l (wf_ct_hbD WF)) at 3.
+  rewrite !seqA; relsf.
+  arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ fence).
+  case_refl _; [type_solver|vauto].
+  arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
+  arewrite (hbt^+ ⊆ hbt^* ) at 2.
+  relsf.
+  arewrite (sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb^?).
+  basic_solver.
+  arewrite (⦗MFENCE⦘ ⨾ sb^? ⨾ hbt⁺ ⊆ ⦗MFENCE⦘ ⨾ sb ⨾ hbt⁺).
+  rewrite (dom_l (wf_ct_hbD WF)) at 1; type_solver 12.
+  rels.
+  rewrite (wf_ct_hbD WF); rotate 1.
+  arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
+  case_refl _; [type_solver|vauto].
+  arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
+  rels.
+  red; rels; eapply CON.
 Qed.
 
 Lemma wf_psc_baseD : psc_base ≡ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘.
