@@ -341,27 +341,4 @@ Proof.
   eauto with hahn.
 Qed.
 
-(* Definition change_mode (l: label) (m: mode) : label := 
-  match l with
-  | Aload l v _ => Aload l v m
-  | Astore l v _ => Astore l v m
-  | Afence _ => Afence m
-  end. *)
-  
-(* Definition change_modes (G: execution) (A: event -> Prop) (m: mode): execution :=
-  Build_execution 
-    acts
-    (fun a => if (A a) then change_mode (lab a) m else lab a)
-    sb rmw rf mo. *)
-
-(* Lemma transf_g
-  (NO_SC: ⦗Sc⦘ ≡ ∅₂)
-  A (A_SUB: A ⊆₁ R_acq ∪₁ W_rel)
-  (A1: ⦗A⦘ ⨾ (sb' ∪ sb'⨾hb⨾sb') ⨾ ⦗A⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
-  (A2: ⦗A⦘ ⨾ rmw ≡ rmw ⨾ ⦗A⦘)
-  (G' : execution) (CHANGE: G' = G)
-  : consistent G'.
-Proof.
-Admitted. *)
-
 End Sc_opt.
