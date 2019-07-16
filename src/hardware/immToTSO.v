@@ -231,6 +231,67 @@ arewrite (fr ⊆ (ppot ∪ rfe ∪ fr)^*) at 2.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 Qed.
 
+(* TODO: move to imm_hb.v. *)
+Lemma hb_acyc (COH : coherence G) : acyclic hb.
+Proof.
+  eapply trans_irr_acyclic.
+  2: by apply hb_trans.
+  apply hb_irr; auto.
+  all: apply CON.
+Qed.
+
+Lemma hb_rel_co_acyc : acyclic (hb ∪ <|Rel|> ;; (<|F|> ;; sb)^? ;; co).
+Proof.
+  assert (Wf G) as WF by apply CON.
+  assert (coherence G) as COH by apply Coherence.
+  assert (transitive hb) by apply hb_trans.
+  assert (⦗W⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as WWHB.
+  { unfold TSO.hb, TSO.ppo.
+    repeat unionR left.
+    unfolder. ins. desf. splits; auto. intros HH. desf. type_solver. }
+  assert (⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt) as RWHB.
+  { unfold TSO.hb, TSO.ppo.
+    repeat unionR left.
+    unfolder. ins. desf. splits; auto. intros HH. desf. type_solver. }
+  arewrite_id ⦗Rel⦘. rewrite seq_id_l.
+  apply acyclic_utt; auto.
+  { apply transitiveI. rewrite !seqA.
+    rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
+    arewrite_id (⦗W⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
+    { type_solver. }
+    rewrite seq_id_l. by sin_rewrite WF.(co_co). }
+  splits.
+  { apply hb_irr; auto. apply CON. }
+  { rewrite crE. rewrite seq_union_l, !seq_id_l.
+    apply irreflexive_union. split.
+    { by apply co_irr. }
+    rewrite WF.(wf_coD).
+    type_solver. }
+  arewrite_id ⦗F⦘. rewrite !seq_id_l.
+  rewrite sb_in_hb. 
+  sin_rewrite rewrite_trans_seq_cr_r; auto.
+  rewrite WF.(wf_coD), <- !seqA.
+  apply acyclic_seqC. rewrite !seqA.
+  arewrite (⦗W⦘ ⨾ hb ⨾ ⦗W⦘ ⊆ hbt⁺).
+  { rewrite hb_in. rewrite seq_union_l, seq_union_r, !seqA.
+    unionL.
+    { by rewrite <- ct_step. }
+    arewrite (⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?).
+    { rewrite crE, seq_union_l, seq_union_r. rewrite WWHB.
+      basic_solver. }
+    arewrite (ppot ⊆ hbt).
+    { unfold TSO.hb. eauto with hahn. }
+    arewrite (rfe ⊆ hbt).
+    rewrite unionK.
+    arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ hbt^?).
+    { rewrite crE, seq_union_l, seq_union_r. rewrite RWHB.
+      basic_solver. }
+      by rewrite ct_cr, cr_ct. }
+  arewrite (co ⊆ hbt).
+  rewrite ct_unit.
+  red. rewrite ct_of_ct. apply CON.
+Qed.
+
 (******************************************************************************)
 (** * global acyclicity condition   *)
 (******************************************************************************)
