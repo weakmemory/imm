@@ -76,7 +76,8 @@ Definition sw := release ⨾ (rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⨾ (sb ⨾ �
 Definition hb := (sb ∪ sw)⁺.
 
 (* simplified prop *)
-Definition sprop := <|W|> ;; rfe^? ;; (sb ;; <|F|>)^? ;; <|Acq|> ;; hb ;; <|Rel|>.
+Definition sprop :=
+  <|W|> ;; rfe^? ;; (sb ;; <|F|>)^? ;; <|Acq ∪₁ W|> ;; hb ;; <|Rel|>.
 
 (******************************************************************************)
 (** ** Basic properties *)
@@ -102,20 +103,24 @@ Proof.
 unfold hb; rewrite ct_end at 1; rels.
 Qed.
 
-Lemma sprop_trans : transitive sprop.
+Lemma sprop_trans WF : transitive sprop.
 Proof.
   apply transitiveI.
   unfold sprop at 1 2. rewrite !seqA.
-  arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ rfe^? ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ hb^?).
+  arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ rfe^? ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq ∪₁ W⦘ ⊆ hb^?).
   { rewrite crE at 1. rewrite !seq_union_l, !seq_union_r, !seq_id_l.
     unionL.
     { rewrite sb_in_hb. basic_solver. }
     rewrite <- sw_in_hb.
     unfold sw.
     arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⊆ release).
-    2: basic_solver 40.
-    unfold release, rs. 
-    rewrite rtE. basic_solver 40. }
+    { unfold release, rs. 
+      rewrite rtE. basic_solver 40. }
+    rewrite (dom_r WF.(wf_rfeD)) at 1. rewrite !seqA.
+    arewrite (⦗R⦘ ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq ∪₁ W⦘ ⊆ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘).
+    { unfolder. ins. desf; eauto 10.
+      all: type_solver. }
+    basic_solver 40. }
   arewrite (hb ⨾ hb^? ⨾ hb ⊆ hb).
   2: done.
   rewrite cr_hb_hb.
@@ -711,7 +716,7 @@ Lemma sprop_irr WF COH COMP : irreflexive sprop.
 Proof.
   unfold sprop.
   rewrite sb_in_hb.
-  arewrite ((hb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ hb ⨾ ⦗Rel⦘ ⊆ hb^? ⨾ hb).
+  arewrite ((hb ⨾ ⦗F⦘)^? ⨾ ⦗Acq ∪₁ W⦘ ⨾ hb ⨾ ⦗Rel⦘ ⊆ hb^? ⨾ hb).
   { basic_solver. }
   rewrite cr_hb_hb.
   arewrite_id ⦗W⦘. rewrite seq_id_l.

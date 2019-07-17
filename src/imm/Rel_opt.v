@@ -222,6 +222,20 @@ Proof. unfold G', relax_release_labels, is_f, is_sc, Events.mod; ins.
 unfolder; ins; split; ins; desf; splits; eauto.
 Qed.
 
+Lemma Acq_or_W_eq : Acq'∪₁W' ≡₁ Acq∪₁W.
+Proof.
+  arewrite (Acq'∪₁W' ≡₁ (FR'∩₁Acq')∪₁W').
+  { split; [|basic_solver].
+    unionL; [|eauto with hahn].
+    type_solver 10. }
+  arewrite (Acq∪₁W ≡₁ (FR∩₁Acq)∪₁W).
+  { split; [|basic_solver].
+    unionL; [|eauto with hahn].
+    type_solver 10. }
+  rewrite <- FR_Acq_eq, <- R_eq, <- F_eq, <- W_eq.
+  done.
+Qed.
+
 Lemma same_loc_eq : same_loc' ≡ same_loc.
 Proof. unfold G', relax_release_labels, Events.same_loc, Events.loc; ins.
 type_solver 22.
