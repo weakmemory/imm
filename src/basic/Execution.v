@@ -889,6 +889,40 @@ Proof.
   apply WF.(sw_in_ar_helper).
 Qed.
 
+Lemma sb_co_trans WF :
+  transitive ((⦗F⦘ ⨾ sb)^? ⨾ co).
+Proof.
+  apply transitiveI. rewrite !seqA.
+  rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
+  arewrite_id (⦗W⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
+  { type_solver. }
+  rewrite seq_id_l. by sin_rewrite WF.(co_co).
+Qed.
+
+Lemma rel_sb_co_trans WF :
+  transitive (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
+Proof.
+  apply transitiveI. rewrite !seqA.
+  rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
+  arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
+  { type_solver. }
+  rewrite seq_id_l. by sin_rewrite WF.(co_co).
+Qed.
+
+Lemma sb_co_irr WF :
+  irreflexive ((⦗F⦘ ⨾ sb)^? ⨾ co).
+Proof.
+  rewrite crE. rewrite seq_union_l, !seq_id_l.
+  apply irreflexive_union. split.
+  { by apply co_irr. }
+  rewrite WF.(wf_coD).
+  type_solver.
+Qed.
+
+Lemma rel_sb_co_irr WF :
+  irreflexive (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
+Proof. arewrite_id ⦗Rel⦘. rewrite seq_id_l. by apply sb_co_irr. Qed.
+
 End Execution.
 
 (******************************************************************************)

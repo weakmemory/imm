@@ -231,15 +231,6 @@ arewrite (fr ⊆ (ppot ∪ rfe ∪ fr)^*) at 2.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 Qed.
 
-(* TODO: move to imm_hb.v. *)
-Lemma hb_acyc (COH : coherence G) : acyclic hb.
-Proof.
-  eapply trans_irr_acyclic.
-  2: by apply hb_trans.
-  apply hb_irr; auto.
-  all: apply CON.
-Qed.
-
 Lemma hb_rel_co_acyc : acyclic (hb ∪ <|Rel|> ;; (<|F|> ;; sb)^? ;; co).
 Proof.
   assert (Wf G) as WF by apply CON.
@@ -255,18 +246,10 @@ Proof.
     unfolder. ins. desf. splits; auto. intros HH. desf. type_solver. }
   arewrite_id ⦗Rel⦘. rewrite seq_id_l.
   apply acyclic_utt; auto.
-  { apply transitiveI. rewrite !seqA.
-    rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
-    arewrite_id (⦗W⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
-    { type_solver. }
-    rewrite seq_id_l. by sin_rewrite WF.(co_co). }
+  { by apply sb_co_trans. }
   splits.
   { apply hb_irr; auto. apply CON. }
-  { rewrite crE. rewrite seq_union_l, !seq_id_l.
-    apply irreflexive_union. split.
-    { by apply co_irr. }
-    rewrite WF.(wf_coD).
-    type_solver. }
+  { by apply sb_co_irr. }
   arewrite_id ⦗F⦘. rewrite !seq_id_l.
   rewrite sb_in_hb. 
   sin_rewrite rewrite_trans_seq_cr_r; auto.

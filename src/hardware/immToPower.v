@@ -406,15 +406,6 @@ Proof.
   arewrite (fence ⊆ hbp＊); relsf; basic_solver 12.
 Qed.
 
-
-Lemma hb_in_sb_swe : hb ⊆ (sb ∪ (sw \ sb))⁺.
-Proof.
-unfold imm_hb.hb.
-rewrite (ri_union_re G sw) at 1.
-apply inclusion_t_t.
-basic_solver.
-Qed.
-
 Lemma hb_in_S_sb : hb ⊆ sb ∪ S⨾ sb^?.
 Proof.
 rewrite hb_in_sb_swe, path_union.

@@ -75,6 +75,9 @@ Definition sw := release ⨾ (rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⨾ (sb ⨾ �
 (* happens-before *)
 Definition hb := (sb ∪ sw)⁺.
 
+(* simplified prop *)
+Definition sprop := <|W|> ;; rfe^? ;; (sb ;; <|F|>)^? ;; <|Acq|> ;; hb ;; <|Rel|>.
+
 (******************************************************************************)
 (** ** Basic properties *)
 (******************************************************************************)
@@ -97,6 +100,27 @@ Proof. generalize hb_trans; basic_solver 20. Qed.
 Lemma hb_sb_sw : hb ≡ hb^? ⨾ (sb ∪ sw).
 Proof.
 unfold hb; rewrite ct_end at 1; rels.
+Qed.
+
+Lemma sprop_trans : transitive sprop.
+Proof.
+  apply transitiveI.
+  unfold sprop at 1 2. rewrite !seqA.
+  arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ rfe^? ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ hb^?).
+  { rewrite crE at 1. rewrite !seq_union_l, !seq_union_r, !seq_id_l.
+    unionL.
+    { rewrite sb_in_hb. basic_solver. }
+    rewrite <- sw_in_hb.
+    unfold sw.
+    arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⊆ release).
+    2: basic_solver 40.
+    unfold release, rs. 
+    rewrite rtE. basic_solver 40. }
+  arewrite (hb ⨾ hb^? ⨾ hb ⊆ hb).
+  2: done.
+  rewrite cr_hb_hb.
+  apply transitiveI. 
+  apply hb_trans.
 Qed.
 
 (******************************************************************************)
@@ -564,6 +588,13 @@ red in COH; revert COH.
 basic_solver.
 Qed.
 
+Lemma hb_acyc WF COH COMP : acyclic hb.
+Proof.
+  eapply trans_irr_acyclic.
+  2: by apply hb_trans.
+  apply hb_irr; auto.
+Qed.
+
 Lemma w_hb_loc_w_in_co WF COH COMP:
   ⦗W⦘ ⨾ hb ∩ same_loc ⨾ ⦗W⦘ ⊆ co.
 Proof.
@@ -666,6 +697,30 @@ by hahn_rewrite (wf_rmwD WF) in RMW_x_y; hahn_rewrite (wf_rfD WF) in H0;
   by exfalso; eapply COH; basic_solver.
  hahn_rewrite (wf_rfD WF) in H;
  exfalso; type_unfolder; unfolder in *; desf.
+Qed.
+
+Lemma hb_in_sb_swe : hb ⊆ (sb ∪ (sw \ sb))⁺.
+Proof.
+  unfold hb.
+  rewrite (ri_union_re G sw) at 1.
+  apply inclusion_t_t.
+  basic_solver.
+Qed.
+
+Lemma sprop_irr WF COH COMP : irreflexive sprop.
+Proof.
+  unfold sprop.
+  rewrite sb_in_hb.
+  arewrite ((hb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ hb ⨾ ⦗Rel⦘ ⊆ hb^? ⨾ hb).
+  { basic_solver. }
+  rewrite cr_hb_hb.
+  arewrite_id ⦗W⦘. rewrite seq_id_l.
+  apply irreflexive_seqC.
+  rewrite crE, seq_union_r, seq_id_r.
+  apply irreflexive_union. split.
+  { by apply hb_irr. }
+  arewrite (rfe ⊆ rf). rewrite rf_in_eco.
+  apply COH.
 Qed.
 
 End IMM_hb.

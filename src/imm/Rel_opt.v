@@ -80,6 +80,7 @@ Notation "'sw''" := G'.(sw).
 Notation "'release''" := G'.(release).
 Notation "'rs''" := G'.(rs).
 Notation "'hb''" := G'.(hb).
+Notation "'sprop''" := G'.(sprop).
 Notation "'ppo''" := G'.(ppo).
 Notation "'psc''" := G'.(psc).
 Notation "'psc_f''" := G'.(psc_f).
@@ -141,6 +142,7 @@ Notation "'sw'" := G.(sw).
 Notation "'release'" := G.(release).
 Notation "'rs'" := G.(rs).
 Notation "'hb'" := G.(hb).
+Notation "'sprop'" := G.(sprop).
 Notation "'ppo'" := G.(ppo).
 Notation "'psc'" := G.(psc).
 Notation "'psc_f'" := G.(psc_f).
@@ -206,6 +208,13 @@ Qed.
 Lemma F_AcqRel_eq : F ∩₁ Acq/Rel' ≡₁  F ∩₁ Acq/Rel.
 Proof. unfold G', relax_release_labels, is_f, is_ra, is_rel, is_acq, Events.mod; ins.
 unfolder; ins; split; ins; desf; splits; eauto.
+Qed.
+
+Lemma F_Rel_eq : F'∩₁Rel' ≡₁ F∩₁Rel.
+Proof.
+  rewrite Rel_eq. rewrite F_eq.
+  split; [basic_solver|].
+  unfolder. ins. desf. splits; auto. intros HH. type_solver.
 Qed.
 
 Lemma F_Sc_eq : F'∩₁Sc' ≡₁  F∩₁Sc.
