@@ -44,14 +44,14 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition hb := (sb ∪ <|Sc|> ;; (co ∪ rf) ;; <|Sc|>)⁺. (* see p. 6 *)
+Definition hb := (sb ∪ ⦗Sc⦘ ⨾ (co ∪ rf) ⨾ ⦗Sc⦘)⁺. (* see p. 6 *)
 
 Definition ocaml_consistent :=
   ⟪ Comp : complete G ⟫ /\
   ⟪ Cat  : rmw_atomicity G ⟫ /\
-  ⟪ CoWW : irreflexive (hb ;; co) ⟫ /\ (* see p. 6 *)
-  ⟪ CoWR : irreflexive (hb ;; fr) ⟫ /\
-  ⟪ Caus : acyclic (sb ∪ rfe ∪ <|Sc|> ;; (coe ∪ fre) ;; <|Sc|>) ⟫. (* see expanded definition at p. 17 *)
+  ⟪ CoWW : irreflexive (hb ⨾ co) ⟫ /\ (* see p. 6 *)
+  ⟪ CoWR : irreflexive (hb ⨾ fr) ⟫ /\
+  ⟪ Caus : acyclic (sb ∪ rfe ∪ ⦗Sc⦘ ⨾ (coe ∪ fre) ⨾ ⦗Sc⦘) ⟫. (* see expanded definition at p. 17 *)
 
 End OCamlMM.
 

@@ -75,14 +75,14 @@ Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'ohb'" := G.(OCaml.hb).
 
 Hypothesis LSM : forall l,
-    << LM : Loc_ l \₁ is_init ⊆₁ ORlx >> \/
-    << LM : Loc_ l \₁ is_init ⊆₁ Sc >>.
+    ⟪ LM : Loc_ l \₁ is_init ⊆₁ ORlx ⟫ \/
+    ⟪ LM : Loc_ l \₁ is_init ⊆₁ Sc ⟫.
 
-Hypothesis WSCFACQRMW : W∩₁Sc ≡₁ codom_rel (<|F∩₁ Acq|> ;; immediate sb ;; rmw).
+Hypothesis WSCFACQRMW : W∩₁Sc ≡₁ codom_rel (⦗F∩₁ Acq⦘ ⨾ immediate sb ⨾ rmw).
 Hypothesis RMWSC  : rmw ≡ ⦗Sc⦘ ⨾ rmw ⨾ ⦗Sc⦘.
 
-Hypothesis WRLXF : W∩₁ORlx ⊆₁ codom_rel (<|F∩₁Acqrel|> ;; immediate sb).
-Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (<|F∩₁Acq|> ;; immediate sb).
+Hypothesis WRLXF : W∩₁ORlx ⊆₁ codom_rel (⦗F∩₁Acqrel⦘ ⨾ immediate sb).
+Hypothesis RSCF  : R∩₁Sc  ⊆₁ codom_rel (⦗F∩₁Acq⦘ ⨾ immediate sb).
 
 Lemma sc_rf_in_sw (WF: Wf G):
     ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ sw. 
@@ -114,7 +114,7 @@ Qed.
 
 Lemma co_sc_in_hb (WF : Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  <|Sc|> ;; co ;; <|Sc|> ⊆ hb.
+  ⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ hb.
 Proof.
   rewrite fsupp_imm_t with (r:=⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘).
   4: { generalize WF.(co_trans). basic_solver. }
@@ -246,7 +246,7 @@ Qed.
   
 Lemma imm_to_ocaml_coherent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  irreflexive (ohb ;; (co ∪ fr)).
+  irreflexive (ohb ⨾ (co ∪ fr)).
 Proof.
   rewrite ohb_in_hb; eauto. 
   arewrite (co ∪ fr ⊆ eco^?).
@@ -778,7 +778,7 @@ Lemma imm_to_ocaml_consistent (WF: Wf G) sc
   ocaml_consistent G.
 Proof.
   cdes IPC. cdes IC.
-  assert (irreflexive (ohb ;; (co ∪ fr))) as HH.
+  assert (irreflexive (ohb ⨾ (co ∪ fr))) as HH.
   { eapply imm_to_ocaml_coherent; eauto. }
   red. splits; auto.
   1,2: eapply irreflexive_mori; eauto.

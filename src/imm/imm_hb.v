@@ -77,7 +77,7 @@ Definition hb := (sb ∪ sw)⁺.
 
 (* simplified prop *)
 Definition sprop :=
-  <|W|> ;; rfe^? ;; (sb ;; <|F|>)^? ;; <|Acq ∪₁ W|> ;; hb ;; <|Rel|>.
+  ⦗W⦘ ⨾ rfe^? ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq ∪₁ W⦘ ⨾ hb ⨾ ⦗Rel⦘.
 
 (******************************************************************************)
 (** ** Basic properties *)

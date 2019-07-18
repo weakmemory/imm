@@ -231,7 +231,7 @@ arewrite (fr ⊆ (ppot ∪ rfe ∪ fr)^*) at 2.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 Qed.
 
-Lemma hb_rel_co_acyc : acyclic (hb ∪ <|Rel|> ;; (<|F|> ;; sb)^? ;; co).
+Lemma hb_rel_co_acyc : acyclic (hb ∪ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
 Proof.
   assert (Wf G) as WF by apply CON.
   assert (coherence G) as COH by apply Coherence.
