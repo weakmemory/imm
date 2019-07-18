@@ -217,6 +217,14 @@ Proof.
   unfolder. ins. desf. splits; auto. intros HH. type_solver.
 Qed.
 
+Lemma FR_Rel_eq : FR'∩₁Rel' ≡₁ FR∩₁Rel.
+Proof.
+  rewrite Rel_eq. rewrite F_eq, R_eq.
+  split; [basic_solver|].
+  unfolder. ins. desf; splits; auto.
+  all: intros HH; type_solver.
+Qed.
+
 Lemma F_Sc_eq : F'∩₁Sc' ≡₁  F∩₁Sc.
 Proof. unfold G', relax_release_labels, is_f, is_sc, Events.mod; ins.
 unfolder; ins; split; ins; desf; splits; eauto.
