@@ -185,9 +185,8 @@ Section State.
       (UECTRL : s2.(ectrl) = s1.(ectrl))
   | cas_un expr_old expr_new xmod ordr ordw reg lexpr val l
       (L: l = RegFile.eval_lexpr s1.(regf) lexpr)
-      (NEXPECTED : val <> RegFile.eval_expr s1.(regf) expr_old)
       (LABELS : labels = [Aload true ordr l val])
-      (II : instr= Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr)
+      (II : instr = Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr)
       (UPC   : s2.(pc) = s1.(pc) + 1)
       (UG    : s2.(G) =
                  add s1.(G) tid s1.(eindex) (Aload true ordr l val) ∅

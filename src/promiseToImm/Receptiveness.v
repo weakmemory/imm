@@ -729,7 +729,6 @@ Lemma receptiveness_sim_cas_fail (tid : thread_id)
 (ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr) =
         nth_error (instrs s1) (pc s1))
 (val_ : value)
-(NEXPECTED : val_ <> RegFile.eval_expr (regf s1) expr_old)
 (UPC : pc s2 = pc s1 + 1)
 (UG : G s2 =
      add (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) val_) 
@@ -764,8 +763,6 @@ do 7 eexists; splits; red; splits.
   * eexists; red; splits; [by ins; eauto|].
     eexists; splits; [eby rewrite <- INSTRS, <- PC |].
     eapply cas_un with (val := val_); try reflexivity.
-    erewrite <- regf_expr_helper with (regf := (regf s1)); try edone.
-    ins; intro;  eapply NFRMW; rewrite UG; unfold add; ins; basic_solver.
   * ins; congruence.
   * ins; congruence.
   * ins.
