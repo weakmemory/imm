@@ -523,6 +523,51 @@ Proof.
   red; rels; eapply CON.
 Qed.
 
+Lemma co_in_hbt : co ⊆ hbt.
+Proof. unfold TSO.hb. eauto with hahn. Qed.
+
+Lemma coe_in_hbt : coe ⊆ hbt.
+Proof. unfold Execution.coe. rewrite co_in_hbt. eauto with hahn. Qed.
+
+Lemma fr_in_hbt : fr ⊆ hbt.
+Proof. unfold TSO.hb. eauto with hahn. Qed.
+
+Lemma rfe_in_hbt : rfe ⊆ hbt.
+Proof. unfold TSO.hb. eauto with hahn. Qed.
+
+Lemma detour_in_hbt : detour G ⊆ hbt⁺.
+Proof.
+  unfold detour.
+  rewrite rfe_in_hbt, coe_in_hbt.
+  rewrite <- ct_unit, <- ct_step.
+  eauto with hahn.
+Qed.
+
+Lemma ppo_in_ppot : ppo ⊆ ppot.
+Proof.
+  rewrite wf_ppoD. rewrite ppo_in_sb; [|by apply CON].
+  unfold TSO.ppo.
+  unfolder. ins. desf. splits; eauto.
+  intros HH. type_solver 10.
+Qed.
+
+Lemma w_ex_sb_w_in_ppot : ⦗W_ex ∩₁ (is_xacq lab)⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppot.
+Proof.
+  rewrite W_ex_in_W; [|by apply CON]. 
+  unfold TSO.ppo. 
+  unfolder. ins. desf. splits; eauto.
+  intros HH. type_solver 10.
+Qed.
+
+Lemma ppot_in_hbt : ppot ⊆ hbt.
+Proof. unfold TSO.hb. eauto with hahn. Qed.
+
+Lemma w_ex_sb_w_in_hbt : ⦗W_ex ∩₁ (is_xacq lab)⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ hbt.
+Proof. rewrite w_ex_sb_w_in_ppot. apply ppot_in_hbt. Qed.
+
+Lemma ppo_in_hbt : ppo ⊆ hbt.
+Proof. by rewrite ppo_in_ppot, ppot_in_hbt. Qed.
+
 Lemma wf_psc_baseD : psc_base ≡ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘.
 Proof.
   split; [|basic_solver].
