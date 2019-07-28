@@ -92,7 +92,7 @@ Proof. apply CON. Qed.
 (** * coherence   *)
 (******************************************************************************)
 
-Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^*.
+Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)＊.
 Proof.
 unfold imm_hb.release, imm_hb.rs.
 arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⊆ sb^?) by basic_solver.
@@ -121,7 +121,7 @@ rewrite rfi_union_rfe; relsf; unionL.
   rewrite TSO.ppo_alt; basic_solver 42.
 Qed.
 
-Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^+ ⨾ ⦗R⦘ ⨾ sb^?.
+Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)⁺ ⨾ ⦗R⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.sw.
@@ -143,18 +143,18 @@ arewrite (⦗R⦘ ⊆ ⦗R⦘ ⨾ ⦗R⦘) at 2.
 basic_solver.
 arewrite (⦗R⦘ ⨾ sb ⨾ ⦗R⦘ ⊆ ppot).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot ⊆ (ppot ∪ rfe)^*) at 2.
-arewrite (rfe ⊆ (ppot ∪ rfe)^+) at 2.
+arewrite (ppot ⊆ (ppot ∪ rfe)＊) at 2.
+arewrite (rfe ⊆ (ppot ∪ rfe)⁺) at 2.
 relsf.
 - rewrite (wf_rfeD WF) at 2; rewrite !seqA.
 arewrite (⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot ⊆ (ppot ∪ rfe)^*) at 2.
-arewrite (rfe ⊆ (ppot ∪ rfe)^+) at 3.
+arewrite (ppot ⊆ (ppot ∪ rfe)＊) at 2.
+arewrite (rfe ⊆ (ppot ∪ rfe)⁺) at 3.
 relsf.
 Qed.
 
-Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)^+ ⨾ ⦗R⦘ ⨾ sb^?.
+Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)⁺ ⨾ ⦗R⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm_hb.hb.
@@ -166,8 +166,8 @@ relsf; rewrite !seqA; relsf; unionL.
 1,2,3: basic_solver 21.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot).
 case_refl _; [type_solver| rewrite TSO.ppo_alt; basic_solver 21].
-arewrite (ppot ⊆ (ppot ∪ rfe)^*) at 2.
-arewrite ((ppot ∪ rfe)^+ ⊆ (ppot ∪ rfe)^*) at 1.
+arewrite (ppot ⊆ (ppot ∪ rfe)＊) at 2.
+arewrite ((ppot ∪ rfe)⁺ ⊆ (ppot ∪ rfe)＊) at 1.
 relsf.
 Qed.
 
@@ -182,7 +182,7 @@ rewrite hb_in; relsf; unionL.
 - rotate 2; relsf.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot^? ⊆ (ppot ∪ rfe)^*) at 1.
+arewrite (ppot^? ⊆ (ppot ∪ rfe)＊) at 1.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 - arewrite (rfe ⊆ rf); rewrite (rf_in_eco); apply SC_PER_LOC.
 - rewrite (wf_rfeD WF) at 2; rewrite !seqA; rotate 1.
@@ -190,8 +190,8 @@ arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot^? ⊆ (ppot ∪ rfe)^*).
-arewrite (rfe ⊆ (ppot ∪ rfe)^*) at 4.
+arewrite (ppot^? ⊆ (ppot ∪ rfe)＊).
+arewrite (rfe ⊆ (ppot ∪ rfe)＊) at 4.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 - arewrite (rfe ⊆ rf); rewrite (rf_in_eco); rewrite (co_in_eco); relsf.
 - arewrite (co ⨾ rfe^? ⊆ co ⨾ rfe^? ⨾ ⦗RW⦘).
@@ -205,11 +205,11 @@ rewrite TSO.ppo_alt; basic_solver 21.
 rotate 1.
 arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot^? ⊆ (ppot ∪ rfe)^*).
-arewrite (rfe ⊆ (ppot ∪ rfe)^*) at 4.
+arewrite (ppot^? ⊆ (ppot ∪ rfe)＊).
+arewrite (rfe ⊆ (ppot ∪ rfe)＊) at 4.
 rotate 1; relsf.
 arewrite (ppot ∪ rfe ⊆ (ppot ∪ rfe ∪ co)).
-arewrite (co ⊆ (ppot ∪ rfe ∪ co)^*) at 2.
+arewrite (co ⊆ (ppot ∪ rfe ∪ co)＊) at 2.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 - arewrite (rfe ⊆ rf); rewrite (rf_in_eco); rewrite (fr_in_eco); relsf.
 - arewrite (fr ⨾ rfe^? ⊆ fr ⨾ rfe^? ⨾ ⦗RW⦘).
@@ -223,11 +223,11 @@ rewrite TSO.ppo_alt; basic_solver 21.
 rotate 1.
 arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
-arewrite (ppot^? ⊆ (ppot ∪ rfe)^*).
-arewrite (rfe ⊆ (ppot ∪ rfe)^*) at 4.
+arewrite (ppot^? ⊆ (ppot ∪ rfe)＊).
+arewrite (rfe ⊆ (ppot ∪ rfe)＊) at 4.
 rotate 1; relsf.
 arewrite (ppot ∪ rfe ⊆ (ppot ∪ rfe ∪ fr)).
-arewrite (fr ⊆ (ppot ∪ rfe ∪ fr)^*) at 2.
+arewrite (fr ⊆ (ppot ∪ rfe ∪ fr)＊) at 2.
 relsf; eapply acyclic_mon; [edone|basic_solver 12].
 Qed.
 
@@ -279,7 +279,7 @@ Qed.
 (** * global acyclicity condition   *)
 (******************************************************************************)
 
-Lemma eco_in : eco ⊆ sb ∪ hbt^+ ⨾ sb^?.
+Lemma eco_in : eco ⊆ sb ∪ hbt⁺ ⨾ sb^?.
 Proof.
 unfold Execution_eco.eco.
 rewrite rfi_union_rfe.
@@ -290,7 +290,7 @@ unfold TSO.hb.
 basic_solver 40.
 Qed.
 
-Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
+Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb.
 Proof.
 generalize (@sb_trans G); ins.
 unfold imm.psc.
@@ -309,7 +309,7 @@ rewrite (dom_r (wf_ct_hbD WF)) at 1; rewrite !seqA.
 arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (ppot^? ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^*) at 1.
+arewrite (hbt⁺ ⊆ hbt＊) at 1.
 relsf; type_solver 21.
 
 - type_solver 21.
@@ -319,31 +319,31 @@ arewrite_id !⦗RW⦘; rels.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ sb ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (ppot^? ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^*) at 1.
+arewrite (hbt⁺ ⊆ hbt＊) at 1.
 relsf; type_solver 21.
 - rewrite !seqA.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (ppot^? ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^*) at 1.
+arewrite (hbt⁺ ⊆ hbt＊) at 1.
 relsf; type_solver 21.
 - rewrite !seqA.
 arewrite (⦗R⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (ppot^? ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^*) at 1.
+arewrite (hbt⁺ ⊆ hbt＊) at 1.
 rewrite (dom_r (wf_ct_hbD WF)) at 1; rewrite !seqA.
 arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppot^?).
 rewrite TSO.ppo_alt; basic_solver 21.
 arewrite (ppot^? ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^*) at 1.
+arewrite (hbt⁺ ⊆ hbt＊) at 1.
 relsf; type_solver 21.
 Qed.
 
-Lemma ct_pscXt X (XX : X ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb)
+Lemma ct_pscXt X (XX : X ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb)
       (XD : X ⊆ ⦗ MFENCE ⦘ ⨾ X ⨾ ⦗ MFENCE ⦘) : 
-  (sb^? ⨾ X ⨾ sb^?)^+ ⊆ 
-       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
+  (sb^? ⨾ X ⨾ sb^?)⁺ ⊆ 
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
 generalize (@sb_trans G); ins.
 rewrite XD, XX.
@@ -361,16 +361,16 @@ arewrite_id  ⦗MFENCE⦘ at 2.
 relsf.
 arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence).
 arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-arewrite (hbt^+ ⊆ hbt^* ) at 1.
+arewrite (hbt⁺ ⊆ hbt＊ ) at 1.
 relsf; basic_solver 21.
 Qed.
 
 Lemma ct_psct : 
-  (sb^? ⨾ psc ⨾ sb^?)^+ ⊆ 
-       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
+  (sb^? ⨾ psc ⨾ sb^?)⁺ ⊆ 
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof. apply (ct_pscXt psct). by rewrite (@wf_pscD G) at 1. Qed.
 
-Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt^+ ⨾ sb.
+Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb.
 Proof.
   unfold imm.psc_f.
   rewrite crE.
@@ -390,15 +390,15 @@ Proof.
 Qed.
 
 Lemma ct_psc_ft : 
-  (sb^? ⨾ psc_f ⨾ sb^?)^+ ⊆ 
-       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt^+ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
+  (sb^? ⨾ psc_f ⨾ sb^?)⁺ ⊆ 
+       sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
 Proof.
   apply (ct_pscXt psc_ft).
   unfold imm.psc_f. rewrite !seqA.
   basic_solver 10.
 Qed.
 
-(* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt^+ ⨾ sb^?. *)
+(* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt⁺ ⨾ sb^?. *)
 (* Proof. *)
 (*   unfold imm.psc_base. *)
 (*   unfold imm.scb. *)
@@ -508,7 +508,7 @@ Proof.
   arewrite (⦗RW⦘ ⨾ sb ⨾ ⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗RW⦘ ⊆ fence).
   case_refl _; [type_solver|vauto].
   arewrite (fence ⊆ hbt^?) by (unfold TSO.hb; basic_solver 12).
-  arewrite (hbt^+ ⊆ hbt^* ) at 2.
+  arewrite (hbt⁺ ⊆ hbt＊ ) at 2.
   relsf.
   arewrite (sb^? ⨾ ⦗MFENCE⦘ ⨾ sb ⊆ sb^?).
   basic_solver.
@@ -686,7 +686,7 @@ Proof.
   { apply fsc_hb_fsc_in_ehbt. }
   rewrite (dom_l WF.(wf_ecoD)). rewrite !seqA.
   sin_rewrite fsc_hb_rw_in_ehbt.
-  arewrite (eco ⊆ (hbt)^* ⨾ ⦗ RW ⦘ ⨾ rfi^?).
+  arewrite (eco ⊆ (hbt)＊ ⨾ ⦗ RW ⦘ ⨾ rfi^?).
   { rewrite WF.(eco_alt).
     rewrite (dom_r WF.(wf_coD)).
     rewrite (dom_r WF.(wf_frD)).

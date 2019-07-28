@@ -749,8 +749,8 @@ by relsf; rewrite sb_C, sw_C.
 - intros k H; rewrite !seqA; sin_rewrite H.
 relsf; sin_rewrite sb_C; sin_rewrite sw_C.
 rewrite !seqA.
-arewrite (Gsb ⊆ (Gsb ∪ Gsw)^*) at 1.
-arewrite (Gsw ⊆ (Gsb ∪ Gsw)^*) at 3.
+arewrite (Gsb ⊆ (Gsb ∪ Gsw)＊) at 1.
+arewrite (Gsw ⊆ (Gsb ∪ Gsw)＊) at 3.
 relsf.
 Qed.
 

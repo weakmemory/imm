@@ -1534,7 +1534,7 @@ rewrite !seqA.
 sin_rewrite H.
 arewrite_id ⦗D⦘.
 arewrite (X ⊆ X ∪ Grfi) at 2.
-arewrite (Grfi ⊆ (X ∪ Grfi)^*) at 3.
+arewrite (Grfi ⊆ (X ∪ Grfi)＊) at 3.
 relsf.
 Qed.
 
@@ -1598,7 +1598,7 @@ basic_solver 12.
 Qed.
 
 
-Lemma cert_ar_int_I : Car_int^+ ⨾ ⦗ C ∪₁ I ⦘ ⊆ ⦗ D ∪₁ R ∩₁ Acq ⦘ ⨾ Gar_int^+.
+Lemma cert_ar_int_I : Car_int⁺ ⨾ ⦗ C ∪₁ I ⦘ ⊆ ⦗ D ∪₁ R ∩₁ Acq ⦘ ⨾ Gar_int⁺.
 Proof.
 rewrite (ct_ar_int_alt WF_cert).
 2: by apply (coherence_sc_per_loc cert_coherence).
@@ -1799,7 +1799,7 @@ done.
 
 Qed.
 
-Lemma  cert_acyc_ext_helper : (sc ∪ certG.(rfe))^+ ⊆ sc ∪ certG.(rfe).
+Lemma  cert_acyc_ext_helper : (sc ∪ certG.(rfe))⁺ ⊆ sc ∪ certG.(rfe).
 Proof.
 rewrite path_union.
 generalize (sc_trans WF_SC); ins; relsf; unionL; [basic_solver|].
@@ -1861,8 +1861,8 @@ rewrite wf_new_rfE.
 generalize new_rfe_Acq.
 unfolder; ins; desf; exfalso; basic_solver 21. }
 
-arewrite (sc ⊆ Gar^*).
-arewrite (Grfe ⊆ Gar^*).
+arewrite (sc ⊆ Gar＊).
+arewrite (Grfe ⊆ Gar＊).
 arewrite (Gar_int ⊆ Gar).
 relsf.
 red; relsf.

@@ -21,10 +21,10 @@ Lemma path_dom A (r: relation A) d e
   de (DE: de = ⦗d⦘ ⨾ r ⨾ ⦗e⦘)
   ed (ED: ed = ⦗e⦘ ⨾ r ⨾ ⦗d⦘)
   ee (EE: ee = ⦗e⦘ ⨾ r ⨾ ⦗e⦘) : 
-   r⁺ ⊆ (dd⁺ ∪ (dd^* ⨾ de ⨾ ee^* ⨾ ed)⁺ ⨾ dd^* ) ∪
-  (ee⁺ ∪ (ee^* ⨾ ed ⨾ dd^* ⨾ de)⁺ ⨾ ee^* ) ∪
-  (ee^* ⨾ ed ⨾ dd^* ⨾ de)^* ⨾ ee^* ⨾ ed ⨾ dd^* ∪
-  (dd^* ⨾ de ⨾ ee^* ⨾ ed)^* ⨾ dd^* ⨾ de ⨾ ee^*.
+   r⁺ ⊆ (dd⁺ ∪ (dd＊ ⨾ de ⨾ ee＊ ⨾ ed)⁺ ⨾ dd＊ ) ∪
+  (ee⁺ ∪ (ee＊ ⨾ ed ⨾ dd＊ ⨾ de)⁺ ⨾ ee＊ ) ∪
+  (ee＊ ⨾ ed ⨾ dd＊ ⨾ de)＊ ⨾ ee＊ ⨾ ed ⨾ dd＊ ∪
+  (dd＊ ⨾ de ⨾ ee＊ ⨾ ed)＊ ⨾ dd＊ ⨾ de ⨾ ee＊.
 Proof. 
   apply inclusion_t_ind_right.
 - rewrite step_dom with (r:=r) (d:=d) (e:=e) at 1; try eassumption.
@@ -44,20 +44,20 @@ assert (X19: de ⨾ dd ⊆ ∅₂).
   by rewrite ?DD, ?ED, ?DE, ?EE; generalize E2; basic_solver.
 assert (X20: de ⨾ de ⊆ ∅₂).
   by rewrite ?DD, ?ED, ?DE, ?EE; generalize E2; basic_solver.
-assert (X1: dd ^* ⨾ ed ⊆ ed).
+assert (X1: dd ＊ ⨾ ed ⊆ ed).
   by rewrite ?rtE; relsf; rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X2: dd ^* ⨾ dd ⊆ dd^* ).
+assert (X2: dd ＊ ⨾ dd ⊆ dd＊ ).
   by rewrite rt_end at 2; relsf.
-assert (X3: dd ^* ⨾ ee ⊆ ee).
+assert (X3: dd ＊ ⨾ ee ⊆ ee).
   by rewrite ?rtE; relsf; rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X4: ee ^* ⨾ de ⊆ de).
+assert (X4: ee ＊ ⨾ de ⊆ de).
   by rewrite ?rtE; relsf; rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X5: ee ^* ⨾ ee ⊆ ee^* ).
+assert (X5: ee ＊ ⨾ ee ⊆ ee＊ ).
   by rewrite rt_end at 2; relsf.
-assert (X6: ee ^* ⨾ dd ⊆ dd).
+assert (X6: ee ＊ ⨾ dd ⊆ dd).
   by rewrite ?rtE; relsf; rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
 assert (X7: dd ⁺ ⨾ dd ⊆ dd⁺).
@@ -68,10 +68,10 @@ assert (X8: dd ⁺ ⨾ ed ⊆ ∅₂).
 assert (X9: dd ⁺ ⨾ ee ⊆ ∅₂).
   by rewrite ?rtE; relsf; rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X10: (dd ^* ⨾ de ⨾ ee ^* ⨾ ed) ⁺ ⨾ ed ⊆ ∅₂).
+assert (X10: (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed) ⁺ ⨾ ed ⊆ ∅₂).
   by rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X11: (dd ^* ⨾ de ⨾ ee ^* ⨾ ed) ⁺ ⨾ ee ⊆ ∅₂).
+assert (X11: (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed) ⁺ ⨾ ee ⊆ ∅₂).
    by rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA;
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
 assert (X12: ee ⁺ ⨾ dd ⊆ ∅₂).
@@ -82,10 +82,10 @@ assert (X13: ee ⁺ ⨾ de ⊆ ∅₂).
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
 assert (X14: ee ⁺ ⨾ ee ⊆ ee⁺).
   by rewrite ct_end at 2; rewrite inclusion_t_rt.
-assert (X15: (ee ^* ⨾ ed ⨾ dd ^* ⨾ de) ⁺ ⨾ dd ⊆ ∅₂).
+assert (X15: (ee ＊ ⨾ ed ⨾ dd ＊ ⨾ de) ⁺ ⨾ dd ⊆ ∅₂).
   by rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
-assert (X16: (ee ^* ⨾ ed ⨾ dd ^* ⨾ de) ⁺ ⨾ de ⊆ ∅₂).
+assert (X16: (ee ＊ ⨾ ed ⨾ dd ＊ ⨾ de) ⁺ ⨾ de ⊆ ∅₂).
   by rewrite ct_end, ?seqA, ?DD, ?ED, ?DE, ?EE, ?seqA; 
     try sin_rewrite E2; try sin_rewrite E2'; relsf.
 
@@ -104,7 +104,7 @@ Lemma path_dom_same A (r: relation A) d e
   de (DE: de = ⦗d⦘ ⨾ r ⨾ ⦗e⦘)
   ed (ED: ed = ⦗e⦘ ⨾ r ⨾ ⦗d⦘)
   ee (EE: ee = ⦗e⦘ ⨾ r ⨾ ⦗e⦘) : 
-  ⦗d⦘ ⨾ r⁺ ⨾ ⦗d⦘ ⊆ dd⁺ ∪ (dd^* ⨾ de ⨾ ee^* ⨾ ed)⁺ ⨾ dd^*.
+  ⦗d⦘ ⨾ r⁺ ⨾ ⦗d⦘ ⊆ dd⁺ ∪ (dd＊ ⨾ de ⨾ ee＊ ⨾ ed)⁺ ⨾ dd＊.
 Proof.
 rewrite path_dom; try edone.
 relsf; repeat apply inclusion_union_l; rewrite ?seqA.
@@ -126,7 +126,7 @@ all: try by rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r; relsf.
   rewrite ED, ?seqA; sin_rewrite E2; relsf.
   by rewrite ct_begin, EE, ?seqA; sin_rewrite E2; relsf.
 - rewrite ?seqA.
-  arewrite (⦗d⦘ ⨾ (dd ^* ⨾ de ⨾ ee ^* ⨾ ed) ^* ⨾ dd ^* ⊆ fun _ _ => True).
+  arewrite (⦗d⦘ ⨾ (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed) ＊ ⨾ dd ＊ ⊆ fun _ _ => True).
   rewrite rtE at 1; relsf.
   rewrite DE, ?seqA.
   arewrite (⦗e⦘ ⨾ ⦗d⦘ ⊆ (fun _ _ : A => False)).
@@ -161,7 +161,7 @@ Lemma acyc_dom A (r: relation A) d e
   ee (EE: ee = ⦗e⦘ ⨾ r ⨾ ⦗e⦘) 
   (ACYCd: acyclic dd) 
   (ACYCe: acyclic ee) 
-  (ACYCed: acyclic (ed ⨾ dd^* ⨾ de ⨾ ee^*)) :
+  (ACYCed: acyclic (ed ⨾ dd＊ ⨾ de ⨾ ee＊)) :
   acyclic r.
 Proof.
 red.
@@ -176,9 +176,9 @@ eapply irr_dom; try edone.
 - sin_rewrite path_dom_same; try edone.
   repeat rewrite irreflexive_union; splits; try done.
   rewrite irreflexive_seqC.
-  arewrite( dd^* ⨾ (dd ^* ⨾ de ⨾ ee ^* ⨾ ed) ⁺ ⊆ (dd ^* ⨾ de ⨾ ee ^* ⨾ ed) ⁺).
+  arewrite( dd＊ ⨾ (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed) ⁺ ⊆ (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed) ⁺).
     by rewrite ct_begin; rewrite !seqA; rels.
-  assert (acyclic (dd ^* ⨾ de ⨾ ee ^* ⨾ ed)); try done. (*?*)
+  assert (acyclic (dd ＊ ⨾ de ⨾ ee ＊ ⨾ ed)); try done. (*?*)
   rewrite acyclic_seqC; rewrite !seqA. 
   rewrite acyclic_seqC; rewrite !seqA. 
   rewrite acyclic_seqC; rewrite !seqA. 
@@ -187,9 +187,9 @@ eapply irr_dom; try edone.
   sin_rewrite path_dom_same; try edone; try by rewrite seq_eqvC.
   repeat rewrite irreflexive_union; splits; try done.
   rewrite irreflexive_seqC.
-  arewrite( ee^* ⨾ (ee ^* ⨾ ed ⨾ dd ^* ⨾ de) ⁺  ⊆ (ee ^* ⨾ ed ⨾ dd ^* ⨾ de) ⁺).
+  arewrite( ee＊ ⨾ (ee ＊ ⨾ ed ⨾ dd ＊ ⨾ de) ⁺  ⊆ (ee ＊ ⨾ ed ⨾ dd ＊ ⨾ de) ⁺).
     by rewrite ct_begin; rewrite !seqA; rels.
-  assert (acyclic(ee ^* ⨾ ed ⨾ dd ^* ⨾ de)); try done. (*?*)
+  assert (acyclic(ee ＊ ⨾ ed ⨾ dd ＊ ⨾ de)); try done. (*?*)
   rewrite acyclic_seqC; rewrite !seqA. 
   done.
 Qed.

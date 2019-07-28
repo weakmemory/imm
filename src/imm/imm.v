@@ -257,7 +257,7 @@ Proof.
   arewrite (rfi ⊆ sb).
 
   arewrite ((sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ (ar ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺ ⊆
-          (sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ (ar ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)^*).
+          (sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ (ar ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)＊).
   { basic_solver 10. }
   arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ∪ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ (ar ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)＊ ⊆
                (sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ (ar ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)＊).

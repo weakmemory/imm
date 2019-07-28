@@ -567,7 +567,7 @@ Lemma scb_chain' (WF: Wf G):
 Proof.
   rewrite (rmw_rf_hbl WF). 
   arewrite (hb ∩ same_loc ⊆ scb G).
-  arewrite ((⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)^+ ⨾ ⦗Sc⦘).
+  arewrite ((⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)⁺ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)⁺ ⨾ ⦗Sc⦘).
   { rewrite ct_end. rewrite <- seq_eqvK at 4. basic_solver. }
   arewrite (⦗Sc⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ (⦗Sc⦘ ⨾ scb G ⨾ ⦗Sc⦘)).
   { arewrite (⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘). unfold scb. basic_solver 10. }
@@ -575,7 +575,7 @@ Proof.
 Qed.
 
 Lemma sc_sb_rf_ct_sb_pscb (WF: Wf G):
-  (⦗Sc ∩₁ (W ∪₁ R)⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ (psc_base G)^+).
+  (⦗Sc ∩₁ (W ∪₁ R)⦘ ⨾ (sb ⨾ rf)＊ ⨾ sb ⨾ ⦗(W ∪₁ R) ∩₁ Sc⦘ ⊆ (psc_base G)⁺).
 Proof.
   rewrite <- sc_scb_pscb.
   
@@ -697,9 +697,9 @@ Proof.
     arewrite (imm_common.bob G ⊆ ar sc).
     repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
     rewrite !seqA, unionK.
-    arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).
+    arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)⁺).
     { do 2 rewrite <- ct_ct at 1. basic_solver 10. }
-    arewrite (ar sc ⨾ ar sc ⊆ (ar sc)^+).
+    arewrite (ar sc ⨾ ar sc ⊆ (ar sc)⁺).
     { rewrite <- ct_ct at 1. basic_solver 10. }
     rewrite unionK. red in Cext. red.
     rewrite ct_of_ct. auto. }
@@ -733,7 +733,7 @@ Proof.
     unionL.
     { rewrite (sc_rf_in_pscb WF). basic_solver. }
     rewrite cr_seq. case_union _ _. rewrite seq_union_r.
-    arewrite ((sb ⨾ rf^?)⁺ ⊆ (sb ⨾ rf)^* ⨾ sb^?).
+    arewrite ((sb ⨾ rf^?)⁺ ⊆ (sb ⨾ rf)＊ ⨾ sb^?).
     { rewrite crE, seq_union_r, seq_id_r.
       rewrite unionC.
       rewrite path_absorb_rt.

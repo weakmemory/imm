@@ -73,13 +73,13 @@ Implicit Type WF : Wf G.
 Implicit Type COMP : complete G.
 
 
-Lemma ct_ar_int_alt1 WF: (ar_int)^+ ⊆ 
+Lemma ct_ar_int_alt1 WF: (ar_int)⁺ ⊆ 
 sb^? ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb ∪
 ⦗R∩₁Acq⦘ ⨾ sb ∪
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
 Proof.
 assert (helper: 
 (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
@@ -137,11 +137,11 @@ Qed.
 Lemma ct_ar_int_alt2 WF: 
  (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⊆ 
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ 
 sb ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb^? ∪
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
 Proof.
 
 arewrite (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
@@ -194,11 +194,11 @@ Qed.
 Lemma ct_ar_int_alt3 WF (SC_PER_LOC: sc_per_loc G) : 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⊆ 
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ 
 ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪ 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾
+  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 Proof.
 
@@ -239,11 +239,11 @@ Qed.
 Lemma ct_ar_int_alt4 WF: 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
  ⊆ 
 sb ⨾ ⦗W∩₁Rel⦘ ∪
 ( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
 Proof.
 rewrite !unionA.
 assert (transitive (sb ⨾ ⦗W ∩₁ Rel⦘)).
@@ -278,11 +278,11 @@ Qed.
 
 Lemma ct_ar_int_alt5 WF: 
 ( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
  ⊆ 
 ppo ∪
  (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
 ⨾ ppo^?.
 Proof.
 
@@ -305,7 +305,7 @@ Qed.
 Lemma ct_ar_int_alt WF 
 (SC_PER_LOC: sc_per_loc G) : 
 
-(ar_int)^+ ⊆ 
+(ar_int)⁺ ⊆ 
 
 sb^? ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb ∪
 ⦗R∩₁Acq⦘ ⨾ sb ∪
@@ -315,7 +315,7 @@ sb ⨾ ⦗W∩₁Rel⦘ ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)
 ppo ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪
  (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
 ⨾ ppo^? ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 

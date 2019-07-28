@@ -90,7 +90,7 @@ Notation "'ar'" := (ar G).
 Lemma global_sc_helper
   (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb) :
   ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾
-    (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘)^* ⨾
+    (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘)＊ ⨾
       eco^? ⨾ hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc_f⁺.
 Proof.
   assert (transitive eco) as TECO by (by apply eco_trans).
@@ -323,7 +323,7 @@ Proof.
   arewrite_id ⦗RW∩₁Sc⦘ at 1.
   arewrite_id ⦗RW∩₁Sc⦘ at 3.
   rels.
-  rewrite <- !seqA with (r3 := psc_f ^*).
+  rewrite <- !seqA with (r3 := psc_f ＊).
   rewrite global_sc_helper; auto.
   red; rels.
 Qed.

@@ -407,7 +407,7 @@ Qed.
   Qed.
 
 Lemma ind_helper {A} (r r': relation A) (D1 D2: A -> Prop) (ACYC: acyclic r) :
-r^* ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'^* -> r^+ ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'^+.
+r＊ ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'＊ -> r⁺ ⨾ ⦗D1⦘ ⊆ ⦗D2⦘ ⨾ r'⁺.
 Proof.
 rewrite !rtE; unfolder; ins; desf.
 specialize (H x y); desf.

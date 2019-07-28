@@ -122,7 +122,7 @@ basic_solver 42.
 Qed.
 
 
-Lemma wf_ct_hbD WF : hb^+ ≡ ⦗RW⦘ ⨾ hb^+ ⨾ ⦗RW⦘.
+Lemma wf_ct_hbD WF : hb⁺ ≡ ⦗RW⦘ ⨾ hb⁺ ⨾ ⦗RW⦘.
 Proof.
 split; [|basic_solver].
 apply dom_helper_3.
