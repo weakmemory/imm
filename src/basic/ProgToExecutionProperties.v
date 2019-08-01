@@ -1,5 +1,5 @@
 Require Import RelationClasses List Omega.
-From promising Require Import Basic Axioms Event Language.
+From promising Require Import Basic Event.
 From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.

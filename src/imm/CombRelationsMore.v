@@ -1,5 +1,5 @@
 From hahn Require Import Hahn.
-From promising Require Import Basic DenseOrder Event.
+From promising Require Import Event.
 Require Import AuxRel.
 Require Import Events.
 Require Import Execution.
