@@ -364,7 +364,7 @@ Proof.
   { red; rels; eapply acyclic_mon; [edone|basic_solver 12]. }
   { rewrite (dom_l (wf_rfeD WF)), <- seqA, acyclic_rotl.
     rewrite (dom_r (wf_rfeD WF)), !seqA.
-    apply acyc_simple_helper.
+    apply acyclic_seq_from_union.
     red; rels; eapply acyclic_mon; [edone|basic_solver 12]. }
   relsf.
   rewrite (ct_begin (ar_int⁺ ⨾ rfe)).

@@ -654,7 +654,7 @@ Proof.
     eapply sim_tview_f_issued in SIM_TVIEW; eauto.
     cdes SIM_TVIEW. red in REL.
     unfold LocFun.find, TimeMap.join in *.
-    eapply (@max_value_le_join
+    eapply (@max_value_le_join _
               _ _
               (if Loc.eq_dec l locw
                then W ∩₁ (fun x => loc lab x = Some locw) ∩₁ Tid_ (tid w) ∩₁ covered T
@@ -783,7 +783,7 @@ Proof.
       eapply wf_rfrmwf; eauto; desf. }
     eapply max_value_same_set.
     2: { rewrite seqA in YY; by rewrite YY. }
-    apply (@max_value_le_join _ _ (Loc_ l ∩₁ (eq p))).
+    apply (@max_value_le_join _ _ _ (Loc_ l ∩₁ (eq p))).
     { intros x [XL]; subst. apply time_lt_join_r.
       unfold TimeMap.singleton, LocFun.add.
       assert (l = locw); subst.

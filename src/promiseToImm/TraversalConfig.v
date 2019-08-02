@@ -321,42 +321,43 @@ basic_solver.
     rewrite seq_union_l, dom_cond_union, !seqA.
     generalize (@sb_trans G); ins.
     relsf; splits; try basic_solver.
-    - unfold dom_cond; unfolder; ins; desf.
-      eapply w_covered_issued; basic_solver 12.
-    - unfold dom_cond; unfolder; ins; desf.
-      generalize (dom_rf_covered TCCOH); basic_solver 12.
-    - unfold dom_cond; unfolder; ins; desf.
-      eapply w_covered_issued; basic_solver 12.
-Qed.
+    { intros x [y HH]; apply HH. }
+    { unfold dom_cond; unfolder; ins; desf.
+      eapply w_covered_issued; basic_solver 12. }
+    { unfold dom_cond; unfolder; ins; desf.
+      generalize (dom_rf_covered TCCOH); basic_solver 12. }
+    unfold dom_cond; unfolder; ins; desf.
+    eapply w_covered_issued; basic_solver 12.
+  Qed.
 
   Lemma dom_rfe_ppo_issued T (TCCOH : tc_coherent T):
     dom_rel (rfe ⨾ ppo ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof.
-rewrite (issued_in_issuable TCCOH) at 1.
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond ((detour ∪ rfe) ⨾ (ppo ∪ bob)) (issued T)⦘);
-  [unfold issuable; basic_solver|].
-rewrite <- !seqA, dom_cond_elim1; basic_solver 21.
+    rewrite (issued_in_issuable TCCOH) at 1.
+    arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond ((detour ∪ rfe) ⨾ (ppo ∪ bob)) (issued T)⦘).
+    { unfold issuable. basic_solver 10. }
+    rewrite <- !seqA, dom_cond_elim1; basic_solver 21.
   Qed.
 
   Lemma dom_rfe_acq_sb_issued T (TCCOH : tc_coherent T):
     dom_rel (rfe ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T.
-Proof.
-rewrite (issued_in_issuable TCCOH) at 1.
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond ((detour ∪ rfe) ⨾ (ppo ∪ bob)) (issued T)⦘);
-  [unfold issuable; basic_solver|].
-rewrite <- !seqA, dom_cond_elim1; [basic_solver 21|].
-unfold imm_common.bob; basic_solver 21.
-Qed.
+  Proof.
+    rewrite (issued_in_issuable TCCOH) at 1.
+    arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond ((detour ∪ rfe) ⨾ (ppo ∪ bob)) (issued T)⦘).
+    { unfold issuable. basic_solver 10. }
+    rewrite <- !seqA, dom_cond_elim1; [basic_solver 21|].
+    unfold imm_common.bob; basic_solver 21.
+  Qed.
 
-Lemma dom_wex_sb_issued T (TCCOH : tc_coherent T):
-  dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T.
-Proof.
-rewrite (issued_in_issuable TCCOH) at 1.
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond (⦗W_ex_acq⦘ ⨾ sb) (issued T)⦘);
-  [unfold issuable; basic_solver|].
-rewrite <- !seqA.
-by rewrite dom_cond_elim1; [basic_solver 21|].
-Qed.
+  Lemma dom_wex_sb_issued T (TCCOH : tc_coherent T):
+    dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T.
+  Proof.
+    rewrite (issued_in_issuable TCCOH) at 1.
+    arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond (⦗W_ex_acq⦘ ⨾ sb) (issued T)⦘).
+    { unfold issuable. basic_solver 10. }
+    rewrite <- !seqA.
+      by rewrite dom_cond_elim1; [basic_solver 21|].
+  Qed.
 
 Lemma rf_rmw_issued_rfi_rmw_issued T (TCCOH : tc_coherent T): 
   (rf ⨾ rmw)＊ ⨾ ⦗issued T⦘ ⊆ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘ ⨾ (rf ⨾ rmw)＊.
@@ -471,8 +472,8 @@ Lemma dom_sb_loc_issued T (TCCOH : tc_coherent T):
   dom_rel (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⨾ ⦗issued T⦘) ⊆₁ covered T.
 Proof.
 rewrite (issued_in_issuable TCCOH).
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
-  [unfold issuable; basic_solver|].
+arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘).
+{ unfold issuable. basic_solver 10. }
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
 unfold imm_common.fwbob.
@@ -491,8 +492,8 @@ Lemma dom_F_sb_issued T (TCCOH : tc_coherent T):
   dom_rel (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ covered T.
 Proof.
 rewrite (issued_in_issuable TCCOH).
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
-  [unfold issuable; basic_solver|].
+arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘).
+{ unfold issuable. basic_solver 10. }
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
 unfold imm_common.fwbob.
@@ -566,8 +567,8 @@ Lemma dom_sb_W_rel_issued T (TCCOH : tc_coherent T) :
   dom_rel (sb ⨾ ⦗W ∩₁ Rel⦘ ⨾ ⦗issued T⦘) ⊆₁ covered T.
 Proof.
 rewrite (issued_in_issuable TCCOH).
-arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘);
-  [unfold issuable; basic_solver|].
+arewrite (⦗issuable T⦘ ⊆ ⦗dom_cond fwbob (covered T)⦘).
+{ unfold issuable. basic_solver 10. }
 rewrite <- !seqA.
 rewrite dom_cond_elim1; [basic_solver 21|].
 unfold imm_common.fwbob.

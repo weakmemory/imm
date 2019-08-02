@@ -242,8 +242,8 @@ Proof.
       generalize (TT' Heq); basic_solver 21. }
     arewrite (Rel ∩₁ eq w ≡₁ ∅) by basic_solver.
     rewrite <- dom_rel_ext with
-        (r1 := c_rel G sc (tid w) l locw (covered T))
-        (r2 := (sb ⨾ ⦗ eq w ⦘) ).
+        (r := c_rel G sc (tid w) l locw (covered T))
+        (r' := (sb ⨾ ⦗ eq w ⦘) ).
     apply dom_rel_mori.
     unfold c_rel.
     rewrite crE. rewrite !seq_union_r. unionR right.
@@ -373,7 +373,7 @@ basic_solver.
 }
 
 arewrite (⦗eq w⦘ ⊆ ⦗dom_cond (fwbob G) (covered T)⦘).
-by revert ISS; unfold issuable; basic_solver.
+by revert ISS; unfold issuable; basic_solver 10.
 rewrite dom_cond_elim.
 basic_solver 12.
 Qed.

@@ -1677,7 +1677,7 @@ arewrite (Gppo^?  ⊆ Gar_int^?).
 rewrite <- (ct_cr Gar_int).
 hahn_frame_r.
 
-apply ind_helper.
+apply ct_inclusion_from_rt_inclusion1.
 
 { rewrite detour_in_sb, !(ppo_in_sb WF_cert).
 arewrite_id ⦗W⦘ at 1.

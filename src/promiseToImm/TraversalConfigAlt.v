@@ -142,33 +142,27 @@ Qed.
 Lemma tc_coherent_implies_tc_coherent_alt WF WF_SC T: 
   tc_coherent G sc T  -> tc_coherent_alt T.
 Proof.
-intro H; red in H; desf.
-unfold coverable, issuable in *.
-apply set_subset_inter_r in CC; desf.
-apply set_subset_inter_r in CC; desf.
-apply set_subset_inter_r in II; desf.
-apply set_subset_inter_r in II; desf.
-apply set_subset_inter_r in II; desf.
-apply set_subset_inter_r in II; desf.
-constructor.
-- done.
-- done.
-- by apply dom_cond_to_rel.
-- rewrite CC0.
-  type_solver.
-- rewrite CC0, !id_union; relsf; unionL; splits.
-  rewrite (dom_r (wf_rfD WF)); type_solver.
-  apply dom_cond_to_rel; basic_solver.
-  rewrite (dom_r (wf_rfD WF)); type_solver.
-- rewrite CC0 at 1; rewrite !id_union; relsf; unionL; splits.
-  rewrite (dom_r (wf_scD WF_SC)); type_solver.
-  rewrite (dom_r (wf_scD WF_SC)); type_solver.
-  apply dom_cond_to_rel; basic_solver.
-- done.
-- done.
-- by apply dom_cond_to_rel.
-- rewrite <- seqA; apply dom_cond_to_rel; basic_solver.
-- by rewrite <- seqA; apply dom_cond_to_rel.
+  intro H; red in H; desf.
+  unfold coverable, issuable in *.
+  apply set_subset_inter_r in CC; desf.
+  apply set_subset_inter_r in CC; desf.
+  apply set_subset_inter_r in II; desf.
+  apply set_subset_inter_r in II; desf.
+  apply set_subset_inter_r in II; desf.
+  apply set_subset_inter_r in II; desf.
+  constructor; try done.
+  { by apply dom_cond_to_rel. }
+  { rewrite CC0. type_solver. }
+  { rewrite CC0, !id_union; relsf; unionL; splits.
+    { rewrite (dom_r (wf_rfD WF)); type_solver. }
+    { apply dom_cond_to_rel; basic_solver 10. }
+    rewrite (dom_r (wf_rfD WF)); type_solver. }
+  { rewrite CC0 at 1; rewrite !id_union; relsf; unionL; splits.
+    { rewrite (dom_r (wf_scD WF_SC)); type_solver. }
+    { rewrite (dom_r (wf_scD WF_SC)); type_solver. }
+    apply dom_cond_to_rel; basic_solver 10. }
+  { by apply dom_cond_to_rel. }
+  all: by rewrite <- seqA; apply dom_cond_to_rel.
 Qed.
 
 

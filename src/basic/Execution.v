@@ -545,7 +545,7 @@ rewrite (rmw_from_non_init WF).
 rewrite (wf_rmwi WF).
 rewrite (sb_immediate_adjacent WF).
 unfolder; ins; desc.
-eapply adjacent_uniqe1; eauto.
+eapply adjacent_unique1; eauto.
 apply sb_acyclic.
 Qed.
 
@@ -555,7 +555,7 @@ rewrite (rmw_from_non_init WF).
 rewrite (wf_rmwi WF).
 rewrite (sb_immediate_adjacent WF).
 unfolder; ins; desc.
-eapply adjacent_uniqe2; eauto.
+eapply adjacent_unique2; eauto.
 apply sb_acyclic.
 Qed.
 

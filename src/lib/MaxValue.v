@@ -1,13 +1,13 @@
 From hahn Require Import Hahn.
-
 From promising Require Import View Time Event.
-Require Import Events.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
 Section MaxValue.
-  Definition max_value f (INR : actid -> Prop) val :=
+  Variable A : Type.
+  
+  Definition max_value f (INR : A -> Prop) val :=
     ⟪ UB: forall a (INa: INR a), Time.le (f a) val ⟫ /\
     ⟪ MAX: ((forall a, ~ INR a) /\ val = Time.bot) \/
        (exists a_max, ⟪ INam: INR a_max ⟫ /\
@@ -123,7 +123,7 @@ Proof.
   apply Time.le_lteq in HH; destruct HH as [HH|HH]; desf.
 Qed.
 
-Lemma max_value_le_join f (P P' : actid -> Prop) t
+Lemma max_value_le_join f (P P' : A -> Prop) t
       (LT: forall x, P' x -> Time.lt (f x) t) :
   max_value f (P ∪₁ P') t -> max_value f P t.
 Proof.
@@ -139,10 +139,10 @@ Proof.
 Qed.
 
 Lemma max_value_same_value f S a b
-      (A : max_value f S a) (B : max_value f S b) :
+      (H : max_value f S a) (B : max_value f S b) :
   a = b.
 Proof.
-  red in A; red in B; desf.
+  red in H; red in B; desf.
   { exfalso. eapply MAX; eauto. }
   { exfalso. eapply MAX0; eauto. }
   specialize (UB0 a_max INam).
@@ -152,18 +152,18 @@ Proof.
 Qed.
 
 Lemma timemap_same_max_value_implies_eq f S (a b : TimeMap.t)
-      (A : forall l, max_value f (S l) (a l)) (B : forall l, max_value f (S l) (b l)):
+      (H : forall l, max_value f (S l) (a l)) (B : forall l, max_value f (S l) (b l)):
   a = b.
 Proof.
   apply LocFun.ext.
-  intros l. specialize (A l). specialize (B l).
+  intros l. specialize (H l). specialize (B l).
   eapply max_value_same_value; eauto.
 Qed.
 
 Lemma view_same_max_value_implies_eq f S a b
       (A_PLN_RLX : TimeMap.eq (View.pln a) (View.rlx a))
       (B_PLN_RLX : TimeMap.eq (View.pln b) (View.rlx b))
-      (A : forall l, max_value f (S l) (View.rlx a l))
+      (H : forall l, max_value f (S l) (View.rlx a l))
       (B : forall l, max_value f (S l) (View.rlx b l)) :
   a = b.
 Proof.
