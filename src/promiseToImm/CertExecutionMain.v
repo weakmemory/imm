@@ -399,7 +399,7 @@ set (get_val (v: option value) :=  match v with | Some v => v | _ => 0 end).
 
 set (new_val := fun r => get_val (val G.(lab) (new_value r))).
 
-exploit (@receptiveness_full thread state state'' XACQIN new_val
+exploit (@receptiveness_full thread state state'' new_val
                                new_rfi (E0 Gf T thread \₁ D G T thread)); auto.
 { split; [|basic_solver].
   rewrite TEH''.(tr_acts_set).
