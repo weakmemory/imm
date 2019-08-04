@@ -4,7 +4,6 @@ From promising Require Import Basic DenseOrder
 
 Require Import Events Execution.
 Require Import PArith.
-Require Import AuxRel.
 Require Import TraversalConfig.
 Require Import Setoid.
 Require Import MaxValue.

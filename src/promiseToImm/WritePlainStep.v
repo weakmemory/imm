@@ -1,7 +1,6 @@
 From hahn Require Import Hahn.
 From promising Require Import Configuration Basic DenseOrder
      TView View Time Event Cell Thread Language Memory.
-Require Import AuxRel.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.

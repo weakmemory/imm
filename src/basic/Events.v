@@ -5,7 +5,6 @@
 Require Import List.
 From hahn Require Import Hahn.
 From promising Require Import Basic Event.
-Require Import AuxRel.
 
 Set Implicit Arguments.
 

@@ -8,7 +8,7 @@ POPL19 arifact release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1484
 ## Building the Project
 
 ### Requirements
-* [Coq 8.8.1](https://coq.inria.fr)
+* [Coq 8.9.1](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
 * [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/anlun/promising-coq/tree/opam_red) (`coq-promising`)
 
@@ -127,9 +127,8 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB) (**
   - *PromiseToIMMs.v*—a proof of the compilation correctness from Promise to IMMs (**Prop. 6.8 and 6.9, Thm. 7.1**).
 
 Auxiliary files:
-- *AuxRel.v*,
+- *IfThen.v*,
 *MaxValue.v*,
-*Monotone.v*,
 *Event\_imm\_promise.v*,
 *SimStateHelper.v*,
 *SimulationPlainStepAux.v*,

@@ -20,7 +20,6 @@ Require Import PlainStepBasic.
 Require Import SimulationPlainStep.
 Require Import MaxValue.
 Require Import CombRelations.
-Require Import AuxRel.
 
 Require Import Promise.
 

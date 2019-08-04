@@ -8,7 +8,6 @@ From promising Require Import Event.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import AuxRel.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_common.

@@ -11,7 +11,6 @@ Require Import imm_common.
 
 Require Import PArith.
 Require Import CombRelations.
-Require Import AuxRel.
 Require Import TraversalConfig.
 Require Import Traversal.
 Require Import Setoid.

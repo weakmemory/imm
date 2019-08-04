@@ -8,7 +8,6 @@ Require Import imm_s.
 
 Require Import PArith.
 Require Import CombRelations.
-Require Import AuxRel.
 Require Import TraversalConfig.
 Require Import Setoid.
 Require Import MaxValue.
