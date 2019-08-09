@@ -8,7 +8,7 @@ Require Import Setoid.
 Require Import MaxValue.
 Require Import ViewRel.
 Require Import SimulationRel.
-Require Import Promise.
+Require Import PromiseLTS.
 Require Import ProgToExecution.
 
 Lemma rtc_lang_tau_step_rtc_thread_tau_step
@@ -23,20 +23,6 @@ Proof.
   econs 2; eauto. econs.
   { econs. econs 2. econs; [|econs 1]; eauto. }
   simpls.
-Qed.
-
-Lemma sim_state_other_thread_step G
-      (C C' : actid -> Prop) smode thread (state : Language.state (thread_lts thread))
-      (CINCL : C ⊆₁ C')
-      (COVSTEP : forall a, tid a = thread -> C' a -> C a)
-      (SIMSTATE: sim_state G smode C state) :
-  sim_state G smode C' state.
-Proof.
-  cdes SIMSTATE.
-  red. splits; eauto.
-  ins. split; ins.
-  { apply PCOV. apply COVSTEP; eauto. }
-  apply CINCL. by apply PCOV.
 Qed.
 
 Lemma tau_steps_same_instrs thread 

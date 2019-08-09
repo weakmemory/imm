@@ -922,6 +922,21 @@ Lemma rel_sb_co_irr WF :
   irreflexive (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
 Proof. arewrite_id ⦗Rel⦘. rewrite seq_id_l. by apply sb_co_irr. Qed.
 
+Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
+
+Lemma co_E_W_Loc WF l x y (CO : co x y): (E ∩₁ W ∩₁ Loc_ l) x <-> (E ∩₁ W ∩₁ Loc_ l) y.
+Proof.
+  apply WF.(wf_coE) in CO.
+  apply seq_eqv_l in CO. destruct CO as [EX CO].
+  apply seq_eqv_r in CO. destruct CO as [CO EY].
+  apply WF.(wf_coD) in CO.
+  apply seq_eqv_l in CO. destruct CO as [WX CO].
+  apply seq_eqv_r in CO. destruct CO as [CO WY].
+  apply WF.(wf_col) in CO.
+  split; intros [_ LL].
+  all: by split; [split|rewrite <- LL].
+Qed.
+
 End Execution.
 
 (******************************************************************************)

@@ -26,7 +26,8 @@ Require Import SimulationPlainStepAux.
 Require Import SimulationRelAux.
 Require Import MemoryAux.
 
-Require Import Promise.
+Require Import PromiseLTS.
+Require Import SimState.
 
 Set Implicit Arguments.
 

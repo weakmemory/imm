@@ -17,6 +17,7 @@ Require Import Setoid.
 Require Import MaxValue ViewRel.
 Require Import Event_imm_promise.
 Require Import SimulationRel.
+Require Import SimState.
 Require Import ViewRelHelpers.
 Require Import MemoryAux.
 
@@ -62,35 +63,6 @@ Notation "'Rel'" := (is_rel lab).
 Notation "'Acq'" := (is_acq lab).
 Notation "'Acqrel'" := (is_acqrel lab).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
-
-Lemma wf_rfrmw_irr (IMMCOH : imm_consistent G sc) : irreflexive (rf ⨾ rmw).
-Proof.
-  arewrite (rmw ⊆ sb).
-  { rewrite WF.(wf_rmwi). basic_solver. }
-  rewrite Execution_eco.rf_in_eco.
-  rewrite sb_in_hb. cdes IMMCOH.
-  red in Cint. generalize Cint. basic_solver 10.
-Qed.
-
-Lemma rfrmw_in_im_co (IMMCON : imm_consistent G sc) :
-  rf ⨾ rmw ⊆ immediate co.
-Proof. 
-cdes IMMCON.
-apply rf_rmw_in_coimm; auto using coherence_sc_per_loc.
-Qed.
-
-Lemma co_E_W_Loc l x y (CO : co x y): (E ∩₁ W ∩₁ Loc_ l) x <-> (E ∩₁ W ∩₁ Loc_ l) y.
-Proof.
-  apply WF.(wf_coE) in CO.
-  apply seq_eqv_l in CO. destruct CO as [EX CO].
-  apply seq_eqv_r in CO. destruct CO as [CO EY].
-  apply WF.(wf_coD) in CO.
-  apply seq_eqv_l in CO. destruct CO as [WX CO].
-  apply seq_eqv_r in CO. destruct CO as [CO WY].
-  apply WF.(wf_col) in CO.
-  split; intros [_ LL].
-  all: by split; [split|rewrite <- LL].
-Qed.
 
 Lemma interval_disjoint_imm_le a b c d (LE : Time.le b c):
   Interval.disjoint (a, b) (c, d).
@@ -789,7 +761,7 @@ Proof.
       { erewrite wf_rfrmwl in XL; eauto.
         rewrite LOC in XL. inv XL. }
       rewrite Loc.eq_dec_eq. eapply f_to_co_mon; eauto.
-      { by apply rfrmw_in_im_co. }
+      { eapply rfrmw_in_im_co; eauto. }
         by left.
         by right. }
     assert
@@ -907,7 +879,7 @@ Proof.
     assert (forall y (RFRMW : (rf ⨾ rmw ⨾ ⦗ issued T ⦘) w y), y = wnext) as NRFRMW.
     { ins. apply seqA in RFRMW.
       apply seq_eqv_r in RFRMW; destruct RFRMW as [RFRMW ISSY].
-      apply rfrmw_in_im_co in RFRMW; auto. destruct RFRMW as [CO IMM].
+      eapply rfrmw_in_im_co in RFRMW; eauto. destruct RFRMW as [CO IMM].
       destruct (classic (y = wnext)) as [|NEQ]; auto.
       exfalso.
       edestruct WF.(wf_co_total).
@@ -925,7 +897,7 @@ Proof.
 
     assert (forall z (RFRMW : (⦗ issued T ⦘ ⨾ rf ⨾ rmw) z w), z = wprev) as PRFRMW.
     { ins. apply seq_eqv_l in RFRMW; destruct RFRMW as [ISSZ RFRMW].
-      apply rfrmw_in_im_co in RFRMW; auto. destruct RFRMW as [CO IMM].
+      eapply rfrmw_in_im_co in RFRMW; eauto. destruct RFRMW as [CO IMM].
       destruct (classic (z = wprev)) as [|NEQ]; auto.
       exfalso.
       edestruct WF.(wf_co_total).
@@ -970,7 +942,7 @@ Proof.
         { apply FCOH; auto. }
         apply Time.le_lteq in H. destruct H as [|H]; [done|exfalso].
         apply TFRMW in H; auto.
-        apply rfrmw_in_im_co in H; auto.
+        eapply rfrmw_in_im_co in H; eauto.
           by eapply H; [apply COPREV|]. }
 
       assert (Time.lt (f_to wprev) n_to) as PREVNLT.
@@ -1142,7 +1114,7 @@ Proof.
         { by apply FCOH. }
         { assert (x = wprev); subst.
           2: by destruct NFROM as [[NN1 NN2]|[NN1 NN2]]; desf.
-         apply rfrmw_in_im_co in RFRMW; [|done].
+         eapply WF.(rfrmw_in_im_co) in RFRMW; [|edone].
          destruct (classic (x=wprev)); auto.
          exfalso.
          unfold immediate in *; desc.
@@ -1164,7 +1136,7 @@ Proof.
           apply NRFRMW.
           revert RFRMW; basic_solver 12. }
         exfalso. eapply WF.(co_irr).
-        apply rfrmw_in_im_co in RFRMW; auto.
+        eapply rfrmw_in_im_co in RFRMW; eauto.
         apply RFRMW. }
 
       assert (DenseOrder.lt Time.bot n_to) as NTOBOT.
@@ -1242,7 +1214,7 @@ Proof.
           apply seq_eqv_r in QQ. destruct QQ as [COXY [MSG|[MSG EQ]]].
           2: { subst. eapply WF.(co_irr). eapply WF.(co_trans).
                { apply COXY. }
-               apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
+               eapply rfrmw_in_im_co in INRMW; eauto. apply INRMW. }
           assert (msg_rel locw ⨾ (rf ⨾ rmw) ⊆ msg_rel locw) as YY.
           { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
             rewrite !seqA. by rewrite rt_unit. }
@@ -1510,8 +1482,8 @@ Proof.
           { by rewrite XLOC. }
           { eapply NIMMCO.
             all: apply seq_eqv_r; split; eauto.
-            apply rfrmw_in_im_co; auto. }
-          apply rfrmw_in_im_co in H1; auto. eapply H1; eauto. }
+            eapply rfrmw_in_im_co; eauto. }
+          eapply rfrmw_in_im_co in H1; eauto. eapply H1; eauto. }
         rewrite upds.
         assert (x = wprev); subst.
         { apply PRFRMW. apply seq_eqv_l. by split. }
@@ -1527,7 +1499,7 @@ Proof.
         rewrite updo.
         { by rewrite upds. }
         intros UU. desf. }
-      apply rfrmw_in_im_co in H1; auto.
+      eapply rfrmw_in_im_co in H1; eauto.
       destruct H1 as [HH _]. by apply WF.(co_irr) in HH. }
     
     edestruct (@Memory.split_exists (Local.promises local) locw
@@ -1649,7 +1621,7 @@ Proof.
       apply seq_eqv_r in QQ. destruct QQ as [COXY [MSG|[MSG EQ]]].
       2: { subst. eapply WF.(co_irr). eapply WF.(co_trans).
            { apply COXY. }
-           apply rfrmw_in_im_co in INRMW; auto. apply INRMW. }
+           eapply rfrmw_in_im_co in INRMW; eauto. apply INRMW. }
       assert (msg_rel locw ⨾ (rf ⨾ rmw) ⊆ msg_rel locw) as YY.
       { unfold CombRelations.msg_rel, imm_s_hb.release, rs. 
         rewrite !seqA. by rewrite rt_unit. }
@@ -1838,7 +1810,7 @@ Proof.
         exfalso. eapply Time.lt_strorder; etransitivity. apply TS.
         eapply f_to_co_mon; eauto. }
       eapply rfrmw_in_im_co; eauto. }
-    all: exfalso; apply rfrmw_in_im_co in RFRMW; eauto.
+    all: exfalso; eapply rfrmw_in_im_co in RFRMW; eauto.
     { eapply WNONEXT. eexists; apply seq_eqv_r; split; eauto.
       apply RFRMW. }
     eapply WF.(co_irr). apply RFRMW. }
@@ -1974,13 +1946,11 @@ Proof.
         assert (loc lab x = Some locw) as LOCX.
         { rewrite <- LOC. by apply WF.(wf_col). }
         assert (loc lab wprev = Some locw) as LOCWP.
-        { rewrite <- LOC. apply WF.(wf_col). apply rfrmw_in_im_co; auto. }
+        { rewrite <- LOC. apply WF.(wf_col). eapply rfrmw_in_im_co; eauto. }
         edestruct WF.(wf_co_total) with (a:=wprev) (b:=x) as [COWX|COWX]; auto.
         1,2: split; [split|]; eauto.
         1,2: by apply TCCOH in WPISS; apply WPISS.
-        { eapply rfrmw_in_im_co; auto. 
-          { apply RFRMW. }
-          all: eauto. }
+        { eapply rfrmw_in_im_co; eauto. }
         assert (Time.lt (f_to x) (f_to wprev)) as LL.
         { eapply f_to_co_mon; eauto. }
         rewrite KK in LL.
@@ -2565,7 +2535,7 @@ Proof.
         assert (Time.join (f_to' w) (f_to' b) = f_to' b) as QQ.
         { apply time_join_le_r. apply Time.le_lteq; left.
           eapply f_to_co_mon; eauto.
-          { apply (rfrmw_in_im_co) in RFRMW; auto. apply RFRMW. }
+          { eapply (rfrmw_in_im_co) in RFRMW; eauto. apply RFRMW. }
             by right. by left. }
         unfold View.singleton_ur, View.join, TimeMap.join, TimeMap.singleton,
         LocFun.add; apply View.ext; apply LocFun.ext; simpls.
@@ -2593,7 +2563,7 @@ Proof.
       { left; split; auto.
         intros [z HH]. apply seq_eqv_l in HH. destruct HH as [[ISS|]RFRMW]; subst.
         { apply NINRMW. exists z. apply seq_eqv_l. by split. }
-        apply wf_rfrmw_irr in RFRMW; auto. }
+        eapply wf_rfrmw_irr in RFRMW; eauto. }
       right. eexists; splits; eauto.
       { by left. }
       eexists; splits; eauto.
@@ -2986,7 +2956,7 @@ Proof.
          assert (Time.join (f_to' w) (f_to' b) = f_to' b) as QQ.
          { apply time_join_le_r. apply Time.le_lteq; left.
            eapply f_to_co_mon; eauto.
-           { apply (rfrmw_in_im_co) in RFRMW; auto. apply RFRMW. }
+           { eapply rfrmw_in_im_co in RFRMW; eauto. apply RFRMW. }
              by right. by left. }
          unfold View.singleton_ur, View.join, TimeMap.join, TimeMap.singleton,
          LocFun.add; apply View.ext; apply LocFun.ext; simpls.
@@ -3023,13 +2993,13 @@ Proof.
     { left; split; auto.
       intros [z HH]. apply seq_eqv_l in HH. destruct HH as [[ISS|]RFRMW]; subst.
       { apply NINRMW. exists z. apply seq_eqv_l. by split. }
-      apply wf_rfrmw_irr in RFRMW; auto. }
+      eapply wf_rfrmw_irr in RFRMW; eauto. }
     right. eexists; splits; eauto.
     { by left. }
     eexists; splits; eauto.
     erewrite Memory.split_o; eauto.
     assert (p <> b) as PNEQ.
-    { intros HH; subst. by apply wf_rfrmw_irr in INRMW. }
+    { intros HH; subst. eapply wf_rfrmw_irr in INRMW; eauto. }
     assert (p <> ws) as PWNEQ.
     { intros HH; subst.
       cdes IMMCON. eapply Cint.

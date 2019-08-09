@@ -148,17 +148,16 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Record sub_execution :=
   { sub_E: E' ⊆₁ E ;
-(*   sub_lab : forall a (IN: E a), lab' a = lab a ; *)
-  sub_lab : lab' = lab ;
-  sub_rmw : rmw'  ≡ ⦗E'⦘ ⨾ rmw ⨾ ⦗E'⦘ ;
-  sub_data : data'  ≡ ⦗E'⦘ ⨾ data ⨾ ⦗E'⦘ ;
-  sub_addr : addr'  ≡ ⦗E'⦘ ⨾ addr ⨾ ⦗E'⦘ ;
-  sub_ctrl : ctrl'  ≡ ⦗E'⦘ ⨾ ctrl ⨾ ⦗E'⦘ ;
-  sub_frmw : rmw_dep'  ≡ ⦗E'⦘ ⨾ rmw_dep ⨾ ⦗E'⦘ ;
-  sub_rf : rf'  ≡ ⦗E'⦘ ⨾ rf ⨾ ⦗E'⦘ ;
-  sub_co : co'  ≡ ⦗E'⦘ ⨾ co ⨾ ⦗E'⦘ ;
-  sub_sc : sc'  ≡ ⦗E'⦘ ⨾ sc ⨾ ⦗E'⦘ ;
-}.
+    sub_lab : lab' = lab ;
+    sub_rmw : rmw'  ≡ ⦗E'⦘ ⨾ rmw ⨾ ⦗E'⦘ ;
+    sub_data : data'  ≡ ⦗E'⦘ ⨾ data ⨾ ⦗E'⦘ ;
+    sub_addr : addr'  ≡ ⦗E'⦘ ⨾ addr ⨾ ⦗E'⦘ ;
+    sub_ctrl : ctrl'  ≡ ⦗E'⦘ ⨾ ctrl ⨾ ⦗E'⦘ ;
+    sub_frmw : rmw_dep'  ≡ ⦗E'⦘ ⨾ rmw_dep ⨾ ⦗E'⦘ ;
+    sub_rf : rf'  ≡ ⦗E'⦘ ⨾ rf ⨾ ⦗E'⦘ ;
+    sub_co : co'  ≡ ⦗E'⦘ ⨾ co ⨾ ⦗E'⦘ ;
+    sub_sc : sc'  ≡ ⦗E'⦘ ⨾ sc ⨾ ⦗E'⦘ ;
+  }.
 
 Hypothesis INIT : is_init ∩₁ E ⊆₁ E'.
 

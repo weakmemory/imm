@@ -28,8 +28,10 @@ Require Import SimulationRelAux.
 Require Import PlainStepBasic.
 Require Import ReadPlainStepHelper.
 
+Require Import SimState.
 Require Import SimStateHelper.
-Require Import Promise ProgToExecution.
+Require Import PromiseLTS.
+Require Import ProgToExecution.
 Require Import Arith.
 
 Set Implicit Arguments.

@@ -16,6 +16,7 @@ Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.
 
+Require Import SimState.
 Require Import MaxValue.
 Require Import ViewRel.
 Require Import ViewRelHelpers.

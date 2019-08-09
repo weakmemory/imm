@@ -24,8 +24,10 @@ Require Import SimulationPlainStepAux.
 Require Import SimulationRelAux.
 Require Import PlainStepBasic.
 
+Require Import SimState.
 Require Import SimStateHelper.
-Require Import Promise ProgToExecution.
+Require Import PromiseLTS.
+Require Import ProgToExecution.
 Require Import Arith.
 Require Import MemoryAux.
 

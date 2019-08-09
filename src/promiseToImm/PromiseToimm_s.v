@@ -21,7 +21,10 @@ Require Import SimulationPlainStep.
 Require Import MaxValue.
 Require Import CombRelations.
 
-Require Import Promise.
+Require Import SimState.
+Require Import Event_imm_promise.
+Require Import PromiseLTS.
+Require Import PromiseOutcome.
 
 Require Import SimTraversalProperties.
 Require Import ProgToExecutionProperties.
@@ -36,6 +39,15 @@ Require Import MemoryAux.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
+
+Lemma istep_nil_eq_silent thread :
+  istep thread nil ≡
+  lts_step thread ProgramEvent.silent.
+Proof.
+  unfold lts_step. unfold lab_imm_promise.
+  split; [|basic_solver].
+  unfolder. ins. exists nil. eauto.
+Qed.
 
 Lemma InAE A x (l : list A) : SetoidList.InA eq x l <-> In x l.
 Proof.

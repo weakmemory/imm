@@ -13,8 +13,10 @@ Require Import Setoid.
 Require Import MaxValue.
 Require Import ViewRel.
 Require Import Event_imm_promise.
-Require Import Promise ProgToExecution.
+Require Import PromiseLTS.
+Require Import ProgToExecution.
 Require Import ProgToExecutionProperties.
+Require Import SimState.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -69,28 +71,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     ⟪ TRMW : forall x y,
         I x -> I y -> (rf ⨾ rmw) x y -> f_to x = f_from y ⟫
   .
-
-Lemma init_co_w (IMMCON : imm_consistent G sc)
-      e e' (INIT : is_init e) (NINIT : ~ is_init e')
-      (EE : E e') (WW : W e') (SL : same_loc lab e e') :
-  co e e'.
-Proof.
-  destruct (is_w_loc lab e' WW) as [l LOC].
-  red in SL. rewrite LOC in SL.
-  unfold is_init in INIT. unfold loc in SL.
-  destruct e; [|done].
-  rewrite WF.(wf_init_lab) in SL. inv SL.
-  assert (E (InitEvent l)) as EL.
-  { apply WF.(wf_init). eexists. eauto. }
-  edestruct WF.(wf_co_total) as [CO|CO]; eauto; desf.
-  { split; [split|]; auto. by apply init_w.
-    unfold loc at 1. by rewrite WF.(wf_init_lab). }
-  { intros H. subst. desf. }
-  exfalso. cdes IMMCON.
-  eapply Cint. eexists. split.
-  { apply sb_in_hb. by apply init_ninit_sb with (y:=e'); eauto. }
-  apply r_step. apply Execution_eco.co_in_eco; eauto.
-Qed.
 
 Lemma f_to_co_mon (IMMCON : imm_consistent G sc)
       I f_to f_from (FCOH : f_to_coherent I f_to f_from)
@@ -154,7 +134,7 @@ Proof.
   2: { eapply w_covered_issued; eauto.
        split; eauto; [by apply init_w|]. 
          by apply TCCOH. }
-  apply init_co_w; auto.
+  eapply init_co_w; eauto.
   { unfold is_w. desf. }
   red. unfold loc. rewrite WF.(wf_init_lab).
   desf.
@@ -197,7 +177,7 @@ Proof.
   { eapply w_covered_issued; eauto.
     split; eauto; [by apply init_w|]. 
       by apply TCCOH. }
-  apply init_co_w; auto.
+  eapply init_co_w; eauto.
   { unfold is_w. desf. }
   red. unfold loc. rewrite WF.(wf_init_lab).
   desf.
@@ -346,19 +326,6 @@ Definition sim_mem
                             Some (f_from p, Message.mk p_v p_rel) ⟫))
        ⟫).
 
-  Inductive sim_mode := sim_normal | sim_certification.
-  
-  Definition sim_state_helper smode thread
-             (state state' : Language.state (thread_lts thread)) : Prop :=
-      ⟪ STEPS : (step thread)＊ state state' ⟫ /\
-      ⟪ TERMINAL : smode = sim_normal -> is_terminal state' ⟫ /\
-      ⟪ TEH  : thread_restricted_execution G thread state'.(ProgToExecution.G) ⟫.
-
-  Definition sim_state smode (C : actid -> Prop) thread
-             (state : Language.state (thread_lts thread)) : Prop :=
-    ⟪ PCOV : forall index , C (ThreadEvent thread index) <-> index < state.(eindex)⟫ /\
-    exists state', sim_state_helper smode state state'.
-  
 Definition pln_rlx_eq tview :=
   ⟪ EQ_CUR : TimeMap.eq (View.pln (TView.cur tview)) (View.rlx (TView.cur tview)) ⟫ /\
   ⟪ EQ_ACQ : TimeMap.eq (View.pln (TView.acq tview)) (View.rlx (TView.acq tview)) ⟫ /\
@@ -448,7 +415,7 @@ Definition simrel_thread_local
     ⟪ SIM_TVIEW : sim_tview G sc (covered T) f_to local.(Local.tview) thread ⟫ /\
     ⟪ PLN_RLX_EQ : pln_rlx_eq local.(Local.tview) ⟫ /\
     ⟪ MEM_CLOSE : memory_close local.(Local.tview) memory ⟫ /\
-    ⟪ STATE : @sim_state smode (covered T) thread state ⟫.
+    ⟪ STATE : @sim_state G smode (covered T) thread state ⟫.
 
 Definition simrel_thread
            (PC : Configuration.t)

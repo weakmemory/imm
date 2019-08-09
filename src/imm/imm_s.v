@@ -380,4 +380,42 @@ all: try (unfolder in *; basic_solver 12).
 all: try (unfolder in *; basic_solver 16).
 Qed.
 
+Lemma init_co_w WF IMMCON
+      e e' (INIT : is_init e) (NINIT : ~ is_init e')
+      (EE : E e') (WW : W e') (SL : same_loc e e') :
+  co e e'.
+Proof.
+  destruct (is_w_loc lab e' WW) as [l LOC].
+  red in SL. rewrite LOC in SL.
+  unfold is_init in INIT. unfold Events.loc in SL.
+  destruct e; [|done].
+  rewrite WF.(wf_init_lab) in SL. inv SL.
+  assert (E (InitEvent l)) as EL.
+  { apply WF.(wf_init). eexists. eauto. }
+  edestruct WF.(wf_co_total) as [CO|CO]; eauto; desf.
+  { split; [split|]; auto. by apply init_w.
+    unfold Events.loc at 1. by rewrite WF.(wf_init_lab). }
+  { intros H. subst. desf. }
+  exfalso. cdes IMMCON.
+  eapply Cint. eexists. split.
+  { apply sb_in_hb. by apply init_ninit_sb with (y:=e'); eauto. }
+  apply r_step. apply Execution_eco.co_in_eco; eauto.
+Qed.
+
+Lemma wf_rfrmw_irr WF IMMCON : irreflexive (rf ⨾ rmw).
+Proof.
+  arewrite (rmw ⊆ sb).
+  { rewrite WF.(wf_rmwi). basic_solver. }
+  rewrite Execution_eco.rf_in_eco.
+  rewrite sb_in_hb. cdes IMMCON.
+  red in Cint. generalize Cint. basic_solver 10.
+Qed.
+
+Lemma rfrmw_in_im_co WF IMMCON :
+  rf ⨾ rmw ⊆ immediate co.
+Proof. 
+  cdes IMMCON.
+  apply rf_rmw_in_coimm; auto using coherence_sc_per_loc.
+Qed.
+
 End IMM.

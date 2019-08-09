@@ -23,6 +23,7 @@ Require Import SimulationRel.
 Require Import SimulationPlainStepAux.
 Require Import SimulationRelAux.
 Require Import MemoryAux.
+Require Import SimState.
 
 Set Implicit Arguments.
 
@@ -156,7 +157,7 @@ Proof.
   specialize (THREADS thread' TP).
   cdes THREADS.
   assert (IdentMap.find thread' (Configuration.threads PC') =
-          Some (existT _ (Promise.thread_lts thread') state,
+          Some (existT _ (PromiseLTS.thread_lts thread') state,
                 local)) as TID.
   { destruct PCSTEP. simpls. rewrite IdentMap.gso; auto. }
   assert

@@ -22,6 +22,7 @@ Require Import ProgToExecution ProgToExecutionProperties.
 
 Require Import MaxValue ViewRel.
 Require Import SimulationRel.
+Require Import SimState.
 Require Import Arith Omega.
 
 Set Implicit Arguments.

@@ -8,10 +8,11 @@ Require Import TraversalConfig.
 Require Import Setoid.
 Require Import MaxValue.
 Require Import ViewRel.
-Require Import Promise.
+Require Import PromiseLTS.
 Require Import ProgToExecution.
 Require Import Event_imm_promise.
 Require Import SimulationRel.
+Require Import SimState.
 Require Import Omega.
 Require Import ProgToExecutionProperties.
 
