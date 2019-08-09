@@ -102,15 +102,17 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB) (**
 * **Section 5.** `src/rc11`. Definition of the RC11 model w/o SC and NA accesses and a compilation correctness proof from it to IMMs.
   - *RC11.v*—a definition of RC11 (Lahav-al:PLDI17).
   - *RC11Toimm\_s.v*—a compilation correctness proof from RC11 to IMMs.
+  
+* **Sections 6.2 and 7.2** `src/traversal`. Traversal of IMM-consistent graphs.
+  - *TraversalConfig.v*, *Traversal.v*—a small traversal step of IMMs-consistent execution graphs
+      used to prove properties of the traversal (**Def. 7.3 and 7.7**).
+  - *SimTraversal.v*—traversal of IMMs-consistent execution graphs (**Prop. 6.5**).
+  - *SimTraversalProperties.v*—properties of the normal traversal.
 
 * **Sections 6 and 7.** `src/promiseToImm`. The compilation correctness from Promise to IMMs.
   - *Promise.v*—a definition of a Promise outcome (**Def. 6.1**).
   - *PromiseFuture.v*— a proof that it is enough to show certification
     only for a restricted set of future memories (**Remark 3**).
-  - *TraversalConfig.v*, *Traversal.v*—a small traversal step of IMMs-consistent execution graphs
-      used to prove properties of the traversal (**Def. 7.3 and 7.7**).
-  - *SimTraversal.v*—traversal of IMMs-consistent execution graphs (**Prop. 6.5**).
-  - *SimTraversalProperties.v*—properties of the normal traversal.
   - *SimulationRel.v*—a simulation relation (**Section 7.3**).
   - *SimulationPlainStep.v*— a proof of simulation step (**Prop. 7.8**).
   - *PlainStepBasic.v*,
@@ -123,7 +125,7 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB) (**
     *CertCOhelper.v*,
     *CertExecution1.v*,
     *CertExecution2.v*,
-    *Receptiveness.v*, *CertExecutionMain.v*—construction of the certification graph and proofs of its properties (**Section 7.4**).
+    *Receptiveness.v*, *CertGraphInit.v*—construction of the certification graph and proofs of its properties (**Section 7.4**).
   - *PromiseToIMMs.v*—a proof of the compilation correctness from Promise to IMMs (**Prop. 6.8 and 6.9, Thm. 7.1**).
 
 Auxiliary files:

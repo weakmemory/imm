@@ -27,16 +27,10 @@ Require Import Arith Omega.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
+Section Cert.
 
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
-
-Section Cert.
-
-Lemma same_lab_u2v_dom_restricted G thread G'
-  (TEH : thread_restricted_execution G thread G') :
-  same_lab_u2v_dom G'.(acts_set) G.(lab) G'.(lab).
-Proof. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
 
 Lemma cert_graph_init Gf sc T PC f_to f_from thread
       (WF : Wf Gf)

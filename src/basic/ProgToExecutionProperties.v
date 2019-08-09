@@ -557,6 +557,11 @@ Lemma lab_thread_eq_thread_restricted_lab thread e G'
   lab G e = lab G' e.
 Proof. rewrite TEH.(tr_lab); auto. Qed.
 
+Lemma same_lab_u2v_dom_restricted thread G'
+  (TEH : thread_restricted_execution G thread G') :
+  same_lab_u2v_dom G'.(acts_set) G.(lab) G'.(lab).
+Proof. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
+
 Lemma step_preserves_lab e state state'
       (GPC : wf_thread_state (tid e) state)
       (STEP : step (tid e) state state')
