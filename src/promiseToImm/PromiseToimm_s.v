@@ -81,66 +81,8 @@ Definition execution_final_memory (G : execution) final_memory :=
       ⟪ VAL  : val  G.(lab) w = Some (final_memory l) ⟫ /\
       ⟪ LAST : ~ (exists w', G.(co) w w') ⟫.
 
-Lemma sim_traversal G sc (WF : Wf G) (IMMCON : imm_consistent G sc) :
-  exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
-Proof.
-  apply sim_traversal_helper; auto.
-  { by apply init_trav_coherent. }
-  { unfold init_trav. simpls. basic_solver. }
-  ins. split; intros [HH AA].
-  { apply WF.(init_w) in HH.
-    apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW.
-    type_solver. }
-  apply WF.(rmw_in_sb) in RMW. apply no_sb_to_init in RMW.
-  apply seq_eqv_r in RMW. desf.
-Qed.
-
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 Notation "'Tid_' t"  := (fun x => tid x =  t) (at level 1).
-
-Lemma cert_step_thread G sc T T' thread thread'
-      (WF : Wf G) (TCCOH : tc_coherent G sc T)
-      (TS : isim_trav_step G sc thread' T T')
-      (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
-  thread' = thread.
-Proof.
-  destruct (classic (thread' = thread)) as [|NEQ]; [by subst|].
-  exfalso.
-  apply sim_trav_step_to_step in TS; auto. desf.
-  red in TS. desf.
-  { apply NEXT. apply NCOV. split; eauto. apply COV. }
-  apply NISS. eapply w_covered_issued; eauto.
-  split; auto.
-  { apply ISS. }
-  apply NCOV. split; auto. apply ISS.
-Qed.
-
-Lemma cert_sim_traversal_helper G sc T thread
-      (WF : Wf G) (IMMCON : imm_consistent G sc)
-      (TCCOH : tc_coherent G sc T) (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T)
-      (RELCOV : is_w (lab G) ∩₁ is_rel (lab G) ∩₁ issued T ⊆₁ covered T)
-      (RMWCOV : forall r w : actid, rmw G r w -> covered T r <-> covered T w) : 
-  exists T', (isim_trav_step G sc thread)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
-Proof.
-  edestruct sim_traversal_helper as [T']; eauto.
-  desc. exists T'. splits; auto.
-  clear H0.
-  induction H.
-  2: ins; apply rt_refl.
-  { ins. apply rt_step. destruct H as [thread' H].
-    assert (thread' = thread); [|by subst].
-    eapply cert_step_thread; eauto. }
-  ins. 
-  set (NCOV' := NCOV).
-  apply IHclos_refl_trans1 in NCOV'; auto.
-  eapply rt_trans; eauto.
-  eapply IHclos_refl_trans2.
-  { eapply sim_trav_steps_coherence; eauto. }
-  { etransitivity; eauto.
-    eapply sim_trav_steps_covered_le; eauto. }
-  { eapply sim_trav_steps_rel_covered; eauto. }
-  eapply sim_trav_steps_rmw_covered; eauto.
-Qed.
 
 Lemma cert_sim_step G sc thread PC T T' f_to f_from smode
       (WF : Wf G) (IMMCON : imm_consistent G sc)
@@ -198,7 +140,7 @@ Lemma cert_simulation G sc thread PC T f_to f_from
 Proof.
   assert (tc_coherent G sc T) as TCCOH.
   { apply SIMREL. }
-  generalize (cert_sim_traversal_helper WF IMMCON TCCOH NCOV); intros H.
+  generalize (sim_step_cov_full_traversal WF IMMCON TCCOH NCOV); intros H.
   destruct H as [T'].
   1,2: by apply SIMREL.
   desc.
@@ -213,26 +155,6 @@ Proof.
   desf. eexists. eexists. eexists. splits; auto.
   2: by eauto.
     by apply inclusion_t_rt.
-Qed.
-
-Lemma memory_closed_timemap_le view memory memory'
-      (MEM_LE : Memory.le memory memory')
-      (MEM_CLOS : Memory.closed_timemap view memory) :
-  Memory.closed_timemap view memory'.
-Proof.
-  red; ins. specialize (MEM_CLOS loc). desf.
-  apply MEM_LE in MEM_CLOS.
-  eauto.
-Qed.
-
-Lemma memory_close_le tview memory memory'
-      (MEM_LE : Memory.le memory memory')
-      (MEM_CLOS : memory_close tview memory) :
-  memory_close tview memory'.
-Proof.
-  cdes MEM_CLOS.
-  red; splits; ins.
-  all: eapply memory_closed_timemap_le; eauto.
 Qed.
 
 Lemma simrel_thread_bigger_sc_memory G sc T thread f_to f_from threads memory

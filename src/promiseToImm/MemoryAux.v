@@ -1,6 +1,15 @@
 From hahn Require Import Hahn.
 From promising Require Import Basic DenseOrder.
-From promising Require Import Memory View Time Cell.
+From promising Require Import Memory View Time Cell TView.
+
+Definition memory_close tview memory :=
+  ⟪ CLOSED_CUR :
+    Memory.closed_timemap (View.rlx (TView.cur tview)) memory ⟫ /\
+  ⟪ CLOSED_ACQ :
+    Memory.closed_timemap (View.rlx (TView.acq tview)) memory ⟫ /\
+  ⟪ CLOSED_REL :
+    forall loc,
+      Memory.closed_timemap (View.rlx (TView.rel tview loc)) memory ⟫.
 
 Lemma loc_ts_eq_dec_eq {A} {a b : A} l ts :
   (if loc_ts_eq_dec (l, ts) (l, ts) then a else b) = a.
@@ -409,6 +418,27 @@ Proof.
   eapply message_view_wf_future; eauto.
   apply message_view_wf_init.
 Qed.
+
+Lemma memory_closed_timemap_le view memory memory'
+      (MEM_LE : Memory.le memory memory')
+      (MEM_CLOS : Memory.closed_timemap view memory) :
+  Memory.closed_timemap view memory'.
+Proof.
+  red; ins. specialize (MEM_CLOS loc). desf.
+  apply MEM_LE in MEM_CLOS.
+  eauto.
+Qed.
+
+Lemma memory_close_le tview memory memory'
+      (MEM_LE : Memory.le memory memory')
+      (MEM_CLOS : memory_close tview memory) :
+  memory_close tview memory'.
+Proof.
+  cdes MEM_CLOS.
+  red; splits; ins.
+  all: eapply memory_closed_timemap_le; eauto.
+Qed.
+
 
 (*********************************************)
 (* TODO: explanation. Maybe a separate file. *)

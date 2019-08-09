@@ -262,4 +262,65 @@ Section TraversalCounting.
     exists T'. splits; auto. apply rt_begin.
     right. eexists. eauto.
   Qed.
+
+  Lemma sim_traversal (IMMCON : imm_consistent G sc) :
+    exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
+  Proof.
+    apply sim_traversal_helper; auto.
+    { by apply init_trav_coherent. }
+    { unfold init_trav. simpls. basic_solver. }
+    ins. split; intros [HH AA].
+    { apply WF.(init_w) in HH.
+      apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW.
+      type_solver. }
+    apply WF.(rmw_in_sb) in RMW. apply no_sb_to_init in RMW.
+    apply seq_eqv_r in RMW. desf.
+  Qed.
+
+  Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
+  Notation "'Tid_' t"  := (fun x => tid x =  t) (at level 1).
+
+  Lemma sim_step_cov_full_thread T T' thread thread'
+        (TCCOH : tc_coherent G sc T)
+        (TS : isim_trav_step G sc thread' T T')
+        (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
+    thread' = thread.
+  Proof.
+    destruct (classic (thread' = thread)) as [|NEQ]; [by subst|].
+    exfalso.
+    apply sim_trav_step_to_step in TS; auto. desf.
+    red in TS. desf.
+    { apply NEXT. apply NCOV. split; eauto. apply COV. }
+    apply NISS. eapply w_covered_issued; eauto.
+    split; auto.
+    { apply ISS. }
+    apply NCOV. split; auto. apply ISS.
+  Qed.
+
+  Lemma sim_step_cov_full_traversal T thread
+        (IMMCON : imm_consistent G sc)
+        (TCCOH : tc_coherent G sc T) (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T)
+        (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
+        (RMWCOV : forall r w : actid, rmw r w -> covered T r <-> covered T w) : 
+    exists T', (isim_trav_step G sc thread)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
+  Proof.
+    edestruct sim_traversal_helper as [T']; eauto.
+    desc. exists T'. splits; auto.
+    clear H0.
+    induction H.
+    2: ins; apply rt_refl.
+    { ins. apply rt_step. destruct H as [thread' H].
+      assert (thread' = thread); [|by subst].
+      eapply sim_step_cov_full_thread; eauto. }
+    ins. 
+    set (NCOV' := NCOV).
+    apply IHclos_refl_trans1 in NCOV'; auto.
+    eapply rt_trans; eauto.
+    eapply IHclos_refl_trans2.
+    { eapply sim_trav_steps_coherence; eauto. }
+    { etransitivity; eauto.
+      eapply sim_trav_steps_covered_le; eauto. }
+    { eapply sim_trav_steps_rel_covered; eauto. }
+    eapply sim_trav_steps_rmw_covered; eauto.
+  Qed.
 End TraversalCounting.

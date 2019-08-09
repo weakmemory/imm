@@ -17,6 +17,7 @@ Require Import PromiseLTS.
 Require Import ProgToExecution.
 Require Import ProgToExecutionProperties.
 Require Import SimState.
+Require Import MemoryAux.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -344,15 +345,6 @@ Definition reserved_time f_to f_from I memory smode :=
     (⟪ FOR_SPLIT  : ⦗ set_compl I ⦘ ⨾ (immediate co) ⊆ sb ⟫ /\
      ⟪ RMW_ISSUED : codom_rel rmw ⊆₁ I ⟫)
   end.
-
-Definition memory_close tview memory :=
-  ⟪ CLOSED_CUR :
-    Memory.closed_timemap (View.rlx (TView.cur tview)) memory ⟫ /\
-  ⟪ CLOSED_ACQ :
-    Memory.closed_timemap (View.rlx (TView.acq tview)) memory ⟫ /\
-  ⟪ CLOSED_REL :
-    forall loc,
-      Memory.closed_timemap (View.rlx (TView.rel tview loc)) memory ⟫.
 
 Definition simrel_common
            (PC : Configuration.t)
