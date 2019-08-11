@@ -1,6 +1,6 @@
 From hahn Require Import Hahn.
-From promising Require Import Basic DenseOrder
-     TView View Time Event Cell Thread Language Memory Configuration.
+Require Import PromisingLib.
+From Promising Require Import TView View Time Event Cell Thread Memory Configuration.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.

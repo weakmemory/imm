@@ -1,5 +1,6 @@
 From hahn Require Import Hahn.
-From promising Require Import View Time Event.
+From PromisingLib Require Import Loc.
+From Promising Require Import View Time Event.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.

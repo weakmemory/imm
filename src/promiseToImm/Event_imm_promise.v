@@ -4,7 +4,8 @@
 
 Require Import List Events.
 From hahn Require Import Hahn.
-From promising Require Import Basic Event.
+Require Import PromisingLib.
+From Promising Require Import Event.
 
 Set Implicit Arguments.
  

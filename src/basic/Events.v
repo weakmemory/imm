@@ -4,7 +4,7 @@
 
 Require Import List.
 From hahn Require Import Hahn.
-From promising Require Import Basic Event.
+From PromisingLib Require Import Basic Loc.
 
 Set Implicit Arguments.
 
@@ -12,7 +12,7 @@ Definition thread_id := Basic.Ident.t.
 Definition tid_init := Coq.Numbers.BinNums.xH.
 
 Definition location := Loc.t.
-Definition value := Const.t.
+Definition value := nat.
 
 (******************************************************************************)
 (** ** Execution graph events  *)

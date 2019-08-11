@@ -1,5 +1,6 @@
 From hahn Require Import Hahn.
-From promising Require Import Language.
+From Promising Require Import Language.
+From Promising Require Import Event.
 Require Import Prog.
 Require Import ProgToExecution.
 Require Import Events.
@@ -8,7 +9,7 @@ Require Import Event_imm_promise.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Definition lts_step (tid : thread_id) (pe : Event.ProgramEvent.t) (s1 s2 : state) : Prop :=
+Definition lts_step (tid : thread_id) (pe : ProgramEvent.t) (s1 s2 : state) : Prop :=
   exists (labels : list label),
     ⟪ISTEP: istep tid labels s1 s2⟫ /\
     ⟪LABS : lab_imm_promise labels pe⟫.

@@ -1,7 +1,7 @@
 Require Import ClassicalDescription Omega.
 
 From hahn Require Import Hahn.
-From promising Require Import Event.
+From Promising Require Import Event.
 Require Import Events.
 Require Import Execution.
 Require Import Prog.

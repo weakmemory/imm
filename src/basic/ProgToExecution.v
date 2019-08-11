@@ -1,6 +1,6 @@
 Require Import RelationClasses List Omega.
 From hahn Require Import Hahn.
-From promising Require Import Event.
+From PromisingLib Require Import Loc.
 Require Import Events.
 Require Import Execution.
 Require Import Prog.

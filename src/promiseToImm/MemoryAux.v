@@ -1,6 +1,6 @@
 From hahn Require Import Hahn.
-From promising Require Import Basic DenseOrder.
-From promising Require Import Memory View Time Cell TView.
+From PromisingLib Require Import Basic DenseOrder.
+From Promising Require Import Memory View Time Cell TView.
 
 Definition memory_close tview memory :=
   ⟪ CLOSED_CUR :

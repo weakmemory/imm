@@ -1,4 +1,5 @@
-From promising Require Import Basic Event.
+Require Import PeanoNat.
+From PromisingLib Require Import Basic Loc.
 Require Import Events.
 
 Set Implicit Arguments.
@@ -7,6 +8,8 @@ Module Reg := Ident.
 Module RegSet := IdentSet.
 Module RegMap := IdentMap.
 Module RegFun := IdentFun.
+
+Module Const := Nat.
 
 Module Value.
   Inductive t :=

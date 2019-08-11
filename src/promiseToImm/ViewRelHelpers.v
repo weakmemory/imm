@@ -1,5 +1,5 @@
 From hahn Require Import Hahn.
-From promising Require Import Basic DenseOrder Event.
+From PromisingLib Require Import Basic DenseOrder Loc.
 
 Require Import Events.
 Require Import Execution.

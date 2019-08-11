@@ -1,5 +1,5 @@
 From hahn Require Import Hahn.
-From promising Require Import Language.
+From Promising Require Import Language.
 
 Require Import Events Execution.
 Require Import ProgToExecution.

@@ -22,6 +22,7 @@ The command installs `Coq` as well. After that, one needs to run `make` (or `mak
 The project may be built and installed via OPAM:
 ```bash
 opam repo add coq-released https://coq.inria.fr/opam/released
+opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
 opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
 opam install coq-imm
 ```

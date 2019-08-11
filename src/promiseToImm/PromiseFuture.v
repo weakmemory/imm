@@ -1,6 +1,6 @@
 From hahn Require Import Hahn.
-From promising Require Import Basic Event
-     Memory Thread Cell TView View Time Language Configuration.
+Require Import PromisingLib.
+From Promising Require Import Configuration TView View Time Event Cell Thread Memory.
 Require Import MaxValue.
 Require Import MemoryAux.
 
@@ -529,8 +529,7 @@ Proof.
     assert (UU := INF).
     eapply Memory.split_get1 in UU; eauto.
     desc. rewrite UU.
-    eexists. eexists. splits; eauto.
-    etransitivity; eauto. }
+    eexists. eexists. splits; eauto. }
   { eapply UP_MEM in IMU; eauto. desc.
     destruct (loc_ts_eq_dec (loc0, t) (loc, to)) as [[AA BB]|AA]; simpls; subst.
     { edestruct Memory.split_get0 as [HH _]; eauto.
