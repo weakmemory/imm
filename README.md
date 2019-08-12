@@ -14,7 +14,7 @@ POPL19 arifact release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1484
 
 ### Building Manually
 
-To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-coq`, and `hahn`), which the project
+To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-lib`, `promising-coq`, and `hahn`), which the project
 depends on. This might be done by running `./configure`.
 The command installs `Coq` as well. After that, one needs to run `make` (or `make -j4` for a faster build).
 
