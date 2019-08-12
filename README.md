@@ -10,7 +10,7 @@ POPL19 arifact release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1484
 ### Requirements
 * [Coq 8.9.1](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
-* [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/anlun/promising-coq/tree/opam_red) (`coq-promising`)
+* [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/snu-sf/promising-coq/tree/imm) (`coq-promising`)
 
 ### Building Manually
 
