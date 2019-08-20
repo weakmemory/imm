@@ -143,7 +143,7 @@ Qed.
 
 Lemma msg_rel_alt T (TCCOH : tc_coherent G sc T)
       (Wf_sc : wf_sc G sc)
-      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G T w)
+      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G sc T w)
       locw (LOC : loc lab w = Some locw) l:
   dom_rel (msg_rel G sc l ⨾ ⦗ eq w ⦘) ≡₁
   (if is_rel lab w
@@ -298,7 +298,7 @@ Qed.
 
 Lemma msg_rel_alt2 T (TCCOH : tc_coherent G sc T)
       (Wf_sc : wf_sc G sc)
-      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G T w)
+      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G sc T w)
       locw (LOC : loc lab w = Some locw) l:
   dom_rel (msg_rel G sc l ⨾ ⦗ eq w ⦘) ≡₁
   (if is_rel lab w
@@ -307,22 +307,22 @@ Lemma msg_rel_alt2 T (TCCOH : tc_coherent G sc T)
   dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗ eq w ⦘) ∪₁
   Rel ∩₁ Loc_ l ∩₁ eq w.
 Proof.
-rewrite msg_rel_alt; eauto.
-desf.
-2: by arewrite (Rel ∩₁ Loc_ l ∩₁ eq w ≡₁ ∅); basic_solver 10. 
-rewrite t_cur_urr_union_eqv_w; auto.
-{ arewrite (Rel ∩₁ Loc_ l ∩₁ eq w ≡₁ Loc_ l ∩₁ eq w).
-  2: by unfold t_cur, c_cur; basic_solver 10.
-  basic_solver 10. }
-destruct ISS as [[[_ ISS] _] _].
-red in ISS.
-assert (sb ⨾ ⦗eq w⦘ ⊆ fwbob G ⨾ ⦗eq w⦘) as HH.
-2: generalize ISS HH; basic_solver 10.
-unfold fwbob; basic_solver 12.
+  rewrite msg_rel_alt; eauto.
+  desf.
+  2: by arewrite (Rel ∩₁ Loc_ l ∩₁ eq w ≡₁ ∅); basic_solver 10. 
+  rewrite t_cur_urr_union_eqv_w; auto.
+  { arewrite (Rel ∩₁ Loc_ l ∩₁ eq w ≡₁ Loc_ l ∩₁ eq w).
+    2: by unfold t_cur, c_cur; basic_solver 10.
+    basic_solver 10. }
+  destruct ISS as [[_ ISS] _].
+  red in ISS.
+  assert (sb ⨾ ⦗eq w⦘ ⊆ fwbob G ⨾ ⦗eq w⦘) as HH.
+  2: generalize ISS HH; basic_solver 10.
+  unfold fwbob; basic_solver 12.
 Qed.
 
 Lemma msg_rel_rfrmw_helper T (TCCOH : tc_coherent G sc T)
-      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G T w)
+      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G sc T w)
       locw (LOC : loc lab w = Some locw) l:
   dom_rel ((urr G sc l ⨾ release) ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ⊆₁
   dom_rel (urr G sc l ⨾ ⦗Rel⦘ ⨾ ⦗W_ locw ∪₁ F⦘ ⨾ ⦗Tid_ (tid w) ∪₁ Init⦘ ⨾ ⦗covered T⦘)
@@ -378,7 +378,7 @@ basic_solver 12.
 Qed.
 
 Lemma t_rel_msg_rel_rfrmw T (TCCOH : tc_coherent G sc T)
-      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G T w)
+      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G sc T w)
       locw (LOC : loc lab w = Some locw) l:
   t_rel G sc (tid w) l locw (covered T) ∪₁ dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ≡₁
   t_rel G sc (tid w) l locw (covered T) ∪₁
@@ -392,7 +392,7 @@ by apply msg_rel_rfrmw_helper.
 Qed.
 
 Lemma t_cur_msg_rel_rfrmw T (TCCOH : tc_coherent G sc T)
-      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G T w) l:
+      w (WW : W w) (NCOV : ~ covered T w) (ISS : issuable G sc T w) l:
   t_cur G sc (tid w) l (covered T) ∪₁ dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ≡₁
   t_cur G sc (tid w) l (covered T) ∪₁
   dom_rel (msg_rel G sc l ⨾ (⦗ W_ex ⦘ ⨾ rfi ∪ rfe) ⨾ rmw ⨾ ⦗eq w⦘).

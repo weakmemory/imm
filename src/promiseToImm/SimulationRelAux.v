@@ -425,7 +425,7 @@ Lemma exists_time_interval f_to f_from T PC w locw valw langst local smode
       (ACQEX : W_ex ⊆₁ W_ex_acq)
       (TCCOH : tc_coherent G sc T)
       (WNISS : ~ issued T w)
-      (WISSUABLE : issuable G T w)
+      (WISSUABLE : issuable G sc T w)
       (LOC : loc lab w = Some locw)
       (VAL : val lab w = Some valw)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
@@ -1491,7 +1491,10 @@ Proof.
         apply ISSNEXT. eexists. apply seq_eqv_r; split; eauto.
         apply seq_eqv_l; split; auto.
         destruct H1 as [z [RF RMW]].
-        apply ACQEX. eexists; eauto. }
+        apply ct_step. apply w_ex_acq_sb_w_in_ar.
+        apply seq_eqv_l. split.
+        { apply ACQEX. eexists; eauto. }
+        apply seq_eqv_r. split; auto. }
       destruct H0 as [H0|]; subst.
       { rewrite upds. 
         assert (y = wnext); subst.
@@ -1517,7 +1520,7 @@ Proof.
     assert (~ Rel w) as NREL.
     { intros WREL. apply WNISS.
       eapply w_covered_issued; eauto. split; auto.
-      apply TCCOH in NEXTISS. destruct NEXTISS as [[[_ NN] _] _].
+      apply TCCOH in NEXTISS. destruct NEXTISS as [[_ NN] _].
       apply NN. exists wnext. apply seq_eqv_r; split; auto.
       red. left; left; right. apply seq_eqv_l; split; [by split|].
       apply seq_eqv_r; split; auto. split; auto.
@@ -1976,7 +1979,7 @@ Lemma write_promise_step_helper f_to f_from T PC w locw valw ordw langst local s
       (TCCOH : tc_coherent G sc T)
       (ACQEX : W_ex ⊆₁ W_ex_acq)
       (WNISS : ~ issued T w)
-      (WISSUABLE : issuable G T w)
+      (WISSUABLE : issuable G sc T w)
       (LOC : loc lab w = Some locw)
       (VAL : val lab w = Some valw)
       (ORD : mod lab w = ordw)
@@ -2496,9 +2499,13 @@ Proof.
         assert ((rfi ⨾ rmw) w b) as RFIRMW.
         { hahn_rewrite rfi_union_rfe in RFRMW. apply seq_union_l in RFRMW.
           destruct RFRMW as [|RFRMW]; auto. exfalso.
-          apply WNISS; apply TCCOH in ISSB; destruct ISSB as [A1 A2].
-          apply A1. generalize RFRMW. generalize (rmw_in_ppo WF).
-          basic_solver 40. }
+          apply WNISS. apply TCCOH in ISSB. apply ISSB.
+          eexists. apply seq_eqv_r. split; eauto.
+          apply seq_eqv_l. split; auto.
+          destruct RFRMW as [oo [AA BB]].
+          apply ct_ct. exists oo. split; apply ct_step.
+          { red. basic_solver. }
+          apply ppo_in_ar. by apply WF.(rmw_in_ppo). }
         assert ((sb ∩ same_loc lab) w b) as SBWB.
         { destruct RFIRMW as [z [RFI RMW]].
           eapply sb_same_loc_trans.
@@ -2507,23 +2514,24 @@ Proof.
         assert (~ Rel w) as NREL.
         { intros REL. apply WNISS; apply TCCOH in ISSB; destruct ISSB as [[[A1 A2] A3] A4].
           eapply w_covered_issued; eauto. split; auto.
-          apply A2. unfold fwbob. exists b.
+          apply A3. unfold fwbob. exists b.
           apply seq_eqv_r; split; auto. left; left; right.
           apply seq_eqv_l; split; [by split|].
-          apply seq_eqv_r; split; auto.
-          apply (dom_r WF.(wf_rfrmwD)) in RFRMW.
-          apply seq_eqv_r in RFRMW. desf. }
+          apply seq_eqv_r; split; auto. }
         destruct (is_rel lab w); simpls.
         assert (p_rel = None); subst.
         { desf. exfalso. apply WNISS.
-          apply TCCOH in ISSB; destruct ISSB as [A1 A2].
+          apply TCCOH in ISSB.
           assert (W_ex_acq w) as WEX.
           { apply ACQEX. destruct INRMW as [z [RF RFMW]].
             eexists; eauto. }
-          apply A2.
+          apply ISSB.
           exists b; apply seq_eqv_r; split; auto.
           apply seq_eqv_l; split; auto.
-          apply SBWB. }
+          apply ct_step. apply w_ex_acq_sb_w_in_ar.
+          apply seq_eqv_lr. splits; auto.
+          { apply SBWB. }
+          apply ISSB. }
         simpls.
         unfold View.unwrap. rewrite !view_join_bot_r.
         rewrite <- !View.join_assoc. rewrite view_join_id.
@@ -2965,8 +2973,11 @@ Proof.
     hahn_rewrite rfi_union_rfe in RFRMW. apply seq_union_l in RFRMW.
     destruct RFRMW as [RFRMW|RFRMW]; exfalso.
     all: apply WNISS; apply TCCOH in ISSB; destruct ISSB as [A1 A2]. 
-    2: { apply A1. generalize RFRMW. generalize (rmw_in_ppo WF).
-         basic_solver 40. }
+    2: { apply A2. eexists. apply seqA. apply seq_eqv_lr. splits; eauto.
+         destruct RFRMW as [oo [AA BB]].
+         apply ct_ct. exists oo. split; apply ct_step.
+         { red. basic_solver. }
+         apply ppo_in_ar. by apply WF.(rmw_in_ppo). }
     apply A2.
     assert (W_ex_acq w) as WEX.
     { apply ACQEX. destruct P_REL_CH1 as [z [RF RFMW]].
@@ -2974,8 +2985,13 @@ Proof.
     exists b; apply seq_eqv_r; split; auto.
     apply seq_eqv_l; split; auto.
     destruct RFRMW as [z [RF RMW]].
-    eapply sb_trans. by apply WF.(rfi_in_sbloc'); eauto.
-      by apply WF.(wf_rmwi). }
+    apply ct_step. apply w_ex_acq_sb_w_in_ar.
+    apply seq_eqv_l. split.
+    { apply ACQEX. apply WEX. }
+    apply seq_eqv_r. split; auto.
+    { eapply sb_trans. by apply WF.(rfi_in_sbloc'); eauto.
+        by apply WF.(wf_rmwi). }
+    apply (dom_r WF.(wf_rmwD)) in RMW. apply seq_eqv_r in RMW. apply RMW. }
   assert (l = locw); subst.
   { rewrite LOC in LOC0; inv LOC0. }
   assert (v = valw); subst.

@@ -176,6 +176,12 @@ unfold ppo; rewrite (wf_dataD WF) at 1.
 hahn_frame; econs; basic_solver 12.
 Qed.
 
+Lemma R_ex_sb_in_ppo WF : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
+Proof.
+  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘) by type_solver.
+  unfold ppo. hahn_frame. rewrite <- ct_step. eauto with hahn.
+Qed.
+
 (******************************************************************************)
 (** ** Relations in graph *)
 (******************************************************************************)
