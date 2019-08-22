@@ -1,4 +1,5 @@
 From hahn Require Import Hahn.
+Require Import AuxDef.
 
 Require Import Events.
 Require Import Execution.
@@ -75,20 +76,6 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Implicit Type WF : Wf G.
 Implicit Type WF_SC : wf_sc G sc.
 
-  Lemma dom_rel_to_cond {A} r (s t : A -> Prop) :
-    dom_rel (r ⨾ ⦗t⦘) ⊆₁ s -> t ⊆₁ dom_cond r s.
-  Proof.
-    unfold dom_cond; unfolder.
-    intro H; ins; desf; eapply H; eauto.
-  Qed.
-
-  Lemma dom_cond_to_rel {A} r (s t : A -> Prop) :
-    t ⊆₁ dom_cond r s -> dom_rel (r ⨾ ⦗t⦘) ⊆₁ s.
-  Proof.
-    unfold dom_cond; unfolder.
-    intro H; ins; desf; eapply H; eauto.
-  Qed.
-
 Record tc_coherent_alt T :=
   { tc_init : Init ∩₁ E ⊆₁ covered T ;
     tc_C_in_E : covered T ⊆₁ E ;
@@ -164,5 +151,26 @@ Proof.
   all: by rewrite <- seqA; apply dom_cond_to_rel.
 Qed.
 
+Lemma scCsbI_C WF T (IMMCON : imm_consistent G sc) (TCCOH : tc_coherent G sc T) :
+  sc ⨾ ⦗covered T ∪₁ dom_rel (sb^? ⨾ ⦗issued T⦘)⦘ ⊆ ⦗covered T⦘ ⨾ sc.
+Proof.
+  rewrite id_union. rewrite seq_union_r. unionL.
+  { eapply sc_covered; eauto. }
+  unfolder. ins. desf.
+  all: eapply wf_scD in H; [|by apply IMMCON].
+  all: destruct_seq H as [XX YY].
+  { eapply issuedW in H2; eauto.
+    type_solver. }
+  split; auto.
+  assert (covered T y) as CY.
+  2: { eapply dom_sc_covered; eauto. eexists. apply seq_eqv_r.
+       split; eauto. }
+  eapply tc_fwbob_I.
+  { apply tc_coherent_implies_tc_coherent_alt; eauto. apply IMMCON. }
+  eexists. apply seq_eqv_r. split; eauto.
+  eapply sb_from_f_in_fwbob. apply seq_eqv_l.
+  split; auto.
+  mode_solver.
+Qed.
 
 End TCCOH_ALT.

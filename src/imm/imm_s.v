@@ -418,4 +418,71 @@ Proof.
   apply rf_rmw_in_coimm; auto using coherence_sc_per_loc.
 Qed.
 
+Lemma rfe_rmw_in_ar_ct WF : rfe ;; rmw ⊆ ar⁺.
+Proof.
+  rewrite <- ct_ct.
+  rewrite rfe_in_ar, WF.(rmw_in_ppo), ppo_in_ar.
+  eby rewrite <- ct_step.
+Qed.
+
+Lemma rfe_ppo_in_ar_ct : rfe ;; ppo ⊆ ar⁺.
+Proof.
+  rewrite <- ct_ct.
+  rewrite rfe_in_ar, ppo_in_ar.
+  eby rewrite <- ct_step.
+Qed.
+
+Lemma rfe_Rex_sb_in_ar_ct : rfe ;; <|R_ex|> ;; sb ;; <|W|> ⊆ ar⁺.
+Proof.
+  arewrite (⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo).
+  2: by apply rfe_ppo_in_ar_ct.
+  unfold imm_common.ppo. rewrite <- ct_step, !seq_union_l, !seq_union_r, !seqA.
+  unionR left -> right.
+  type_solver.
+Qed.
+
+Lemma rfe_rmw_sb_in_ar_ct WF : rfe ;; rmw ;; sb ;; <|W|> ⊆ ar⁺.
+Proof.
+  rewrite (dom_l WF.(wf_rmwD)), WF.(rmw_in_sb), !seqA.
+  (* TODO: introduce a lemma *)
+  arewrite (sb ;; sb ⊆ sb).
+  { apply transitiveI. apply sb_trans. }
+  apply rfe_Rex_sb_in_ar_ct.
+Qed.
+
+Lemma sb_release_rmw_in_fwbob WF
+      (SPL  : Execution_eco.sc_per_loc G)
+      (COMP : complete G) :
+  sb^? ∩ release G ⨾ sb ∩ Events.same_loc lab ⨾ rmw ⊆ fwbob G.
+Proof.
+  rewrite (dom_r WF.(wf_rmwD)).
+  rewrite WF.(rmw_in_sb_loc).
+  sin_rewrite rewrite_trans.
+  2: by apply sb_same_loc_trans.
+  rewrite (dom_l WF.(wf_releaseD)).
+  arewrite (sb^? ∩ (⦗(F ∪₁ W) ∩₁ Rel⦘ ⨾ release G) ⊆
+            ⦗(F ∪₁ W) ∩₁ Rel⦘ ⨾ (sb^? ∩ release G)).
+  { basic_solver. }
+  rewrite set_inter_union_l.
+  rewrite id_union, seq_union_l.
+  unionL.
+  { unfold fwbob.
+    unionR right. 
+    arewrite (sb^? ∩ release G ⨾ sb ∩ Events.same_loc lab ⊆ sb).
+    { generalize (@sb_trans G). basic_solver. }
+    mode_solver. }
+  unfold release.
+  arewrite (⦗W ∩₁ Rel⦘ ⨾ sb^? ∩ (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ rs G) ⊆
+            ⦗W ∩₁ Rel⦘ ⨾ sb^? ∩ (⦗Rel⦘ ⨾ rs G)).
+  { type_solver 10. }
+  rewrite rs_in_co; auto.
+  rewrite WF.(wf_col).
+  arewrite (sb^? ∩ (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ (Events.same_loc lab)^?) ⊆
+               (sb ∩ Events.same_loc lab)^?).
+  { basic_solver. }
+  sin_rewrite rewrite_trans_seq_cr_l.
+  2: by apply sb_same_loc_trans.
+  unfold fwbob. eauto with hahn.
+Qed.
+
 End IMM.

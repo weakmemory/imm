@@ -2,6 +2,7 @@
 (** * Definition of executions (common basis for all types of executions) *)
 (******************************************************************************)
 
+Require Import Omega.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 
@@ -56,7 +57,7 @@ Notation "'rmw_dep'" := G.(rmw_dep).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
-Notation "'mod'" := (mod lab).
+Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
@@ -935,6 +936,29 @@ Proof.
   apply WF.(wf_col) in CO.
   split; intros [_ LL].
   all: by split; [split|rewrite <- LL].
+Qed.
+
+Lemma exists_nE thread :
+  exists n, ~ E (ThreadEvent thread n).
+Proof.
+  unfold acts_set.
+  destruct G. simpls.
+  clear.
+  assert (exists n, forall m (IN : In (ThreadEvent thread m) acts0),
+               m < n) as [n AA].
+  2: { desf. exists n. induction acts0; simpls.
+       intros HH. apply AA in HH. omega. }
+  induction acts0; simpls.
+  { exists 1. ins. }
+  desf.
+  destruct a.
+  { exists n. ins. desf. intuition. }
+  exists (1 + max n index).
+  ins. desf.
+  { apply Max.max_case_strong; omega. }
+  apply IHacts0 in IN.
+  etransitivity; eauto.
+  apply Max.max_case_strong; omega.
 Qed.
 
 End Execution.

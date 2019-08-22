@@ -4,6 +4,7 @@ Require Import imm_s.
 Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.
+Require Import AuxDef.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -225,6 +226,62 @@ Proof.
   1-7,9: basic_solver.
   all: arewrite (tid r = tid w); [|basic_solver].
   all: eapply wf_rmwt; eauto.
+Qed.
+
+Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
+
+
+
+Lemma isim_trav_step_new_e_tid_alt thread TC TC' 
+      (ITV : isim_trav_step G sc thread TC TC') : 
+  covered TC' ∪₁ issued TC' ≡₁ 
+    (covered TC ∪₁ issued TC) ∩₁ NTid_ thread ∪₁ (covered TC' ∪₁ issued TC') ∩₁ Tid_ thread.
+Proof. 
+  assert (sim_trav_step G sc TC TC') as ST by (eexists; eauto).
+  rewrite isim_trav_step_new_e_tid at 1; eauto.
+  split; [|basic_solver].
+  rewrite set_subset_union_l. splits.
+  2: basic_solver.
+  rewrite <- sim_trav_step_covered_le with (C':=TC'); eauto.
+  rewrite <- sim_trav_step_issued_le with (C':=TC'); eauto.
+  apply ntid_tid_set_inter.
+Qed.
+
+Lemma isim_trav_step_new_covered_tid thread TC TC' 
+      (ITV : isim_trav_step G sc thread TC TC') : 
+  covered TC' ≡₁ 
+    covered TC ∩₁ NTid_ thread ∪₁ covered TC' ∩₁ Tid_ thread.
+Proof. 
+  assert (covered TC ⊆₁ covered TC ∩₁ NTid_ thread ∪₁ covered TC ∩₁ Tid_ thread) as BB.
+  { apply ntid_tid_set_inter. }
+  assert (sim_trav_step G sc TC TC') as ST by (eexists; eauto).
+  split.
+  2: { rewrite sim_trav_step_covered_le with (C':=TC'); eauto.
+       basic_solver. }
+  inv ITV; simpls; unionL.
+  all: try (rewrite BB at 1; basic_solver 10).
+  all: try basic_solver 10.
+  all: try (apply WF.(wf_rmwt) in RMW; rewrite RMW).
+  all: basic_solver 10.
+Qed.
+
+Lemma isim_trav_step_new_issued_tid thread TC TC' 
+      (ITV : isim_trav_step G sc thread TC TC') : 
+  issued TC' ≡₁ 
+    issued TC ∩₁ NTid_ thread ∪₁ issued TC' ∩₁ Tid_ thread.
+Proof. 
+  assert (issued TC ⊆₁ issued TC ∩₁ NTid_ thread ∪₁ issued TC ∩₁ Tid_ thread) as BB.
+  { apply ntid_tid_set_inter. }
+  assert (sim_trav_step G sc TC TC') as ST by (eexists; eauto).
+  split.
+  2: { rewrite sim_trav_step_issued_le with (C':=TC'); eauto.
+       basic_solver. }
+  inv ITV; simpls; unionL.
+  all: try (rewrite BB at 1; basic_solver 10).
+  1,2: basic_solver 10.
+  apply WF.(wf_rmwt) in RMW. rewrite RMW.
+  basic_solver 10.
 Qed.
 
 End SimTraversalProperties.

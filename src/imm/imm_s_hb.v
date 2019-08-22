@@ -306,6 +306,21 @@ rewrite <- !seqA, inclusion_ct_seq_eqv_r, !seqA.
 basic_solver 21.
 Qed.
 
+Lemma release_rf_rmw_step : release ⨾ rf ⨾ rmw ⊆ release.
+Proof.
+  unfold release at 1. unfold rs.
+  rewrite !seqA.
+  arewrite (rf ⨾ rmw ⊆ (rf ⨾ rmw)＊) at 2.
+    by rewrite rt_rt.
+Qed.
+
+Lemma release_rf_rmw_steps : release ⨾ (rf ⨾ rmw)＊ ⊆ release.
+Proof.
+  unfold release at 1. unfold rs.
+  rewrite !seqA.
+    by rewrite rt_rt.
+Qed.
+
 (******************************************************************************)
 (** ... **   *)
 (******************************************************************************)
