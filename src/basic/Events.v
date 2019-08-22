@@ -289,6 +289,12 @@ End Labels.
 (** ** Identical labeling up to value  *)
 (******************************************************************************)
 
+Definition same_mod {A} (lab : A -> label) : relation A :=
+  (fun x y => mod lab x = mod lab y).
+
+Definition same_val {A} (lab : A -> label) : relation A :=
+  (fun x y => val lab x = val lab y).
+
 Definition same_label_u2v label1 label2 :=
   match label1, label2 with
   | Aload  r1 o1 l1 _, Aload  r2 o2 l2 _ => r1 = r2 /\ o1 = o2 /\ l1 = l2
@@ -396,6 +402,12 @@ Proof.
 Qed.
 
 End SameFunsSet.
+
+Lemma same_label_u2v_val {A} (lab lab' : A -> label) x
+      (U2V : same_label_u2v (lab x) (lab' x))
+      (VAL : val lab x = val lab' x) :
+  lab x = lab' x.
+Proof. unfold same_label_u2v, val in *. desf; desf. Qed.
 
 Section SameFuns.
 
@@ -527,6 +539,17 @@ Proof.
     by apply same_label_u2v_comm.
 Qed.
 
+Lemma same_lab_u2v_dom_same_mod {A} (lab lab' : A -> label) (s : A -> Prop)
+      (SAME: same_lab_u2v_dom s lab lab') :
+  restr_rel s (same_mod lab) ≡ restr_rel s (same_mod lab').
+Proof.
+  unfolder. split.
+  all: ins; desf; splits; auto.
+  all: unfold same_mod, mod, same_lab_u2v_dom, same_label_u2v in *.
+  all: set (SAMEY := SAME); specialize (SAMEY y H1).
+  all: specialize (SAME x H0); desf; desf.
+Qed.
+
 End SameFuns2.
 
 (******************************************************************************)
@@ -607,6 +630,17 @@ rewrite tid_ext_sb at 1.
 unfold cross_rel.
 basic_solver 12.
 Qed.
+
+(******************************************************************************)
+(** ** is_init properties *)
+(******************************************************************************)
+
+Lemma is_init_tid : 
+  is_init ⊆₁ fun x => tid x = tid_init. 
+Proof. unfolder. unfold is_init. ins. desf. Qed.
+
+Lemma initninit_in_ext_sb : is_init × (set_compl is_init) ⊆ ext_sb.
+Proof. unfold ext_sb. basic_solver. Qed.
 
 (******************************************************************************)
 (** ** Tactics *)

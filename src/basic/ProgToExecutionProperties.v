@@ -1,6 +1,7 @@
 Require Import RelationClasses List Omega.
 From PromisingLib Require Import Basic.
 From hahn Require Import Hahn.
+Require Import AuxDef.
 Require Import Events.
 Require Import Execution.
 Require Import Prog.
@@ -8,7 +9,10 @@ Require Import ProgToExecution.
 
 Set Implicit Arguments.
 
+Section Props.
+
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Record thread_restricted_execution (G : execution) t (G' : execution) :=
   { tr_acts_set : G'.(acts_set) ≡₁ G.(acts_set) ∩₁ Tid_ t;
@@ -890,3 +894,73 @@ Definition program_execution (prog : Prog.t) (G : execution) :=
   exists pe, 
     thread_execution thread linstr pe /\
     thread_restricted_execution G thread pe.
+
+Lemma tid_initi G prog 
+      (GPROG : program_execution prog G)
+      (PROG_NINIT : ~ (IdentMap.In tid_init prog)) : 
+  (acts_set G) ∩₁ Tid_ tid_init ⊆₁ is_init.
+Proof. 
+  red. unfolder. 
+  intros e [EE TIDe].
+  unfold tid, is_init in *.
+  destruct e eqn:Heq; auto.
+  destruct GPROG as [HH _].
+  rewrite <- Heq in EE.
+  specialize (HH e EE).
+  desf. 
+Qed.
+
+Lemma istep_eindex_shift thread st st' lbl
+      (STEP : ProgToExecution.istep thread lbl st st') :
+  eindex st' = eindex st + length lbl.
+Proof.
+  cdes STEP. inv ISTEP0. 
+  all: simpls; omega.
+Qed.
+
+Lemma eindex_step_mon thread st st'
+      (STEP : ProgToExecution.step thread st st') :
+  eindex st <= eindex st'.
+Proof.
+  cdes STEP.
+  rewrite (istep_eindex_shift STEP0). omega.
+Qed.
+
+Lemma eindex_steps_mon thread st st'
+      (STEPS : (ProgToExecution.step thread)＊ st st') :
+  eindex st <= eindex st'.
+Proof.
+  apply clos_rt_rt1n in STEPS.
+  induction STEPS; auto.
+  apply eindex_step_mon in H.
+  omega.
+Qed.
+
+Lemma eindex_not_in_rmw thread st st'
+      (TNIL : thread <> tid_init)
+      (WTS : wf_thread_state thread st)
+      (STEPS : (ProgToExecution.step thread)＊ st st') :
+  ~ (codom_rel (Execution.rmw (ProgToExecution.G st'))
+               (ThreadEvent thread (eindex st))).
+Proof.
+  intros [y RMW].
+  apply clos_rt_rtn1 in STEPS.
+  induction STEPS.
+  { eapply wft_rmwE in RMW; eauto.
+    destruct_seq RMW as [AA BB].
+    eapply acts_rep in BB; eauto.
+    desf. omega. }
+  apply IHSTEPS.
+  destruct H as [ll HH].
+  cdes HH.
+  inv ISTEP0; simpls.
+  1,2: by rewrite <- UG.
+  all: rewrite UG in RMW; unfold add in RMW; simpls.
+  all: destruct RMW as [RMW|RMW]; simpls.
+  all: red in RMW; desf.
+  all: apply clos_rtn1_rt in STEPS.
+  all: apply eindex_steps_mon in STEPS.
+  all: omega.
+Qed.
+
+End Props.

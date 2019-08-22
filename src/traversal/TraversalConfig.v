@@ -1,5 +1,6 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
+Require Import AuxDef.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -393,6 +394,16 @@ basic_solver.
     eexists. apply seq_eqv_r. by split; [apply AA|].
   Qed.
 
+  Lemma sbCsbI_CsbI  T (TCCOH : tc_coherent T) :
+    sb ⨾ ⦗covered T ∪₁ dom_rel (sb^? ⨾ ⦗issued T⦘)⦘ ⊆
+    ⦗covered T ∪₁ dom_rel (sb^? ⨾ ⦗issued T⦘)⦘ ⨾ sb.
+  Proof.
+    rewrite id_union, !seq_union_r, !seq_union_l.
+    apply union_mori.
+    { rewrite sb_covered; eauto. basic_solver. }
+    generalize (@sb_trans G). basic_solver 10.
+  Qed.
+
   Lemma issuable_next_w T (TCCOH : tc_coherent T):
     W ∩₁ next (covered T) ⊆₁ issuable T.
   Proof.
@@ -722,6 +733,25 @@ basic_solver.
     relsf.
   Qed.
 
+Lemma sc_sb_I_dom_C T (TCCOH : tc_coherent T) :
+  dom_rel (sc ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ covered T.
+Proof.
+  cdes IMMCON.
+  rewrite (dom_r Wf_sc.(wf_scD)).
+  unfolder. ins. desf.
+  cdes TCCOH.
+  assert (covered T z) as AA.
+  2: { apply CC in AA. red in AA.
+       unfolder in AA. desf.
+       1,2: type_solver.
+       eapply AA2. eexists.
+       apply seq_eqv_r. split; eauto. }
+  eapply II; eauto.
+  eexists. apply seq_eqv_r. split; eauto.
+  apply sb_from_f_in_fwbob.
+  apply seq_eqv_l. split; [split|]; auto.
+  mode_solver.
+Qed.
 
   Lemma dom_hb_coverable T (TCCOH : tc_coherent T)
         (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T):
@@ -926,5 +956,220 @@ basic_solver.
     generalize (covered_in_coverable TCCOH).
     basic_solver 21.
   Qed.
+
+Lemma exists_ncov T thread (TCCOH : tc_coherent T) :
+  exists n, ~ covered T (ThreadEvent thread n).
+Proof.
+  destruct (exists_nE G thread) as [n HH].
+  exists n. intros CC. apply HH.
+  eapply coveredE; eauto.
+Qed.
+
+Section HbProps.
+Variable T : trav_config.
+Variable TCCOH : tc_coherent T.
+
+Notation "'C'" := (covered T).
+Notation "'I'" := (issued  T).
+
+Lemma sw_in_Csw_sb (RELCOV : W ∩₁ Rel ∩₁ I ⊆₁ C) :
+  sw ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗ I ⦘)⦘ ⊆ ⦗ C ⦘ ⨾ sw ∪ sb.
+Proof.
+  assert (forall (s : actid -> Prop), s ∪₁ set_compl s ≡₁ fun _ => True) as AA.
+  { split; [basic_solver|].
+    unfolder. ins. apply classic. }
+  rewrite !id_union. rewrite seq_union_r. 
+  unionL.
+  { rewrite sw_covered; eauto. basic_solver. }
+  arewrite (sw ⊆ ⦗ C ∪₁ set_compl C ⦘ ⨾ sw) at 1.
+  { rewrite AA. by rewrite seq_id_l. }
+  rewrite id_union. relsf.
+  apply union_mori; [basic_solver|].
+  unfold imm_s_hb.sw.
+  arewrite ((sb ⨾ ⦗F⦘)^? ⊆ sb ⨾ ⦗F⦘ ∪ ⦗ fun _ => True ⦘) by basic_solver.
+  rewrite !seq_union_l, !seq_union_r.
+  unionL.
+  { rewrite !seqA.
+    seq_rewrite <- !id_inter. rewrite <- !set_interA.
+    arewrite (sb ⨾ ⦗F ∩₁ Acq ∩₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆
+              ⦗ C ⦘ ⨾ sb ⨾ ⦗F ∩₁ Acq ∩₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘).
+    { unfolder. ins. desf; splits; auto.
+      2,4: by do 2 eexists; splits; eauto.
+      2: eapply TCCOH.(dom_sb_covered).
+      2: eexists; apply seq_eqv_r; split; eauto.
+      all: match goal with H : I _ |- _ => apply TCCOH in H; apply H end.
+      all: eexists; apply seq_eqv_r; split; eauto.
+      { apply sb_to_f_in_fwbob. apply seq_eqv_r. split; [|split]; auto.
+        mode_solver. }
+      apply sb_from_f_in_fwbob. apply seq_eqv_l. split; [split|]; auto.
+      mode_solver. }
+    sin_rewrite release_rf_covered; eauto.
+    basic_solver. }
+  rewrite seq_id_l.
+  arewrite (rf ⊆ ⦗ I ∪₁ set_compl I⦘ ⨾ rf).
+  { rewrite AA. basic_solver. }
+  rewrite id_union. relsf.
+  unionL.
+  { sin_rewrite release_issued; eauto. basic_solver. }
+  rewrite rfi_union_rfe. relsf.
+  unionL.
+  2: { arewrite (⦗set_compl I⦘ ⨾ rfe ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆ ∅₂).
+       2: basic_solver.
+       seq_rewrite <- !id_inter.
+       unfolder. ins. desf.
+       { match goal with H : I _ |- _ => apply TCCOH.(issuedW) in H end.
+         match goal with H : rfe _ _ |- _ =>
+                         apply wf_rfeD in H; auto; (destruct_seq H as [XX YY])
+         end.
+         type_solver. }
+       match goal with H : ~ (I _) |- _ => apply H end.
+       eapply dom_rfe_acq_sb_issued; eauto.
+       eexists. eexists. split; eauto.
+       apply seq_eqv_l. split; [split|]; auto.
+       2: { apply seq_eqv_r. split; eauto. }
+       match goal with H : rfe _ _ |- _ =>
+                       apply wf_rfeD in H; auto; (destruct_seq H as [XX YY]); auto
+       end. }
+  unfold imm_s_hb.release, rs.
+  arewrite
+    (⦗set_compl C⦘ ⨾ (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw)＊) ⊆
+     ⦗set_compl C⦘ ⨾ (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾
+       (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ ⦗ set_compl I ⦘ ⨾ (⦗ set_compl I ⦘ ⨾ rf ⨾ rmw)＊)).
+  { intros x y HH.
+    destruct_seq_l HH as NC.
+    do 4 apply seqA in HH. destruct HH as [v [HH SUF]].
+    apply seq_eqv_l. split; auto.
+    
+    Ltac _ltt :=
+      apply seqA;
+      apply seqA with (r1 := ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?);
+      apply seqA with (r1 := (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?) ⨾ ⦗W⦘);
+      apply seqA with (r1 := ((⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?) ⨾ ⦗W⦘) ⨾ (sb ∩ same_loc)^?).
+    
+    _ltt.
+    exists v. split.
+    { generalize HH. basic_solver. }
+    assert (release x v) as REL.
+    { unfold imm_s_hb.release, rs. _ltt.
+      eexists. split; eauto. apply rt_refl. }
+    apply seq_eqv_l. split.
+    { intros II. apply NC. eapply dom_release_issued; eauto.
+      eexists. apply seq_eqv_r. split; eauto. }
+    assert (codom_rel (⦗ set_compl C ⦘ ⨾ release) v) as XX.
+    { exists x. apply seq_eqv_l. split; auto. }
+    assert (~ I v) as NI.
+    { intros II. apply NC. eapply dom_release_issued; eauto.
+      eexists. apply seq_eqv_r. split; eauto. }
+    clear x NC HH REL.
+    induction SUF.
+    2: by apply rt_refl.
+    { apply rt_step. apply seq_eqv_l. split; auto. }
+    eapply rt_trans.
+    { by apply IHSUF1. }
+    assert (codom_rel (⦗set_compl C⦘ ⨾ release) y) as YY.
+    { destruct XX as [v XX]. destruct_seq_l XX as CC.
+      eexists. apply seq_eqv_l. split; eauto.
+      apply release_rf_rmw_steps.
+      eexists. split; eauto. }
+    apply IHSUF2; auto.
+    intros II.
+    destruct YY as [v YY]. destruct_seq_l YY as CC. apply CC.
+    eapply dom_release_issued; eauto.
+    eexists. apply seq_eqv_r. split; eauto. }
+  arewrite ((⦗set_compl I⦘ ⨾ rf ⨾ rmw)＊ ⨾
+             ⦗set_compl I⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆
+            sb^? ⨾ ⦗set_compl I⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘).
+  2: { unfold Execution.rfi.
+       generalize (@sb_trans G). basic_solver. }
+  intros x y [v [HH XX]].
+  eexists. split; [|by eauto].
+  assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV.
+  { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. }
+  clear y XX.
+  induction HH as [x y HH| | ].
+  2: by apply r_refl.
+  { apply r_step.
+    destruct_seq_l HH as NIX. destruct HH as [v [RF RMW]].
+    apply rfi_union_rfe in RF. destruct RF as [RF|RF].
+    { by eapply (@sb_trans G); [apply RF|apply rmw_in_sb]. }
+    exfalso.
+    destruct VV as [z VV]. destruct_seq_r VV as AZ.
+    set (IZ := AZ).
+    apply TCCOH in IZ.
+    apply NIX. apply IZ.
+    eexists.
+    apply seq_eqv_r. split; eauto.
+    apply seq_eqv_l. split; eauto.
+    { apply (dom_l WF.(wf_rfeD)) in RF. apply seq_eqv_l in RF. desf. }
+    apply rfe_ppo_in_ar_ct; auto.
+    eexists. split; eauto.
+    red. apply seq_eqv_l. split; eauto.
+    { apply (dom_r WF.(wf_rfeD)) in RF. apply seq_eqv_r in RF. desf. }
+    apply seq_eqv_r. split; eauto.
+    2: { eapply issuedW; eauto. }
+    apply ct_step. left; right.
+    apply seq_eqv_l. split; auto.
+    { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. }
+    eapply sb_trans; eauto. by apply rmw_in_sb. }
+  specialize (IHHH2 VV).
+  eapply (transitive_cr (@sb_trans G) _ IHHH2); eauto.
+
+  Unshelve.
+  apply IHHH1. generalize VV (@sb_trans G) IHHH2. basic_solver 10.
+Qed.
+
+Lemma hb_in_Chb_sb (RELCOV : W ∩₁ Rel ∩₁ I ⊆₁ C) :
+  hb ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗ I ⦘)⦘ ⊆ ⦗ C ⦘ ⨾ hb ∪ sb.
+Proof.
+  unfold imm_s_hb.hb.
+  intros x y HH.
+  destruct_seq_r HH as DOM.
+  apply clos_trans_tn1 in HH.
+  induction HH as [y [HH|HH]|y z AA].
+  { by right. }
+  { assert ((⦗C⦘ ⨾ sw ∪ sb) x y) as [ZZ|ZZ].
+    3: by right.
+    2: { destruct_seq_l ZZ as CX.
+         left. apply seq_eqv_l. split; auto.
+         apply ct_step. by right. }
+    apply sw_in_Csw_sb; auto. apply seq_eqv_r. splits; auto. }
+  assert (sb y z -> (C ∪₁ dom_rel (sb^? ⨾ ⦗I⦘)) y) as DOMY.
+  { intros SB.
+    destruct DOM as [DOM|DOM].
+    2: { right. generalize (@sb_trans G) SB DOM. basic_solver 10. }
+    left.
+    eapply dom_sb_covered; eauto. eexists.
+    apply seq_eqv_r. split; eauto. }
+
+  assert ((C ∪₁ dom_rel (sb^? ⨾ ⦗I⦘)) y) as BB.
+  2: { set (CC:=BB). apply IHHH in CC.
+       destruct CC as [CC|CC].
+       { left.
+         destruct_seq_l CC as XX.
+         apply seq_eqv_l. split; auto.
+         apply ct_ct. eexists. split; eauto. }
+       destruct AA as [AA|AA].
+       { right. eapply (@sb_trans G); eauto. }
+       assert ((sw ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘) y z) as DD.
+       { apply seq_eqv_r. by split. }
+       eapply sw_in_Csw_sb in DD; auto.
+       destruct DD as [DD|DD].
+       2: { right. eapply (@sb_trans G); eauto. }
+       left.
+       apply seq_eqv_l. split.
+       2: { apply ct_ct. eexists.
+            split; apply ct_step; [left|right]; eauto. }
+       assert (C y) as CY.
+       { by destruct_seq_l DD as XX. }
+       eapply dom_sb_covered; eauto. eexists.
+       apply seq_eqv_r. split; eauto. }
+  destruct AA as [|AA]; [by intuition|].
+  assert ((sw ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘) y z) as DD.
+  { apply seq_eqv_r. by split. }
+  eapply sw_in_Csw_sb in DD; auto.
+  destruct DD as [DD|]; [|by intuition].
+  left. by destruct_seq_l DD as CY.
+Qed.
+End HbProps.
 
 End TraversalConfig.
