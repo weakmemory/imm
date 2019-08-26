@@ -497,7 +497,7 @@ Lemma rlx_write_promise_step PC T f_to f_from thread w smode
       (SIMREL_THREAD : simrel_thread G sc PC thread T f_to f_from smode)
       (TID : tid w = thread)
       (WNISS : ~ issued T w)
-      (ISS : issuable G T w)
+      (ISS : issuable G sc T w)
       (NREL : ~ is_rel lab w):
   let T' := (mkTC (covered T) (issued T ∪₁ eq w)) in
   exists PC' f_to' f_from',
@@ -646,7 +646,7 @@ Proof.
   assert (~ covered T w) as WNCOV.
   { apply NEXT. }
   
-  assert (issuable G T w) as WISS.
+  assert (issuable G sc T w) as WISS.
   { eapply issuable_next_w; eauto. split; auto. }
 
   cdes STATE. rewrite <- TID in *.

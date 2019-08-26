@@ -145,7 +145,7 @@ Proof.
     exfalso.
     edestruct SIM_PROM as [w]; eauto; desc.
     apply TCCOH in ISS. apply FNCOV.
-    destruct ISS as [[[[EE WW] ISS] _] _].
+    destruct ISS as [[[EE WW] ISS] _].
     eapply ISS. exists w.
     apply seq_eqv_r; split; auto.
     right; apply seq_eqv_l; split.

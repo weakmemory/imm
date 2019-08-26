@@ -34,6 +34,7 @@ Section TCCOH_ALT.
   Notation "'bob'" := G.(bob).
   Notation "'fwbob'" := G.(fwbob).
   Notation "'ppo'" := G.(ppo).
+  Notation "'ar'" := (ar G sc).
   Notation "'fre'" := G.(fre).
   Notation "'rfi'" := G.(rfi).
   Notation "'rfe'" := G.(rfe).
@@ -86,12 +87,23 @@ Record tc_coherent_alt T :=
     tc_I_in_E : issued T ⊆₁ E ;
     tc_I_in_W : issued T ⊆₁ W ;
     tc_fwbob_I : dom_rel ( fwbob ⨾ ⦗issued T⦘) ⊆₁ covered T ;
-    tc_dr_pb_I : dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗issued T⦘) ⊆₁ issued T ;
-    tc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T ;
+    tc_I_ar_I : dom_rel (<|W|> ;; ar⁺ ;; <|issued T|>) ⊆₁ issued T;
   }.
 
-
-
+Lemma tc_dr_pb_I WF T (TCCOH : tc_coherent_alt T) :
+  dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗issued T⦘) ⊆₁ issued T.
+Proof.
+  rewrite (dom_l WF.(wf_detourD)).
+  rewrite (dom_l WF.(wf_rfeD)).
+  arewrite (detour ⊆ ar).
+  arewrite (rfe ⊆ ar).
+  arewrite (ppo ⊆ ar).
+  arewrite (bob ⊆ ar).
+  rewrite !unionK, !seqA.
+  sin_rewrite ar_ar_in_ar_ct.
+  apply TCCOH.
+Qed.
+ 
 Lemma tc_coherent_alt_implies_tc_coherent T: 
   tc_coherent_alt T  -> tc_coherent G sc T.
 Proof.
@@ -122,7 +134,6 @@ red; splits; eauto.
   repeat (splits; try apply set_subset_inter_r); ins.
   by eapply dom_rel_to_cond.
   by eapply dom_rel_to_cond; rewrite !seqA.
-  by eapply dom_rel_to_cond; rewrite !seqA.
 Qed.
 
 Lemma tc_coherent_implies_tc_coherent_alt WF WF_SC T: 
@@ -132,7 +143,6 @@ Proof.
   unfold coverable, issuable in *.
   apply set_subset_inter_r in CC; desf.
   apply set_subset_inter_r in CC; desf.
-  apply set_subset_inter_r in II; desf.
   apply set_subset_inter_r in II; desf.
   apply set_subset_inter_r in II; desf.
   apply set_subset_inter_r in II; desf.
@@ -148,7 +158,20 @@ Proof.
     { rewrite (dom_r (wf_scD WF_SC)); type_solver. }
     apply dom_cond_to_rel; basic_solver 10. }
   { by apply dom_cond_to_rel. }
-  all: by rewrite <- seqA; apply dom_cond_to_rel.
+    by rewrite <- seqA; apply dom_cond_to_rel.
+Qed.
+
+Lemma tc_W_ex_sb_I WF T (TCCOH : tc_coherent_alt T) :
+  dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ issued T.
+Proof.
+  assert (tc_coherent G sc T) as TCCOH'.
+  { by apply tc_coherent_alt_implies_tc_coherent. }
+  arewrite (⦗issued T⦘ ⊆ ⦗W⦘ ;; ⦗issued T⦘).
+  { rewrite <- seq_eqvK at 1. rewrite issuedW at 1; edone. }
+  arewrite (⦗W_ex_acq⦘ ⊆ ⦗W⦘ ;; ⦗W_ex_acq⦘).
+  { rewrite <- seq_eqvK at 1. rewrite W_ex_acq_in_W at 1; done. }
+  arewrite (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar).
+  apply ar_I_in_I; auto.
 Qed.
 
 Lemma scCsbI_C WF T (IMMCON : imm_consistent G sc) (TCCOH : tc_coherent G sc T) :

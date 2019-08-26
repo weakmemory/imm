@@ -230,11 +230,15 @@ Proof.
     assert ((rfe ⨾ rmw) y b) as RFERMW.
     2: { apply NISS.
          apply IIB in ISSB. apply TCCOH in ISSB.
-         destruct ISSB as [DD _]. apply DD.
+         apply ISSB.
          exists b; apply seq_eqv_r; split; auto.
-         generalize RFERMW. generalize WF.(rmw_in_ppo).
-         basic_solver 10. }
-
+         destruct RFERMW as [oo [RFE RMW]].
+         apply (dom_l WF.(wf_rfeD)) in RFE.
+         apply seq_eqv_l in RFE. destruct RFE as [WY RFE].
+         apply seq_eqv_l. split; auto.
+         apply ct_ct. exists oo. split; apply ct_step.
+         { by apply rfe_in_ar. }
+         apply ppo_in_ar. by apply rmw_in_ppo. }
     hahn_rewrite rfi_union_rfe in HH. hahn_rewrite seq_union_l in HH.
     destruct HH as [HH|]; [exfalso|done].
     assert (W y) as WY.

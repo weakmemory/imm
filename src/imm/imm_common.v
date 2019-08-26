@@ -176,6 +176,12 @@ unfold ppo; rewrite (wf_dataD WF) at 1.
 hahn_frame; econs; basic_solver 12.
 Qed.
 
+Lemma R_ex_sb_in_ppo WF : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
+Proof.
+  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘) by type_solver.
+  unfold ppo. hahn_frame. rewrite <- ct_step. eauto with hahn.
+Qed.
+
 (******************************************************************************)
 (** ** Relations in graph *)
 (******************************************************************************)
@@ -328,6 +334,69 @@ Proof. unfold ar_int. basic_solver. Qed.
 
 Lemma w_ex_acq_sb_w_in_ar_int : ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar_int.
 Proof. unfold ar_int. basic_solver 5. Qed.
+
+Lemma bob_ppo_W_sb WF :
+  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+Proof.
+arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+         (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ ppo).
+basic_solver 12.
+apply ct_ind_left with (P:= fun r =>  r).
+by auto with hahn.
+- arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
+  arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺) at 2.
+  basic_solver 12.
+- intros k H. rewrite H; clear k H; rewrite crE; relsf; unionL.
++ rewrite (bob_ppo WF). 
+  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
+  basic_solver.
++ rewrite (wf_ppoD) at 1. type_solver.
++ rewrite (wf_ppoD) at 1 2. type_solver.
++ arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
++ sin_rewrite (bob_ppo WF). 
+  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
++ arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*) at 1; relsf.
++ rewrite (wf_ppoD) at 1. type_solver.
++ basic_solver 12.
++ rewrite (wf_ppoD) at 1 2. type_solver.
+Qed.
+
+Lemma bob_sb :
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗W⦘ ⊆ 
+  bob^+ ⨾ (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘.
+Proof.
+apply ct_ind_left with (P:= fun r =>  r ⨾ ⦗W⦘).
+by auto with hahn.
+by arewrite (bob ⊆ bob⁺); basic_solver 12.
+intros k H.
+rewrite !seqA; rewrite H; clear k H.
+relsf; unionL.
+- arewrite(bob ⊆ bob^*) at 1; relsf.
+- sin_rewrite bob_in_sb.
+generalize (@sb_trans G); ins; relsf.
+basic_solver 12.
+- arewrite (bob ⊆ bob⁺); basic_solver 12.
+- generalize (@sb_trans G); basic_solver 12.
+Qed.
+
+Lemma tc_bob :
+  bob^+ ⊆ fwbob^+ ∪ ⦗R ∩₁ Acq⦘ ⨾ sb.
+Proof.
+unfold bob.
+apply ct_ind_left with (P:= fun r =>  r).
+by auto with hahn.
+by arewrite (fwbob ⊆ fwbob⁺); basic_solver 12.
+intros k H.
+rewrite H; clear k H.
+relsf; unionL.
+- by arewrite (fwbob ⊆ fwbob^*); relsf; basic_solver 12.
+- sin_rewrite (fwbob_in_sb).
+  generalize (@sb_trans G); ins; relsf; basic_solver 12.
+- arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R⦘). basic_solver.
+  sin_rewrite fwbob_r_sb.
+  by arewrite (fwbob ⊆ fwbob^+); basic_solver 21.
+- generalize (@sb_trans G); basic_solver 12.
+Qed.
 
 
 End IMM.

@@ -813,7 +813,7 @@ Proof.
   edestruct (@read_step_helper G WF sc CON) as [TCCOH' HH]; eauto.
   desc. rewrite <- TIDWR in *.
 
-  assert (issuable G {| covered := covered T ∪₁ eq r; issued := issued T |} w) as WNNISS.
+  assert (issuable G sc {| covered := covered T ∪₁ eq r; issued := issued T |} w) as WNNISS.
   { eapply issuable_next_w; eauto. split; simpls.
     red; split; [split|]; auto.
     { red. intros x [y SBB]. apply seq_eqv_r in SBB. desc. rewrite <- SBB0 in *.

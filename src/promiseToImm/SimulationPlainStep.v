@@ -129,7 +129,7 @@ Proof.
     { apply ISS. }
     2: { intros COV. apply NISS. eapply w_covered_issued; eauto. by split. }
     red in ISS.
-    destruct ISS as [[[_ ISS] _] _]. red in ISS.
+    destruct ISS as [[_ ISS] _]. red in ISS.
     red. etransitivity.
     2: by apply ISS.
     unfold fwbob.

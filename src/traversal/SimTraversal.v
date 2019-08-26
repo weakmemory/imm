@@ -111,7 +111,7 @@ Proof.
   simpls.
 
   intros x [y H]. apply seq_eqv_r in H; desf.
-  destruct ISS as [[[_ ISS] _] _].
+  destruct ISS as [[_ ISS] _].
   apply ISS. exists y.
   apply seq_eqv_r; split; auto.
   left; left; left.
@@ -169,6 +169,9 @@ Lemma exists_sim_trav_step T (TCCOH : tc_coherent G sc T)
       T' (TS : trav_step G sc T T') :
   exists T'', sim_trav_step T T''.
 Proof.
+  assert (tc_coherent G sc T') as TCCOH'.
+  { eapply trav_step_coherence; eauto. }
+
   destruct TS as [e TS].
   cdes TS. desf.
   { destruct (lab_rwf lab e) as [RE|[WE|FE]].
@@ -218,7 +221,7 @@ Proof.
       2: { eexists; eexists. 
            eapply rlx_write_promise_step; eauto.
            red. right. splits; auto.
-           red. split; [split; [split; [split|]|]|]; auto.
+           red. split; [split; [split|]|]; auto.
            { red. intros y H.
              specialize (SBW y).
              destruct SBW as [COVY|EY]; desf.
@@ -230,31 +233,18 @@ Proof.
              red in H. destruct H as [[[H|H]|H]|H].
              1,3: by apply seq_eqv_r in H; mode_solver.
              all: by apply seq_eqv_l in H; mode_solver. }
-           { red. rewrite WF.(ppo_in_sb). rewrite bob_in_sb.
-             arewrite (sb ∪ sb ⊆ sb).
-             rewrite (dom_l WF.(wf_detourD)). rewrite (dom_l WF.(wf_rfeD)).
-             rewrite <- seq_union_r. rewrite seqA.
-             rewrite dom_eqv1.
-             assert (dom_rel (sb ⨾ ⦗eq w⦘) ⊆₁ coverable G sc T) as DD.
-             { rewrite SBW. cdes TCCOH. rewrite CC. basic_solver. }
-             arewrite (sb ⨾ ⦗eq w⦘ ⊆ ⦗coverable G sc T⦘ ⨾ sb ⨾ ⦗eq w⦘).
-             { generalize DD. basic_solver. }
-             rewrite seq_union_l.
-             arewrite (rfe ⊆ rf). sin_rewrite rf_coverable; auto.
-             rewrite detour_in_sb. sin_rewrite sb_coverable; auto.
-             generalize (w_covered_issued TCCOH).
-             basic_solver. }
-           red. rewrite !seqA. rewrite dom_eqv1.
-           rewrite SBW. rewrite WF.(W_ex_in_W).
-           rewrite set_inter_union_r.
-           apply set_subset_union_l; split; [|type_solver].
-           generalize (w_covered_issued TCCOH). basic_solver. }
+           red. rewrite <- ISSEQ.
+           eapply issuable_next_w; auto.
+           split; auto.
+           red. split; [split|]; auto.
+           { red. by rewrite COVEQ. }
+           red. intros AA. apply C1. by apply COVEQ. }
       eexists. eexists. 
       assert (itrav_step G sc e T {| covered := covered T ∪₁ eq e; issued := issued T |})
         as A1.
       { red. left. splits; auto. }
       assert (tc_coherent G sc {| covered := covered T ∪₁ eq e; issued := issued T |}) as B1.
-      { eapply trav_step_coherence; eauto. by exists e. }
+      { eapply trav_step_coherence with (C:=T); eauto. by exists e. }
 
       assert (itrav_step G sc w {| covered := covered T ∪₁ eq e; issued := issued T |}
                          {| covered := covered T ∪₁ eq e; issued := issued T ∪₁ eq w |})
