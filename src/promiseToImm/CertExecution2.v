@@ -12,6 +12,7 @@ Require Import CertCOhelper.
 Require Import CombRelations.
 Require Import TraversalConfig.
 Require Import TraversalConfigAlt.
+Require Import TraversalConfigAltOld.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -1894,9 +1895,54 @@ generalize dom_sb_F_AcqRel_in_CI. basic_solver 12.
 generalize E_F_AcqRel_in_C; basic_solver 12.
 Qed.
 
-Lemma dom_cert_ar_I : dom_rel (⦗W⦘ ⨾ Car⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Lemma TCCOH_cert_old : tc_coherent_alt_old certG sc (mkTC (C ∪₁ (E ∩₁ NTid_ thread)) I).
 Proof.
-Admitted.
+  assert (TCCOH1:= TCCOH_rst_new_T).
+  apply (tc_coherent_implies_tc_coherent_alt WF WF_SC) in TCCOH1.
+  destruct TCCOH1.
+  constructor.
+  all: try by ins.
+  { ins; rewrite cert_W; done. }
+  { rewrite rfi_union_rfe; relsf; unionL; splits; ins.
+    rewrite (dom_l (wf_rfiD WF_cert)), cert_W.
+    arewrite (Crfi ⊆ Gsb).
+    generalize tc_sb_C, tc_W_C_in_I; basic_solver 21.
+    rewrite cert_rfe; basic_solver 21. }
+  { ins; rewrite cert_W; done. }
+  { ins; rewrite cert_fwbob; done. }
+  { relsf; unionL; splits; simpls.
+    3,4: rewrite cert_rfe; basic_solver.
+    { rewrite I_in_D at 1.
+      arewrite (⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗D⦘) by basic_solver.
+      sin_rewrite cert_ppo_D.
+      rewrite (dom_rel_helper dom_ppo_D).
+      sin_rewrite cert_detour_D.
+      basic_solver. }
+    unfold bob; relsf; unionL; splits; simpls.
+    { arewrite (⦗I⦘ ⊆ ⦗C ∪₁ I⦘) at 1.
+      rewrite cert_fwbob.
+      rewrite (dom_rel_helper dom_fwbob_I).
+      rewrite C_in_D, I_in_D at 1; relsf.
+      sin_rewrite cert_detour_D.
+      basic_solver. }
+    rewrite I_in_D at 1.
+    rewrite !seqA.
+    rewrite cert_sb.
+    rewrite cert_R, cert_Acq.
+    rewrite cert_detour_R_Acq_sb_D.
+    basic_solver. }
+  ins; rewrite cert_W_ex_acq.
+  rewrite cert_sb. eapply tc_W_ex_sb_I; eauto.
+  apply tc_coherent_implies_tc_coherent_alt; eauto.
+Qed.
+
+Lemma dom_cert_ar_I : dom_rel (⦗is_w certG.(lab)⦘ ⨾ Car⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof.
+  eapply otc_I_ar_I_implied_helper_2 with (T:=mkTC (C ∪₁ (E ∩₁ NTid_ thread)) I).
+  { apply WF_cert. }
+  { apply WF_SC_cert. }
+  apply TCCOH_cert_old.
+Qed.
 
 Lemma TCCOH_cert : tc_coherent certG sc (mkTC (C ∪₁ (E ∩₁ NTid_ thread)) I).
 Proof.
@@ -1913,43 +1959,8 @@ Proof.
     rewrite cert_rfe; basic_solver 21. }
   { ins; rewrite cert_W; done. }
   { ins; rewrite cert_fwbob; done. }
-  ins.
-  rewrite cert_W.
-  apply dom_cert_ar_I.
-
-  (* apply tc_ar_I. *)
-
-  (* relsf; unionL; splits. *)
-  (* * rewrite I_in_D at 1. *)
-  (*   arewrite (⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗D⦘) by basic_solver. *)
-
-  (*   sin_rewrite cert_ppo_D. *)
-  (*   rewrite (dom_rel_helper dom_ppo_D). *)
-  (*   sin_rewrite cert_detour_D. *)
-  (*   basic_solver. *)
-  (* * unfold bob; relsf; unionL; splits. *)
-  (*   arewrite (⦗I⦘ ⊆ ⦗C ∪₁ I⦘) at 1. *)
-  (*   rewrite (dom_rel_helper dom_fwbob_I). *)
-  (*   rewrite C_in_D, I_in_D at 1; relsf. *)
-  (*   sin_rewrite cert_detour_D. *)
-  (*   basic_solver. *)
-
-  (* + *)
-  (*   rewrite I_in_D at 1. *)
-  (*   rewrite !seqA. *)
-  (*   rewrite cert_detour_R_Acq_sb_D. *)
-
-  (*   basic_solver. *)
-  (*   * *)
-  (*     rewrite cert_rfe. *)
-  (*     basic_solver. *)
-  (*   *  *)
-  (*     rewrite cert_rfe. *)
-  (*     basic_solver. *)
-
-  (* - ins; rewrite cert_W_ex_acq; done. *)
+  ins. apply dom_cert_ar_I.
 Qed.
-
 
 End CertExec.
 
