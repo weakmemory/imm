@@ -861,16 +861,20 @@ Proof.
          exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
     intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
     eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. }
+  { unfold add_rmw, acts_set in *; simpls.
+    destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
+    2: { exfalso. apply NINO. ins. set (YY := H); apply INN in YY; desf.
+         exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
+    intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
+    eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. }
+
   unfold add_rmw, acts_set in *; simpls.
   destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
   2: { exfalso. apply NINO. ins. set (YY := H); apply INN in YY; desf.
        exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
   { intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
     eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. } 
-(* { intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf. *)
-  (*   eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. } *)
-  { admit. }
-Admitted. 
+Qed. 
   
 Lemma steps_middle_set thread state state' C cindex
       (GPC : wf_thread_state thread state)
