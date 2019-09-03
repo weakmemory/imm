@@ -317,12 +317,20 @@ Proof.
       red in RMW. desf.
       rewrite plus_comm.
       eexists. splits; eauto. }
+    { unfold add_rmw. simpls. ins.
+      destruct RMW as [RMW|RMW].
+      2: by apply WF.
+      red in RMW. desf.
+      rewrite plus_comm.
+      eexists. splits; eauto. }
+    (* TODO: get rid of copypaste *)
     unfold add_rmw. simpls. ins.
     destruct RMW as [RMW|RMW].
     2: by apply WF.
     red in RMW. desf.
     rewrite plus_comm.
-    eexists. splits; eauto. }
+    eexists. splits; eauto.
+    }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
@@ -337,10 +345,13 @@ Proof.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
       basic_solver 10. }
-    unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
+    { unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
       seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
-    basic_solver 12. }
+                       (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
+      basic_solver 12. }
+    unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
+    basic_solver 12.
+  }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
@@ -351,10 +362,21 @@ Proof.
       basic_solver.
     { unfold add; simpls; rewrite WF.(wft_addrE) at 1.
       basic_solver. }
-    all: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1;
+
+    (* all: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1; *)
+    (*   seq_rewrite <- (set_inter_absorb_r *)
+    (*                     (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr)); *)
+    (*   basic_solver 10. *)
+    1-2: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1;
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
-      basic_solver 10. }
+      basic_solver 10.
+    
+    unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1.
+    seq_rewrite <- (set_inter_absorb_r
+                     (depf_preserves_set_lexpr _ WF.(wft_depfE) loc_expr)). 
+    basic_solver 100. 
+  }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
@@ -379,8 +401,7 @@ Proof.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
       basic_solver. }
-    unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1.
-    basic_solver. }
+    all: unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1; basic_solver. }
   { destruct ISTEP0.
     all: rewrite UG, UECTRL.
     { by apply WF. }
@@ -524,6 +545,15 @@ Proof.
     exfalso.
     edestruct GPC.(acts_rep); eauto.
     desf. omega. }
+  { unfold add_rmw. simpls.
+    rewrite seq_union_r.
+    apply inclusion_union_l; [|basic_solver].
+    intros x y HH.
+    apply seq_eqv_l in HH. destruct HH as [EE HH].
+    red in HH. desf.
+    exfalso.
+    edestruct GPC.(acts_rep); eauto.
+    desf. omega. }
   unfold add_rmw. simpls.
   rewrite seq_union_r.
   apply inclusion_union_l; [|basic_solver].
@@ -578,7 +608,7 @@ Proof.
   destruct ISTEP0.
   all: rewrite UG; auto.
   1-4: unfold add; simpls; rewrite updo; auto.
-  5,6: unfold add_rmw; simpls; rewrite updo; auto;
+  5-7: unfold add_rmw; simpls; rewrite updo; auto;
     [unfold add_rmw; simpls; rewrite updo; auto|].
   all: intros HH; rewrite REP in HH; inv HH; omega.
 Qed.
@@ -755,7 +785,7 @@ Proof.
   all: rewrite UG.
   1,2: by splits; apply GPC.
   1-4: unfold add; simpls.
-  5-6: unfold add_rmw; simpls.
+  5-7: unfold add_rmw; simpls. 
   all: splits; relsf; try apply GPC.
   all: try by (rewrite GPC.(wft_rmwE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_dataE) at 1; basic_solver).
@@ -835,10 +865,13 @@ Proof.
   destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
   2: { exfalso. apply NINO. ins. set (YY := H); apply INN in YY; desf.
        exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
-  intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
-  eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left.
-Qed.
-
+  { intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
+    eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. } 
+(* { intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf. *)
+  (*   eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. } *)
+  { admit. }
+Admitted. 
+  
 Lemma steps_middle_set thread state state' C cindex
       (GPC : wf_thread_state thread state)
       (OIN : state.(G).(acts_set) ⊆₁ C)
