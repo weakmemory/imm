@@ -1133,7 +1133,7 @@ Lemma receptiveness_sim_exchange (tid : thread_id)
      add_rmw (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) old_value_orig)
        (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
           (RegFile.eval_expr (regf s1) new_expr))
-       (eq (ThreadEvent tid s1.(eindex)))
+       (DepsFile.expr_deps s1.(depf) new_expr)
        (DepsFile.lexpr_deps (depf s1) lexpr)
        (ectrl s1) ∅)
 (UINDEX : eindex s2 = eindex s1 + 2)
@@ -1150,9 +1150,6 @@ Lemma receptiveness_sim_exchange (tid : thread_id)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
-  Notation "'<' t '∙' i '>'" := (ThreadEvent t i) (format "'<' t '∙' i '>'").
-  Notation "'IND' st" := (eindex st) (format "'IND' st", at level 0).
-  
   red in SIM; desc.
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
@@ -1196,26 +1193,13 @@ do 7 eexists; splits; red; splits.
       rewrite !updo; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1' + 1))).
-      -- (* Notation "'XXX' loc value" := (Astore xmod ordw loc value) (at level 0).   *)
-
-        (* remember (ThreadEvent tid (eindex s1 + 1)) as readevent. *)
-         (* rewrite Heqreadevent in *.  *)
-        (* subst; rewrite SAME_LOC. *)
-         (* unfold val; rewrite !upds. *)
-         (* erewrite regf_expr_helper; try edone. *)
-         (* intro reg0; specialize (REGF reg0); desf; eauto. *)
-         (* ins; intro DEPS; eapply NDATA; unfolder; splits; eauto. *)
-        (* by rewrite EINDEX. *)
-        
+      -- 
         subst; rewrite SAME_LOC.
-        unfold val; rewrite !upds.
-        erewrite regf_expr_helper with (regf:=(regf s1')) (regf':=(regf s1)). 
-        { auto. }
-        { intro reg0; specialize (REGF reg0); desf; eauto. }
-        ins. intro DEPS. eapply NDATA. unfolder. splits; eauto. 
-        rewrite EINDEX.
-        unfold DepsFile.expr_deps in DEPS. 
-        admit. 
+         unfold val; rewrite !upds.
+         erewrite regf_expr_helper; try edone.
+         intro reg0; specialize (REGF reg0); desf; eauto.
+         ins; intro DEPS; eapply NDATA; unfolder; splits; eauto.
+        by rewrite EINDEX.
       -- unfold val; rewrite updo; [|done].
          destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
          ** subst; rewrite SAME_LOC.
@@ -1225,14 +1209,14 @@ do 7 eexists; splits; red; splits.
          ** rewrite !updo; try done.
             by apply OLD_VAL in NIN; unfold val in NIN; rewrite NIN.
     + by rewrite RMW, EINDEX.
-    + admit. (* by rewrite DATA, EINDEX, DEPF. *)
+    + by rewrite DATA, EINDEX, DEPF.
     + by rewrite ADDR, EINDEX, DEPF.
     + by rewrite CTRL, EINDEX, ECTRL.
     + by rewrite FRMW, EINDEX.
   * ins; congruence.
   * ins; rewrite UREGS, UDEPS.
     unfold RegFun.add, RegFun.find in *; desf; eauto.
-  * admit. (* eby ins; rewrite <- DEPF, <- EINDEX. *)
+  * eby ins; rewrite <- DEPF, <- EINDEX.
   * ins; congruence.
   * ins; unfold acts_set, is_r, is_w in INr, INw, READ, WRITE; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
@@ -1280,8 +1264,7 @@ do 7 eexists; splits; red; splits.
       apply NEW_VAL2; try done.
       unfold is_r in *; rewrite !updo in READ; try done.
       by unfold add, acts_set in IN; ins; desf.
-Admitted. 
-
+Qed. 
 
 Lemma receptiveness_sim_step (tid : thread_id)
   s1 s2

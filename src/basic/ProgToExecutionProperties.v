@@ -350,6 +350,8 @@ Proof.
                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
       basic_solver 12. }
     unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
+    seq_rewrite <- (set_inter_absorb_r
+                     (depf_preserves_set_expr _ WF.(wft_depfE) new_expr)).
     basic_solver 12.
   }
   { split; [|basic_solver].

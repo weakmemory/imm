@@ -243,7 +243,7 @@ Section State.
                  add_rmw s1.(G) tid s1.(eindex)
                      (Aload true ordr loc old_value)
                      (Astore xmod ordw loc new_value)
-                     (eq (ThreadEvent tid s1.(eindex)))
+                     (DepsFile.expr_deps s1.(depf) new_expr)
                      (DepsFile.lexpr_deps s1.(depf) loc_expr)
                      s1.(ectrl)
                      ∅)
