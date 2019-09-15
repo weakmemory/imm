@@ -45,6 +45,9 @@ Variable G : execution.
 
 Definition acts_set := fun x => In x G.(acts).
 
+Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
+
 Notation "'E'" := acts_set.
 Notation "'lab'" := G.(lab).
 Notation "'rf'" := G.(rf).
@@ -333,6 +336,14 @@ Proof.
 by apply trans_irr_acyclic; [apply co_irr| apply co_trans]. 
 Qed.
 
+Lemma wf_sb : well_founded sb.
+Proof.
+  eapply wf_finite; auto.
+  apply sb_acyclic.
+  rewrite (dom_l wf_sbE).
+  unfold doma; basic_solver.
+Qed.
+
 (******************************************************************************)
 (** ** init *)
 (******************************************************************************)
@@ -388,6 +399,9 @@ unfold Events.loc in LOC.
 rewrite (wf_init_lab WF l), (wf_init_lab WF l0) in LOC; desf.
 Qed.
 
+Lemma Rel_not_init WF : Rel ⊆₁ set_compl is_init.
+Proof. rewrite WF.(init_pln). mode_solver. Qed.
+
 (******************************************************************************)
 (** ** More properties *)
 (******************************************************************************)
@@ -422,6 +436,18 @@ Lemma sb_tid_init x y (SB : sb x y): tid x = tid y \/ is_init x.
 Proof.
 generalize ext_sb_tid_init; unfold sb in *.
 unfolder in *; basic_solver.
+Qed.
+
+Lemma E_ntid_sb_prcl thread :
+  dom_rel (⦗set_compl is_init⦘ ⨾ sb ⨾ ⦗E ∩₁ NTid_ thread⦘) ⊆₁ E ∩₁ NTid_ thread.
+Proof.
+  rewrite (dom_l wf_sbE).
+  unfolder. ins. desf. splits; auto.
+  match goal with
+  | H : sb _ _ |- _ => rename H into SB
+  end.
+  apply sb_tid_init in SB. desf.
+  intros BB. rewrite BB in *. desf.
 Qed.
 
 Lemma sb_tid_init': sb ≡ sb ∩ same_tid ∪ ⦗is_init⦘ ⨾ sb.
@@ -771,6 +797,16 @@ Qed.
 
 Definition W_ex := codom_rel rmw.
 
+Lemma W_ex_not_init WF : W_ex ⊆₁ set_compl is_init.
+Proof.
+  unfolder. ins. desf.
+  match goal with
+  | H : W_ex _ |- _ => rename H into WEX
+  end.
+  destruct WEX as [z WEX].
+  apply WF.(rmw_in_sb) in WEX.
+  apply no_sb_to_init in WEX. unfolder in WEX. desf.
+Qed.
 
 Lemma W_ex_in_W WF : W_ex ⊆₁ W.
 Proof.
@@ -789,6 +825,16 @@ Proof.
 unfold W_ex; basic_solver.
 Qed.
 
+Lemma W_ex_acq_not_init WF : W_ex_acq ⊆₁ set_compl is_init.
+Proof.
+  unfolder. ins. desf.
+  match goal with
+  | H : W_ex _ |- _ => rename H into WEX
+  end.
+  destruct WEX as [z WEX].
+  apply WF.(rmw_in_sb) in WEX.
+  apply no_sb_to_init in WEX. unfolder in WEX. desf.
+Qed.
 
 (******************************************************************************)
 (** ** rf ⨾ rmw *)

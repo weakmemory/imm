@@ -179,4 +179,27 @@ Proof.
   apply coherence_sc_per_loc. by apply IMMCON.
 Qed.
 
+Lemma ar_ct_rfrmw_ct_in_ar_ct : ar⁺ ⨾ (rf ⨾ rmw)⁺ ⊆ ar⁺.
+Proof.
+  intros x y [z [AA BB]].
+  apply clos_trans_t1n in BB.
+  induction BB.
+  2: apply IHBB.
+  all: apply ar_ct_rfrmw_in_ar_ct; auto.
+  all: basic_solver.
+Qed.
+
+Lemma ar_rfrmw_ct_in_ar_ct : ar ⨾ (rf ⨾ rmw)⁺ ⊆ ar⁺.
+Proof.
+  rewrite ct_step with (r:=ar) at 1. by apply ar_ct_rfrmw_ct_in_ar_ct.
+Qed.
+
+Lemma wf_ar_rfrmw_ct : well_founded (ar ∪ rf ;; rmw)⁺.
+Proof.
+  eapply wf_finite; auto.
+  { red. rewrite ct_of_ct. apply ar_rfrmw_acyclic; auto. }
+  rewrite wf_ar_rfrmw_ctE; auto.
+  apply doma_eqv.
+Qed.
+
 End ImmRFRMW.

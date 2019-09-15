@@ -182,6 +182,14 @@ Proof.
   unfold ppo. hahn_frame. rewrite <- ct_step. eauto with hahn.
 Qed.
 
+Lemma rmw_sb_cr_W_in_ppo WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppo.
+Proof.
+  rewrite crE. rewrite seq_union_l, seq_union_r, seq_id_l.
+  rewrite WF.(rmw_sb_W_in_ppo).
+  rewrite WF.(rmw_in_ppo). eauto with hahn hahn_full.
+Qed.
+
+
 (******************************************************************************)
 (** ** Relations in graph *)
 (******************************************************************************)

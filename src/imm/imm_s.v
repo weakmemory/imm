@@ -485,4 +485,80 @@ Proof.
   unfold fwbob. eauto with hahn.
 Qed.
 
+Lemma no_ar_to_init WF IMMCON : ar ;; <|is_init|> ≡ ∅₂.
+Proof.
+  split; [|basic_solver].
+  unfold ar.
+  rewrite WF.(ar_int_in_sb). rewrite no_sb_to_init.
+  rewrite wf_scD; [|by apply IMMCON].
+  rewrite WF.(wf_rfeD).
+  rewrite seq_union_l. unionL; [|basic_solver].
+  rewrite WF.(init_w). type_solver 10.
+Qed.
+
+Lemma no_ar_rfrmw_to_init WF IMMCON : (ar ∪ rf ⨾ rmw) ;; <|is_init|> ≡ ∅₂.
+Proof.
+  split; [|basic_solver].
+  rewrite seq_union_l, seqA, no_ar_to_init; auto.
+  rewrite WF.(rmw_in_sb). rewrite no_sb_to_init.
+  basic_solver.
+Qed.
+
+Lemma wf_ar_rfrmwE WF IMMCON :
+  ar ∪ rf ;; rmw ≡ <|E|> ;; (ar ∪ rf ;; rmw) ;; <|E|>.
+Proof.
+  rewrite wf_arE at 1; auto.
+  2: by apply IMMCON.
+  rewrite (dom_l WF.(wf_rfE)) at 1.
+  rewrite (dom_r WF.(wf_rmwE)) at 1.
+  basic_solver 10.
+Qed.
+
+Lemma wf_ar_rfrmw_ctE WF IMMCON :
+  (ar ∪ rf ;; rmw)⁺ ≡ <|E|> ;; (ar ∪ rf ;; rmw)⁺ ;; <|E|>.
+Proof.
+  split; [|basic_solver].
+  rewrite wf_ar_rfrmwE at 1; auto.
+  rewrite inclusion_ct_seq_eqv_l.
+    by rewrite inclusion_ct_seq_eqv_r.
+Qed.
+
+Lemma ar_ar_in_ar_ct : ar ;; ar ⊆ ar⁺.
+Proof.
+  rewrite ct_step with (r:=ar) at 1 2. apply ct_ct.
+Qed.
+
+Lemma rfe_n_same_tid WF IMMCON : rfe ∩ same_tid ⊆ ∅₂.
+Proof.
+  arewrite (rfe ∩ same_tid ⊆ rfe ∩ (<|E|> ;; same_tid ;; <|E|>)).
+  { rewrite WF.(wf_rfeE) at 1. basic_solver. }
+  arewrite (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘ ⊆ same_tid ∩ (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘)) by basic_solver.
+  rewrite tid_sb.
+  rewrite !inter_union_r.
+  unionL.
+  3: { rewrite WF.(wf_rfeD). rewrite init_w; eauto. type_solver. }
+  2: { unfolder. ins. desf.
+       cdes IMMCON.
+       eapply Cint. eexists. split.
+       { eby apply sb_in_hb. }
+       right. apply rf_in_eco.
+       match goal with
+       | H : rfe _ _ |- _ => apply H
+       end. }
+  unfolder. ins. desf.
+  { eapply eco_irr; eauto. apply rf_in_eco.
+    match goal with
+    | H : rfe _ _ |- _ => apply H
+    end. }
+  cdes IMMCON.
+  eapply (thread_rfe_sb WF (coherence_sc_per_loc Cint)).
+  basic_solver 10.
+Qed.
+
+Lemma ar_W_in_ar_int WF IMMCON : ar ;; <|W|> ⊆ ar_int.
+Proof.
+  unfold ar. erewrite wf_scD; [|by apply IMMCON].
+  rewrite WF.(wf_rfeD). type_solver.
+Qed.
+
 End IMM.
