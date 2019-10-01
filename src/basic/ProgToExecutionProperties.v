@@ -307,40 +307,34 @@ Proof.
       basic_solver.
     all: unfold add_rmw; simpls; rewrite WF.(wft_rmwE) at 1;
       basic_solver. }
-  { destruct ISTEP0.
+  { assert (RMW_HELPER: forall ldlab stlab dps ldps edps r w,
+               rmw (add_rmw (G s) thread (eindex s) ldlab stlab
+                            dps ldps (ectrl s) edps) r w
+               -> exists index : nat,
+                 r = ThreadEvent thread index
+                 /\ w = ThreadEvent thread (S index)).
+    { unfold add_rmw. simpls. intros lblab stlab dps ldps edps r w RMW. 
+      destruct RMW as [RMW|RMW].
+      2: by apply WF.
+      red in RMW. desf.
+      rewrite plus_comm.
+      eexists. splits; eauto. }
+
+    destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
     1-4: by unfold add; simpls; apply WF.
-    { unfold add_rmw. simpls. ins.
-      destruct RMW as [RMW|RMW].
-      2: by apply WF.
-      red in RMW. desf.
-      rewrite plus_comm.
-      eexists. splits; eauto. }
-    { unfold add_rmw. simpls. ins.
-      destruct RMW as [RMW|RMW].
-      2: by apply WF.
-      red in RMW. desf.
-      rewrite plus_comm.
-      eexists. splits; eauto. }
-    (* TODO: get rid of copypaste *)
-    unfold add_rmw. simpls. ins.
-    destruct RMW as [RMW|RMW].
-    2: by apply WF.
-    red in RMW. desf.
-    rewrite plus_comm.
-    eexists. splits; eauto.
-    }
+    all: apply RMW_HELPER. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1,3,4: unfold add; simpls; rewrite WF.(wft_dataE) at 1;
-      basic_solver 10.
+    1,3,4: unfold add; simpls; rewrite WF.(wft_dataE) at 1; basic_solver 10.
     { unfold add; simpls; rewrite WF.(wft_dataE) at 1.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr)).
       basic_solver. }
+    
     { unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
@@ -352,8 +346,7 @@ Proof.
     unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
     seq_rewrite <- (set_inter_absorb_r
                      (depf_preserves_set_expr _ WF.(wft_depfE) new_expr)).
-    basic_solver 12.
-  }
+    basic_solver 12.  }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
@@ -364,11 +357,6 @@ Proof.
       basic_solver.
     { unfold add; simpls; rewrite WF.(wft_addrE) at 1.
       basic_solver. }
-
-    (* all: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1; *)
-    (*   seq_rewrite <- (set_inter_absorb_r *)
-    (*                     (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr)); *)
-    (*   basic_solver 10. *)
     1-2: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1;
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
