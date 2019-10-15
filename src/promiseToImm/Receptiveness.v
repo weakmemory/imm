@@ -1118,37 +1118,39 @@ do 7 eexists; splits; red; splits.
       by unfold add, acts_set in IN; ins; desf.
 Qed.
 
-Lemma receptiveness_sim_exchange (tid : thread_id)
-  s1 s2 (INSTRS0 : instrs s1 = instrs s2)
- (new_expr : Instr.expr)
- xmod
-(ordr ordw : mode)
-(reg : Reg.t)
-(lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.exchange new_expr) xmod ordr ordw reg lexpr) =
-        nth_error (instrs s1) (pc s1))
-(old_value_orig : nat)
-(UPC : pc s2 = pc s1 + 1)
-(UG : G s2 =
-     add_rmw (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) old_value_orig)
-       (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
-          (RegFile.eval_expr (regf s1) new_expr))
-       (DepsFile.expr_deps s1.(depf) new_expr)
-       (DepsFile.lexpr_deps (depf s1) lexpr)
-       (ectrl s1) ∅)
-(UINDEX : eindex s2 = eindex s1 + 2)
-(UREGS : regf s2 = RegFun.add reg old_value_orig (regf s1))
-(UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
-(UECTRL : ectrl s2 = ectrl s1)
-  MOD (new_rfi : relation actid) new_val
-  (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-  (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
-  (RFI_INDEX : new_rfi ⊆ ext_sb)
-  (TWF : thread_wf tid s1)
-  s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
- exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
+Lemma receptiveness_sim_exchange
+      (tid : thread_id)
+      s1 s2 (INSTRS0 : instrs s1 = instrs s2)
+      (new_expr : Instr.expr)
+      xmod
+      (ordr ordw : mode)
+      (reg : Reg.t)
+      (lexpr : Instr.lexpr)
+      (ISTEP : Some (Instr.update (Instr.exchange new_expr) xmod ordr ordw reg lexpr) = nth_error (instrs s1) (pc s1))
+      (old_value_orig : nat)
+      (UPC : pc s2 = pc s1 + 1)
+      (UG : G s2 = add_rmw (G s1) tid (eindex s1)
+                           (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr)
+                                  old_value_orig)
+                           (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
+                                   (RegFile.eval_expr (regf s1) new_expr))
+                           (DepsFile.expr_deps s1.(depf) new_expr)
+                           (DepsFile.lexpr_deps (depf s1) lexpr)
+                           (ectrl s1) ∅)
+      (UINDEX : eindex s2 = eindex s1 + 2)
+      (UREGS : regf s2 = RegFun.add reg old_value_orig (regf s1))
+      (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1)))
+                                    (depf s1))
+      (UECTRL : ectrl s2 = ectrl s1)
+      MOD (new_rfi : relation actid) new_val
+      (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
+      (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
+      (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
+      (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+      (RFI_INDEX : new_rfi ⊆ ext_sb)
+      (TWF : thread_wf tid s1)
+      s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
+  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
   red in SIM; desc.
 
