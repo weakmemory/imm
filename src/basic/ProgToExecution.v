@@ -96,7 +96,7 @@ Section State.
      |}.
 
   Definition is_terminal s: Prop :=
-    s.(pc) > s.(instrs).(length).
+    s.(pc) >= s.(instrs).(length).
   
   Definition add G tid index elab ddata daddr dctrl drmw_dep :=
     let e := ThreadEvent tid index in 
