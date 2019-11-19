@@ -122,7 +122,7 @@ Proof.
   { exists (ProgramEvent.update l val nval (rmod ordr) (wmod ordw)).
     splits; auto. }
   exists (ProgramEvent.update loc old_value new_value (rmod ordr) (wmod ordw)).
-    splits; auto.
+  splits; auto.
 Qed.
 
 Lemma sim_state_to_events_helper_add

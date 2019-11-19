@@ -260,7 +260,7 @@ Section State.
                istep_ tid labels s1 s2 instr ⟫.
 
   Definition step (tid : thread_id) s1 s2 :=
-    exists lbls, istep tid lbls s1 s2.  
+    exists lbls, istep tid lbls s1 s2.
   
   Definition thread_execution
              (tid : thread_id) (insts : list Instr.t) (pe : execution) :=
