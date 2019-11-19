@@ -351,7 +351,7 @@ Proof.
 
     all: unfold add, add_rmw; simpls; rewrite WF.(wft_addrE) at 1.
     { basic_solver. }
-    3: rename loc_expr into lexpr. 
+    3: rename loc_expr into lexpr.
     all: seq_rewrite <- (set_inter_absorb_r
                           (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
       basic_solver 10. }
@@ -751,8 +751,8 @@ Proof.
   { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. omega. }
   destruct ISTEP0; simpls.
   all: rewrite UG.
-  1,2: by splits; apply GPC. 
-  all: unfold add, add_rmw; simpls; splits. 
+  1,2: by splits; apply GPC.
+  all: unfold add, add_rmw; simpls; splits.
   all: try apply GPC.
   all: try by (rewrite GPC.(wft_rmwE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_dataE) at 1; basic_solver).
@@ -825,8 +825,7 @@ Proof.
     intros y [AA|BB]; [|by apply OIN].
     destruct (classic (C y)) as [|NC]; auto.
     by exfalso; apply NINO; ins;
-      set (YY := H0); apply INN in YY; desf. } 
-  
+      set (YY := H0); apply INN in YY; desf. }
   assert (G'2: (exists new_lbl1 new_lbl2 add_dep1 add_ldep add_ctrl add_dep2,
                    G state' = add_rmw (G state) thread (eindex state)
                                       new_lbl1 new_lbl2
@@ -840,10 +839,9 @@ Proof.
          exfalso. apply NC. eapply RMWC; [|by apply H0]. by left. }
     intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
     eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. }
-    
   destruct ISTEP0.
   all: rewrite UG in *; auto.
-  1-4: eapply G'1; repeat eexists.   
+  1-4: eapply G'1; repeat eexists.
   all: eapply G'2; repeat eexists.
 Qed. 
   
