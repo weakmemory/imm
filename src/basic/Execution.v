@@ -883,7 +883,7 @@ Qed.
 
 Lemma sw_in_ar_helper WF:
   ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)＊ ⊆
-  (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
+  (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘)⁺.
 Proof.
   rewrite rtE at 1; relsf; unionL; [basic_solver 21|].
   rewrite rfi_union_rfe; relsf.
@@ -902,7 +902,6 @@ Proof.
   rewrite (rfi_in_sbloc' WF) at 1 2.
   rewrite (rmw_in_sb_loc WF) at 1 3.
   generalize sb_same_loc_trans; intros HH; relsf.
-  arewrite ((sb ∩ same_loc) ⊆ sb) at 3.
   unionR right.
   rewrite (dom_l WF.(wf_rfeD)), !seqA.
   rewrite <- seqA with (r2:= ⦗W⦘).
@@ -910,12 +909,12 @@ Proof.
   arewrite ((sb ∩ same_loc)^? ⨾ (sb ∩ same_loc)^? ⊆ (sb ∩ same_loc)^?).
   { generalize HH. basic_solver 10. }
   hahn_frame.
-  arewrite ((sb ⨾ ⦗W⦘)＊ ⨾ (sb ∩ same_loc)^? ⊆ sb^?).
+  arewrite (((sb ∩ same_loc) ⨾ ⦗W⦘)＊ ⨾ (sb ∩ same_loc)^? ⊆ (sb ∩ same_loc)^?).
   { arewrite_id ⦗W⦘. rewrite seq_id_r. rewrite rt_of_trans.
-    2: by apply sb_trans.
-    generalize sb_trans.
+    2: by apply sb_same_loc_trans.
+    generalize sb_same_loc_trans.
     basic_solver 10. }
-  arewrite (rmw ⨾ (sb ⨾ ⦗W⦘)＊ ⊆ rmw ⨾ sb^? ⨾ ⦗W⦘).
+  arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)＊ ⊆ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘).
   2: { rewrite (dom_l WF.(wf_rfeD)) at 1 2; rewrite !seqA.
        arewrite_id ⦗W⦘ at 1. rewrite seq_id_l.
        apply ct_end. }
@@ -924,11 +923,11 @@ Proof.
   { rewrite (dom_r (wf_rmwD WF)) at 1. basic_solver 10. }
   rewrite ct_of_trans.
   { basic_solver 10. }
-  generalize sb_trans. basic_solver.
+  generalize sb_trans, same_loc_trans. basic_solver 20.
 Qed.
 
 Lemma s_sw_in_ar_helper WF:
-  (rf ⨾ rmw)＊ ⊆ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
+  (rf ⨾ rmw)＊ ⊆ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘)⁺.
 Proof.
   arewrite (rf ⨾ rmw ⊆ (sb ∩ same_loc)^? ⨾ rf ⨾ rmw).
   { basic_solver 10. }
