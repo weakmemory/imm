@@ -70,10 +70,9 @@ Definition bob := fwbob ∪ ⦗R∩₁Acq⦘ ⨾ sb.
 
 Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪
                               rmw ;; ((sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪ rmw_dep ;; sb^?)⁺ ⨾ ⦗W⦘.
-Lemma R_ex_in_ppo : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
-Admitted.
 
-Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘.
+Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ 
+                     ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘.
 
 Implicit Type WF : Wf G.
 Implicit Type COMP : complete G.
@@ -242,7 +241,7 @@ Proof.
 split; [|basic_solver].
 unfold ar_int.
 rewrite (wf_bobE WF), (wf_ppoE WF) at 1.
-rewrite (wf_detourE WF), (@wf_sbE G).
+rewrite (wf_detourE WF), (@wf_sbE G), (wf_rfiE WF).
 basic_solver 42.
 Qed.
 
@@ -290,6 +289,7 @@ unfold ar_int.
 rewrite bob_in_sb.
 rewrite (ppo_in_sb WF).
 arewrite (detour ⊆ sb).
+arewrite (rfi ⊆ sb).
 basic_solver 21.
 Qed.
 
@@ -343,16 +343,16 @@ Qed.
 (* Qed. *)
 
 Lemma bob_in_ar_int : bob ⊆ ar_int.
-Proof. unfold ar_int. basic_solver. Qed.
+Proof. unfold ar_int. basic_solver 10. Qed.
 
 Lemma ppo_in_ar_int : ppo ⊆ ar_int.
-Proof. unfold ar_int. basic_solver. Qed.
+Proof. unfold ar_int. basic_solver 10. Qed.
 
 Lemma detour_in_ar_int : detour ⊆ ar_int.
 Proof. unfold ar_int. basic_solver. Qed.
 
 Lemma w_ex_acq_sb_w_in_ar_int : ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar_int.
-Proof. unfold ar_int. basic_solver 5. Qed.
+Proof. unfold ar_int. basic_solver 10. Qed.
 
 Lemma bob_ppo_W_sb WF :
   (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
