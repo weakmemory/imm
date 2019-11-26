@@ -91,10 +91,10 @@ Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
-Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
+(* Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl. *)
+Hypothesis RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
-
 
 Hypothesis CON: ArmConsistent G.
 
@@ -109,35 +109,36 @@ Proof. apply CON. Qed.
 (** * consequences of the compilation scheme  *)
 (******************************************************************************)
 
-Lemma rmw_sb_in_ctrl: rmw ⨾ sb ⊆ ctrl.
-Proof.
-rewrite (dom_l (wf_rmwD WF)).
-rewrite (wf_rmwi WF), immediateE, !seqA.
-unfolder; ins; desf.
-assert (AA: (rmw ∩ data ∪ ctrl) x y).
-by revert RMW_CTRL_FAIL; generalize (@sb_trans G); basic_solver 14.
-unfolder in AA; desf.
-exfalso; eapply (wf_rmwi WF); eauto.
-Qed.
+(* Lemma rmw_sb_in_ctrl: rmw ⨾ sb ⊆ ctrl. *)
+(* Proof. *)
+(* rewrite (dom_l (wf_rmwD WF)). *)
+(* rewrite (wf_rmwi WF), immediateE, !seqA. *)
+(* unfolder; ins; desf. *)
+(* assert (AA: (rmw ∩ data ∪ ctrl) x y). *)
+(* by revert RMW_CTRL_FAIL; generalize (@sb_trans G); basic_solver 14. *)
+(* unfolder in AA; desf. *)
+(* exfalso; eapply (wf_rmwi WF); eauto. *)
+(* Qed. *)
 
 
-Lemma rmw_in_deps: rmw ⊆ deps.
-Proof.
-rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF).
-rewrite RMW_CTRL_FAIL; unfold Execution.deps; basic_solver.
-Qed.
+(* Lemma rmw_in_deps: rmw ⊆ deps. *)
+(* Proof. *)
+(* rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF). *)
+(* rewrite RMW_CTRL_FAIL; unfold Execution.deps; basic_solver. *)
+(* Qed. *)
 
-Lemma rmw_sb_in_deps: rmw ⨾ sb^? ⊆ deps.
-Proof.
-case_refl _.
-apply rmw_in_deps.
-rewrite rmw_sb_in_ctrl; vauto.
-Qed.
+(* Lemma rmw_sb_in_deps: rmw ⨾ sb^? ⊆ deps. *)
+(* Proof. *)
+(* case_refl _. *)
+(* apply rmw_in_deps. *)
+(* rewrite rmw_sb_in_ctrl; vauto. *)
+(* Qed. *)
 
-Lemma RMW_CTRL_FAIL' : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∪ ctrl.
-Proof.
-rewrite RMW_CTRL_FAIL; basic_solver.
-Qed.
+(* Lemma RMW_CTRL_FAIL' : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∪ ctrl. *)
+(* Proof. *)
+(* rewrite RMW_CTRL_FAIL; basic_solver. *)
+(* Qed. *)
+
 (******************************************************************************)
 (** * imm.hb in terms of Arm relations *)
 (******************************************************************************)
@@ -150,7 +151,6 @@ arewrite (⦗W⦘ ⨾ (co ⨾ ⦗W⦘)^? ⊆ co^? ⨾ ⦗W⦘) by basic_solver.
 rewrite (w_sb_loc_w_in_coi WF SC_PER_LOC), (dom_r (wf_coiD WF)).
 generalize (co_trans WF); ie_unfolder; basic_solver 12.
 Qed.
-
 
 Lemma rs_sb_loc : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
 Proof.
@@ -363,21 +363,21 @@ Qed.
 
 Lemma COH: coherence G.
 Proof.
-apply coherence_alt.
-rewrite hb_in_ord; relsf; unionL.
-1: by apply (@sb_irr G).
-all:
-try by (try arewrite (rfe  ⊆ rf)); rewrite ?rf_in_eco;
-rewrite ?co_in_eco, ?fr_in_eco; generalize (eco_trans WF); ins; relsf; 
-try (rewrite irreflexive_seqC; apply SC_PER_LOC); apply SC_PER_LOC.
-all: try arewrite (rfe ⊆ obs').
-all: try arewrite (co ⊆ obs').
-all: try arewrite (fr ⊆ obs').
-all: set (X := (obs' ∪ dob ∪ aob ∪ boba')⁺).
-all: try arewrite (obs' ⊆ (obs' ∪ dob ∪ aob ∪ boba')＊).
-all: try unfold X.
-all: relsf.
-all: apply (external_alt2 WF CON rmw_sb_in_ctrl).
+  apply coherence_alt.
+  rewrite hb_in_ord; relsf; unionL.
+  { by apply (@sb_irr G). }
+  all:
+    try by (try arewrite (rfe ⊆ rf)); rewrite ?rf_in_eco;
+    rewrite ?co_in_eco, ?fr_in_eco; generalize (eco_trans WF); ins; relsf; 
+      try (rewrite irreflexive_seqC; apply SC_PER_LOC); apply SC_PER_LOC.
+  all: try arewrite (rfe ⊆ obs').
+  all: try arewrite (co ⊆ obs').
+  all: try arewrite (fr ⊆ obs').
+  all: set (X := (obs' ∪ dob ∪ aob ∪ boba')⁺).
+  all: try arewrite (obs' ⊆ (obs' ∪ dob ∪ aob ∪ boba')＊).
+  all: try unfold X.
+  all: relsf.
+  all: apply (external_alt2 WF CON RMW_COI).
 Qed.
 
 (******************************************************************************)
@@ -594,47 +594,48 @@ Qed.
 
 Lemma ar_int_in_ord : ⦗R⦘ ⨾ G.(ar_int)⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ .
 Proof.
-unfold ar_int.
- rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL) at 1.
-transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘).
-- arewrite (detour ⊆ detour ∩ sb).
-  rewrite W_ex_acq_sb_in_boba1, bob_in_boba, ppo_in_dob_helper, detour_in_obs.
-  hahn_frame.
-  apply inclusion_t_t2.
-  apply_unionL_once.
-  apply_unionL_once.
-  apply_unionL_once.
-  apply_unionL_once.
-  apply_unionL_once.
-  * rewrite <- ct_step; basic_solver.
-  * rewrite <- ct_step; rewrite <- ct_step; unfold Arm.obs'; ie_unfolder; basic_solver 12.
-  * rewrite <- ct_step; basic_solver.
-  * apply inclusion_t_t; basic_solver 12.
-  * by unfolder; ins; econs; eauto.
-  * apply inclusion_t_t; basic_solver 12.
-- rewrite path_union.
-  relsf; unionL.
-  * arewrite_id ⦗R⦘; arewrite_id ⦗W⦘.
-    rels.
-    arewrite (obs'⁺ ∩ sb ⊆ obs'⁺).
-    apply inclusion_t_t2.
-    apply_unionL_once.
-    apply_unionL_once.
-    apply_unionL_once.
-    + apply inclusion_t_t; basic_solver.
-    + rewrite <- ct_step; basic_solver.
-    + rewrite <- ct_step; basic_solver.
-    + rewrite <- ct_step; basic_solver.
-  * rewrite (dob_in_sb WF) at 1 2.
-    rewrite (aob_in_sb WF) at 1 2.
-    rewrite (bob'_in_sb WF) at 1 2.
-    arewrite (obs'⁺ ∩ sb ⊆ sb).
-    rewrite ct_begin.
-    arewrite_id ⦗F^ld⦘ at 2.
-    generalize (@sb_trans G); ins; relsf.
-    arewrite (⦗F^ld⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗F^ld⦘ ⨾ sb) by type_solver.
-    unfold Arm.bob', Arm.bob; rewrite <- ct_step; basic_solver 21.
-Qed.
+Admitted.
+(* unfold ar_int. *)
+(*  rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL) at 1. *)
+(* transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘). *)
+(* - arewrite (detour ⊆ detour ∩ sb). *)
+(*   rewrite W_ex_acq_sb_in_boba1, bob_in_boba, ppo_in_dob_helper, detour_in_obs. *)
+(*   hahn_frame. *)
+(*   apply inclusion_t_t2. *)
+(*   apply_unionL_once. *)
+(*   apply_unionL_once. *)
+(*   apply_unionL_once. *)
+(*   apply_unionL_once. *)
+(*   apply_unionL_once. *)
+(*   * rewrite <- ct_step; basic_solver. *)
+(*   * rewrite <- ct_step; rewrite <- ct_step; unfold Arm.obs'; ie_unfolder; basic_solver 12. *)
+(*   * rewrite <- ct_step; basic_solver. *)
+(*   * apply inclusion_t_t; basic_solver 12. *)
+(*   * by unfolder; ins; econs; eauto. *)
+(*   * apply inclusion_t_t; basic_solver 12. *)
+(* - rewrite path_union. *)
+(*   relsf; unionL. *)
+(*   * arewrite_id ⦗R⦘; arewrite_id ⦗W⦘. *)
+(*     rels. *)
+(*     arewrite (obs'⁺ ∩ sb ⊆ obs'⁺). *)
+(*     apply inclusion_t_t2. *)
+(*     apply_unionL_once. *)
+(*     apply_unionL_once. *)
+(*     apply_unionL_once. *)
+(*     + apply inclusion_t_t; basic_solver. *)
+(*     + rewrite <- ct_step; basic_solver. *)
+(*     + rewrite <- ct_step; basic_solver. *)
+(*     + rewrite <- ct_step; basic_solver. *)
+(*   * rewrite (dob_in_sb WF) at 1 2. *)
+(*     rewrite (aob_in_sb WF) at 1 2. *)
+(*     rewrite (bob'_in_sb WF) at 1 2. *)
+(*     arewrite (obs'⁺ ∩ sb ⊆ sb). *)
+(*     rewrite ct_begin. *)
+(*     arewrite_id ⦗F^ld⦘ at 2. *)
+(*     generalize (@sb_trans G); ins; relsf. *)
+(*     arewrite (⦗F^ld⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗F^ld⦘ ⨾ sb) by type_solver. *)
+(*     unfold Arm.bob', Arm.bob; rewrite <- ct_step; basic_solver 21. *)
+(* Qed. *)
 
 Lemma C_EXT: acyc_ext G.
 Proof.
