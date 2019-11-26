@@ -594,10 +594,30 @@ Qed.
 
 Lemma ar_int_in_ord : ⦗R⦘ ⨾ G.(ar_int)⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ .
 Proof.
-Admitted.
-(* unfold ar_int. *)
-(*  rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL) at 1. *)
-(* transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘). *)
+  unfold ar_int.
+  (* rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL) at 1. *)
+  transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘).
+  2: { rewrite path_union.
+       relsf; unionL.
+       { arewrite_id ⦗R⦘; arewrite_id ⦗W⦘.
+         rels.
+         arewrite (obs'⁺ ∩ sb ⊆ obs'⁺).
+         apply inclusion_t_t2.
+         apply_unionL_once.
+         apply_unionL_once.
+         apply_unionL_once.
+         { apply inclusion_t_t. basic_solver. }
+         all: rewrite <- ct_step; basic_solver. }
+       rewrite (dob_in_sb WF) at 1 2.
+       rewrite (aob_in_sb WF) at 1 2.
+       rewrite (bob'_in_sb WF) at 1 2.
+       arewrite (obs'⁺ ∩ sb ⊆ sb).
+       rewrite ct_begin.
+       arewrite_id ⦗F^ld⦘ at 2.
+       generalize (@sb_trans G); ins; relsf.
+       arewrite (⦗F^ld⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗F^ld⦘ ⨾ sb) by type_solver.
+       unfold Arm.bob', Arm.bob.
+       rewrite <- ct_step. basic_solver 21. }
 (* - arewrite (detour ⊆ detour ∩ sb). *)
 (*   rewrite W_ex_acq_sb_in_boba1, bob_in_boba, ppo_in_dob_helper, detour_in_obs. *)
 (*   hahn_frame. *)
@@ -613,29 +633,8 @@ Admitted.
 (*   * apply inclusion_t_t; basic_solver 12. *)
 (*   * by unfolder; ins; econs; eauto. *)
 (*   * apply inclusion_t_t; basic_solver 12. *)
-(* - rewrite path_union. *)
-(*   relsf; unionL. *)
-(*   * arewrite_id ⦗R⦘; arewrite_id ⦗W⦘. *)
-(*     rels. *)
-(*     arewrite (obs'⁺ ∩ sb ⊆ obs'⁺). *)
-(*     apply inclusion_t_t2. *)
-(*     apply_unionL_once. *)
-(*     apply_unionL_once. *)
-(*     apply_unionL_once. *)
-(*     + apply inclusion_t_t; basic_solver. *)
-(*     + rewrite <- ct_step; basic_solver. *)
-(*     + rewrite <- ct_step; basic_solver. *)
-(*     + rewrite <- ct_step; basic_solver. *)
-(*   * rewrite (dob_in_sb WF) at 1 2. *)
-(*     rewrite (aob_in_sb WF) at 1 2. *)
-(*     rewrite (bob'_in_sb WF) at 1 2. *)
-(*     arewrite (obs'⁺ ∩ sb ⊆ sb). *)
-(*     rewrite ct_begin. *)
-(*     arewrite_id ⦗F^ld⦘ at 2. *)
-(*     generalize (@sb_trans G); ins; relsf. *)
-(*     arewrite (⦗F^ld⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗F^ld⦘ ⨾ sb) by type_solver. *)
-(*     unfold Arm.bob', Arm.bob; rewrite <- ct_step; basic_solver 21. *)
 (* Qed. *)
+Admitted.
 
 Lemma C_EXT: acyc_ext G.
 Proof.
