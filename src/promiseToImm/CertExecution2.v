@@ -130,7 +130,9 @@ Hypothesis TCCOH_rst_new_T : tc_coherent G sc (mkTC (C ∪₁ (E ∩₁ NTid_ th
 
 Definition D := C ∪₁ I ∪₁ (E ∩₁ NTid_ thread) ∪₁
   dom_rel (Grfi^? ⨾ Gppo ⨾ ⦗ I ⦘) ∪₁ 
-  codom_rel (⦗I⦘ ⨾ Grfi) ∪₁ codom_rel (Grfe ⨾ ⦗ R ∩₁ Acq ⦘).
+  (* TODO: potential fix for new_ppo *)
+  (* codom_rel (⦗I⦘ ⨾ Grfi) ∪₁ codom_rel (Grfe ⨾ (rmw ;; rfi)^* ;; ⦗ R ∩₁ Acq ⦘). *)
+  codom_rel (⦗I⦘ ⨾ Grfi) ∪₁ codom_rel (Grfe ⨾  ⦗ R ∩₁ Acq ⦘).
 
 (*   (E ∩₁ R ∩₁ Acq ∩₁ codom_rel (⦗I⦘ ⨾ Grfi)). *)
 
