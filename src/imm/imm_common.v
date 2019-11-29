@@ -222,19 +222,19 @@ Lemma wf_ppoE WF : ppo ≡ ⦗E⦘ ⨾ ppo ⨾ ⦗E⦘.
 Proof.
 split; [|basic_solver].
 unfold ppo.
-Admitted.
-(* arewrite ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?)⁺ *)
-(*   ⊆ ⦗E⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?)⁺ ⨾ ⦗E⦘) at 1. *)
-(* { rewrite <- inclusion_ct_seq_eqv_r, <- inclusion_ct_seq_eqv_l. *)
-(*   apply inclusion_t_t. *)
-(*   unfold Execution.rfi. *)
-(*   rewrite (wf_rfE WF), (wf_dataE WF), (wf_rmw_depE WF) at 1. *)
-(*   rewrite (wf_addrE WF), (wf_ctrlE WF), (wf_rmwE WF). *)
-(*   rewrite wf_sbE at 1 2 3 4. *)
-(*   basic_solver 21. *)
-(* } *)
-(* basic_solver 42. *)
-(* Qed. *)
+rewrite !seqA, seq_eqvC.
+hahn_frame.
+seq_rewrite seq_eqvC.
+rewrite !seqA.
+hahn_frame.
+rewrite <- inclusion_ct_seq_eqv_r, <- inclusion_ct_seq_eqv_l.
+apply inclusion_t_t.
+unfold Execution.rfi.
+rewrite (wf_rfE WF), (wf_dataE WF), (wf_rmw_depE WF) at 1.
+rewrite (wf_addrE WF), (wf_ctrlE WF), (wf_rmwE WF) at 1.
+rewrite wf_sbE at 1 2 3 4.
+basic_solver 21.
+Qed.
 
 Lemma wf_ar_intE WF : ar_int ≡ ⦗E⦘ ⨾ ar_int ⨾ ⦗E⦘.
 Proof.

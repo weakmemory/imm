@@ -12,6 +12,7 @@ Require Import imm_hb.
 Require Import imm_s_hb.
 Require Import imm.
 Require Import imm_s.
+Require Import imm_s_hb_hb.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -82,69 +83,8 @@ Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
-(******************************************************************************)
-(** relations are contained in the corresponding ones **  *)
-(******************************************************************************)
-Lemma s_rs_in_rs : s_rs ⊆ rs.
-Proof.
-unfold imm_s_hb.rs, imm_hb.rs.
-hahn_frame.
-rewrite rtE at 1; relsf.
-apply inclusion_union_l.
-rewrite rtE at 1; relsf.
-basic_solver.
-unionR right.
-arewrite_id ⦗W⦘; rels.
-arewrite (rf ⨾ rmw ⊆ (sb ∩ same_loc)^? ⨾ rf ⨾ rmw) at 1 by basic_solver 12.
-rewrite ct_begin.
-generalize (@sb_same_loc_trans G); ins; rewrite !seqA; relsf.
-generalize (ct_begin ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)).
-basic_solver 40.
-Qed.
 
-Lemma s_release_in_release : s_release ⊆ release.
-Proof.
-unfold imm_s_hb.release, imm_hb.release.
-by rewrite s_rs_in_rs.
-Qed.
 
-Lemma s_sw_in_sw : s_sw ⊆ sw.
-Proof.
-unfold imm_s_hb.sw, imm_hb.sw.
-rewrite s_release_in_release.
-rewrite (rfi_union_rfe).
-basic_solver 21.
-Qed.
-
-Lemma s_hb_in_hb : s_hb ⊆ hb.
-Proof.
-unfold imm_s_hb.hb, imm_hb.hb.
-by rewrite s_sw_in_sw.
-Qed.
-
-(*Lemma s_ar_in_ar sc (WF_SC: wf_sc G sc) : s_ar sc ⊆ ar.
-Proof.
-unfold imm_s.ar, imm.ar.
-destr
-by rewrite s_psc_in_psc.
-Qed.
-*)
-
-(******************************************************************************)
-(** Properties **  *)
-(******************************************************************************)
-
-Lemma coherence_implies_s_coherence (WF: Wf G) (COMP: complete G) :
-  imm_hb.coherence G -> imm_s_hb.coherence G.
-Proof.
-unfold imm_s_hb.coherence.
-unfolder; ins; desf.
-eapply imm_hb.hb_irr; eauto.
-eapply s_hb_in_hb; edone.
-unfold imm_hb.coherence in *; unfolder in *.
-eapply H; eexists; split; eauto.
-eapply s_hb_in_hb; edone.
-Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G): imm.acyc_ext G -> 
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
@@ -175,7 +115,8 @@ Proof.
   arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⨾ s_hb ⨾ (eco ⨾ s_hb)^? ⨾ ⦗E ∩₁ F ∩₁ Sc⦘ ⊆ ar⁺).
   case_refl _.
   arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘) by basic_solver.
-  { by apply f_sc_hb_f_sc_in_ar. }
+  { rewrite (f_sc_hb_f_sc_in_ar WF). unfold imm.ar. 
+    apply inclusion_t_t; basic_solver. }
   { rewrite s_hb_in_hb, !seqA.
     arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⨾ hb ⨾ eco ⨾ hb ⨾ ⦗E ∩₁ F ∩₁ Sc⦘ ⊆ psc).
     { unfold imm.psc; basic_solver 12. }

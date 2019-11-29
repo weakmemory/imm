@@ -324,13 +324,19 @@ rewrite sub_sb, sub_coe, sub_rfe_in.
 basic_solver 21.
 Qed.
 
+Lemma sub_same_loc_in : same_loc' ⊆ same_loc.
+Proof.
+by rewrite (sub_lab SUB).
+Qed.
+
 Lemma sub_ppo_in : ppo' ⊆ ppo.
 Proof.
 unfold imm_common.ppo.
-rewrite sub_R_ex, sub_W, sub_R.
+rewrite sub_W, sub_R.
 hahn_frame; apply inclusion_t_t.
 rewrite sub_sb_in, sub_rfi_in.
 rewrite sub_data_in, sub_ctrl_in, sub_addr_in, sub_frmw_in.
+rewrite sub_rmw_in, sub_same_loc_in.
 basic_solver 12.
 Qed.
 
@@ -382,7 +388,11 @@ Qed.
 Lemma sub_ar_int_in : ar_int' ⊆ ar_int.
 Proof.
 unfold imm_common.ar_int.
-by rewrite sub_bob_in, sub_ppo_in, sub_detour_in, sub_sb_in, sub_W_ex_acq_in, sub_W .
+rewrite sub_bob_in, sub_ppo_in, sub_detour_in, sub_sb_in.
+rewrite sub_W_ex_acq_in, sub_W.
+rewrite sub_W_ex_in, sub_rfi_in.
+rewrite sub_R, sub_Acq.
+done.
 Qed.
 
 Lemma sub_ar_in : ar' sc' ⊆ ar sc.

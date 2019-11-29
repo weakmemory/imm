@@ -138,6 +138,7 @@ Proof.
   unfold ar_int.
   rewrite !seq_union_l.
   unionL.
+  5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
   3: { rewrite WF.(wf_detourD).
        rewrite WF.(wf_rfiD). type_solver. }
   { unfold imm_common.bob.
@@ -157,6 +158,8 @@ Proof.
   rewrite <- ct_step.
   rewrite w_ex_acq_sb_w_in_ar_int.
   apply ar_int_in_ar.
+
+
 Qed.
 
 Lemma ar_ct_rfrmw_in_ar_ct : ar⁺ ;; rf ;; rmw ⊆ ar⁺.

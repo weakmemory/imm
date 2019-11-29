@@ -186,6 +186,8 @@ Lemma F_eq : F' ≡₁ F.
 Proof. unfold G', relax_release_labels; type_solver 22. Qed.
 Lemma W_eq : W' ≡₁ W.
 Proof. unfold G', relax_release_labels; type_solver 22. Qed.
+Lemma W_ex_eq : W_ex' ≡₁ W_ex.
+Proof. unfold G', relax_release_labels; type_solver 22. Qed.
 Lemma W_ex_acq_eq : W_ex_acq' ≡₁ W_ex_acq.
 Proof. unfold G', relax_release_labels.
 unfold Execution.W_ex; mode_unfolder; ins; unfold xmod; basic_solver 22. Qed.
@@ -295,7 +297,8 @@ Qed.
 Lemma ppo_eq: ppo' ≡ ppo.
 Proof.
 unfold imm_common.ppo, Execution.rfi.
-by rewrite W_eq, R_eq, sb_eq, data_eq, addr_eq, ctrl_eq, rf_eq, R_ex_eq.
+rewrite W_eq, R_eq, sb_eq, data_eq, addr_eq, ctrl_eq, rf_eq, rmw_eq, same_loc_eq.
+done.
 Qed.
 
 Lemma detour_eq: detour' ≡ detour.
@@ -590,17 +593,23 @@ rewrite bob_eq.
 rewrite <- sb_eq.
 rewrite <- W_ex_acq_eq.
 rewrite <- W_eq at 2.
+rewrite <- rfi_eq.
+rewrite <- W_ex_eq.
+rewrite <- R_Acq_eq.
+rewrite <- R_eq.
 
 rewrite (rmw_in_ppo WFp) at 1.
 
-apply acyclic_mon with (r:= psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob'⁺ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘).
-2: basic_solver 20.
+apply acyclic_mon with (r:= psc' ∪ ppo' ∪ rfe' ∪ detour' 
+ ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ 
+ ∪ bob'⁺ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘).
+2: basic_solver 30.
 apply acyclic_union1.
 -
 
 red.
 rewrite ct_of_union_ct_r; eapply acyclic_mon; [edone|].
-basic_solver 12.
+basic_solver 21.
 -
 apply acyclic_mon with (r:=sb').
 red; generalize (@sb_trans G'); ins; relsf; apply (@sb_irr G').
@@ -608,16 +617,17 @@ basic_solver.
 -
 
 
-arewrite (sb' ∩ same_loc' ⊆ sb').
+(* arewrite (sb' ∩ same_loc' ⊆ sb'). *)
 
-assert (transitive (⦗W ∩₁ Rel⦘ ⨾ sb' ⨾ ⦗W'⦘)).
+assert (transitive (⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘)).
 {
 apply transitiveI; rewrite !seqA.
 arewrite_id (⦗W'⦘ ⨾ ⦗W ∩₁ Rel⦘).
 basic_solver.
 relsf.
-arewrite (sb' ⨾ sb' ⊆ sb').
-apply transitiveI, (@sb_trans G').
+arewrite (sb' ∩ same_loc' ⨾ sb' ∩ same_loc' ⊆ sb' ∩ same_loc').
+generalize (@sb_trans G') (@same_loc_trans _ lab').
+basic_solver 21.
 done.
 }
 
@@ -627,7 +637,9 @@ rewrite ct_of_union_ct_r.
 
 
 rewrite ct_end, !seqA.
-arewrite ((psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob') ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb' ⨾ ⦗W ∩₁ Rel⦘).
+arewrite ((psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ 
+  ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ 
+  ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ ∪ bob') ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb' ⨾ ⦗W ∩₁ Rel⦘).
 {
 relsf; unionL.
 - rewrite (dom_r (@wf_pscD G')).
@@ -637,6 +649,7 @@ rewrite F_Sc_eq; type_solver 21.
 rewrite R_eq; type_solver 21.
 - by rewrite detour_in_sb.
 - by basic_solver.
+- unfold Execution.rfi; basic_solver.
 - by rewrite bob_in_sb.
 }
 
@@ -648,14 +661,16 @@ rewrite <- sb_eq, <- rmw_eq.
 arewrite (⦗F ∩₁ Rel⦘ ⊆ ⦗F ∩₁ Acq/Rel⦘) by mode_solver.
 rewrite <- F_AcqRel_eq, <- F_eq.
 
-arewrite ((sb'^? ⨾ ⦗F' ∩₁ Acq/Rel'⦘ ⨾ sb' ∪ rmw') ⨾ sb' ⨾ ⦗W'⦘ ⊆ (psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob')⁺).
+arewrite ((sb'^? ⨾ ⦗F' ∩₁ Acq/Rel'⦘ ⨾ sb' ∪ rmw') ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘ 
+ ⊆ (psc' ∪ ppo' ∪ rfe' ∪ detour' 
+     ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ ∪ bob')⁺).
 {
 
 relsf; unionL.
 
 -
 rewrite !seqA.
-arewrite (sb' ⨾ sb' ⨾ ⦗W'⦘ ⊆ sb').
+arewrite (sb' ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘ ⊆ sb').
 by generalize (@sb_trans G'); basic_solver.
 unfold imm_common.bob, imm_common.fwbob.
 
@@ -665,18 +680,18 @@ unfolder; ins; eapply t_step; basic_solver 21.
 unfolder; ins; desf; eapply t_trans; eapply t_step; basic_solver 21.
 -
 
-arewrite (rmw' ⨾ sb' ⨾ ⦗W'⦘ ⊆ ppo').
+arewrite (rmw' ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘ ⊆ ppo').
 { unfold imm_common.ppo; rewrite <- ct_step.
 rewrite (dom_l (wf_rmwD WFp)) at 1; rewrite !seqA.
-rewrite (dom_l (wf_rmwD WFp)), R_ex_in_R at 1; rewrite !seqA.
-rewrite (rmw_in_sb WFp).
-generalize (@sb_trans G'); basic_solver 21.
+rewrite (dom_l (wf_rmwD WFp)), R_ex_in_R at 1; rewrite !seqA. 
+basic_solver 21.
 }
 
 by red; ins; eapply t_step; basic_solver 12.
 
 }
 relsf.
+
 
 red; rels.
 eapply acyclic_mon; [edone|basic_solver 12].
