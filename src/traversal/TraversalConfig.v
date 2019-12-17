@@ -484,9 +484,9 @@ basic_solver.
     arewrite (rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘ ⊆
                   ⦗issued T⦘ ⨾ rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘).
     { apply dom_rel_helper.
-      rewrite rfi_rmw_in_sb_same_loc_W.
+      rewrite rfi_rmw_in_sb_same_loc_W; auto.
       rewrite rt_of_trans; [|by apply sb_same_loc_W_trans].
-      rewrite rmw_sb_same_loc_W_in_ppo. by apply dom_rfe_ppo_issued. }
+      sin_rewrite WF.(rmw_sb_same_loc_W_in_ppo). by apply dom_rfe_ppo_issued. }
     arewrite (rfe ⨾ rmw ⊆ rf ⨾ rmw).
     arewrite (rfi ⊆ rf).
     arewrite (rf ⨾ rmw ⨾ (rf ⨾ rmw)＊ ⊆ (rf ⨾ rmw)⁺).
@@ -1075,6 +1075,8 @@ Proof.
   assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV.
   { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. }
   clear y XX.
+  (* TODO: continue from here.
+     We should not remove XX since it has important information about Acq. *)
   induction HH as [x y HH| | ].
   2: by apply r_refl.
   { apply r_step.
