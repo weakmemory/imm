@@ -111,7 +111,7 @@ Proof.
     2: { rewrite BB, AA.
          arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
          rewrite bob_in_ar. apply ct_step. }
-    rewrite fwbob_rfi_rmw_in_fwbob.
+    rewrite fwbob_rfi_rmw_in_fwbob; auto.
     rewrite fwbob_in_bob. by rewrite bob_in_ar. }
   { rewrite WF.(rmw_in_ppo), ppo_rfi_ppo. rewrite <- ct_step.
     rewrite ppo_in_ar_int. 
