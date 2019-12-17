@@ -434,13 +434,13 @@ basic_solver.
   Proof.
     rewrite ct_step with (r:=ar) at 1 2. apply ct_ct.
   Qed.
-
+  
   Lemma dom_rfe_ppo_issued T (TCCOH : tc_coherent T):
     dom_rel (rfe ⨾ ppo ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof.
     rewrite (dom_l WF.(wf_rfeD)).
     arewrite (rfe ⊆ ar).
-    arewrite (ppo ⊆ ar).
+    rewrite ppo_in_ar.
     sin_rewrite ar_ar_in_ar_ct.
       by apply ar_ct_I_in_I.
   Qed.
@@ -474,7 +474,7 @@ basic_solver.
     assert (transitive sb) as SBT by apply sb_trans.
     eapply rt_ind_left with (P:= fun r => r ⨾ ⦗issued T⦘).
     { by eauto with hahn. }
-    basic_solver 12.
+    { basic_solver 12. }
     intros k H; rewrite !seqA.
     sin_rewrite H.
     rewrite rfi_union_rfe at 1; relsf; unionL.
@@ -484,20 +484,9 @@ basic_solver.
     arewrite (rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘ ⊆
                   ⦗issued T⦘ ⨾ rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘).
     { apply dom_rel_helper.
-      rewrite (rmw_in_sb WF) at 2; arewrite (rfi ⊆ sb) at 1.
-      arewrite (sb ;; sb ⊆ sb).
-      rewrite (dom_l (wf_rmwD WF)) at 1; rewrite !seqA.
-      rewrite WF.(rmw_in_sb).
-      arewrite (sb ;; sb＊ ⊆ sb⁺).
-      rewrite ct_of_trans; auto.
-      rewrite (dom_l WF.(wf_rfeD)); rewrite !seqA.
-      arewrite (rfe ⊆ ar).
-      arewrite (⦗issued T⦘ ⊆ ⦗W⦘ ⨾ ⦗issued T⦘).
-      { rewrite <- seq_eqvK at 1. by rewrite issuedW at 1. }
-      sin_rewrite R_ex_sb_in_ppo; auto.
-      rewrite ppo_in_ar with (sc:=sc).
-      sin_rewrite ar_ar_in_ar_ct.
-        by apply ar_ct_I_in_I. }
+      rewrite rfi_rmw_in_sb_same_loc_W.
+      rewrite rt_of_trans; [|by apply sb_same_loc_W_trans].
+      rewrite rmw_sb_same_loc_W_in_ppo. by apply dom_rfe_ppo_issued. }
     arewrite (rfe ⨾ rmw ⊆ rf ⨾ rmw).
     arewrite (rfi ⊆ rf).
     arewrite (rf ⨾ rmw ⨾ (rf ⨾ rmw)＊ ⊆ (rf ⨾ rmw)⁺).
@@ -523,7 +512,7 @@ basic_solver.
       rewrite ct_step with (r:=ar).
       unfold issuable. basic_solver 10. }
     rewrite WF.(rmw_in_ppo).
-    arewrite (ppo ⊆ ar).
+    rewrite ppo_in_ar.
     rewrite (dom_l WF.(wf_rfeD)), !seqA.
     arewrite (rfe ⊆ ar).
     sin_rewrite ar_ar_in_ar_ct.

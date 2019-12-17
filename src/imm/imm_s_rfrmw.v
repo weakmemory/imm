@@ -76,42 +76,6 @@ Notation "'Acqrel'" := (fun x => is_true (is_acqrel lab x)).
 Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 
-Lemma rfi_rmw_in_sb_loc : rfi ⨾ rmw ⊆ sb ∩ same_loc.
-Proof.
-  apply inclusion_inter_r.
-  2: { arewrite (rfi ⊆ rf). apply WF.(wf_rfrmwl). }
-  arewrite (rfi ⊆ sb). rewrite WF.(rmw_in_sb).
-  apply transitiveI. apply sb_trans.
-Qed.
-
-Lemma fwbob_rfi_rmw_in_fwbob : fwbob ⨾ rfi ⨾ rmw ⊆ fwbob⁺.
-Proof.
-  arewrite (rfi ⨾ rmw ⊆ <|W|> ;; sb ∩ same_loc ;; <|W|>).
-  { rewrite (dom_l WF.(wf_rfiD)).
-    rewrite (dom_r WF.(wf_rmwD)), !seqA.
-      by sin_rewrite rfi_rmw_in_sb_loc. }
-  unfold imm_bob.fwbob at 1.
-  rewrite !seq_union_l. unionL.
-  3: type_solver.
-  2-3: rewrite <- ct_step.
-  3: { unfold imm_bob.fwbob. unionR right.
-       rewrite !seqA.
-       arewrite (sb ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb); [|done].
-       generalize (@sb_trans G). basic_solver. }
-  2: { rewrite !seqA.
-       arewrite_id ⦗W⦘ at 1.
-       arewrite_id ⦗W⦘ at 1. 
-       rewrite !seq_id_l.
-       arewrite (sb ∩ same_loc ⨾ sb ∩ same_loc ⊆ sb ∩ same_loc).
-       { apply transitiveI. apply sb_same_loc_trans. }
-       unfold imm_bob.fwbob. eauto with hahn. }
-  arewrite ((sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W⦘ ⊆ (sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W ∩₁ Rel⦘) by basic_solver.
-  rewrite <- seqA.
-  rewrite <- ct_ct, <- ct_step.
-  apply seq_mori.
-  all: unfold imm_bob.fwbob; eauto with hahn.
-Qed.
-
 Lemma ar_rfrmw_in_ar_ct : ar ;; rf ;; rmw ⊆ ar⁺.
 Proof.
   assert (sb ;; sb ⊆ sb) as AA.
@@ -158,8 +122,6 @@ Proof.
   rewrite <- ct_step.
   rewrite w_ex_acq_sb_w_in_ar_int.
   apply ar_int_in_ar.
-
-
 Qed.
 
 Lemma ar_ct_rfrmw_in_ar_ct : ar⁺ ;; rf ;; rmw ⊆ ar⁺.

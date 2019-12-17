@@ -689,7 +689,7 @@ Proof.
   arewrite ((fun a : actid => R_ex lab a) ⊆₁ R) by type_solver.
   arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
   rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_bob.bob G).
-  arewrite (imm_bob.bob G ⊆ ar sc).
+  rewrite bob_in_ar.
   repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
   rewrite !seqA, unionK.
   arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).

@@ -157,6 +157,13 @@ generalize sb_trans; basic_solver 21.
 congruence.
 Qed.
 
+Lemma sb_same_loc_W_trans : transitive (sb ∩ same_loc ⨾ ⦗W⦘).
+Proof.
+  generalize sb_same_loc_trans; unfold transitive.
+  basic_solver 21.
+Qed.
+
+
 (******************************************************************************)
 (** ** Basic properties *)
 (******************************************************************************)
@@ -1005,6 +1012,20 @@ Proof.
   etransitivity; eauto.
   apply Max.max_case_strong; omega.
 Qed.
+
+Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
+Proof.
+  rewrite (dom_r WF.(wf_rmwD)).
+  rewrite rfi_in_sbloc', rmw_in_sb_loc; auto.
+  sin_rewrite rewrite_trans; [done|].
+  apply sb_same_loc_trans.
+Qed.
+
+Lemma rfi_rmw_in_sb_loc WF : rfi ⨾ rmw ⊆ sb ∩ same_loc.
+Proof.
+  rewrite WF.(rfi_rmw_in_sb_same_loc_W). basic_solver.
+Qed.
+
 
 End Execution.
 

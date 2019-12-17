@@ -97,7 +97,7 @@ Proof.
   rewrite (dom_l WF.(wf_rfeD)).
   arewrite (detour ⊆ ar).
   arewrite (rfe ⊆ ar).
-  arewrite (ppo ⊆ ar).
+  rewrite ppo_in_ar.
   arewrite (bob ⊆ ar).
   rewrite !unionK, !seqA.
   sin_rewrite ar_ar_in_ar_ct.

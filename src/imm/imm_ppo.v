@@ -277,4 +277,10 @@ by auto with hahn.
 + rewrite (wf_ppoD) at 1 2. type_solver.
 Qed.
 
+Lemma rmw_sb_same_loc_W_in_ppo : rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ ppo.
+Proof.
+  unfold ppo. rewrite <- ct_step.
+  rewrite WF.(wf_rmwD) at 1. rewrite R_ex_in_R. basic_solver 10.
+Qed.
+
 End IMM_PPO.

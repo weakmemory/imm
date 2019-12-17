@@ -219,6 +219,7 @@ Proof.
     rewrite (rfi_in_sbloc' WF) at 1.
     rewrite (rmw_in_sb_loc WF) at 1.
     generalize (@sb_same_loc_trans G); ins; relsf.
+    generalize (@sb_same_loc_W_trans G); ins; relsf.
     assert (transitive (sb ∩ same_loc ⨾ ⦗W⦘)).
     2: by relsf.
     generalize sb_same_loc_trans; unfold transitive.
