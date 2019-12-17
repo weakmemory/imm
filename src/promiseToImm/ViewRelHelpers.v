@@ -5,7 +5,7 @@ Require Import Events.
 Require Import Execution.
 Require Import imm_s.
 Require Import imm_s_hb.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import CombRelations.
 Require Import CombRelationsMore.
 Require Import TraversalConfig.

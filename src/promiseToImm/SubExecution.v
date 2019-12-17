@@ -8,7 +8,7 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import CombRelations.
@@ -277,7 +277,7 @@ Qed.
 
 Lemma sub_fwbob : fwbob' ≡ ⦗E'⦘ ⨾ fwbob ⨾ ⦗E'⦘.
 Proof. 
-unfold imm_common.fwbob; rewrite sub_Rel, sub_AcqRel, sub_W, sub_F, sub_sb, sub_same_loc.
+unfold imm_bob.fwbob; rewrite sub_Rel, sub_AcqRel, sub_W, sub_F, sub_sb, sub_same_loc.
 basic_solver 21.
 Qed.
 
@@ -286,7 +286,7 @@ Proof. rewrite sub_fwbob; basic_solver. Qed.
 
 Lemma sub_bob : bob' ≡ ⦗E'⦘ ⨾ bob ⨾ ⦗E'⦘.
 Proof. 
-unfold imm_common.bob; rewrite sub_Acq, sub_fwbob, sub_R, sub_sb.
+unfold imm_bob.bob; rewrite sub_Acq, sub_fwbob, sub_R, sub_sb.
 basic_solver 21.
 Qed.
 
@@ -331,7 +331,7 @@ Qed.
 
 Lemma sub_ppo_in : ppo' ⊆ ppo.
 Proof.
-unfold imm_common.ppo.
+unfold imm_s_ppo.ppo.
 rewrite sub_W, sub_R.
 hahn_frame; apply inclusion_t_t.
 rewrite sub_sb_in, sub_rfi_in.
@@ -387,7 +387,7 @@ Qed.
 
 Lemma sub_ar_int_in : ar_int' ⊆ ar_int.
 Proof.
-unfold imm_common.ar_int.
+unfold imm_s_ppo.ar_int.
 rewrite sub_bob_in, sub_ppo_in, sub_detour_in, sub_sb_in.
 rewrite sub_W_ex_acq_in, sub_W.
 rewrite sub_W_ex_in, sub_rfi_in.

@@ -3,7 +3,7 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 
@@ -204,7 +204,7 @@ rewrite (wf_scD WF_SC), !seqA.
 rewrite id_union; relsf; unionL.
 ++ 
 arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⊆  fwbob).
-by unfold imm_common.fwbob; mode_solver.
+by unfold imm_bob.fwbob; mode_solver.
 generalize (otc_sc_C tc_old) (otc_fwbob_I tc_old).
 basic_solver 21.
 ++ 
@@ -227,7 +227,7 @@ arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I
 by generalize (otc_W_ex_sb_I tc_old); basic_solver 21.
 rewrite crE; relsf; unionL.
 --- rewrite tc_bob; relsf; unionL.
-2: by generalize (otc_dr_pb_I tc_old); subst rd; unfold imm_common.bob; basic_solver 21.
+2: by generalize (otc_dr_pb_I tc_old); subst rd; unfold imm_bob.bob; basic_solver 21.
 seq_rewrite (dom_rel_helper (otc_tc_fwbob_I  tc_old)).
 subst rd; relsf; unionL.
 generalize (otc_rf_C tc_old); unfold Execution.rfe; basic_solver 21.

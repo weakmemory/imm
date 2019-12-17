@@ -336,7 +336,7 @@ relsf; unionL; [| | basic_solver 21].
 - arewrite ((⦗F ∩₁ Rel⦘ ⨾ sb) ⊆ ax).
 { desf. 
 rewrite <- bob_in_ar_int, <- fwbob_in_bob.
-unfold imm_common.fwbob.
+unfold imm_bob.fwbob.
 mode_solver 12. }
 arewrite (ax ⊆ ax^*) at 1.
 relsf.
@@ -345,7 +345,7 @@ basic_solver 12.
 arewrite (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ ax).
 { desf.
 rewrite <- bob_in_ar_int, <- fwbob_in_bob.
-unfold imm_common.fwbob.
+unfold imm_bob.fwbob.
 basic_solver 12. }
 arewrite (ax ⊆ ax^*) at 1.
 relsf.
@@ -374,7 +374,7 @@ arewrite (⦗FW ∩₁ Rel⦘ ⨾ sb ⊆ sb).
   (*           sb ∪ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ⨾ ⦗FR ∩₁ Acq⦘). *)
   (* { by basic_solver 21. } *)
   generalize (@sb_trans G); ins; relsf; unionL.
-  { desf; rewrite <- ct_step; unfold imm_common.ar_int, imm_common.bob, imm_common.fwbob.
+  { desf; rewrite <- ct_step; unfold imm_common.ar_int, imm_bob.bob, imm_bob.fwbob.
     mode_solver 21. }
   rewrite ct_seq_swap.
 rewrite !seqA.
@@ -384,7 +384,7 @@ relsf.
 assert (sb^? ⨾ ⦗F ∩₁ Rel ∪₁ W ∩₁ Rel⦘ ⊆ ax^?) as BB.
 { desf.
 rewrite <- bob_in_ar_int, <- fwbob_in_bob.
-unfold imm_common.fwbob.
+unfold imm_bob.fwbob.
 mode_solver 12. }
 
 sin_rewrite !BB.
@@ -392,7 +392,7 @@ sin_rewrite !BB.
 arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ ax^?).
 { desf.
 rewrite <- bob_in_ar_int, <- fwbob_in_bob.
-unfold imm_common.fwbob.
+unfold imm_bob.fwbob.
 mode_solver 12. }
 
 rels.

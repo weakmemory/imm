@@ -88,7 +88,7 @@ assert (helper:
 ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊).
 by apply inclusion_rt_rt; basic_solver 12.
 
-unfold imm_common.ar_int, imm_common.bob, imm_common.fwbob.
+unfold imm_common.ar_int, imm_bob.bob, imm_bob.fwbob.
 
 arewrite (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
  ∪ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ ppo ∪ detour

@@ -3,10 +3,10 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_common_more.
+Require Import imm_bob imm_s_ppo_more.
 Require Import CertCOhelper.
 
 Require Import CombRelations.
@@ -849,14 +849,14 @@ Proof. unfold Execution.W_ex; ins. Qed.
 
 Lemma cert_fwbob : certG.(fwbob) ≡ Gfwbob.
 Proof. 
-unfold imm_common.fwbob.
+unfold imm_bob.fwbob.
 rewrite cert_W, cert_F, cert_Rel, cert_AcqRel.
 by rewrite cert_sb, cert_same_loc.
 Qed.
 
 Lemma cert_bob : certG.(bob) ≡ Gbob.
 Proof. 
-unfold imm_common.bob.
+unfold imm_bob.bob.
 by rewrite cert_R, cert_Acq, cert_fwbob, cert_sb.
 Qed.
 

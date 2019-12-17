@@ -6,7 +6,7 @@ Require Import Execution.
 Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -90,11 +90,11 @@ Proof.
   { rewrite (dom_l WF.(wf_rfiD)).
     rewrite (dom_r WF.(wf_rmwD)), !seqA.
       by sin_rewrite rfi_rmw_in_sb_loc. }
-  unfold imm_common.fwbob at 1.
+  unfold imm_bob.fwbob at 1.
   rewrite !seq_union_l. unionL.
   3: type_solver.
   2-3: rewrite <- ct_step.
-  3: { unfold imm_common.fwbob. unionR right.
+  3: { unfold imm_bob.fwbob. unionR right.
        rewrite !seqA.
        arewrite (sb ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb); [|done].
        generalize (@sb_trans G). basic_solver. }
@@ -104,12 +104,12 @@ Proof.
        rewrite !seq_id_l.
        arewrite (sb ∩ same_loc ⨾ sb ∩ same_loc ⊆ sb ∩ same_loc).
        { apply transitiveI. apply sb_same_loc_trans. }
-       unfold imm_common.fwbob. eauto with hahn. }
+       unfold imm_bob.fwbob. eauto with hahn. }
   arewrite ((sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W⦘ ⊆ (sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W ∩₁ Rel⦘) by basic_solver.
   rewrite <- seqA.
   rewrite <- ct_ct, <- ct_step.
   apply seq_mori.
-  all: unfold imm_common.fwbob; eauto with hahn.
+  all: unfold imm_bob.fwbob; eauto with hahn.
 Qed.
 
 Lemma ar_rfrmw_in_ar_ct : ar ;; rf ;; rmw ⊆ ar⁺.
@@ -141,7 +141,7 @@ Proof.
   5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
   3: { rewrite WF.(wf_detourD).
        rewrite WF.(wf_rfiD). type_solver. }
-  { unfold imm_common.bob.
+  { unfold imm_bob.bob.
     rewrite !seq_union_l, !seqA.
     unionL.
     2: { rewrite BB, AA.

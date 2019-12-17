@@ -5,7 +5,7 @@ From Promising Require Import TView View Time Event Cell Thread Memory Configura
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import SubExecution.

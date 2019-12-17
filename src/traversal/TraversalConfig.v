@@ -6,7 +6,7 @@ Require Import Execution.
 Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import CombRelations.
 
 Set Implicit Arguments.
@@ -585,7 +585,7 @@ basic_solver.
     { unfold issuable. basic_solver 10. }
     rewrite <- !seqA.
     rewrite dom_cond_elim1; [basic_solver 21|].
-    unfold imm_common.fwbob.
+    unfold imm_bob.fwbob.
     basic_solver 12.
   Qed.
 
@@ -605,7 +605,7 @@ basic_solver.
     { unfold issuable. basic_solver 10. }
     rewrite <- !seqA.
     rewrite dom_cond_elim1; [basic_solver 21|].
-    unfold imm_common.fwbob.
+    unfold imm_bob.fwbob.
     basic_solver 12.
   Qed.
 
@@ -680,7 +680,7 @@ basic_solver.
     { unfold issuable. basic_solver 10. }
     rewrite <- !seqA.
     rewrite dom_cond_elim1; [basic_solver 21|].
-    unfold imm_common.fwbob.
+    unfold imm_bob.fwbob.
     basic_solver 12.
   Qed.
 

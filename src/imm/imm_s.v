@@ -361,7 +361,7 @@ Lemma rfe_Rex_sb_in_ar_ct : rfe ;; <|R_ex|> ;; sb ;; <|W|> ⊆ ar⁺.
 Proof.
   arewrite (⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo).
   2: by apply rfe_ppo_in_ar_ct.
-  unfold imm_common.ppo. rewrite <- ct_step, !seq_union_l, !seq_union_r, !seqA.
+  unfold imm_s_ppo.ppo. rewrite <- ct_step, !seq_union_l, !seq_union_r, !seqA.
   unionR left -> right.
   type_solver.
 Qed.

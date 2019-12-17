@@ -572,7 +572,7 @@ Qed.
 
 Lemma bob_in_boba : bob ⊆ boba' ∪ coi ∪ sb ⨾ ⦗F^ld⦘.
 Proof.
-unfold imm_common.bob, imm_common.fwbob, Arm.bob', Arm.bob.
+unfold imm_bob.bob, imm_bob.fwbob, Arm.bob', Arm.bob.
 unionL.
 - basic_solver 15.
 - arewrite (⦗L⦘ ⊆ ⦗W⦘) at 1 by basic_solver.

@@ -7,7 +7,7 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import OCaml.
@@ -683,13 +683,13 @@ Proof.
   arewrite (F ∩₁ Acqrel ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
   arewrite (F ∩₁ Acq ⊆₁ F ∩₁ Acq/Rel) by mode_solver.
   rewrite <- seq_eqvK with (dom:=(F ∩₁ Acq/Rel)), !seqA. 
-  repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_common.bob G).
-  repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_common.bob G).
+  repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_bob.bob G).
+  repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_bob.bob G).
   rewrite RMWSC, WF.(wf_rmwD).
   arewrite ((fun a : actid => R_ex lab a) ⊆₁ R) by type_solver.
   arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
-  rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_common.bob G).
-  arewrite (imm_common.bob G ⊆ ar sc).
+  rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_bob.bob G).
+  arewrite (imm_bob.bob G ⊆ ar sc).
   repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
   rewrite !seqA, unionK.
   arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).

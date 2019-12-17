@@ -27,7 +27,7 @@ Require Import IfThen.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_ppo.
 Require Import imm_hb.
 Require Import imm.
 
@@ -561,10 +561,10 @@ Proof.
   rewrite rtE. repeat case_union _ _.
   arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗fun _ : actid => True⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar).
   { arewrite (sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ bob).
-    { unfold imm_common.bob, imm_common.fwbob.
+    { unfold imm_bob.bob, imm_bob.fwbob.
       arewrite (Sc ⊆₁ Acq/Rel) by mode_solver. 
       basic_solver 10. }
-    unfold imm.ar, imm_common.ar_int. basic_solver 10. }
+    unfold imm.ar, imm_ppo.ar_int. basic_solver 10. }
   rewrite ct_begin with (r:=(sb ⨾ rfe)).
   rewrite !seqA.
   rewrite (dom_r (wf_rfeD WF)), seqA.

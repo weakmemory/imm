@@ -8,7 +8,7 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import RC11.
@@ -83,15 +83,15 @@ Proof.
   1-2: by destruct WF; unfold Execution.rfe; rewrite wf_rfD; eauto using minus_doma, minus_domb with hahn. 
   assert (T:= @sb_trans G); relsf; clear T.
   eapply irreflexive_inclusion, Cext; apply inclusion_t_t2. 
-  unfold imm_s.ar, imm_common.ar_int; unionL; eauto with hahn.
+  unfold imm_s.ar, imm_s_ppo.ar_int; unionL; eauto with hahn.
   arewrite (R ≡₁ (R ∩₁ Acq) ∪₁ (R \₁ Acq)).
     by unfolder; split; ins; desf; destruct (is_acq lab x); auto. 
   rewrite id_union; relsf; unionL.
-    by rewrite inclusion_seq_eqv_r at 1; unfold imm_common.bob; auto 10 with hahn.
+    by rewrite inclusion_seq_eqv_r at 1; unfold imm_bob.bob; auto 10 with hahn.
   arewrite (W ≡₁ (W ∩₁ Rel) ∪₁ (W \₁ Rel)) at 1.
     by unfolder; split; ins; desf; destruct (is_rel lab x); auto. 
   rewrite id_union; relsf; unionL.
-    by rewrite inclusion_seq_eqv_l at 1; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn.
+    by rewrite inclusion_seq_eqv_l at 1; unfold imm_bob.bob, imm_bob.fwbob; auto 10 with hahn.
   rewrite COND.
   sin_rewrite rmw_in_ppo; auto.
   arewrite (⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ⊆ ppo).
@@ -101,7 +101,7 @@ Proof.
     basic_solver. }
   unionL.
   { rewrite <- seq_eqvK, seqA, <- seqA. 
-    apply inclusion_step2_ct; unfold imm_common.bob, imm_common.fwbob; auto 10 with hahn. }
+    apply inclusion_step2_ct; unfold imm_bob.bob, imm_bob.fwbob; auto 10 with hahn. }
   all: etransitivity; [|by apply ct_step].
   all: basic_solver 20.
 Qed.
