@@ -193,22 +193,110 @@ eapply t_trans; unfold ar; [basic_solver| apply t_step; basic_solver].
 intro; eapply ACYC_EXT; unfold ar; basic_solver.
 Qed.
 
-Lemma s_ppo_in_ppo : ppo ⊆ G.(imm_ppo.ppo).
+Lemma sw_in_ar WF : 
+  sw ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ∪ sb.
 Proof.
-  unfold imm_ppo.ppo, imm_s_ppo.ppo.
-Admitted.
-
-Lemma ar_int_in_s_ar_int : ar_int ⊆ G.(imm_ppo.ar_int).
-Proof.
-  unfold imm_ppo.ar_int, imm_s_ppo.ar_int.
-  rewrite ppo_in_s_ppo. basic_solver 10.
+  unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
+  rewrite (s_sw_in_ar_helper WF).
+  rewrite rfi_union_rfe.
+  generalize (@sb_trans G); ins.
+  generalize (@sb_same_loc_trans G); ins.
+  assert (BB: (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ ar^?).
+  { arewrite (⦗Acq⦘ ⊆ ⦗Acq/Rel⦘) by mode_solver.
+    unfold ar, imm_s_ppo.ar_int, imm_bob.bob, imm_bob.fwbob.
+    basic_solver 21. }
+  assert (CC: rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ ar).
+  { unfold ar, imm_s_ppo.ar_int, imm_s_ppo.ppo.
+    unionR right -> left -> left -> left.
+    unionR right.
+    rewrite <- ct_step, (dom_l (wf_rmwD WF)).
+    generalize (@sb_trans G) (R_ex_in_R); basic_solver 21. }
+  rewrite (dom_l (wf_rfeD WF)).
+  rewrite !seqA, inclusion_ct_seq_eqv_l.
+  arewrite (rfe ⊆ ar).
+  arewrite (rfi ⊆ sb).
+  relsf; unionL.
+  { unionR right. basic_solver 21. }
+  { arewrite_id ⦗W⦘ at 2.
+    relsf.
+    rewrite BB.
+    arewrite (ar ⊆ ar⁺) at 1.
+    arewrite (ar ⊆ ar⁺) at 2.
+    relsf.
+    arewrite (⦗Rel⦘
+                ⨾ (⦗F⦘ ⨾ sb)^?
+                ⨾ ⦗W⦘
+                ⨾ (sb ∩ same_loc)^? ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ sb^?).
+    { basic_solver 21. }
+    basic_solver 40. }
+  { rewrite ct_end.
+    rewrite CC at 1; rewrite !seqA.
+    arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⊆ sb^?) by basic_solver 21.
+    arewrite (ar ⊆ ar＊) at 1.
+    arewrite (ar ⊆ ar⁺) at 2.
+    arewrite (ar ⊆ ar⁺) at 3.
+    relsf.
+    arewrite (sb^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⊆ sb^?).
+    { basic_solver 21. }
+    basic_solver 21. }
+  rewrite !seqA.
+  arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⊆ sb^?) by basic_solver 21.
+  rewrite ct_end, !seqA.
+  arewrite(sb^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⊆ sb^?) by basic_solver.
+  sin_rewrite !CC.
+  rewrite BB.
+  arewrite (ar ⊆ ar＊) at 1.
+  arewrite (ar ⊆ ar⁺) at 2.
+  arewrite (ar ⊆ ar⁺) at 3.
+  arewrite (ar ⊆ ar＊) at 4.
+  arewrite (ar ⊆ ar＊) at 5.
+  arewrite (ar ⊆ ar＊) at 6.
+  arewrite_id ⦗W⦘ at 2.
+  relsf.
+  basic_solver 12.
 Qed.
 
-Lemma f_sc_hb_f_sc_in_ar WF :
-  ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ (rfe ∪ ar_int)⁺.
+Lemma f_sc_hb_f_sc_in_ar WF : 
+  ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar⁺.
 Proof.
-  rewrite s_hb_in_hb, (f_sc_hb_f_sc_in_ar WF).
-  unfold imm.ar.
+  unfold imm_s_hb.hb.
+  rewrite (dom_r (wf_swD WF)).
+  rewrite (sw_in_ar WF); relsf.
+  arewrite ((sb ∪ ((sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^?) ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ∪
+            sb ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘)) ⊆
+            sb ∪ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ⨾ ⦗FR ∩₁ Acq⦘).
+  { basic_solver 21. }
+  rewrite path_union.
+  generalize (@sb_trans G); ins; relsf; unionL.
+  { rewrite <- ct_step.
+    unfold ar, imm_s_ppo.ar_int, imm_bob.bob,  imm_bob.fwbob.
+    mode_solver 21. }
+  rewrite ct_seq_swap, !seqA.
+  rewrite ct_rotl, !seqA.
+  arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar^?).
+  { case_refl (rmw ⨾ sb^?).
+    { arewrite (⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ∪ ⦗F ∩₁ Acq/Rel⦘) by mode_solver.
+      unfold ar, imm_s_ppo.ar_int, imm_bob.bob, imm_bob.fwbob; basic_solver 15. }
+    unfold ar, imm_s_ppo.ar_int, imm_s_ppo.ppo.
+    admit. }
+    (* rewrite <- ct_step. *)
+    (* arewrite_id ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘; relsf. *)
+    (* rewrite (dom_l (wf_rmwD WF)) at 1. *)
+    (* rewrite (dom_l (wf_rmwD WF)), R_ex_in_R at 1. *)
+    (* rewrite (rmw_in_sb WF). *)
+    (* generalize (@sb_trans G); basic_solver 21. } *)
+  arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb^?).
+  { rewrite (rmw_in_sb WF); basic_solver. }
+  arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar^?).
+  { unfold ar, imm_s_ppo.ar_int, imm_bob.bob, imm_bob.fwbob. mode_solver 21. }
+  arewrite (⦗F ∩₁ Sc⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar^?).
+  { unfold ar, imm_s_ppo.ar_int, imm_bob.bob, imm_bob.fwbob. mode_solver 21. }
+  arewrite (ar ⊆ ar⁺) at 1.
+  arewrite (ar ⊆ ar⁺) at 2.
+  arewrite (ar ⊆ ar⁺) at 3.
+  arewrite (ar ⊆ ar⁺) at 4.
+  arewrite (ar ⊆ ar⁺) at 5.
+  relsf.
 Qed.
 
 Lemma f_sc_hb_f_sc_in_sc WF WF_SC ACYC_EXT: 
