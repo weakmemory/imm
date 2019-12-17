@@ -219,11 +219,11 @@ Proof.
   { rewrite (dom_l WF.(wf_rfiD)).
     rewrite (dom_r WF.(wf_rmwD)), !seqA.
       by sin_rewrite rfi_rmw_in_sb_loc. }
-  unfold imm_bob.fwbob at 1.
+  unfold fwbob at 1.
   rewrite !seq_union_l. unionL.
   3: type_solver.
   2-3: rewrite <- ct_step.
-  3: { unfold imm_bob.fwbob. unionR right.
+  3: { unfold fwbob. unionR right.
        rewrite !seqA.
        arewrite (sb ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb); [|done].
        generalize (@sb_trans G). basic_solver. }
@@ -233,12 +233,12 @@ Proof.
        rewrite !seq_id_l.
        arewrite (sb ∩ same_loc ⨾ sb ∩ same_loc ⊆ sb ∩ same_loc).
        { apply transitiveI. apply sb_same_loc_trans. }
-       unfold imm_bob.fwbob. eauto with hahn. }
+       unfold fwbob. eauto with hahn. }
   arewrite ((sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W⦘ ⊆ (sb ⨾ ⦗W ∩₁ Rel⦘) ⨾ ⦗W ∩₁ Rel⦘) by basic_solver.
   rewrite <- seqA.
   rewrite <- ct_ct, <- ct_step.
   apply seq_mori.
-  all: unfold imm_bob.fwbob; eauto with hahn.
+  all: unfold fwbob; eauto with hahn.
 Qed.
 
 End IMM.

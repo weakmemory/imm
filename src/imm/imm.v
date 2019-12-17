@@ -218,12 +218,7 @@ Proof.
   { rewrite (dom_r (wf_rmwD WF)) at 1.
     rewrite (rfi_in_sbloc' WF) at 1.
     rewrite (rmw_in_sb_loc WF) at 1.
-    generalize (@sb_same_loc_trans G); ins; relsf.
-    generalize (@sb_same_loc_W_trans G); ins; relsf.
-    assert (transitive (sb ∩ same_loc ⨾ ⦗W⦘)).
-    2: by relsf.
-    generalize sb_same_loc_trans; unfold transitive.
-    basic_solver 21. }
+    generalize (@sb_same_loc_trans G), (@sb_same_loc_W_trans G); ins; relsf. }
   rewrite ct_seq_swap, !seqA.
   rewrite (dom_r (wf_rmwD WF)) at 3.
   rewrite (rfi_in_sbloc' WF) at 1 2.
