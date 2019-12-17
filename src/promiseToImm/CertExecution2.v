@@ -6,7 +6,7 @@ Require Import Execution_eco.
 Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_bob imm_s_ppo_more.
+Require Import imm_bob imm_common_more.
 Require Import CertCOhelper.
 
 Require Import CombRelations.
