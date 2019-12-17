@@ -1070,13 +1070,26 @@ Proof.
             sb^? ⨾ ⦗set_compl I⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘).
   2: { unfold Execution.rfi.
        generalize (@sb_trans G). basic_solver. }
+  rewrite rtE, !seq_union_l, seq_id_l.
+  unionL.
+  { rewrite <- inclusion_id_cr at 2. by rewrite seq_id_l. }
+  rewrite rfi_union_rfe. rewrite seq_union_l, seq_union_r.
+  assert ((⦗set_compl I⦘ ⨾ rfi ⨾ rmw)＊ ⊆ (sb ∩ same_loc ;; <|W|>)^?) as BB.
+  { rewrite WF.(rfi_rmw_in_sb_same_loc_W). 
+    arewrite_id ⦗set_compl I⦘. rewrite seq_id_l.
+    apply rt_of_trans. apply sb_same_loc_W_trans. }
+  rewrite path_union. rewrite !seq_union_l. unionL.
+  { rewrite inclusion_t_rt. rewrite BB.
+    arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver. }
+  (* TODO: continue from here. *)
+
   intros x y [v [HH XX]].
   eexists. split; [|by eauto].
   assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV.
   { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. }
+
   clear y XX.
-  (* TODO: continue from here.
-     We should not remove XX since it has important information about Acq. *)
+  (* TODO: We should not remove XX since it has important information about Acq. *)
   induction HH as [x y HH| | ].
   2: by apply r_refl.
   { apply r_step.
