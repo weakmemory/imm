@@ -7,7 +7,6 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
 Require Import imm_hb.
 Require Import imm_s_hb.
 
@@ -48,11 +47,6 @@ Notation "'s_rs'" := G.(imm_s_hb.rs).
 Notation "'s_release'" := G.(imm_s_hb.release).
 Notation "'s_sw'" := G.(imm_s_hb.sw).
 Notation "'s_hb'" := G.(imm_s_hb.hb).
-
-Notation "'ar_int'" := G.(ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
-
 
 
 Notation "'lab'" := G.(lab).

@@ -7,7 +7,8 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob.
+Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm_s_hb.
 Require Import imm.
@@ -83,8 +84,43 @@ Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
+(* Lemma R_ar_int_alt WF : ⦗R⦘ ⨾ s_ar_int⁺ ⊆ ⦗R⦘ ⨾ (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺. *)
+(* Proof using. *)
+(*   unfold ar_int. *)
+(*   rewrite path_union2. *)
+(*   rewrite !seq_union_r. unionL. *)
+(*   { done. } *)
+(*   { rewrite ct_begin. rewrite !seqA. *)
+(*     arewrite (⦗R⦘ ⨾ ⦗W_ex⦘ ⊆ ∅₂). *)
+(*     { rewrite WF.(W_ex_in_W). type_solver. } *)
+(*     basic_solver. } *)
+(*   arewrite (⦗R⦘ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊ ⊆ ⦗R⦘). *)
+(*   { admit. } *)
+(*   arewrite ((⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘). *)
+(*   { admit. } *)
+(*   rewrite ct_begin. *)
+(*   arewrite (((bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊ ⊆ sb^?). *)
+(*   { admit. } *)
+(*   arewrite (rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb^?). *)
+(*   { admit. } *)
+(*   rewrite ct_end at 1. *)
+(*   arewrite ((bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ⊆ sb) at 2. *)
+(*   { admit. } *)
+(*   arewrite (sb ⨾ ⦗W_ex⦘ ⊆ sb^? ;; rmw). *)
+(*   { admit. } *)
+(*   rewrite (dom_l WF.(wf_rmwD)). *)
+(*   rewrite WF.(rmw_in_sb), !seqA. *)
+(*   arewrite (⦗R_ex⦘ ⨾ sb ⨾ sb^? ⨾ (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⊆ ppo). *)
+(*   { admit. } *)
 
+(* (*   rewrite rtE. *) *)
+(* (*   rewrite seq_union_l *) *)
 
+(* (* admit. } *) *)
+
+(* (*   rewrite ct_begin. *) *)
+(* (*   rewrite seq_union_l. *) *)
+(* Admitted. *)
 
 Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G): imm.acyc_ext G -> 
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.

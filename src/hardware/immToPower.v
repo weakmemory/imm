@@ -9,7 +9,8 @@ Require Import Execution_eco.
 Require Import Power_fences.
 Require Import Power_ppo.
 Require Import Power.
-Require Import imm_common.
+Require Import imm_bob.
+Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm.
 
@@ -92,7 +93,7 @@ Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis NO_W_REL : W∩₁Rel ≡₁ ∅.
 Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾ sb^? ∪ sb ⨾ ⦗F^lwsync⦘ ⨾ sb^?.
 (* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
-(* Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl. *)
+Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
 Hypothesis DATA_RMW : data ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 
@@ -207,7 +208,7 @@ Qed.*)
 Lemma bob_no_w_rel : 
   bob ⊆ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb.
 Proof.
-unfold imm_common.bob, imm_common.fwbob.
+unfold imm_bob.bob, imm_bob.fwbob.
 sin_rewrite !NO_W_REL.
 basic_solver 21.
 Qed.
@@ -216,7 +217,6 @@ Qed.
 (** * consequences of the compilation scheme  *)
 (******************************************************************************)
 
-(*
 Lemma rmw_sb_in_ctrl: rmw ⨾ sb ⊆ ctrl.
 Proof.
 rewrite (dom_l (wf_rmwD WF)).
@@ -227,39 +227,31 @@ by revert RMW_CTRL_FAIL; generalize (@sb_trans G); basic_solver 14.
 unfolder in A; desf.
 exfalso; eapply (wf_rmwi WF); eauto.
 Qed.
-*)
 
-(*
+
 Lemma rmw_in_deps: rmw ⊆ deps.
 Proof.
 rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF).
 rewrite RMW_CTRL_FAIL; unfold Execution.deps; basic_solver.
 Qed.
-*)
 
-(*
 Lemma rmw_sb_in_deps: rmw ⨾ sb^? ⊆ deps.
 Proof.
 case_refl _.
 apply rmw_in_deps.
 rewrite rmw_sb_in_ctrl; vauto.
 Qed.
-*)
 
-(*
 Lemma RMW_CTRL_FAIL' : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∪ ctrl.
 Proof.
 rewrite RMW_CTRL_FAIL; basic_solver.
 Qed.
-*)
 
-(*
 Lemma rmw_sb_W_in_ppo: rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppop.
 Proof.
 sin_rewrite rmw_sb_in_deps.
 by sin_rewrite (deps_in_ppo WF).
 Qed.
-*)
 
 Lemma r_acq_sb: ⦗R∩₁Acq⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ rmw ∪ ctrli ⨾ ⦗RW⦘ ∪ ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘.
 Proof.
@@ -310,8 +302,8 @@ Qed.
 (******************************************************************************)
 
 Lemma external_helper : 
- ⦗F ∩₁ Rel⦘ ⨾ sb ⨾ (rf ⨾ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘)＊ ⨾ rf ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘) \ sb ⊆
- ⦗F ∩₁ Rel⦘ ⨾ sb ⨾  ((rf ⨾ rmw⨾  (sb ∩ same_loc)^? ⨾ ⦗W⦘)＊ ⨾ rf \ sb) ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘).
+ ⦗F ∩₁ Rel⦘ ⨾ sb ⨾ (rf ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)＊ ⨾ rf ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘) \ sb ⊆
+ ⦗F ∩₁ Rel⦘ ⨾ sb ⨾  ((rf ⨾ rmw⨾  sb^? ⨾ ⦗W⦘)＊ ⨾ rf \ sb) ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘).
 Proof.
 generalize (@sb_trans G).
 basic_solver 22.
@@ -322,10 +314,10 @@ Proof.
 rewrite sw_no_w_rel.
 unfold Power.S.
 rewrite (rs_big_alt).
-arewrite (sb ∩ same_loc ⊆ sb) at 1.
+arewrite (sb ∩ same_loc ⊆ sb).
 arewrite (sb ⨾ ⦗W⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ sb) by generalize (@sb_trans G); basic_solver.
 rewrite external_helper.
-rewrite (rf_rmw_sb_rt_rf WF). (rmw_rf_rt_1 WF).
+rewrite (rf_rmw_sb_rt_rf WF), (rmw_rf_rt_1 WF).
 rewrite rmw_sb_W_in_ppo.
 arewrite ((ppop ∪ rfe)＊ ⊆ hbp＊).
 ie_unfolder.
@@ -576,14 +568,14 @@ relsf; unionL.
       + arewrite_id (⦗W⦘) at 1; rels.
         sin_rewrite DATA_RMW.
         unionR left -> left.
-        unfold imm_common.ppo.
+        unfold imm_ppo.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.
       + arewrite (ctrl ⨾ ⦗W⦘ ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl).
         by generalize (ctrl_sb WF); basic_solver.
         unionR left -> left.
-        unfold imm_common.ppo.
+        unfold imm_ppo.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.
@@ -591,7 +583,7 @@ relsf; unionL.
         basic_solver.
         generalize (@sb_trans G); ins; relsf.
         unionR left -> left.
-        unfold imm_common.ppo.
+        unfold imm_ppo.ppo.
         hahn_frame.
         rewrite ct_end.
         apply inclusion_seq_mon; [apply inclusion_rt_rt|]; basic_solver 42.

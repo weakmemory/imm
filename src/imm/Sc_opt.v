@@ -7,7 +7,8 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_common.
+Require Import imm_bob.
+Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm.
 

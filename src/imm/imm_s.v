@@ -9,7 +9,8 @@ Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
 Require Import imm_s_hb.
-Require Import imm_common.
+Require Import imm_bob.
+Require Import imm_s_ppo.
 Require Import imm_s_hb_hb.
 Require Import imm.
 
@@ -43,8 +44,8 @@ Notation "'hb'" := G.(imm_s_hb.hb).
 Notation "'sw'" := G.(imm_s_hb.sw).
 
 Notation "'bob'" := G.(bob).
-Notation "'ppo'" := G.(ppo).
-Notation "'ar_int'" := G.(ar_int).
+Notation "'ppo'" := G.(imm_s_ppo.ppo).
+Notation "'ar_int'" := G.(imm_s_ppo.ar_int).
 
 Notation "'lab'" := G.(lab).
 Notation "'loc'" := (loc lab).
@@ -192,13 +193,23 @@ eapply t_trans; unfold ar; [basic_solver| apply t_step; basic_solver].
 intro; eapply ACYC_EXT; unfold ar; basic_solver.
 Qed.
 
+Lemma s_ppo_in_ppo : ppo ⊆ G.(imm_ppo.ppo).
+Proof.
+  unfold imm_ppo.ppo, imm_s_ppo.ppo.
+Admitted.
+
+Lemma ar_int_in_s_ar_int : ar_int ⊆ G.(imm_ppo.ar_int).
+Proof.
+  unfold imm_ppo.ar_int, imm_s_ppo.ar_int.
+  rewrite ppo_in_s_ppo. basic_solver 10.
+Qed.
+
 Lemma f_sc_hb_f_sc_in_ar WF :
   ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ (rfe ∪ ar_int)⁺.
 Proof.
-by rewrite s_hb_in_hb, (f_sc_hb_f_sc_in_ar WF).
+  rewrite s_hb_in_hb, (f_sc_hb_f_sc_in_ar WF).
+  unfold imm.ar.
 Qed.
-
-
 
 Lemma f_sc_hb_f_sc_in_sc WF WF_SC ACYC_EXT: 
   ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ sc.
