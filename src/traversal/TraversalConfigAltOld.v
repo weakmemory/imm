@@ -187,6 +187,12 @@ Qed.
 Lemma otc_I_ar_I_implied_helper_2  WF WF_SC (tc_old : tc_coherent_alt_old) :
    dom_rel (<|W|> ;; ar⁺ ;; <|I|>) ⊆₁ I.
 Proof.
+  assert (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) as AA.
+  { rewrite (ppo_in_sb WF), bob_in_sb.
+    arewrite (rfi ⊆ sb). basic_solver 10. }
+  assert (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) as BB.
+  { rewrite bob_in_sb. arewrite (rfi ⊆ sb). basic_solver 10. }
+
   unfold imm_s.ar, ar_int.
   arewrite (sc ∪ rfe ∪
                (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ⊆ 
@@ -214,15 +220,10 @@ Proof.
     rewrite id_union; relsf; unionL.
     { rewrite (dom_rel_helper (otc_I_ar_I_implied_helper_1 WF tc_old)). subst.
       basic_solver 12. }
-    rewrite (ppo_in_sb WF), bob_in_sb.
-    arewrite_id ⦗W_ex_acq⦘.
-    arewrite_id ⦗W⦘ at 2.
-    generalize (@sb_trans G); ins; relsf.
-    arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘).
-    { basic_solver. }
-    admit. }
-    (* rewrite (dom_rel_helper (otc_sb_C tc_old)). *)
-    (* generalize (otc_W_C_in_I tc_old); basic_solver. } *)
+    rewrite AA. rewrite ct_of_trans; [|by apply sb_trans].
+    arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘) by basic_solver.
+    rewrite (dom_rel_helper (otc_sb_C tc_old)).
+    generalize (otc_W_C_in_I tc_old); basic_solver. }
   intros k H; rewrite !seqA.
   rewrite rtE at 2; relsf; unionL; subst srd.
   { rewrite (wf_scD WF_SC).
@@ -230,10 +231,9 @@ Proof.
     rewrite (dom_r (wf_rfeD WF)).
     rewrite (dom_r (wf_detourD WF)).
     rewrite id_union; relsf; unionL; try type_solver.
-
     rewrite !seqA.
     arewrite (⦗F ∩₁ Sc⦘ ⨾ sc ⨾ ⦗F ∩₁ Sc⦘ ⨾ ⦗C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⨾ (fun _ _ : actid => True)).
-    generalize (otc_sc_C tc_old); basic_solver 21.
+    { generalize (otc_sc_C tc_old); basic_solver 21. }
     sin_rewrite H; basic_solver. }
   rewrite !unionA.
   remember (rfe ∪ detour) as rd.
@@ -242,72 +242,67 @@ Proof.
     { intro A. sin_rewrite A. arewrite (C ∩₁ F ∩₁ Sc ⊆₁ I ∪₁ C ∩₁ F ∩₁ Sc) at 1.
       sin_rewrite H. basic_solver. }
     subst bps.
-    rewrite (ppo_in_sb WF), bob_in_sb.
-    arewrite_id ⦗W_ex_acq⦘.
-    arewrite_id ⦗W⦘.
-    generalize (@sb_trans G); ins; relsf.
+    rewrite AA. rewrite ct_of_trans; [|by apply sb_trans].
     rewrite (wf_scD WF_SC), !seqA.
     rewrite id_union; relsf; unionL.
-    { admit. }
-    (* { arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⊆  fwbob). *)
-    (*   { unfold imm_bob.fwbob. mode_solver. } *)
-    (*   generalize (otc_sc_C tc_old) (otc_fwbob_I tc_old). *)
-    (*   basic_solver 21. } *)
+    { arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⊆ fwbob).
+      { unfold imm_bob.fwbob. mode_solver. }
+      generalize (otc_sc_C tc_old) (otc_fwbob_I tc_old).
+      basic_solver 21. }
     generalize (otc_sc_C tc_old) (otc_sb_C tc_old).
-    admit. }
-    (* basic_solver 21. *)
+    basic_solver 21. }
   cut (rd ⨾ bps^+ ⨾ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗I⦘ ;; (fun _ _ : actid => True)).
   { intro A. sin_rewrite A. arewrite (I ⊆₁ I ∪₁ C ∩₁ F ∩₁ Sc) at 1.
     sin_rewrite H. basic_solver. }
   subst bps.
-  rewrite (bob_ppo_W_sb WF); relsf; unionL.
+  rewrite (bob_ppo_W_ex_rfi_W_sb WF); relsf; unionL.
+  { rewrite id_union; relsf; unionL.
+    { generalize (otc_dr_pb_I tc_old). subst rd. basic_solver 12. }
+    rewrite wf_ppoD. type_solver. }
   rewrite id_union; relsf; unionL.
-  { generalize (otc_dr_pb_I tc_old); subst rd. basic_solver 12.
-                       by rewrite wf_ppoD; type_solver.
-                       rewrite id_union; relsf; unionL.
-                 ++ arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
-                      by generalize (otc_I_in_W tc_old); basic_solver.
-                      sin_rewrite bob_sb; relsf; unionL.
-                    ** rewrite !seqA.
-                       arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (fun _ _ : actid => True)).
-                         by generalize (otc_W_ex_sb_I tc_old); basic_solver 21.
-                         rewrite crE; relsf; unionL.
-                       --- rewrite tc_bob; relsf; unionL.
-                           2: by generalize (otc_dr_pb_I tc_old); subst rd; unfold imm_bob.bob; basic_solver 21.
-                           seq_rewrite (dom_rel_helper (otc_tc_fwbob_I  tc_old)).
-                           subst rd; relsf; unionL.
-                           generalize (otc_rf_C tc_old); unfold Execution.rfe; basic_solver 21.
-                           rewrite (dom_l (wf_detourD WF)).
-                           rewrite detour_in_sb.
-                           generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
-                       --- rewrite wf_ppoD, !seqA.
-                           seq_rewrite (dom_rel_helper (otc_W_bob_I tc_old)).
-                           generalize (otc_dr_pb_I tc_old).
-                           subst rd.
-                           basic_solver 21.
-                    ** 
-                      rewrite crE; relsf; unionL; subst rd.
-                      ---  
-                        rewrite (dom_r (wf_rfeD WF)).
-                        rewrite (dom_r (wf_detourD WF)).
-                        rewrite (W_ex_in_W WF).
-                        type_solver.
-                      ---
-                        generalize (otc_dr_pb_I tc_old) (otc_W_ex_sb_I tc_old).
-                        basic_solver 21.
-                 ++ rewrite (ppo_in_sb WF), bob_in_sb.
-                    arewrite_id ⦗W_ex_acq⦘.
-                    arewrite_id ⦗W⦘.
-                    generalize (@sb_trans G); ins; relsf.
-                    arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘).
-                    basic_solver.
-                    rewrite (dom_rel_helper (otc_sb_C tc_old)).
-                    subst rd; relsf; unionL.
-                    generalize (otc_rf_C tc_old); unfold Execution.rfe; basic_solver 21.
-                    rewrite (dom_l (wf_detourD WF)).
-                    rewrite detour_in_sb.
-                    generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
-
-Qed.
+  { arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+    { generalize (otc_I_in_W tc_old). basic_solver. }
+    admit. }
+    (* sin_rewrite bob_sb; relsf; unionL. *)
+    (* ** rewrite !seqA. *)
+    (*    arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (fun _ _ : actid => True)). *)
+    (*    { generalize (otc_W_ex_sb_I tc_old). basic_solver 21. } *)
+    (*    rewrite crE; relsf; unionL. *)
+    (*    --- rewrite tc_bob; relsf; unionL. *)
+    (*        2: by generalize (otc_dr_pb_I tc_old); subst rd; unfold imm_bob.bob; basic_solver 21. *)
+    (*        seq_rewrite (dom_rel_helper (otc_tc_fwbob_I  tc_old)). *)
+    (*        subst rd; relsf; unionL. *)
+    (*        generalize (otc_rf_C tc_old); unfold Execution.rfe; basic_solver 21. *)
+    (*        rewrite (dom_l (wf_detourD WF)). *)
+    (*        rewrite detour_in_sb. *)
+    (*        generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21. *)
+    (*    --- rewrite wf_ppoD, !seqA. *)
+    (*        seq_rewrite (dom_rel_helper (otc_W_bob_I tc_old)). *)
+    (*        generalize (otc_dr_pb_I tc_old). *)
+    (*        subst rd. *)
+    (*        basic_solver 21. *)
+    (* **  *)
+    (*   rewrite crE; relsf; unionL; subst rd. *)
+    (*   ---   *)
+    (*     rewrite (dom_r (wf_rfeD WF)). *)
+    (*     rewrite (dom_r (wf_detourD WF)). *)
+    (*     rewrite (W_ex_in_W WF). *)
+    (*     type_solver. *)
+    (*   --- *)
+    (*     generalize (otc_dr_pb_I tc_old) (otc_W_ex_sb_I tc_old). *)
+    (*     basic_solver 21. *)
+  rewrite BB. rewrite ct_of_trans; [|by apply sb_trans].
+  arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘).
+  { basic_solver. }
+  rewrite WF.(ppo_in_sb).
+  arewrite (sb^? ⨾ sb ⊆ sb).
+  { generalize (@sb_trans G). basic_solver. }
+  rewrite (dom_rel_helper (otc_sb_C tc_old)).
+  subst rd; relsf; unionL.
+  { generalize (otc_rf_C tc_old); unfold Execution.rfe. basic_solver 21. }
+  rewrite (dom_l (wf_detourD WF)).
+  rewrite detour_in_sb.
+  generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
+Admitted.
 
 End TCCOH_ALT_OLD.
