@@ -251,27 +251,65 @@ Proof using. unfold ar_int. basic_solver 10. Qed.
 Lemma bob_ppo_W_sb WF :
   (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
 Proof using.
-arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
-         (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ ppo).
-basic_solver 12.
-apply ct_ind_left with (P:= fun r =>  r).
-by auto with hahn.
-- arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
-  arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺) at 2.
+  arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+                (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ ppo).
   basic_solver 12.
-- intros k H. rewrite H; clear k H; rewrite crE; relsf; unionL.
-+ rewrite (bob_ppo WF). 
-  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
-  basic_solver.
-+ rewrite (wf_ppoD) at 1. type_solver.
-+ rewrite (wf_ppoD) at 1 2. type_solver.
-+ arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
-+ sin_rewrite (bob_ppo WF). 
+  apply ct_ind_left with (P:= fun r =>  r).
+  { auto with hahn. }
+  { arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
+    arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺) at 2.
+    basic_solver 12. }
+  intros k H. rewrite H; clear k H; rewrite crE; relsf; unionL.
+  { rewrite (bob_ppo WF). 
+    arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺).
+    basic_solver. }
+  { rewrite (wf_ppoD) at 1. type_solver. }
+  { rewrite (wf_ppoD) at 1 2. type_solver. }
   arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
-+ arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*) at 1; relsf.
-+ rewrite (wf_ppoD) at 1. type_solver.
-+ basic_solver 12.
-+ rewrite (wf_ppoD) at 1 2. type_solver.
+  { sin_rewrite (bob_ppo WF). 
+    arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf. }
+  { arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*) at 1; relsf. }
+  { rewrite (wf_ppoD) at 1. type_solver. }
+  { basic_solver 12. }
+  rewrite (wf_ppoD) at 1 2. type_solver.
+Qed.
+
+Lemma bob_ppo_W_ex_rfi_W_sb WF :
+  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆
+  ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+.
+Proof using.
+  assert (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb ⊆
+                 ppo ∪ ((bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ∪
+                 ppo ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺)) as AA.
+  { arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1 by basic_solver.
+    arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+    unionR right -> left.
+    rewrite <- ct_ct. rewrite <- !ct_step.
+    basic_solver 10. }
+
+  arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆
+                (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ∪ ppo).
+  { basic_solver 12. }
+  apply ct_ind_left with (P:= fun r =>  r).
+  { auto with hahn. }
+  { rewrite <- ct_step. basic_solver 10. }
+  intros k H. rewrite H; clear k H; rewrite crE; relsf; unionL.
+  { rewrite (bob_ppo WF). 
+    unionR right -> left. rewrite <- ct_step. basic_solver. }
+  { rewrite (wf_ppoD) at 1. type_solver. }
+  { rewrite WF.(ppo_in_sb) at 1.
+    rewrite !seqA. apply AA. }
+  { rewrite (wf_ppoD) at 1 2. type_solver. }
+  2: sin_rewrite (bob_ppo WF). 
+  1-3,5: unionR right -> left; rewrite <- ct_ct at 2;
+    rewrite <- ct_step at 2; basic_solver 10.
+  { rewrite (wf_ppoD) at 1. type_solver. }
+  { arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) at 1.
+    { rewrite bob_in_sb. arewrite (rfi ⊆ sb). basic_solver. }
+    rewrite WF.(ppo_in_sb) at 1.
+    generalize (@sb_trans G); ins; relsf. }
+  { basic_solver 10. }
+  rewrite (wf_ppoD) at 1 2; type_solver.
 Qed.
 
 Lemma rmw_sb_same_loc_W_in_ppo WF : rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ ppo.

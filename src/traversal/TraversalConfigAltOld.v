@@ -90,7 +90,7 @@ Record tc_coherent_alt_old :=
     otc_I_in_E : I ⊆₁ E ;
     otc_I_in_W : I ⊆₁ W ;
     otc_fwbob_I : dom_rel ( fwbob ⨾ ⦗I⦘) ⊆₁ C ;
-    otc_dr_pb_I : dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗I⦘) ⊆₁ I ;
+    otc_dr_pb_I : dom_rel ( (detour ∪ rfe ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ⨾ (ppo ∪ bob) ⨾ ⦗I⦘) ⊆₁ I ;
     otc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗I⦘) ⊆₁ I
   }.
 
@@ -114,40 +114,92 @@ generalize (otc_W_C_in_I tc_old).
 basic_solver 12.
 Qed.
 
-Lemma otc_I_ar_I_implied_helper_1 WF (tc_old : tc_coherent_alt_old) :
-  dom_rel (⦗W⦘ ⨾  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
+Lemma otc_I_ar_I_implied_helper_0 WF (tc_old : tc_coherent_alt_old) :
+  dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
 Proof.
-rewrite (bob_ppo_W_sb WF).
-rewrite crE.
-rewrite wf_ppoD at 1 2.
-relsf; splits; try type_solver.
-arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
-by generalize (otc_I_in_W tc_old); basic_solver.
-sin_rewrite bob_sb; relsf; splits.
-+ rewrite !seqA.
-  arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ sb^?).
-  by generalize (otc_W_ex_sb_I tc_old); basic_solver 12.
-  generalize (otc_W_bob_I tc_old); basic_solver 12.
-+ generalize (otc_W_ex_sb_I tc_old).
+  rewrite (bob_ppo_W_sb WF).
+  rewrite crE.
+  rewrite wf_ppoD at 1 2.
+  relsf; splits; try type_solver.
+  arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+  { generalize (otc_I_in_W tc_old); basic_solver. }
+  sin_rewrite bob_sb; relsf; splits.
+  { rewrite !seqA.
+    arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ sb^?).
+    { generalize (otc_W_ex_sb_I tc_old). basic_solver 12. }
+    generalize (otc_W_bob_I tc_old). basic_solver 12. }
+  generalize (otc_W_ex_sb_I tc_old).
   basic_solver 12.
+Qed.
+
+Lemma otc_I_ar_I_implied_helper_1 WF (tc_old : tc_coherent_alt_old) :
+  dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
+Proof.
+  rewrite (bob_ppo_W_ex_rfi_W_sb WF).
+  rewrite crE.
+  rewrite wf_ppoD at 1 2.
+  relsf; splits; try type_solver.
+  arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+  { generalize (otc_I_in_W tc_old); basic_solver. }
+  arewrite ((bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ;; <|W|> ⊆
+            (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^* ;; (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ;; bob)^?).
+  { rewrite unionC.
+    rewrite path_union1.
+    rewrite !seq_union_l. unionL.
+    { rewrite rtE. basic_solver 10. }
+    hahn_frame_l.
+    arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪
+              ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆
+              ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*).
+    { rewrite rtE. basic_solver 20. }
+    arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb).
+    { rewrite bob_in_sb. basic_solver. }
+    rewrite rt_of_trans; [|by apply sb_trans].
+    rewrite ct_begin.
+    arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb) at 2.
+    { unfold Execution.rfi. generalize (@sb_trans G). basic_solver. }
+    rewrite rt_of_trans; [|by apply sb_trans].
+    arewrite (sb^? ⨾ sb^? ⊆ sb^?).
+    { generalize (@sb_trans G). basic_solver. }
+    rewrite crE. rewrite !seq_union_l, !seq_union_r, seq_id_l.
+    unionL.
+    { type_solver. }
+    arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1.
+    { basic_solver. }
+    arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+    basic_solver 10. }
+
+  arewrite ((⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^? ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^? ⨾ ⦗I⦘).
+  { apply dom_rel_helper.
+    rewrite crE. rewrite seq_union_l, dom_union. unionL.
+    { basic_solver. }
+    rewrite !seqA.
+    etransitivity.
+    2: by apply otc_dr_pb_I; auto.
+    basic_solver 10. }
+
+  rewrite <- !seqA. do 2 rewrite dom_seq. rewrite !seqA.
+  rewrite rtE. relsf. split; [basic_solver|].
+  rewrite <- dom_eqv1.
+  arewrite (bob ⊆ bob ∪ ppo). by apply otc_I_ar_I_implied_helper_0.
 Qed.
 
 Lemma otc_I_ar_I_implied_helper_2  WF WF_SC (tc_old : tc_coherent_alt_old) :
    dom_rel (<|W|> ;; ar⁺ ;; <|I|>) ⊆₁ I.
 Proof.
   unfold imm_s.ar, ar_int.
-  arewrite (sc ∪ rfe ∪ (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ⊆ 
-    (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ (sc ∪ rfe ∪ detour)).
-  by basic_solver 12.
+  arewrite (sc ∪ rfe ∪ (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ⊆ 
+    (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ∪ (sc ∪ rfe ∪ detour)).
+  { basic_solver 12. }
   remember (sc ∪ rfe ∪ detour) as srd.
-  remember (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) as bps.
+  remember (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) as bps.
   rewrite unionC.
   rewrite path_union1.
   arewrite (srd ∪ srd ⨾ bps⁺ ⊆ srd ⨾ bps^*).
   by rewrite rtE; basic_solver 12.
   relsf; splits.
 - generalize (otc_I_ar_I_implied_helper_1 WF tc_old).
-  rewrite <- Heqbps; basic_solver 21.
+  rewrite <- Heqbps. basic_solver 21.
 - rewrite !seqA, <- dom_eqv1.
   arewrite (⦗W⦘ ⨾ bps＊ ⨾ (srd ⨾ bps＊)⁺ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (fun _ _ => True)); cycle 1.
   by generalize (otc_W_C_in_I tc_old); basic_solver.
@@ -169,7 +221,7 @@ arewrite_id ⦗W_ex_acq⦘.
 arewrite_id ⦗W⦘ at 2.
 generalize (@sb_trans G); ins; relsf.
 arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘).
-basic_solver.
+{ basic_solver. }
 rewrite (dom_rel_helper (otc_sb_C tc_old)).
 generalize (otc_W_C_in_I tc_old); basic_solver.
 + intros k H; rewrite !seqA.
