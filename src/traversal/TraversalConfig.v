@@ -1081,46 +1081,47 @@ Proof.
   rewrite path_union. rewrite !seq_union_l. unionL.
   { rewrite inclusion_t_rt. rewrite BB.
     arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver. }
+Admitted.
   (* TODO: continue from here. *)
 
-  intros x y [v [HH XX]].
-  eexists. split; [|by eauto].
-  assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV.
-  { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. }
+(*   intros x y [v [HH XX]]. *)
+(*   eexists. split; [|by eauto]. *)
+(*   assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV. *)
+(*   { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. } *)
 
-  clear y XX.
-  (* TODO: We should not remove XX since it has important information about Acq. *)
-  induction HH as [x y HH| | ].
-  2: by apply r_refl.
-  { apply r_step.
-    destruct_seq_l HH as NIX. destruct HH as [v [RF RMW]].
-    apply rfi_union_rfe in RF. destruct RF as [RF|RF].
-    { by eapply (@sb_trans G); [apply RF|apply rmw_in_sb]. }
-    exfalso.
-    destruct VV as [z VV]. destruct_seq_r VV as AZ.
-    set (IZ := AZ).
-    apply TCCOH in IZ.
-    apply NIX. apply IZ.
-    eexists.
-    apply seq_eqv_r. split; eauto.
-    apply seq_eqv_l. split; eauto.
-    { apply (dom_l WF.(wf_rfeD)) in RF. apply seq_eqv_l in RF. desf. }
-    apply rfe_ppo_in_ar_ct; auto.
-    eexists. split; eauto.
-    red. apply seq_eqv_l. split; eauto.
-    { apply (dom_r WF.(wf_rfeD)) in RF. apply seq_eqv_r in RF. desf. }
-    apply seq_eqv_r. split; eauto.
-    2: { eapply issuedW; eauto. }
-    apply ct_step. left; right.
-    apply seq_eqv_l. split; auto.
-    { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. }
-    eapply sb_trans; eauto. by apply rmw_in_sb. }
-  specialize (IHHH2 VV).
-  eapply (transitive_cr (@sb_trans G) _ IHHH2); eauto.
+(*   clear y XX. *)
+(*   (* TODO: We should not remove XX since it has important information about Acq. *) *)
+(*   induction HH as [x y HH| | ]. *)
+(*   2: by apply r_refl. *)
+(*   { apply r_step. *)
+(*     destruct_seq_l HH as NIX. destruct HH as [v [RF RMW]]. *)
+(*     apply rfi_union_rfe in RF. destruct RF as [RF|RF]. *)
+(*     { by eapply (@sb_trans G); [apply RF|apply rmw_in_sb]. } *)
+(*     exfalso. *)
+(*     destruct VV as [z VV]. destruct_seq_r VV as AZ. *)
+(*     set (IZ := AZ). *)
+(*     apply TCCOH in IZ. *)
+(*     apply NIX. apply IZ. *)
+(*     eexists. *)
+(*     apply seq_eqv_r. split; eauto. *)
+(*     apply seq_eqv_l. split; eauto. *)
+(*     { apply (dom_l WF.(wf_rfeD)) in RF. apply seq_eqv_l in RF. desf. } *)
+(*     apply rfe_ppo_in_ar_ct; auto. *)
+(*     eexists. split; eauto. *)
+(*     red. apply seq_eqv_l. split; eauto. *)
+(*     { apply (dom_r WF.(wf_rfeD)) in RF. apply seq_eqv_r in RF. desf. } *)
+(*     apply seq_eqv_r. split; eauto. *)
+(*     2: { eapply issuedW; eauto. } *)
+(*     apply ct_step. left; right. *)
+(*     apply seq_eqv_l. split; auto. *)
+(*     { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. } *)
+(*     eapply sb_trans; eauto. by apply rmw_in_sb. } *)
+(*   specialize (IHHH2 VV). *)
+(*   eapply (transitive_cr (@sb_trans G) _ IHHH2); eauto. *)
 
-  Unshelve.
-  apply IHHH1. generalize VV (@sb_trans G) IHHH2. basic_solver 10.
-Qed.
+(*   Unshelve. *)
+(*   apply IHHH1. generalize VV (@sb_trans G) IHHH2. basic_solver 10. *)
+(* Qed. *)
 
 Lemma hb_in_Chb_sb (RELCOV : W ∩₁ Rel ∩₁ I ⊆₁ C) :
   hb ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗ I ⦘)⦘ ⊆ ⦗ C ⦘ ⨾ hb ∪ sb.
