@@ -132,6 +132,37 @@ Proof.
   basic_solver 12.
 Qed.
 
+Lemma bob_W_ex_sb_W_ex_rfi_ct_alt :
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ;; <|W|> ⊆
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^* ;; (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ;; bob)^?.
+Proof.
+  rewrite unionC.
+  rewrite path_union1.
+  rewrite !seq_union_l. unionL.
+  { rewrite rtE. basic_solver 10. }
+  hahn_frame_l.
+  arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪
+            ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆
+            ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*).
+  { rewrite rtE. basic_solver 20. }
+  arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb).
+  { rewrite bob_in_sb. basic_solver. }
+  rewrite rt_of_trans; [|by apply sb_trans].
+  rewrite ct_begin.
+  arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb) at 2.
+  { unfold Execution.rfi. generalize (@sb_trans G). basic_solver. }
+  rewrite rt_of_trans; [|by apply sb_trans].
+  arewrite (sb^? ⨾ sb^? ⊆ sb^?).
+  { generalize (@sb_trans G). basic_solver. }
+  rewrite crE. rewrite !seq_union_l, !seq_union_r, seq_id_l.
+  unionL.
+  { type_solver. }
+  arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1.
+  { basic_solver. }
+  arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+  basic_solver 10.
+Qed.
+
 Lemma otc_I_ar_I_implied_helper_1 WF (tc_old : tc_coherent_alt_old) :
   dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
 Proof.
@@ -141,33 +172,8 @@ Proof.
   relsf; splits; try type_solver.
   arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
   { generalize (otc_I_in_W tc_old); basic_solver. }
-  arewrite ((bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ;; <|W|> ⊆
-            (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^* ;; (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ;; bob)^?).
-  { rewrite unionC.
-    rewrite path_union1.
-    rewrite !seq_union_l. unionL.
-    { rewrite rtE. basic_solver 10. }
-    hahn_frame_l.
-    arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪
-              ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆
-              ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*).
-    { rewrite rtE. basic_solver 20. }
-    arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb).
-    { rewrite bob_in_sb. basic_solver. }
-    rewrite rt_of_trans; [|by apply sb_trans].
-    rewrite ct_begin.
-    arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb) at 2.
-    { unfold Execution.rfi. generalize (@sb_trans G). basic_solver. }
-    rewrite rt_of_trans; [|by apply sb_trans].
-    arewrite (sb^? ⨾ sb^? ⊆ sb^?).
-    { generalize (@sb_trans G). basic_solver. }
-    rewrite crE. rewrite !seq_union_l, !seq_union_r, seq_id_l.
-    unionL.
-    { type_solver. }
-    arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1.
-    { basic_solver. }
-    arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
-    basic_solver 10. }
+
+  sin_rewrite bob_W_ex_sb_W_ex_rfi_ct_alt. rewrite !seqA.
 
   arewrite ((⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^? ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^? ⨾ ⦗I⦘).
   { apply dom_rel_helper.
@@ -262,6 +268,7 @@ Proof.
   rewrite id_union; relsf; unionL.
   { arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
     { generalize (otc_I_in_W tc_old). basic_solver. }
+    sin_rewrite bob_W_ex_sb_W_ex_rfi_ct_alt. rewrite !seqA.
     admit. }
     (* sin_rewrite bob_sb; relsf; unionL. *)
     (* ** rewrite !seqA. *)
