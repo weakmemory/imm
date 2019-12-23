@@ -79,6 +79,9 @@ Definition psc := ⦗F∩₁Sc⦘ ⨾  hb ⨾ eco ⨾ hb ⨾ ⦗F∩₁Sc⦘.
 
 Definition ar := psc ∪ rfe ∪ ar_int.
 
+Lemma ppo_in_ar : ppo G ⊆ ar.
+Proof. rewrite ppo_in_ar_int. by arewrite (ar_int ⊆ ar). Qed.
+
 (******************************************************************************)
 (** ** Consistency  *)
 (******************************************************************************)
@@ -331,7 +334,8 @@ Proof.
     arewrite (rmw ⨾ sb^? ⨾ ⦗W⦘ ⨾ sb ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆
                   rmw ⨾ sb^?).
     { generalize (@sb_trans G). basic_solver 10. }
-    sin_rewrite QQ. arewrite (ppo G ⊆ ar).
+    sin_rewrite QQ.
+    rewrite ppo_in_ar.
     arewrite (ar^? ⨾ (ar ⨾ ar)＊ ⨾ ar ⊆ ar⁺).
     2: basic_solver 20.
     sin_rewrite PP.
@@ -344,7 +348,7 @@ Proof.
   { generalize (@sb_trans G). basic_solver 10. }
   sin_rewrite TT.
   rewrite !seqA.
-  repeat sin_rewrite QQ. arewrite (ppo G ⊆ ar).
+  repeat sin_rewrite QQ. rewrite ppo_in_ar.
   repeat sin_rewrite PP.
   rewrite rt_of_ct. sin_rewrite ct_unit. sin_rewrite ct_cr.
   sin_rewrite rt_ct. sin_rewrite cr_ct. basic_solver 10.

@@ -272,7 +272,8 @@ Lemma rfe_eq : rfe' ≡ rfe.
 Proof. by unfold G'; ins. Qed.
 Lemma rfi_eq : rfi' ≡ rfi.
 Proof. by unfold G'; ins. Qed.
-
+Lemma W_ex_eq : W_ex' ≡₁ W_ex.
+Proof. unfold G', relax_release_labels; type_solver 22. Qed.
 
 Lemma bob_eq : bob ⊆ bob'⁺ ∪ rmw' ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘.
 Proof.
@@ -591,11 +592,18 @@ rewrite bob_eq.
 rewrite <- sb_eq.
 rewrite <- W_ex_acq_eq.
 rewrite <- W_eq at 2.
+rewrite <- rfi_eq.
+rewrite <- W_ex_eq.
+rewrite <- R_Acq_eq.
+rewrite <- R_eq.
 
 rewrite (rmw_in_ppo WFp) at 1.
 
-apply acyclic_mon with (r:= psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob'⁺ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘).
-2: basic_solver 20.
+apply acyclic_mon with (r:= psc' ∪ ppo' ∪ rfe' ∪ detour' 
+ ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ 
+ ∪ bob'⁺ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘).
+2: basic_solver 30.
+
 apply acyclic_union1.
 -
 
@@ -607,7 +615,6 @@ apply acyclic_mon with (r:=sb').
 red; generalize (@sb_trans G'); ins; relsf; apply (@sb_irr G').
 basic_solver.
 -
-
 
 arewrite (sb' ∩ same_loc' ⊆ sb').
 
@@ -628,7 +635,9 @@ rewrite ct_of_union_ct_r.
 
 
 rewrite ct_end, !seqA.
-arewrite ((psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob') ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb' ⨾ ⦗W ∩₁ Rel⦘).
+arewrite ((psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ 
+  ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ 
+  ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ ∪ bob') ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb' ⨾ ⦗W ∩₁ Rel⦘).
 {
 relsf; unionL.
 - rewrite (dom_r (@wf_pscD G')).
@@ -638,6 +647,7 @@ rewrite F_Sc_eq; type_solver 21.
 rewrite R_eq; type_solver 21.
 - by rewrite detour_in_sb.
 - by basic_solver.
+- unfold Execution.rfi; basic_solver.
 - by rewrite bob_in_sb.
 }
 
@@ -677,10 +687,14 @@ generalize (@sb_trans G'); basic_solver 21.
 by red; ins; eapply t_step; basic_solver 12.
 
 }
+arewrite (psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob' ⊆
+          psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪
+          ⦗W_ex'⦘ ⨾ rfi' ⨾ ⦗R' ∩₁ Acq'⦘ ∪ bob').
 relsf.
 
 red; rels.
-eapply acyclic_mon; [edone|basic_solver 12].
+eapply acyclic_mon; [edone|].
+basic_solver 12.
 Qed.
 
 

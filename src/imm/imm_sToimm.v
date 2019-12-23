@@ -153,45 +153,7 @@ Proof.
 Qed.
 
 Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
-Proof.
-  assert (⦗R⦘ ⨾ ⦗W_ex⦘ ⊆ ∅₂) as AA.
-  { rewrite WF.(W_ex_in_W). type_solver. }
-
-  unfold imm_s_ppo.ar_int, imm_ppo.ar_int.
-  rewrite WF.(s_ppo_in_ppo).
-  rewrite path_union2. rewrite !seq_union_l, !seq_union_r. unionL.
-  { done. }
-  { rewrite ct_begin. rewrite !seqA. sin_rewrite AA. basic_solver. }
-  rewrite !seqA.
-  arewrite (⦗R⦘ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊ ⊆ ⦗R⦘).
-  { rewrite rtE. rewrite seq_union_r. unionL; [basic_solver|].
-    rewrite ct_begin. rewrite !seqA. sin_rewrite AA. basic_solver. }
-
-  (* arewrite ((⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘). *)
-  (* { admit. } *)
-  (* rewrite ct_begin. *)
-  (* arewrite (((bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊ ⊆ sb^?). *)
-  (* { admit. } *)
-  (* arewrite (rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb^?). *)
-  (* { admit. } *)
-  (* rewrite ct_end at 1. *)
-  (* arewrite ((bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ⊆ sb) at 2. *)
-  (* { admit. } *)
-  (* arewrite (sb ⨾ ⦗W_ex⦘ ⊆ sb^? ;; rmw). *)
-  (* { admit. } *)
-  (* rewrite (dom_l WF.(wf_rmwD)). *)
-  (* rewrite WF.(rmw_in_sb), !seqA. *)
-  (* arewrite (⦗R_ex⦘ ⨾ sb ⨾ sb^? ⨾ (bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⊆ ppo). *)
-  (* { admit. } *)
-
-(*   rewrite rtE. *)
-(*   rewrite seq_union_l *)
-
-(* admit. } *)
-
-(*   rewrite ct_begin. *)
-(*   rewrite seq_union_l. *)
-Admitted.
+Proof. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite WF.(s_ppo_in_ppo). Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext_helper (WF: Wf G)
       (AC : imm.acyc_ext G) :
@@ -209,6 +171,7 @@ Proof.
     arewrite (⦗F ∩₁ Sc⦘ ⨾ sb^?⊆ bob^?).
     { unfold imm_bob.bob, imm_bob.fwbob. mode_solver 10. }
     arewrite (bob ⊆ ar).
+    { unfold imm.ar, imm_ppo.ar_int. basic_solver 10. }
     arewrite (psc ⊆ ar).
     rewrite ct_step with (r:=ar) at 2. by rewrite ct_cr, cr_ct. }
   arewrite (rfe ⊆ ar).
