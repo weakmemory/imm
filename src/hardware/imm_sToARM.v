@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Compilation correctness from the IMM memory model to the ARMv8.3 model *)
+(** * Compilation correctness from the S_IMM memory model to the ARMv8.3 model *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
@@ -8,9 +8,9 @@ Require Import Execution.
 Require Import Execution_eco.
 Require Import Arm.
 Require Import imm_bob.
-Require Import imm_ppo.
-Require Import imm_hb.
-Require Import imm.
+Require Import imm_s_ppo.
+Require Import imm_s_hb.
+Require Import imm_s.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
