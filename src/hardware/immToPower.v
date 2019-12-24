@@ -684,6 +684,10 @@ Proof. rewrite (r_ct_ppo_detour_ppo WF); vauto. Qed.
 Lemma C_EXT_helper1 : 
   ⦗R⦘ ⨾ (bob ∪ ppo ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⨾ ⦗W⦘ ⊆ hbp.
 Proof.
+assert (⦗R⦘ ⨾ (ppop ∪ ctrli ∪ detour)⁺ ⨾ ⦗W⦘ ⊆ hbp) as PCDINHB.
+{ arewrite (W ⊆₁ RW).
+  rewrite (r_ct_ppo_detour_ppo WF); vauto. }
+
 rewrite bob_no_w_rel. 
 transitivity (⦗R⦘⨾ (⦗R ∩₁ Acq⦘ ⨾ sb ⨾ ⦗RW⦘ ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb ∪ ppo ∪ detour
    ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⨾ ⦗W⦘).
@@ -715,44 +719,40 @@ relsf; unionL.
      ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘).
   { basic_solver 10. }
   sin_rewrite C_EXT_helper05. rewrite !seqA.
-  rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
   rewrite path_union2.
   rewrite !seq_union_l, !seq_union_r. unionL.
-  { rewrite !(r_deps_rfi WF).
-    admit. }
-  { admit. }
+  { rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+      by rewrite !(r_deps_rfi WF). }
+  { rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+    rewrite ct_begin. rewrite !seqA. 
+    rewrite WF.(W_ex_in_W). type_solver. }
   rewrite !seqA.
   sin_rewrite R_W_ex_rfi_R_Acq_in_R.
   sin_rewrite W_ex_rfi_R_Acq_ct_step.
-  set (ppo' := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)⁺ ⨾ ⦗W⦘).
-  (* TODO: continue from here. *)
-  arewrite ((ppo' ∪ ctrli ∪ detour)⁺ ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ (ppop ∪ ctrli ∪ detour)⁺).
-  2: { subst ppo'. rewrite !(r_deps_rfi WF).
-       relsf. arewrite (W ⊆₁ RW). apply C_EXT_helper08. }
+  arewrite_id ⦗R ∩₁ Acq⦘. rewrite seq_id_r.
+  arewrite (rfi ⊆ sb).
+  assert ((ppo ∪ ctrli ∪ detour)⁺ ⊆ sb) as AA.
+  { rewrite WF.(ctrli_in_sb), detour_in_sb. 
+    rewrite WF.(ppo_in_sb).
+    generalize (@sb_trans G). relsf. }
+  arewrite ((ppo ∪ ctrli ∪ detour)＊ ⊆ sb^?).
+  { rewrite rtE. rewrite AA. basic_solver. }
+  rewrite ct_begin.
+  rewrite !seqA.
+  arewrite (sb ⨾ ((ppo ∪ ctrli ∪ detour)⁺ ⨾ ⦗W_ex⦘ ⨾ sb)＊ ⨾ sb^? ⊆ sb).
+  { rewrite AA. arewrite (sb ⨾ ⦗W_ex⦘ ⨾ sb ⊆ sb).
+    { generalize (@sb_trans G). basic_solver 20. }
+    relsf. rewrite <- ct_begin.
+    generalize (@sb_trans G). relsf. }
   rewrite ct_end, !seqA.
-  arewrite ((ppo' ∪ ctrli ∪ detour) ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆
-            (ppop ∪ ctrli ∪ detour)⁺).
-  2: { subst ppo'. rewrite !(r_deps_rfi WF) at 1. relsf. }
-  rewrite <- ct_step.
-  rewrite !seq_union_l. unionL.
-  3: { rewrite (dom_r WF.(wf_detourD)) at 1. rewrite WF.(W_ex_in_W).
-       type_solver. }
-  2: { arewrite (rfi ⊆ sb). arewrite_id ⦗W_ex⦘. rewrite seq_id_l. sin_rewrite ctrli_sb.
-       basic_solver. }
-  subst ppo'.
-  admit.
-
-  (* unfold Power_ppo.ppo at 1. *)
-  (* rewrite seq_union_l, !seqA. *)
-  (* unionL. *)
-  (* { arewrite_false (⦗R⦘ ⨾ ⦗W_ex⦘). *)
-  (*   { rewrite WF.(W_ex_in_W). type_solver. } *)
-  (*   basic_solver. } *)
-
-
-  (* sin_rewrite C_EXT_helper0. *)
-  (* rewrite !(r_deps_rfi WF), !seqA. *)
-  (* rewrite (r_ct_ppo_detour_ppo WF); vauto. *)
+  arewrite (⦗W⦘ ⊆ ⦗W⦘ ;; ⦗W⦘).
+  { basic_solver. }
+  sin_rewrite ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour.
+  arewrite ((ppo ∪ ctrli ∪ detour)＊ ⨾ (ppo ∪ ctrli ∪ detour) ⊆ (ppo ∪ ctrli ∪ detour)⁺).
+  rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+  rewrite !(r_deps_rfi WF).
+  arewrite (W ⊆₁ RW).
+  rewrite (r_ct_ppo_detour_ppo WF); vauto.
 - rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
   rewrite !(r_deps_rfi WF).
   rewrite (Power_ppo.ppo_in_sb WF), (ctrli_in_sb WF), detour_in_sb.
@@ -761,19 +761,20 @@ relsf; unionL.
   rewrite ct_end.
   arewrite_id ⦗F^lwsync⦘ at 1.
   rels.
-  (* arewrite (rfi ⊆ sb). *)
-  (* generalize (@sb_trans G); ins; relsf. *)
-  (* case_refl _; [type_solver 21|]. *)
-  (* case_refl _; [type_solver 21|]. *)
-  (* rewrite (@R_sb_F_sb_RW_in_fence G). *)
-  (* vauto. *)
-Admitted.
+  arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb).
+  { arewrite (rfi ⊆ sb). basic_solver. }
+  generalize (@sb_trans G); ins; relsf.
+  case_refl _; [type_solver 21|].
+  case_refl _; [type_solver 21|].
+  arewrite (W ⊆₁ RW).
+  rewrite (@R_sb_F_sb_RW_in_fence G).
+  vauto.
+Qed.
 
 Lemma C_EXT: acyc_ext G.
 Proof.
 apply (acyc_ext_helper WF).
 unfold ar_int.
-arewrite (⦗W⦘ ⊆ ⦗RW⦘) at 2.
 arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.
 rewrite C_EXT_helper1.
 arewrite (rfe ⊆ hbp).
