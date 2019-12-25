@@ -289,6 +289,7 @@ ins; desc; subst.
         e (N_FIN : next G (covered T) e) :
     exists T', trav_step T T'.
   Proof.
+    assert (wf_sc G sc) as WFSC by apply IMMCON.
     rename e into e'.
     destruct (forall_not_or_exists (next G (covered T)) W)
       as [WNEXT|NWNEXT].
@@ -317,7 +318,7 @@ ins; desc; subst.
                       dom_cond (⦗W⦘ ⨾ (ar G sc)⁺) (issued T) w /\
                       E w) as WMIN.
     { intros P; desf.
-      induction w using (well_founded_ind (wf_ar_tc WF IMMCON)).
+      induction w using (well_founded_ind (wf_ar_tc WF WFSC IMMCON)).
       destruct (classic (dom_cond (⦗W⦘ ⨾ (ar G sc)⁺) (issued T) w)); eauto.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
@@ -334,7 +335,7 @@ ins; desc; subst.
                       doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
                       E f) as FMIN.
     { intros P; desf.
-      induction f using (well_founded_ind (wf_ar_tc WF IMMCON)).
+      induction f using (well_founded_ind (wf_ar_tc WF WFSC IMMCON)).
       destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T)))
         as [H0 | H0]; eauto.
       rewrite seq_eqv_r, seq_eqv_l in H0.
