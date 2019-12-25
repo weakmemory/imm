@@ -278,6 +278,7 @@ Proof.
 Qed.
 
 Lemma sc_view_f_issued f_to f_to' T sc_view
+      (IMMCON : imm_consistent G sc)
       (TCCOH : tc_coherent G sc T)
       (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
       (ISSEQ_TO   : forall e (ISS: issued T e), f_to'   e = f_to   e)
