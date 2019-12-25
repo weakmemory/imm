@@ -142,7 +142,48 @@ Proof.
   unfold Arm.dob. basic_solver 10.
 Qed.
 
-Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
+(* Lemma s_ppo_in_obs_dob_helper : *)
+(*   ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; coi^?)⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob)⁺. *)
+(* Proof. *)
+(*   rewrite path_union1. *)
+(*   assert (transitive rfi). *)
+(*   { apply transitiveI. rewrite (wf_rfiD WF). type_solver. } *)
+(*   relsf; unionL. *)
+(*   { rewrite (wf_rfiD WF). type_solver. } *)
+(*   rewrite !seqA. *)
+(*   arewrite_id (⦗R⦘ ⨾ rfi^?). *)
+(*   { rewrite (wf_rfiD WF). type_solver. } *)
+(*   rels. *)
+(*   arewrite (data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^? ∪ *)
+(*                  (data ⨾ coi^? ⨾ rfi ∪ ctrl ⨾ rfi ∪ addr ⨾ sb^? ⨾ rfi) *)
+(*             ⊆ (data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^?) ⨾ rfi^?) by basic_solver 12. *)
+(*   relsf. *)
+(*   rewrite unionA. *)
+(*   rewrite path_ut_first. rewrite !seqA. *)
+(*   arewrite (data ⨾ coi^? ⨾ rfi^? ⊆ (obs' ∪ dob)⁺). *)
+(*   { rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r. *)
+(*     unionL. *)
+(*     1-3: rewrite <- ct_step; unionR right; rewrite (dom_r WF.(wf_dataD)); unfold Arm.dob; *)
+(*       basic_solver 10. *)
+
+(*   rewrite (dob_in_sb WF) at 3. *)
+(*   rewrite (ctrl_in_sb WF) at 2. *)
+(*   rewrite (addr_in_sb WF) at 2. *)
+(*   arewrite (rfi ⊆ sb). *)
+(*   generalize (@sb_trans G); ins; relsf. *)
+(*   rewrite !seqA; relsf. *)
+(*   arewrite (ctrl ⨾ sb^? ⊆ ctrl). *)
+(*   generalize (ctrl_sb WF); basic_solver 12. *)
+(*   arewrite (ctrl ⨾ ⦗W⦘⊆ dob). *)
+(*   unfold Arm.dob; basic_solver 12. *)
+
+(*   arewrite ( addr ⨾ sb^? ⨾ ⦗W⦘⊆ dob). *)
+(*   unfold Arm.dob; basic_solver 12. *)
+
+(*   rewrite <- ct_end; basic_solver. *)
+(* Qed. *)
+
+Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
 Proof.
   unfold imm_s_ppo.ppo.
   arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?).
@@ -151,16 +192,41 @@ Proof.
     rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.
     rewrite WF.(w_sb_loc_w_in_coi); [done|].
     apply CON. }
-  rewrite rmw_coi_helper1. rewrite <- !unionA.
-  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ ctrl ⊆
-            data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi).
+  rewrite path_union, !seq_union_l, !seq_union_r. unionL.
+  { rewrite rmw_coi_helper1.
+    (<|F^sy|> ;; po ∪ rfe) ;; s_ppo ⊆ (dob ∪ ...)^+.
+    
+    rfe ;; (rmw ∩ data) ;; coi ;; rfi
+
+    rmw ;; coi ;; rfi ⊆ (dob ∪ ...)⁺. 
+    
+a := [y] || b := FADD(x, 1) // 1
+[x] := a || [x] := 3
+         || c := [x] // 3
+         || [y] := c - 2
+
+
+admit. }
+  rewrite ct_begin, !seqA.
+  arewrite (sb^? ⨾ ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ coi^?)＊ ⨾ rmw_dep ⨾ sb^?)＊
+              ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ coi^?)＊ ⊆ sb^?).
+  { admit. }
+  rewrite (dom_r WF.(wf_rmw_depD)), !seqA.
+  arewrite (⦗R_ex⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ sb ⨾ ⦗W⦘).
+
+  rewrite !seq_union_l, !seq_union_r, seq_id_l. unionL.
+  2: { admit. }
+
+  (* rewrite rmw_coi_helper1. rewrite <- !unionA. *)
+  (* arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ ctrl ∪ data ⨾ coi^? ⊆ *)
+  (*           data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi) by basic_solver 10. *)
   (* TODO: continue from here *)
-  (* rewrite path_union, !seq_union_l, !seq_union_r. unionL. *)
-  (* { admit. } *)
-  (* rewrite rtE. *)
-  (* rewrite !seq_union_l, !seq_union_r, seq_id_l. unionL. *)
-  (* 2: { admit. } *)
 Admitted.
+
+Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
+Proof.
+  rewrite s_ppo_in_dob. apply clos_trans_mori. eauto with hahn. 
+Qed.
 
 Lemma s_ar_int_in_ord : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
 Proof.
