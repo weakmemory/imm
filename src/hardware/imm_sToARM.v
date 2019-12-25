@@ -186,42 +186,26 @@ Qed.
 Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
 Proof.
   unfold imm_s_ppo.ppo.
-  arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?).
-  { rewrite !crE, !seq_union_r, !seq_id_r.
-    apply union_mori; [done|].
-    rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.
-    rewrite WF.(w_sb_loc_w_in_coi); [done|].
-    apply CON. }
+  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⊆ data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi).
+  { rewrite RMW_DEPS. eauto with hahn. }
   rewrite path_union, !seq_union_l, !seq_union_r. unionL.
-  { rewrite rmw_coi_helper1.
-    (<|F^sy|> ;; po ∪ rfe) ;; s_ppo ⊆ (dob ∪ ...)^+.
-    
-    rfe ;; (rmw ∩ data) ;; coi ;; rfi
-
-    rmw ;; coi ;; rfi ⊆ (dob ∪ ...)⁺. 
-    
-a := [y] || b := FADD(x, 1) // 1
-[x] := a || [x] := 3
-         || c := [x] // 3
-         || [y] := c - 2
-
-
-admit. }
+  { apply ppo_in_dob_helper; auto. }
+  assert ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)＊ ⊆ sb^?) as AA.
+  { rewrite WF.(data_in_sb), WF.(ctrl_in_sb), WF.(addr_in_sb).
+    arewrite (rfi ⊆ sb).
+    generalize (@sb_trans G). ins. relsf. }
+  rewrite AA at 2.
   rewrite ct_begin, !seqA.
-  arewrite (sb^? ⨾ ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ coi^?)＊ ⨾ rmw_dep ⨾ sb^?)＊
-              ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ coi^?)＊ ⊆ sb^?).
-  { admit. }
-  rewrite (dom_r WF.(wf_rmw_depD)), !seqA.
-  arewrite (⦗R_ex⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ sb ⨾ ⦗W⦘).
-
-  rewrite !seq_union_l, !seq_union_r, seq_id_l. unionL.
-  2: { admit. }
-
-  (* rewrite rmw_coi_helper1. rewrite <- !unionA. *)
-  (* arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ ctrl ∪ data ⨾ coi^? ⊆ *)
-  (*           data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi) by basic_solver 10. *)
-  (* TODO: continue from here *)
-Admitted.
+  rewrite AA at 2.
+  arewrite (sb^? ⨾ (sb^? ⨾ rmw_dep ⨾ sb^?)＊ ⨾ sb^? ⊆ sb^?).
+  { rewrite WF.(rmw_dep_in_sb). generalize (@sb_trans G). ins. relsf. }
+  arewrite (rmw_dep ⨾ sb^? ⨾ ⦗W⦘ ⊆ rmw_dep ⨾ sb ⨾ ⦗W⦘).
+  { rewrite (dom_r WF.(wf_rmw_depD)) at 1. rewrite R_ex_in_R. type_solver. }
+  sin_rewrite DEPS_RMW_SB.
+  arewrite (ctrl ⊆ data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi) at 2.
+  seq_rewrite <- ct_end.
+  apply ppo_in_dob_helper; auto.
+Qed.
 
 Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
 Proof.

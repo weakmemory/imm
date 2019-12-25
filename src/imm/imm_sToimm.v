@@ -86,52 +86,6 @@ Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
-Lemma s_acyc_ext_helper (WF : Wf G)
-      (AC : acyclic (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘)) :
-  acyclic (imm_s.ar G psc).
-Proof.
-  generalize (@sb_trans G); intro SBT.
-  red. unfold imm_s.ar.
-  apply acyclic_mon with (r:=s_ar_int ∪ (psc ∪ rfe)).
-  2: by basic_solver 12.
-  apply acyclic_union1.
-  { rewrite (imm_s_ppo.ar_int_in_sb WF). apply sb_acyclic. }
-  { eapply acyclic_mon; [edone|basic_solver 12]. }
-  rewrite (C_EXT_helper2 WF); unionL.
-  arewrite (psc ⊆ sb^? ⨾ psc ⨾ sb^?) by basic_solver 12.
-  relsf.
-  rewrite (imm_s_ppo.ar_int_in_sb WF) at 1; relsf.
-  rewrite ct_begin, !seqA; relsf.
-  arewrite (sb ⊆ sb^?) at 1.
-  rewrite <- !seqA, <- ct_begin, !seqA.
-  apply acyclic_union1.
-  { red; rels; eapply acyclic_mon; [edone|basic_solver 12]. }
-  { rewrite (dom_l (wf_rfeD WF)), <- seqA, acyclic_rotl.
-    rewrite (dom_r (wf_rfeD WF)), !seqA.
-    apply acyclic_seq_from_union.
-    red; rels; eapply acyclic_mon; [edone|basic_solver 12]. }
-  relsf.
-  rewrite (ct_begin (s_ar_int⁺ ⨾ rfe)).
-  rewrite (imm_s_ppo.ar_int_in_sb WF) at 1.
-  rewrite !seqA; relsf.
-  arewrite ((sb^? ⨾ psc ⨾ sb^?)⁺ ⨾ sb ⊆ (sb^? ⨾ psc ⨾ sb^?)⁺).
-  { rewrite ct_end at 1; rewrite !seqA.
-    arewrite (sb^? ⨾ sb ⊆ sb^?).
-      by generalize (@sb_trans G); basic_solver.
-        by rewrite <- ct_end. }
-  rewrite (dom_l (wf_rfeD WF)) at 2.
-  arewrite (rfe ⨾ (s_ar_int⁺ ⨾ ⦗W⦘ ⨾ rfe)＊ ⊆ (rfe ⨾ s_ar_int⁺ ⨾ ⦗W⦘)＊ ⨾ rfe).
-  { by rewrite <- seqA; apply rt_seq_swap. }
-  rewrite (dom_r (wf_rfeD WF)) at 1.
-  rewrite !seqA.
-  arewrite ((sb^? ⨾ psc ⨾ sb^?)⁺ ⊆ (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘)⁺).
-  arewrite (rfe ⊆ (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘)＊) at 2.
-  arewrite (⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘)＊) at 3.
-  relsf.
-  arewrite (rfe ⊆ (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘)＊) at 2.
-  relsf; red; rels.
-Qed.
-
 Lemma s_psc_in_psc : ⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc.
 Proof. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
 

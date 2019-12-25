@@ -68,7 +68,7 @@ Notation "'bob'" := (bob G).
 (******************************************************************************)
 
 Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪
-                              rmw ;; ((sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪ rmw_dep ;; sb^?)⁺ ⨾ ⦗W⦘.
+                              rmw ∪ rmw_dep ;; sb^?)⁺ ⨾ ⦗W⦘.
 
 Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ 
                      ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘.
@@ -90,7 +90,6 @@ etransitivity.
 2: by apply AA.
 apply clos_trans_mori.
 generalize (@sb_trans G); ins; relsf.
-generalize (@sb_trans G). basic_solver 10.
 Qed.
 
 Lemma rmw_in_ppo WF : rmw ⊆ ppo.
@@ -191,9 +190,9 @@ Lemma ppo_rfi_ppo : ppo ⨾ rfi ⨾ ppo ⊆ ppo.
 Proof using.
 unfold ppo.
 rewrite !seqA.
-arewrite_id ⦗W⦘ at 2.
+arewrite_id ⦗W⦘ at 1.
 arewrite_id ⦗R⦘ at 2.
-arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ rmw_dep ⨾ sb^?)＊) at 2.
+arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?)＊) at 2.
 rewrite inclusion_t_rt at 1.
 relsf.
 Qed.
@@ -203,6 +202,16 @@ Proof using.
   unfold ppo, Execution.deps.
   hahn_frame.
   apply inclusion_t_t; basic_solver 21.
+Qed.
+
+(* TODO: move to a more appropriate place. *)
+Lemma rmw_sb_loc_in_rmw_coi WF (SPL : sc_per_loc G) :
+  rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?.
+Proof.
+  rewrite !crE, !seq_union_r, !seq_id_r.
+  apply union_mori; [done|].
+  rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.
+    by rewrite WF.(w_sb_loc_w_in_coi).
 Qed.
 
 (* Lemma ppo_alt WF  *)
@@ -310,12 +319,6 @@ Proof using.
     generalize (@sb_trans G); ins; relsf. }
   { basic_solver 10. }
   rewrite (wf_ppoD) at 1 2; type_solver.
-Qed.
-
-Lemma rmw_sb_same_loc_W_in_ppo WF : rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ ppo.
-Proof.
-  unfold ppo. rewrite <- ct_step.
-  rewrite WF.(wf_rmwD) at 1. rewrite R_ex_in_R. basic_solver 10.
 Qed.
 
 End IMM_S_PPO.
