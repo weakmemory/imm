@@ -110,11 +110,6 @@ Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis DEPS_RMW_SB : rmw_dep ⨾ sb ⊆ ctrl.
 
-Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba.
-Proof.
-  rewrite RMW_DEPS, seq_union_l.
-Admitted.
-
 Hypothesis CON: ArmConsistent G.
 
 Lemma WF : Wf G.
@@ -124,14 +119,44 @@ Proof. apply CON. Qed.
 Lemma SC_PER_LOC : sc_per_loc G.
 Proof. apply CON. Qed.
 
+Lemma rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi.
+Proof.
+  rewrite RMW_DEPS, seq_union_l.
+  rewrite (dom_r WF.(wf_coiD)).
+  arewrite (coi ⊆ sb) at 1. by sin_rewrite WF.(ctrl_sb).
+Qed.
+
+Lemma rmw_coi_helper1 : rmw ⨾ coi^? ⊆ ctrl ∪ data ;; coi^?.
+Proof.
+  rewrite crE at 1. rewrite seq_union_r, seq_id_r.
+  unionL.
+  2: { rewrite rmw_coi_helper. basic_solver 10. }
+  rewrite RMW_DEPS. basic_solver 10.
+Qed.
+
+Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba.
+Proof.
+  transitivity dob; [|by eauto with hahn].
+  rewrite rmw_coi_helper.
+  rewrite (dom_r WF.(wf_dataD)).
+  unfold Arm.dob. basic_solver 10.
+Qed.
+
 Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
 Proof.
   unfold imm_s_ppo.ppo.
-  arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ∪ rmw ;; coi).
-  { admit. }
-  rewrite path_union, !seq_union_l, !seq_union_r. unionL.
-  { admit. }
+  arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?).
+  { rewrite !crE, !seq_union_r, !seq_id_r.
+    apply union_mori; [done|].
+    rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.
+    rewrite WF.(w_sb_loc_w_in_coi); [done|].
+    apply CON. }
+  rewrite rmw_coi_helper1. rewrite <- !unionA.
+  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ ctrl ⊆
+            data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi).
   (* TODO: continue from here *)
+  (* rewrite path_union, !seq_union_l, !seq_union_r. unionL. *)
+  (* { admit. } *)
   (* rewrite rtE. *)
   (* rewrite !seq_union_l, !seq_union_r, seq_id_l. unionL. *)
   (* 2: { admit. } *)
