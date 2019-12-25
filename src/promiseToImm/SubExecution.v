@@ -336,7 +336,7 @@ rewrite sub_W, sub_R.
 hahn_frame; apply inclusion_t_t.
 rewrite sub_sb_in, sub_rfi_in.
 rewrite sub_data_in, sub_ctrl_in, sub_addr_in, sub_frmw_in.
-rewrite sub_rmw_in, sub_same_loc_in.
+rewrite sub_rmw_in.
 basic_solver 12.
 Qed.
 
