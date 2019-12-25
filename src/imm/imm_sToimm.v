@@ -92,7 +92,7 @@ Proof. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
 Lemma s_ppo_in_ppo (WF: Wf G) : s_ppo ⊆ ppo.
 Proof.
   unfold imm_s_ppo.ppo, imm_ppo.ppo.
-  assert (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ rmw_dep ⨾ sb^? ⊆
+  assert (rmw ∪ rmw_dep ⨾ sb^? ⊆
           (⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺) as AA.
   2: { rewrite !unionA. rewrite AA.
        rewrite <- !unionA. rewrite ct_of_union_ct_r. by rewrite <- !unionA. }
@@ -102,8 +102,7 @@ Proof.
        rewrite <- ct_unit. rewrite <- ct_step.
        rewrite (dom_r WF.(wf_rmw_depD)) at 1. basic_solver 10. }
   rewrite <- ct_step. unionR left.
-  rewrite (dom_l WF.(wf_rmwD)). rewrite WF.(rmw_in_sb).
-  generalize (@sb_trans G). basic_solver.
+  rewrite (dom_l WF.(wf_rmwD)). by rewrite WF.(rmw_in_sb).
 Qed.
 
 Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
@@ -115,11 +114,12 @@ Lemma acyc_ext_implies_s_acyc_ext_helper (WF: Wf G)
 Proof.
   unfold imm_s.acyc_ext, imm.acyc_ext in *.
   unfold imm_s.ar.
+  apply s_acyc_ext_psc_helper; auto.
+  unfold imm_s.psc.
   rewrite s_psc_in_psc.
-  apply s_acyc_ext_helper; auto.
   rewrite WF.(s_ar_int_in_ar_int).
   arewrite (sb^? ⨾ psc ⨾ sb^? ⊆ ar⁺).
-  { rewrite wf_pscD. rewrite !seqA.
+  { rewrite imm.wf_pscD. rewrite !seqA.
     arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ bob^?).
     { unfold imm_bob.bob, imm_bob.fwbob. mode_solver 10. }
     arewrite (⦗F ∩₁ Sc⦘ ⨾ sb^?⊆ bob^?).
@@ -131,51 +131,15 @@ Proof.
   arewrite (rfe ⊆ ar).
   arewrite (ar_int ⊆ ar).
   arewrite (⦗R⦘ ⨾ ar⁺ ⨾ ⦗W⦘ ⊆ ar⁺) by basic_solver.
-  rewrite ct_step with (r:=ar) at 2. rewrite !unionK.
+  rewrite ct_step with (r:=ar) at 2. sin_rewrite !unionK.
   red. by rewrite ct_of_ct.
 Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G) (AC : imm.acyc_ext G) :
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
 Proof.
-  set (ar' := s_ar (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘)).
-  assert (acyclic ar') as AC'.
-  { by apply acyc_ext_implies_s_acyc_ext_helper. }
-  unfold imm_s.acyc_ext, imm.acyc_ext in *.
-  exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext G.(acts) ar' ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
-  splits.
-  { constructor.
-    1,2: apply dom_helper_3; basic_solver.
-    { rewrite <- restr_relE; apply transitive_restr, tot_ext_trans. }
-    { unfolder; ins; desf.
-      cut (tot_ext (acts G) ar' a b \/ tot_ext (acts G) ar' b a).
-      { basic_solver 12. }
-      eapply tot_ext_total; desf; eauto. }
-    rewrite <- restr_relE.
-    apply irreflexive_restr. by apply tot_ext_irr. }
-  { unfold imm_s.ar.
-    apply acyclic_mon with (r:= tot_ext (acts G) ar').
-    { apply trans_irr_acyclic.
-      { apply tot_ext_irr, AC'. }
-      apply tot_ext_trans. }
-    apply inclusion_union_l; [apply inclusion_union_l|].
-    { basic_solver. }
-    all: subst ar'; rewrite <- tot_ext_extends; unfold imm_s.ar; basic_solver. }
-  unfold coh_sc.
-  rotate 4.
-  arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⨾ s_hb ⨾ (eco ⨾ s_hb)^? ⨾ ⦗E ∩₁ F ∩₁ Sc⦘ ⊆ ar'⁺).
-  2: { arewrite (ar' ⊆ tot_ext (acts G) ar') at 2.
-       { apply tot_ext_extends. }
-       rewrite ct_step with (r:= tot_ext (acts G) ar') at 1.
-       rewrite ct_ct.
-       apply trans_irr_acyclic.
-       { apply tot_ext_irr, AC'. }
-       apply tot_ext_trans. }
-  arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘) by basic_solver.
-  case_refl _. 
-  { erewrite f_sc_hb_f_sc_in_ar; eauto. by subst ar'. }
-  rewrite !seqA. rewrite <- ct_step. subst ar'. 
-  unfold imm_s.ar. by unionR left -> left.
+  apply WF.(imm_s.s_acyc_ext_helper).
+    by apply acyc_ext_implies_s_acyc_ext_helper.
 Qed.
 
 Lemma imm_consistentimplies_s_imm_consistent (WF: Wf G): imm.imm_consistent G -> 

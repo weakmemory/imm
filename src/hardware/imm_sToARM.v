@@ -15,6 +15,7 @@ Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm.
 Require Import immToARMhelper.
+Require Import imm_s_hb_hb.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -142,47 +143,6 @@ Proof.
   unfold Arm.dob. basic_solver 10.
 Qed.
 
-(* Lemma s_ppo_in_obs_dob_helper : *)
-(*   ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; coi^?)⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob)⁺. *)
-(* Proof. *)
-(*   rewrite path_union1. *)
-(*   assert (transitive rfi). *)
-(*   { apply transitiveI. rewrite (wf_rfiD WF). type_solver. } *)
-(*   relsf; unionL. *)
-(*   { rewrite (wf_rfiD WF). type_solver. } *)
-(*   rewrite !seqA. *)
-(*   arewrite_id (⦗R⦘ ⨾ rfi^?). *)
-(*   { rewrite (wf_rfiD WF). type_solver. } *)
-(*   rels. *)
-(*   arewrite (data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^? ∪ *)
-(*                  (data ⨾ coi^? ⨾ rfi ∪ ctrl ⨾ rfi ∪ addr ⨾ sb^? ⨾ rfi) *)
-(*             ⊆ (data ⨾ coi^? ∪ ctrl ∪ addr ⨾ sb^?) ⨾ rfi^?) by basic_solver 12. *)
-(*   relsf. *)
-(*   rewrite unionA. *)
-(*   rewrite path_ut_first. rewrite !seqA. *)
-(*   arewrite (data ⨾ coi^? ⨾ rfi^? ⊆ (obs' ∪ dob)⁺). *)
-(*   { rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r. *)
-(*     unionL. *)
-(*     1-3: rewrite <- ct_step; unionR right; rewrite (dom_r WF.(wf_dataD)); unfold Arm.dob; *)
-(*       basic_solver 10. *)
-
-(*   rewrite (dob_in_sb WF) at 3. *)
-(*   rewrite (ctrl_in_sb WF) at 2. *)
-(*   rewrite (addr_in_sb WF) at 2. *)
-(*   arewrite (rfi ⊆ sb). *)
-(*   generalize (@sb_trans G); ins; relsf. *)
-(*   rewrite !seqA; relsf. *)
-(*   arewrite (ctrl ⨾ sb^? ⊆ ctrl). *)
-(*   generalize (ctrl_sb WF); basic_solver 12. *)
-(*   arewrite (ctrl ⨾ ⦗W⦘⊆ dob). *)
-(*   unfold Arm.dob; basic_solver 12. *)
-
-(*   arewrite ( addr ⨾ sb^? ⨾ ⦗W⦘⊆ dob). *)
-(*   unfold Arm.dob; basic_solver 12. *)
-
-(*   rewrite <- ct_end; basic_solver. *)
-(* Qed. *)
-
 Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
 Proof.
   unfold imm_s_ppo.ppo.
@@ -254,29 +214,34 @@ Qed.
 
 Lemma C_EXT_helper: imm_s.acyc_ext G (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
 Proof.
-apply (acyc_ext_helper WF).
-rewrite s_ar_int_in_ord. psc_in_ord.
-arewrite (rfe ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ ).
-unfold Arm.obs'; rewrite <- ct_step; basic_solver 12.
-relsf; red; relsf.
-apply (external_alt2 WF CON rmw_sb_in_ctrl).
+  apply (s_acyc_ext_psc_helper WF).
+  rewrite s_ar_int_in_ord.
+  arewrite (rfe ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ ).
+  { unfold Arm.obs'; rewrite <- ct_step; basic_solver 12. }
+  arewrite (imm_s.psc G ⊆ imm.psc G).
+  { unfold imm_s.psc, imm.psc. by rewrite s_hb_in_hb. }
+  rewrite psc_in_ord; auto.
+  relsf; red; relsf.
+  apply (external_alt2 WF CON RMW_COI).
 Qed.
 
-Lemma C_SC: acyclic (psc_f ∪ psc_base).
+Lemma C_SC : acyclic (psc_f ∪ psc_base).
 Proof.
-  rewrite psc_base_in_ord, psc_f_in_ord.
+  rewrite psc_base_in_ord, psc_f_in_ord; auto.
   rewrite unionK.
   red. rewrite ct_of_ct.
-  apply (external_alt2 WF CON rmw_sb_in_ctrl).
+  apply (external_alt2 WF CON RMW_COI).
 Qed.
 
-Lemma IMM_consistent : imm_consistent G.
+Lemma IMM_s_psc_consistent : exists sc, imm_psc_consistent G sc.
 Proof.
-cdes CON.
-red; splits; eauto.
-apply COH.
-apply C_EXT.
-apply C_SC.
-Qed.
+  edestruct (imm_s.s_acyc_ext_helper WF C_EXT_helper) as [sc HH]. desc.
+  exists sc. red. splits; eauto.
+  { red. splits; eauto; try apply CON.
+    red. rewrite s_hb_in_hb.
+    (* apply COH. *)
+    admit. }
+  admit.
+Admitted.
 
 End immToARM.
