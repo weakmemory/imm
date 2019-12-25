@@ -225,23 +225,28 @@ Proof.
   apply (external_alt2 WF CON RMW_COI).
 Qed.
 
-Lemma C_SC : acyclic (psc_f ∪ psc_base).
+Lemma C_SC : acyclic (imm_s.psc_f G ∪ imm_s.psc_base G).
 Proof.
-  rewrite psc_base_in_ord, psc_f_in_ord; auto.
-  rewrite unionK.
-  red. rewrite ct_of_ct.
-  apply (external_alt2 WF CON RMW_COI).
+  unfold imm_s.psc_f, imm_s.psc_base, imm_s.scb.
+  rewrite s_hb_in_hb. 
+  apply immToARMhelper.C_SC; auto. apply RMW_COI.
 Qed.
 
 Lemma IMM_s_psc_consistent : exists sc, imm_psc_consistent G sc.
 Proof.
   edestruct (imm_s.s_acyc_ext_helper WF C_EXT_helper) as [sc HH]. desc.
   exists sc. red. splits; eauto.
-  { red. splits; eauto; try apply CON.
-    red. rewrite s_hb_in_hb.
-    (* apply COH. *)
-    admit. }
-  admit.
-Admitted.
+  2: by apply C_SC.
+  red. splits; eauto; try apply CON.
+  red.
+  rewrite crE, seq_union_r, seq_id_r.
+  rewrite s_hb_in_hb. 
+  apply irreflexive_union. split.
+  2: { apply COH; auto. apply RMW_COI. }
+  rewrite hb_in_ord; auto. 
+  apply irreflexive_union. split.
+  { by apply (@sb_irr G). }
+  apply (external_alt2 WF CON RMW_COI).
+Qed.
 
 End immToARM.
