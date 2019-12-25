@@ -18,6 +18,7 @@ Section ImmRFRMW.
   Variable COM : complete G.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
+  Variable WFSC : wf_sc G sc.
 
   Notation "'acts'" := G.(acts).
   Notation "'sb'" := G.(sb).
@@ -78,50 +79,14 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 
 Lemma ar_rfrmw_in_ar_ct : ar ;; rf ;; rmw ⊆ ar⁺.
 Proof.
-  assert (sb ;; sb ⊆ sb) as AA.
-  { apply transitiveI. apply sb_trans. }
-  
-  assert (rfi ;; rmw ⊆ sb) as BB.
-  { arewrite (rfi ⊆ sb). by rewrite rmw_in_sb. }
-
-  rewrite rfi_union_rfe.
-  rewrite seq_union_l, seq_union_r.
+  unfold imm_s.ar.
+  rewrite unionA, seq_union_l.
   unionL.
-  2: { rewrite rfe_rmw_in_ar_ct; auto.
-       rewrite ct_step with (r:=ar) at 1.
-       apply ct_ct. }
-  unfold imm_s.ar at 1.
-  rewrite !seq_union_l.
-  unionL.
-  { rewrite wf_scD with (sc:=sc) at 1; [|by apply IMMCON].
-    rewrite (dom_l WF.(wf_rfiD)).
-    type_solver. }
-  { rewrite (dom_l WF.(wf_rfiD)).
-    rewrite (dom_r WF.(wf_rfeD)).
-    type_solver. }
-  unfold ar_int.
-  rewrite !seq_union_l.
-  unionL.
-  5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
-  3: { rewrite WF.(wf_detourD).
-       rewrite WF.(wf_rfiD). type_solver. }
-  { unfold imm_bob.bob.
-    rewrite !seq_union_l, !seqA.
-    unionL.
-    2: { rewrite BB, AA.
-         arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
-         rewrite bob_in_ar. apply ct_step. }
-    rewrite fwbob_rfi_rmw_in_fwbob; auto.
-    rewrite fwbob_in_bob. by rewrite bob_in_ar. }
-  { rewrite WF.(rmw_in_ppo), ppo_rfi_ppo. rewrite <- ct_step.
-    rewrite ppo_in_ar_int. 
-    apply ar_int_in_ar. }
-  arewrite_id ⦗W⦘. rewrite seq_id_l.
-  rewrite (dom_r WF.(wf_rmwD)).
-  sin_rewrite BB. sin_rewrite AA.
-  rewrite <- ct_step.
-  rewrite w_ex_acq_sb_w_in_ar_int.
-  apply ar_int_in_ar.
+  2: { rewrite WF.(ar_int_rfe_rfrmw_in_ar_int_rfe_ct).
+       apply clos_trans_mori. eauto with hahn. }
+  rewrite wf_scD with (sc:=sc) at 1; [|by apply IMMCON].
+  rewrite (dom_l WF.(wf_rfD)).
+  type_solver.
 Qed.
 
 Lemma ar_ct_rfrmw_in_ar_ct : ar⁺ ;; rf ;; rmw ⊆ ar⁺.

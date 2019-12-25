@@ -7,6 +7,7 @@ Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_bob imm_s_ppo.
+Require Import imm_s_rfrmw.
 Require Import CombRelations.
 
 Set Implicit Arguments.
@@ -484,9 +485,16 @@ basic_solver.
     arewrite (rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘ ⊆
                   ⦗issued T⦘ ⨾ rfe ⨾ rmw ⨾ (rfi ⨾ rmw)＊ ⨾ ⦗issued T⦘).
     { apply dom_rel_helper.
-      rewrite rfi_rmw_in_sb_same_loc_W; auto.
-      rewrite rt_of_trans; [|by apply sb_same_loc_W_trans].
-      sin_rewrite WF.(rmw_sb_same_loc_W_in_ppo). by apply dom_rfe_ppo_issued. }
+      arewrite (rmw ⨾ (rfi ⨾ rmw)＊ ⊆ ar^*).
+      { arewrite (rfi ⊆ rf).
+        rewrite WF.(rmw_in_ppo) at 1. rewrite ppo_in_ar.
+        rewrite rtE at 1. rewrite seq_union_r, seq_id_r.
+        apply inclusion_union_l.
+        { rewrite ct_step at 1. apply inclusion_t_rt. }
+        rewrite ar_rfrmw_ct_in_ar_ct; auto. apply inclusion_t_rt. }
+      rewrite (dom_l WF.(wf_rfeD)), !seqA.
+      arewrite (rfe ⊆ ar) at 1.
+      seq_rewrite <- ct_begin. by apply ar_ct_I_in_I. }
     arewrite (rfe ⨾ rmw ⊆ rf ⨾ rmw).
     arewrite (rfi ⊆ rf).
     arewrite (rf ⨾ rmw ⨾ (rf ⨾ rmw)＊ ⊆ (rf ⨾ rmw)⁺).
