@@ -6,8 +6,9 @@ Require Import Execution_eco.
 Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
-Require Import imm_bob imm_common_more.
+Require Import imm_bob.
 Require Import CertCOhelper.
+(* Require Import imm_common_more. *)
 
 Require Import CombRelations.
 Require Import TraversalConfig.
@@ -202,41 +203,46 @@ rewrite id_union; relsf; unionL; splits.
 - rewrite dom_rel_eqv_dom_rel.
   arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
   generalize (issuedW TCCOH); basic_solver.
-  rewrite (wf_rmw_depD WF), !seqA.
-  arewrite (⦗R⦘ ⨾ Grmw_dep ⨾ ⦗GR_ex⦘ ⨾ Gsb^? ⨾ ⦗W⦘ ⊆ Gppo).
+  rewrite (dom_l (wf_rmw_depD WF)), !seqA.
+  arewrite (⦗R⦘ ⨾ Grmw_dep ⨾ Gsb^? ⨾ ⦗W⦘ ⊆ Gppo).
+  2: unfold D; basic_solver 21.
   unfold ppo; hahn_frame.
-  case_refl _.
-  by rewrite <- ct_step; basic_solver 12.
-  by rewrite ct_begin; rewrite <- inclusion_t_rt, <- ct_step; basic_solver 12.
-  by unfold D; basic_solver 21.
+  rewrite <- ct_step. basic_solver 12.
 Qed.
 
-Lemma dom_rmw_in_D : dom_rel Grmw ⊆₁ D.
+Lemma dom_rmw_in_D : dom_rel (Grmw ;; <|D|>) ⊆₁ D.
 Proof.
-rewrite (dom_r (wf_rmwE WF)).
-rewrite E_to_I at 1.
-rewrite id_union; relsf; unionL; splits.
-- rewrite (rmw_in_sb WF).
-  generalize (dom_sb_covered TCCOH).
-  by unfold D; basic_solver 12.
-- rewrite dom_rel_eqv_dom_rel.
-  arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
-  generalize (issuedW TCCOH); basic_solver.
-  generalize (rmw_in_ppo WF) (rmw_sb_W_in_ppo WF).
-  by unfold D; basic_solver 21.
-Qed.
+  unfold D at 1.
+  rewrite !id_union, !seq_union_r.
+Admitted.
 
-Lemma Rex_in_D : GR_ex ∩₁ E ⊆₁ D.
-Proof.
-rewrite E_to_I.
-arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
-generalize (issuedW TCCOH); basic_solver.
-unfold D; unfolder; ins; desf; eauto 10.
-cut (Gppo x y); eauto 20.
-red; unfolder; splits; eauto.
-by apply R_ex_in_R.
-apply t_step; eauto 20.
-Qed.
+(*   relsf; unionL; splits. *)
+
+(* rewrite (dom_r (wf_rmwE WF)). *)
+(* rewrite E_to_I at 1. *)
+(* rewrite id_union; relsf; unionL; splits. *)
+(* - rewrite (rmw_in_sb WF). *)
+(*   generalize (dom_sb_covered TCCOH). *)
+(*   by unfold D; basic_solver 12. *)
+(* - rewrite dom_rel_eqv_dom_rel. *)
+(*   arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘). *)
+(*   generalize (issuedW TCCOH); basic_solver. *)
+(*   generalize (rmw_in_ppo WF) (rmw_sb_W_in_ppo WF). *)
+(*   by unfold D; basic_solver 21. *)
+(* Qed. *)
+
+(* This is no longer true. *)
+(* Lemma Rex_in_D : GR_ex ∩₁ E ⊆₁ D. *)
+(* Proof. *)
+(* rewrite E_to_I. *)
+(* arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘). *)
+(* generalize (issuedW TCCOH); basic_solver. *)
+(* unfold D; unfolder; ins; desf; eauto 10. *)
+(* cut (Gppo x y); eauto 20. *)
+(* red; unfolder; splits; eauto. *)
+(* by apply R_ex_in_R. *)
+(* apply t_step; eauto 20. *)
+(* Qed. *)
 
 Lemma dom_detour_D : dom_rel (Gdetour ⨾ ⦗D⦘) ⊆₁ I.
 Proof.
@@ -403,9 +409,7 @@ relsf; unionL.
 - rewrite (dom_rel_helper dom_ctrl_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_addr_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_rfi_D); sin_rewrite H; basic_solver.
-- rewrite (dom_l (@wf_sbE G)).
-arewrite (⦗GR_ex⦘ ⨾ ⦗E⦘ ⊆ ⦗D⦘) by (generalize Rex_in_D; basic_solver).
-sin_rewrite H; basic_solver.
+- rewrite (dom_rel_helper dom_rmw_in_D); sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_frmw_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 Qed.
 
@@ -906,6 +910,7 @@ Qed.
 (** **   *)
 (******************************************************************************)
 
+(* TODO. It looks like it's no longer true in general. *)
 Lemma cert_release : certG.(release) ≡ Grelease.
 Proof.
 unfold imm_s_hb.release, imm_s_hb.rs; ins.
