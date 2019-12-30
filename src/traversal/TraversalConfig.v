@@ -972,164 +972,39 @@ Notation "'I'" := (issued  T).
 Lemma sw_in_Csw_sb (RELCOV : W ∩₁ Rel ∩₁ I ⊆₁ C) :
   sw ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗ I ⦘)⦘ ⊆ ⦗ C ⦘ ⨾ sw ∪ sb.
 Proof.
-  assert (forall (s : actid -> Prop), s ∪₁ set_compl s ≡₁ fun _ => True) as AA.
-  { split; [basic_solver|].
-    unfolder. ins. apply classic. }
   rewrite !id_union. rewrite seq_union_r. 
   unionL.
   { rewrite sw_covered; eauto. basic_solver. }
+  assert (forall (s : actid -> Prop), s ∪₁ set_compl s ≡₁ fun _ => True) as AA.
+  { split; [basic_solver|].
+    unfolder. ins. apply classic. }
   arewrite (sw ⊆ ⦗ C ∪₁ set_compl C ⦘ ⨾ sw) at 1.
   { rewrite AA. by rewrite seq_id_l. }
-  rewrite id_union. relsf.
+  rewrite id_union, !seq_union_l.
   apply union_mori; [basic_solver|].
-  unfold imm_s_hb.sw.
-  arewrite ((sb ⨾ ⦗F⦘)^? ⊆ sb ⨾ ⦗F⦘ ∪ ⦗ fun _ => True ⦘) by basic_solver.
+  rewrite (dom_r WF.(wf_swD)).
+  rewrite sw_in_ar0; auto.
+  remember (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rfe ∪ ar_int G)⁺) as ax.
   rewrite !seq_union_l, !seq_union_r.
-  unionL.
-  { rewrite !seqA.
-    seq_rewrite <- !id_inter. rewrite <- !set_interA.
-    arewrite (sb ⨾ ⦗F ∩₁ Acq ∩₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆
-              ⦗ C ⦘ ⨾ sb ⨾ ⦗F ∩₁ Acq ∩₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘).
-    { unfolder. ins. desf; splits; auto.
-      2,4: by do 2 eexists; splits; eauto.
-      2: eapply TCCOH.(dom_sb_covered).
-      2: eexists; apply seq_eqv_r; split; eauto.
-      all: match goal with H : I _ |- _ => apply TCCOH in H; apply H end.
-      all: eexists; apply seq_eqv_r; split; eauto.
-      { apply sb_to_f_in_fwbob. apply seq_eqv_r. split; [|split]; auto.
-        mode_solver. }
-      apply sb_from_f_in_fwbob. apply seq_eqv_l. split; [split|]; auto.
-      mode_solver. }
-    sin_rewrite release_rf_covered; eauto.
+  unionL; [|basic_solver].
+  subst ax. rewrite !seqA.
+  arewrite ((sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ ⦗W⦘) by basic_solver. 
+  arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ release).
+  { unfold imm_s_hb.release, imm_s_hb.rs. by rewrite <- inclusion_id_rt, seq_id_r. }
+  enough (dom_rel (⦗W⦘ ⨾ (rfe ∪ ar_int G)⁺ ⨾ ⦗FR ∩₁ Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘) ⊆₁ I) as BB.
+  { rewrite (dom_rel_helper BB).
+    seq_rewrite (dom_rel_helper (dom_release_issued TCCOH RELCOV)).
     basic_solver. }
-  rewrite seq_id_l.
-  arewrite (rf ⊆ ⦗ I ∪₁ set_compl I⦘ ⨾ rf).
-  { rewrite AA. basic_solver. }
-  rewrite id_union. relsf.
-  unionL.
-  { sin_rewrite release_issued; eauto. basic_solver. }
-  rewrite rfi_union_rfe. relsf.
-  unionL.
-  2: { arewrite (⦗set_compl I⦘ ⨾ rfe ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆ ∅₂).
-       2: basic_solver.
-       seq_rewrite <- !id_inter.
-       unfolder. ins. desf.
-       { match goal with H : I _ |- _ => apply TCCOH.(issuedW) in H end.
-         match goal with H : rfe _ _ |- _ =>
-                         apply wf_rfeD in H; auto; (destruct_seq H as [XX YY])
-         end.
-         type_solver. }
-       match goal with H : ~ (I _) |- _ => apply H end.
-       eapply dom_rfe_acq_sb_issued; eauto.
-       eexists. eexists. split; eauto.
-       apply seq_eqv_l. split; [split|]; auto.
-       2: { apply seq_eqv_r. split; eauto. }
-       match goal with H : rfe _ _ |- _ =>
-                       apply wf_rfeD in H; auto; (destruct_seq H as [XX YY]); auto
-       end. }
-  unfold imm_s_hb.release, rs.
-  arewrite
-    (⦗set_compl C⦘ ⨾ (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw)＊) ⊆
-     ⦗set_compl C⦘ ⨾ (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾
-       (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ ⦗ set_compl I ⦘ ⨾ (⦗ set_compl I ⦘ ⨾ rf ⨾ rmw)＊)).
-  { intros x y HH.
-    destruct_seq_l HH as NC.
-    do 4 apply seqA in HH. destruct HH as [v [HH SUF]].
-    apply seq_eqv_l. split; auto.
-    
-    Ltac _ltt :=
-      apply seqA;
-      apply seqA with (r1 := ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?);
-      apply seqA with (r1 := (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?) ⨾ ⦗W⦘);
-      apply seqA with (r1 := ((⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?) ⨾ ⦗W⦘) ⨾ (sb ∩ same_loc)^?).
-    
-    _ltt.
-    exists v. split.
-    { generalize HH. basic_solver. }
-    assert (release x v) as REL.
-    { unfold imm_s_hb.release, rs. _ltt.
-      eexists. split; eauto. apply rt_refl. }
-    apply seq_eqv_l. split.
-    { intros II. apply NC. eapply dom_release_issued; eauto.
-      eexists. apply seq_eqv_r. split; eauto. }
-    assert (codom_rel (⦗ set_compl C ⦘ ⨾ release) v) as XX.
-    { exists x. apply seq_eqv_l. split; auto. }
-    assert (~ I v) as NI.
-    { intros II. apply NC. eapply dom_release_issued; eauto.
-      eexists. apply seq_eqv_r. split; eauto. }
-    clear x NC HH REL.
-    induction SUF.
-    2: by apply rt_refl.
-    { apply rt_step. apply seq_eqv_l. split; auto. }
-    eapply rt_trans.
-    { by apply IHSUF1. }
-    assert (codom_rel (⦗set_compl C⦘ ⨾ release) y) as YY.
-    { destruct XX as [v XX]. destruct_seq_l XX as CC.
-      eexists. apply seq_eqv_l. split; eauto.
-      apply release_rf_rmw_steps.
-      eexists. split; eauto. }
-    apply IHSUF2; auto.
-    intros II.
-    destruct YY as [v YY]. destruct_seq_l YY as CC. apply CC.
-    eapply dom_release_issued; eauto.
-    eexists. apply seq_eqv_r. split; eauto. }
-  arewrite ((⦗set_compl I⦘ ⨾ rf ⨾ rmw)＊ ⨾
-             ⦗set_compl I⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘ ⊆
-            sb^? ⨾ ⦗set_compl I⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⨾ ⦗dom_rel (sb^? ⨾ ⦗I⦘)⦘).
-  2: { unfold Execution.rfi.
-       generalize (@sb_trans G). basic_solver. }
-  rewrite rtE, !seq_union_l, seq_id_l.
-  unionL.
-  { rewrite <- inclusion_id_cr at 2. by rewrite seq_id_l. }
-  rewrite rfi_union_rfe. rewrite seq_union_l, seq_union_r.
-  assert ((⦗set_compl I⦘ ⨾ rfi ⨾ rmw)＊ ⊆ (sb ∩ same_loc ;; <|W|>)^?) as BB.
-  { rewrite WF.(rfi_rmw_in_sb_same_loc_W). 
-    arewrite_id ⦗set_compl I⦘. rewrite seq_id_l.
-    apply rt_of_trans. apply sb_same_loc_W_trans. }
-  rewrite path_union. rewrite !seq_union_l. unionL.
-  { rewrite inclusion_t_rt. rewrite BB.
-    arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver. }
-Admitted.
-  (* TODO: continue from here. *)
-
-(*   intros x y [v [HH XX]]. *)
-(*   eexists. split; [|by eauto]. *)
-(*   assert (dom_rel (sb ⨾ ⦗ I ⦘) v) as VV. *)
-(*   { generalize XX (@sb_trans G). unfold Execution.rfi. basic_solver 40. } *)
-
-(*   clear y XX. *)
-(*   (* TODO: We should not remove XX since it has important information about Acq. *) *)
-(*   induction HH as [x y HH| | ]. *)
-(*   2: by apply r_refl. *)
-(*   { apply r_step. *)
-(*     destruct_seq_l HH as NIX. destruct HH as [v [RF RMW]]. *)
-(*     apply rfi_union_rfe in RF. destruct RF as [RF|RF]. *)
-(*     { by eapply (@sb_trans G); [apply RF|apply rmw_in_sb]. } *)
-(*     exfalso. *)
-(*     destruct VV as [z VV]. destruct_seq_r VV as AZ. *)
-(*     set (IZ := AZ). *)
-(*     apply TCCOH in IZ. *)
-(*     apply NIX. apply IZ. *)
-(*     eexists. *)
-(*     apply seq_eqv_r. split; eauto. *)
-(*     apply seq_eqv_l. split; eauto. *)
-(*     { apply (dom_l WF.(wf_rfeD)) in RF. apply seq_eqv_l in RF. desf. } *)
-(*     apply rfe_ppo_in_ar_ct; auto. *)
-(*     eexists. split; eauto. *)
-(*     red. apply seq_eqv_l. split; eauto. *)
-(*     { apply (dom_r WF.(wf_rfeD)) in RF. apply seq_eqv_r in RF. desf. } *)
-(*     apply seq_eqv_r. split; eauto. *)
-(*     2: { eapply issuedW; eauto. } *)
-(*     apply ct_step. left; right. *)
-(*     apply seq_eqv_l. split; auto. *)
-(*     { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. } *)
-(*     eapply sb_trans; eauto. by apply rmw_in_sb. } *)
-(*   specialize (IHHH2 VV). *)
-(*   eapply (transitive_cr (@sb_trans G) _ IHHH2); eauto. *)
-
-(*   Unshelve. *)
-(*   apply IHHH1. generalize VV (@sb_trans G) IHHH2. basic_solver 10. *)
-(* Qed. *)
+  rewrite <- !seqA. rewrite dom_rel_eqv_dom_rel. rewrite !seqA.
+  arewrite (⦗FR ∩₁ Acq⦘ ⨾ sb^? ⊆ (rfe ∪ ar_int G)^?).
+  { rewrite !crE, !seq_union_r. apply union_mori; [basic_solver|].
+    unionR right. rewrite set_inter_union_l, id_union, seq_union_l.
+    rewrite sb_from_r_acq_in_bob.
+    arewrite (Acq ⊆₁ Acq/Rel) by mode_solver.
+    rewrite sb_from_f_in_bob. rewrite bob_in_ar_int. eauto with hahn. }
+  seq_rewrite ct_cr.
+  arewrite (rfe ∪ ar_int G ⊆ ar). by apply ar_ct_I_in_I.
+Qed.
 
 Lemma hb_in_Chb_sb (RELCOV : W ∩₁ Rel ∩₁ I ⊆₁ C) :
   hb ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗ I ⦘)⦘ ⊆ ⦗ C ⦘ ⨾ hb ∪ sb.
