@@ -460,7 +460,8 @@ basic_solver. }
 rewrite TEH''.(tr_acts_set).
 unfolder; ins; desc.
 eapply H5; eauto.
-eapply (Rex_in_D thread TCCOH_G); try done.
+eapply (Rex_in_D thread); eauto.
+{ admit. }
 split; [|done].
 unfold R_ex, rmwmod in *.
 rewrite TEH''.(tr_lab) in H2; auto.
@@ -882,6 +883,6 @@ eexists. red. splits.
 { apply STEPS'. }
 { intros HH. inv HH. }
 done.
-Qed.
+Admitted.
 
 End Cert.
