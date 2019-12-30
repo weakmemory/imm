@@ -1883,6 +1883,15 @@ Qed.
 
 Lemma TCCOH_cert_old : tc_coherent_alt_old certG sc (mkTC (C ∪₁ (E ∩₁ NTid_ thread)) I).
 Proof.
+  assert (dom_rel (⦗GW_ex_acq⦘ ⨾ sb certG ⨾ ⦗I⦘) ⊆₁ I) as AA.
+  { rewrite cert_sb. eapply tc_W_ex_sb_I; eauto.
+    apply tc_coherent_implies_tc_coherent_alt; eauto. }
+  assert (dom_rel (⦗GW_ex⦘ ⨾ sb certG ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb certG ⨾ ⦗I⦘) ⊆₁ I) as BB.
+  { arewrite (sb certG ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb certG ⊆ sb certG).
+    2: by rewrite ACQEX.
+    generalize (@sb_trans certG). basic_solver. }
+  assert (Wf certG) as WFCERT by apply WF_cert.
+
   assert (TCCOH1:= TCCOH_rst_new_T).
   apply (tc_coherent_implies_tc_coherent_alt WF WF_SC) in TCCOH1.
   destruct TCCOH1.
@@ -1896,32 +1905,32 @@ Proof.
     rewrite cert_rfe; basic_solver 21. }
   { ins; rewrite cert_W; done. }
   { ins; rewrite cert_fwbob; done. }
-  { relsf; unionL; splits; simpls.
-    3,4: rewrite cert_rfe; basic_solver.
-    { rewrite I_in_D at 1.
-      arewrite (⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗D⦘) by basic_solver.
-      sin_rewrite cert_ppo_D.
-      rewrite (dom_rel_helper dom_ppo_D).
-      sin_rewrite cert_detour_D.
-      basic_solver. }
-Admitted.
-(*     unfold bob; relsf; unionL; splits; simpls. *)
-(*     { arewrite (⦗I⦘ ⊆ ⦗C ∪₁ I⦘) at 1. *)
-(*       rewrite cert_fwbob. *)
-(*       rewrite (dom_rel_helper dom_fwbob_I). *)
-(*       rewrite C_in_D, I_in_D at 1; relsf. *)
-(*       sin_rewrite cert_detour_D. *)
-(*       basic_solver. } *)
-(*     rewrite I_in_D at 1. *)
-(*     rewrite !seqA. *)
-(*     rewrite cert_sb. *)
-(*     rewrite cert_R, cert_Acq. *)
-(*     rewrite cert_detour_R_Acq_sb_D. *)
-(*     basic_solver. } *)
-(*   ins; rewrite cert_W_ex_acq. *)
-(*   rewrite cert_sb. eapply tc_W_ex_sb_I; eauto. *)
-(*   apply tc_coherent_implies_tc_coherent_alt; eauto. *)
-(* Qed. *)
+  2: { ins. by rewrite cert_W_ex_acq. }
+  relsf; unionL; splits; simpls.
+  3,4: rewrite cert_rfe; basic_solver.
+  { rewrite I_in_D at 1.
+    arewrite (⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗D⦘) by basic_solver.
+    sin_rewrite cert_ppo_D.
+    rewrite (dom_rel_helper dom_ppo_D).
+    sin_rewrite cert_detour_D.
+    basic_solver. }
+  2,3: rewrite cert_R, cert_Acq, cert_W_ex.
+  2,3: arewrite (Crfi ⊆ sb certG).
+  2,3: by try rewrite bob_in_sb; try rewrite ppo_in_sb.
+  unfold bob; relsf; unionL; splits; simpls.
+  { arewrite (⦗I⦘ ⊆ ⦗C ∪₁ I⦘) at 1.
+    rewrite cert_fwbob.
+    rewrite (dom_rel_helper dom_fwbob_I).
+    rewrite C_in_D, I_in_D at 1; relsf.
+    sin_rewrite cert_detour_D.
+    basic_solver. }
+  rewrite I_in_D at 1.
+  rewrite !seqA.
+  rewrite cert_sb.
+  rewrite cert_R, cert_Acq.
+  rewrite cert_detour_R_Acq_sb_D.
+  basic_solver.
+Qed.
 
 Lemma dom_cert_ar_I : dom_rel (⦗is_w certG.(lab)⦘ ⨾ Car⁺ ⨾ ⦗I⦘) ⊆₁ I.
 Proof.
