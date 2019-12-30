@@ -210,26 +210,15 @@ rewrite id_union; relsf; unionL; splits.
   rewrite <- ct_step. basic_solver 12.
 Qed.
 
-Lemma dom_rmw_in_D : dom_rel (Grmw ;; <|D|>) ⊆₁ D.
+Lemma dom_rmw_in_D : dom_rel Grmw ⊆₁ D.
 Proof.
-  unfold D at 1.
-  rewrite !id_union, !seq_union_r.
-Admitted.
-
-(*   relsf; unionL; splits. *)
-
-(* rewrite (dom_r (wf_rmwE WF)). *)
-(* rewrite E_to_I at 1. *)
-(* rewrite id_union; relsf; unionL; splits. *)
-(* - rewrite (rmw_in_sb WF). *)
-(*   generalize (dom_sb_covered TCCOH). *)
-(*   by unfold D; basic_solver 12. *)
-(* - rewrite dom_rel_eqv_dom_rel. *)
-(*   arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘). *)
-(*   generalize (issuedW TCCOH); basic_solver. *)
-(*   generalize (rmw_in_ppo WF) (rmw_sb_W_in_ppo WF). *)
-(*   by unfold D; basic_solver 21. *)
-(* Qed. *)
+  rewrite (dom_r (wf_rmwE WF)).
+  rewrite rmw_W_ex. rewrite !seqA.
+  rewrite <- id_inter.
+  rewrite W_ex_E.
+  rewrite WF.(rmw_in_ppo).
+  unfold D. basic_solver 10.
+Qed.
 
 (* This is no longer true. *)
 (* Lemma Rex_in_D : GR_ex ∩₁ E ⊆₁ D. *)
@@ -409,7 +398,7 @@ relsf; unionL.
 - rewrite (dom_rel_helper dom_ctrl_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_addr_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_rfi_D); sin_rewrite H; basic_solver.
-- rewrite (dom_rel_helper dom_rmw_in_D); sin_rewrite H; basic_solver.
+- rewrite (dom_rel_helper dom_rmw_in_D). rewrite !seqA. sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_frmw_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 Qed.
 
@@ -910,7 +899,6 @@ Qed.
 (** **   *)
 (******************************************************************************)
 
-(* TODO. It looks like it's no longer true in general. *)
 Lemma cert_release : certG.(release) ≡ Grelease.
 Proof.
 unfold imm_s_hb.release, imm_s_hb.rs; ins.
@@ -1314,7 +1302,7 @@ Proof.
 apply coh_helper_alt; rewrite cert_hb; relsf; unionL.
 - case_refl sc; [by apply hb_irr|].
   rewrite (wf_scD WF_SC); rotate 1.
-  sin_rewrite (f_sc_hb_f_sc_in_ar sc WF).
+  sin_rewrite (f_sc_hb_f_sc_in_ar WF).
   unfolder; ins; desc.
   eapply ACYC_EXT.
   eapply t_trans; [edone| apply t_step].
@@ -1396,7 +1384,7 @@ Proof.
 red; case_refl _.
 - rewrite cert_hb.
   rewrite (wf_scD WF_SC); rotate 2.
-  sin_rewrite (f_sc_hb_f_sc_in_ar sc WF).
+  sin_rewrite (f_sc_hb_f_sc_in_ar WF).
   unfolder; ins; desc.
   eapply ACYC_EXT.
   eapply t_trans; [edone| apply t_step].
@@ -1490,8 +1478,9 @@ remember (Gdata ∪ Gctrl ∪ Gaddr ⨾ Gsb^? ∪ ⦗GR_ex⦘ ⨾ Gsb ∪ Grmw_d
 
 unfold ppo; ins.
 arewrite (Cppo ⊆ ⦗R⦘ ⨾ (X ∪ Crfi)⁺ ⨾ ⦗W⦘).
-{ unfold ppo; rewrite cert_R, cert_W, cert_sb, cert_R_ex.
-rewrite HeqX; hahn_frame; apply inclusion_t_t; basic_solver 12. }
+{ (* TODO: continue from here. *)
+  unfold ppo; rewrite cert_R, cert_W, cert_sb, cert_R_ex.
+  rewrite HeqX; hahn_frame; apply inclusion_t_t; basic_solver 12. }
 arewrite (Gppo ≡ ⦗R⦘ ⨾ (X ∪ Grfi)⁺ ⨾ ⦗W⦘).
 by unfold ppo; rewrite HeqX; split; hahn_frame; apply inclusion_t_t; basic_solver 12.
 arewrite (⦗W⦘ ⨾ ⦗D⦘ ⊆ ⦗D⦘ ⨾ ⦗W⦘) by basic_solver.
