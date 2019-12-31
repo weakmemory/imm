@@ -79,33 +79,36 @@ sb^? ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb ∪
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘ ⨾ sb^?)⁺.
 Proof.
 assert (helper: 
 (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
- ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊
+ ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊
 ⊆
 (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘
-∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊).
+∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘ ⨾ sb^?)＊).
 by apply inclusion_rt_rt; basic_solver 12.
 
 unfold imm_s_ppo.ar_int, imm_bob.bob, imm_bob.fwbob.
 
 arewrite (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
  ∪ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ ppo ∪ detour
- ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆
 sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
   ∪ ppo ∪ detour
- ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ (⦗R ∩₁ Acq⦘ ⨾ sb ∪ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb)) at 1.
+ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪ (⦗R ∩₁ Acq⦘ ⨾ sb ∪ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb)) at 1.
 basic_solver 12.
 
 rewrite path_ut_first; rels; unionL.
 by unionR right; apply inclusion_t_t; basic_solver 12.
 arewrite (sb ∩ same_loc ⊆ sb) at 2.
 rewrite detour_in_sb, (ppo_in_sb WF) at 2.
+arewrite (rfi ⊆ sb) at 2.
 arewrite_id ⦗W_ex_acq⦘ at 2.
+arewrite_id ⦗W_ex⦘ at 2.
 arewrite_id ⦗W⦘ at 3.
-arewrite_id ⦗R ∩₁ Acq⦘ at 2.
+arewrite_id ⦗R ∩₁ Acq⦘ at 3.
+arewrite_id ⦗R ∩₁ Acq⦘ at 3.
 arewrite_id  ⦗W ∩₁ Rel⦘ at 3.
 arewrite_id  ⦗W ∩₁ Rel⦘ at 3.
 arewrite_id ⦗W⦘ at 3.
@@ -122,7 +125,8 @@ unionL.
   * type_solver.
   * rewrite (dom_r (@wf_ppoD G)) at 2; type_solver.
   * rewrite ct_end, helper; basic_solver 40.
-* type_solver.
+  * type_solver.
+  * rewrite ct_end, helper; basic_solver 40.
 - arewrite (sb ∩ same_loc ⊆ sb) at 1.
   rewrite detour_in_sb, (ppo_in_sb WF) at 1.
   arewrite_id ⦗W_ex_acq⦘ at 1.
@@ -131,25 +135,28 @@ unionL.
   arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
   arewrite_id ⦗W⦘ at 1.
   arewrite_id ⦗F ∩₁ Acq/Rel⦘ at 1.
+  arewrite (rfi ⊆ sb) at 1.
+  arewrite_id  ⦗R ∩₁ Acq⦘ at 1.
+  arewrite_id  ⦗W_ex⦘ at 1.
   relsf.
 Qed.
 
 Lemma ct_ar_int_alt2 WF: 
  (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ 
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺ ⊆ 
 sb ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb^? ∪
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺.
 Proof.
 
 arewrite (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆
 sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ 
  ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘) at 1.
 basic_solver 12.
 
@@ -173,7 +180,12 @@ arewrite_id  ⦗W_ex_acq⦘ at 1.
 arewrite_id  ⦗W_ex_acq⦘ at 1.
 
 arewrite_id ⦗F ∩₁ Acq/Rel⦘ at 2.
-
+  arewrite (rfi ⊆ sb) at 1.
+  arewrite_id  ⦗R ∩₁ Acq⦘ at 1.
+  arewrite_id  ⦗W_ex⦘ at 1.
+  arewrite (rfi ⊆ sb) at 1.
+  arewrite_id  ⦗R ∩₁ Acq⦘ at 1.
+  arewrite_id  ⦗W_ex⦘ at 1.
 generalize (@sb_trans G); ins; relsf.
 Qed.
 
@@ -194,20 +206,23 @@ Qed.
 Lemma ct_ar_int_alt3 WF (SC_PER_LOC: sc_per_loc G) : 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ 
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺ ⊆ 
 ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪ 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾
+  ppo  ∪ 
+(⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
+∪ 
+(⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺ ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 Proof.
 
 arewrite (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^? ⊆
 ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪ (sb ⨾ ⦗W∩₁Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)) at 1.
+  ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)) at 1.
 basic_solver 12.
 
 assert (transitive (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)).
@@ -221,7 +236,7 @@ rewrite path_union. relsf; unionL.
 - basic_solver 12.
 - unionR right. hahn_frame_r. 
  apply inclusion_t_t; unionL.
-all: case_refl _; [basic_solver 12|].
+all: case_refl (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘); [basic_solver 20|].
 * arewrite (sb ∩ same_loc ⊆ sb) at 1.
 arewrite_id ⦗W⦘ at 1.
 generalize (@sb_trans G); ins; relsf.
@@ -233,17 +248,23 @@ intro K; apply (init_pln WF) in K; mode_solver. }
 sin_rewrite (W_sb_same_loc_detour WF SC_PER_LOC).
 basic_solver 12.
   * rewrite (dom_l (@wf_ppoD G)) at 1; type_solver.
-* basic_solver 12.
+* basic_solver 20.
+* basic_solver 20.
 Qed.
 
 Lemma ct_ar_int_alt4 WF: 
 (sb ⨾ ⦗W∩₁Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
- ⊆ 
+  ppo  ∪ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
+∪ 
+(⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺
+ 
+
+⊆ 
 sb ⨾ ⦗W∩₁Rel⦘ ∪
 ( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
+  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
+∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺.
 Proof.
 rewrite !unionA.
 assert (transitive (sb ⨾ ⦗W ∩₁ Rel⦘)).
@@ -254,7 +275,7 @@ ins; relsf. }
 rewrite path_union. relsf; unionL.
 
 - basic_solver 12.
-- rewrite crE at 4; relsf; unionL; cycle 1.
+- rewrite crE at 5; relsf; unionL; cycle 1.
 * arewrite (sb ∩ same_loc ⊆ sb) at 1.
 rewrite detour_in_sb, (ppo_in_sb WF) at 1.
 
@@ -266,34 +287,43 @@ arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
 arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
 arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
 arewrite_id  ⦗W_ex_acq⦘ at 1.
-
+arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
+arewrite_id ⦗W⦘ at 1.
+arewrite_id ⦗W_ex⦘ at 1.
+arewrite_id ⦗R ∩₁ Acq⦘ at 1.
+  arewrite (rfi ⊆ sb) at 1.
+arewrite (sb ∩ same_loc ⊆ sb) at 1.
+arewrite_id  ⦗W ∩₁ Rel⦘ at 1.
 generalize (@sb_trans G); ins; relsf.
+
 * unionR right. 
  apply inclusion_t_t; unionL.
 + basic_solver 12.
 + rewrite crE at 1; relsf; unionL; [basic_solver 12|].
 rewrite (dom_l (@wf_ppoD G)) at 1; type_solver.
 + basic_solver 21.
++ basic_solver 30.
 Qed.
 
 Lemma ct_ar_int_alt5 WF: 
-( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
+ ((sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
+  ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
+∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺
  ⊆ 
 ppo ∪
  (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪
+ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?
+)⁺
 ⨾ ppo^?.
 Proof.
 
 arewrite ((sb ⨾ ⦗W ∩₁ Rel⦘)^? ⨾ detour ⨾ (⦗R ∩₁ Acq⦘ ⨾ sb)^? ∪ ppo
- ∪ (sb ⨾ ⦗W ∩₁ Rel⦘)^?
-   ⨾ (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
+  ⊆
 ppo
- ∪ ((sb ⨾ ⦗W ∩₁ Rel⦘)^? ⨾ detour ⨾ (⦗R ∩₁ Acq⦘ ⨾ sb)^? ∪  (sb ⨾ ⦗W ∩₁ Rel⦘)^?
-   ⨾ (⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)) at 1.
-basic_solver 21.
+ ∪ ((sb ⨾ ⦗W ∩₁ Rel⦘)^? ⨾ detour ⨾ (⦗R ∩₁ Acq⦘ ⨾ sb)^?)) at 1.
 
+rewrite !unionA.
 assert (transitive ppo).
 { apply transitiveI.
 rewrite (dom_r (@wf_ppoD G)) at 1; rewrite (dom_l (@wf_ppoD G)) at 2; type_solver. }
@@ -315,8 +345,9 @@ sb ⨾ ⦗W∩₁Rel⦘ ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)
 ppo ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ∪
  (ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
-  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺
-⨾ ppo^? ⨾
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ 
+  ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?
+)⁺ ⨾ ppo^? ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 
 
