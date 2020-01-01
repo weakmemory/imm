@@ -1584,6 +1584,66 @@ generalize RELCOV, (dom_sb_covered TCCOH).
 basic_solver 12.
 Qed.
 
+Lemma Crfi_Acq :
+ ⦗set_compl Init⦘ ⨾ Crfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ Grfi ⨾ ⦗R ∩₁ Acq⦘.
+Proof.
+arewrite (R ∩₁ Acq ⊆₁ R ∩₁ Acq ∩₁ D ∪₁ R ∩₁ Acq ∩₁ set_compl D).
+by unfolder; ins; desf; destruct (classic (D x)); auto.
+rewrite id_union; relsf; unionL.
+{ generalize cert_rfi_D. clear. 
+  unfolder; ins; desf; splits; auto.
+  apply H; eauto. }
+rewrite (wf_rfiE WF_cert).
+rewrite cert_E.
+unfolder; ins; desf; splits; try done.
+exploit COMP_ACQ; [basic_solver|].
+intros [w A]; desf.
+unfold rfi in H0; unfolder in H0; desc.
+hahn_rewrite cert_sb in H6.
+apply rfi_union_rfe in A; unfolder in A; desf; cycle 1.
+{ assert (D y). 
+unfold D; right; basic_solver 21.
+forward (eapply ((proj1 cert_rf_D) x y)); ins. }
+destruct (classic (w = x)); subst; try done.
+exfalso.
+unfold rfi in A; unfolder in A; desf.
+assert (LOC: Gsame_loc x w).
+{ eapply same_loc_trans.
+  apply cert_same_loc, WF_cert.(wf_rfl); edone.
+  eapply same_loc_sym.
+  apply WF.(wf_rfl); edone. }
+eapply sb_semi_total_r in H7; try edone.
+desf; cycle 1.
+{ eapply cert_coherence.
+  exists y; splits.
+  clear H6; vauto.
+  right; apply fr_in_eco.
+  exists x; splits; try done.
+  eapply (w_r_loc_w_in_co (WF_cert) (wf_sbE _)).
+  by apply sb_irr.
+  { rewrite sb_in_hb.
+    generalize cert_coherence; unfold coherence.
+    basic_solver 12. }
+  unfolder; splits; eauto.
+  by apply WF_cert.(wf_rfD) in H0; unfolder in H0; desf.
+  by apply cert_same_loc.
+  by apply cert_W; apply WF.(wf_rfD) in A; unfolder in A; desf. }
+eapply COH.
+exists y; splits.
+clear A0; vauto.
+right; apply fr_in_eco.
+exists w; splits; try done.
+eapply (w_r_loc_w_in_co (WF) (wf_sbE _)).
+by apply sb_irr.
+{ rewrite sb_in_hb.
+  generalize COH; unfold coherence.
+  basic_solver 12. }
+unfolder; splits; eauto.
+by apply WF.(wf_rfD) in A; unfolder in A; desf.
+by apply same_loc_sym.
+by apply cert_W; apply WF_cert.(wf_rfD) in H0; unfolder in H0; desf.
+Qed.
+
 Lemma cert_ar_int_I : Car_int⁺ ⨾ ⦗ C ∪₁ I ⦘ ⊆ ⦗ D ∪₁ R ∩₁ Acq ⦘ ⨾ Gar_int⁺.
 Proof.
 rewrite (ct_ar_int_alt WF_cert).
@@ -1795,12 +1855,58 @@ hahn_frame_r.
 done.
 
 *
+arewrite (Crfi ⊆ ⦗E⦘ ⨾ Crfi).
+{ unfold rfi.
+  rewrite cert_sb.
+  rewrite (dom_l (@wf_sbE G)).
+  basic_solver. }
 
-(* ?? *)
 
+arewrite (⦗GW_ex⦘ ⨾ ⦗E⦘ ⊆ ⦗C ∪₁ I⦘ ⨾ ⦗GW_ex⦘).
+generalize W_ex_E; basic_solver 21.
 
+arewrite (⦗GW_ex⦘ ⊆ ⦗GW_ex⦘ ;; ⦗set_compl Init⦘).
+by generalize (W_ex_not_init WF); basic_solver.
+sin_rewrite Crfi_Acq.
+rewrite !seqA.
 
-Admitted.
+arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘).
+basic_solver.
+arewrite (⦗R ∩₁ Acq⦘ ⨾ Gsb^? ⊆ Gar_int^?).
+unfold ar_int, bob, fwbob; basic_solver 21.
+arewrite (⦗GW_ex⦘ ⨾ Grfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ Gar_int^*).
+rels.
+
+arewrite_id ⦗D⦘; rels.
+rewrite <- (rt_rt Gar_int) at 2.
+hahn_frame_r.
+rewrite (cr_helper W_rel_sb_loc_W_CI).
+
+arewrite ((⦗W ∩₁ Rel⦘ ⨾ Gsb ∩ Gsame_loc ⨾ ⦗W⦘)^?  ⊆ Gar_int^?) at 1.
+unfold ar_int, bob, fwbob; basic_solver 21.
+
+rewrite <- (rt_cr Gar_int).
+hahn_frame_r.
+
+rewrite (cr_helper sb_W_rel_CI).
+
+arewrite ((Gsb ⨾ ⦗W ∩₁ Rel⦘)^?  ⊆ Gar_int^?).
+unfold ar_int, bob, fwbob; basic_solver 21.
+rewrite <- (rt_cr Gar_int).
+hahn_frame_r.
+
+arewrite (Cppo^? ⨾ ⦗C ∪₁ I⦘ ⊆ Gppo^? ⨾ ⦗C ∪₁ I⦘).
+generalize cert_ppo_CI; basic_solver 12.
+
+arewrite (Gppo^? ⨾ ⦗C ∪₁ I⦘ ⊆ ⦗D⦘ ⨾ Gppo^?  ).
+rewrite C_in_D, I_in_D; generalize dom_ppo_D; basic_solver.
+
+arewrite (Gppo ⊆ Gar_int).
+rewrite <- (rt_cr Gar_int).
+hahn_frame_r.
+
+done.
+Qed.
 
 Lemma  cert_acyc_ext_helper : (sc ∪ certG.(rfe))⁺ ⊆ sc ∪ certG.(rfe).
 Proof.
