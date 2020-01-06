@@ -20,21 +20,18 @@ Record execution :=
     addr : actid -> actid -> Prop ;   (** address dependency *)
     ctrl : actid -> actid -> Prop ;   (** control dependency *)
 
-    (** Representation of a data dependency to failed RMW.
+    (** Representation of a data dependency to CAS.
         It goes from a read to an exclusive read.
         Consider the example:
 
         a := [x];
         CAS(y, a, 1);
         
-        There is an execution w/ failing CAS. In the execution,
-        there is an rmw_dep edge between a read event representing `a := [x]'
-        and a read event representing failed `CAS(y, a, 1)'.
+        In the execution, there is an rmw_dep edge between a read event representing `a := [x]'
+        and a read event representing `CAS(y, a, 1)'.
      *)
     rmw_dep : actid -> actid -> Prop ;
 
-
-(*     ctrli : relation actid ;  (** control+isync on Power *) *)
     rf : actid -> actid -> Prop ;
     co : actid -> actid -> Prop ;
   }.
@@ -81,8 +78,8 @@ Notation "'Sc'" := (is_sc lab).
 Definition sb := ⦗E⦘ ⨾ ext_sb ⨾  ⦗E⦘.
 
 Record Wf :=
-  {  wf_index : forall a b, 
-    E a /\ E b /\ a <> b /\ tid a = tid b /\ ~ is_init a -> index a <> index b ;
+  { wf_index : forall a b, 
+      E a /\ E b /\ a <> b /\ tid a = tid b /\ ~ is_init a -> index a <> index b ;
     data_in_sb : data ⊆ sb ;
     wf_dataD : data ≡ ⦗R⦘ ⨾ data ⨾ ⦗W⦘ ;
     addr_in_sb : addr ⊆ sb ;
