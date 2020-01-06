@@ -68,7 +68,7 @@ Notation "'bob'" := (bob G).
 (******************************************************************************)
 
 Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪
-                              rmw ∪ rmw_dep ;; sb^?)⁺ ⨾ ⦗W⦘.
+                              rmw ∪ rmw_dep ;; sb^? ∪ ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb)⁺ ⨾ ⦗W⦘.
 
 Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ 
                      ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘.
@@ -79,10 +79,11 @@ Implicit Type COMP : complete G.
 Lemma ppo_in_sb WF: ppo ⊆ sb.
 Proof using.
 unfold ppo.
+arewrite_id ⦗R_ex \₁ dom_rel rmw⦘.
 rewrite (addr_in_sb WF), (data_in_sb WF), (ctrl_in_sb WF).
 rewrite (rmw_dep_in_sb WF).
 arewrite (rfi ⊆ sb).
-rewrite WF.(rmw_in_sb).
+rewrite WF.(rmw_in_sb) at 1.
 rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r.
 assert (sb⁺ ⊆ sb) as AA.
 { generalize (@sb_trans G). ins. relsf. }
@@ -192,7 +193,8 @@ unfold ppo.
 rewrite !seqA.
 arewrite_id ⦗W⦘ at 1.
 arewrite_id ⦗R⦘ at 2.
-arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?)＊) at 2.
+arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?∪ ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb)＊) at 2.
+{ rewrite rtE. rewrite <- ct_step. basic_solver 10. }
 rewrite inclusion_t_rt at 1.
 relsf.
 Qed.

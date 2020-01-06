@@ -164,6 +164,7 @@ Hypothesis INIT : is_init ∩₁ E ⊆₁ E'.
 Hypothesis WF : Wf G.
 Hypothesis WF_SC : wf_sc G sc.
 Hypothesis SUB : sub_execution.
+Hypothesis RMWCLOS : codom_rel (<|E'|> ;; rmw) ⊆₁ E'.
 
 Lemma sub_Acq : Acq' ≡₁ Acq.
 Proof. by rewrite (sub_lab SUB). Qed.
@@ -334,10 +335,19 @@ Proof.
 unfold imm_s_ppo.ppo.
 rewrite sub_W, sub_R.
 hahn_frame; apply inclusion_t_t.
-rewrite sub_sb_in, sub_rfi_in.
-rewrite sub_data_in, sub_ctrl_in, sub_addr_in, sub_frmw_in.
-rewrite sub_rmw_in.
-basic_solver 12.
+apply union_mori.
+{ rewrite sub_sb_in, sub_rfi_in.
+  rewrite sub_data_in, sub_ctrl_in, sub_addr_in, sub_frmw_in.
+  rewrite sub_rmw_in at 1.
+  basic_solver 12. }
+rewrite (dom_l (@wf_sbE G')).
+rewrite sub_R_ex, sub_sb_in.
+unfolder. ins. desf.
+splits; auto.
+intros HH. desf.
+apply H2. exists y0.
+apply SUB. apply seq_eqv_lr. splits; auto.
+apply RMWCLOS. basic_solver 10.
 Qed.
 
 Lemma sub_fr_in : fr' ⊆ fr.
