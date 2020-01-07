@@ -220,13 +220,13 @@ Proof.
   unfold D. basic_solver 10.
 Qed.
 
-Lemma Rex_in_D (REX_IN_DEPS : GR_ex ⊆₁ dom_rel (Gctrl ∪ Grmw)) : GR_ex ∩₁ E ⊆₁ D.
-Proof.
-  rewrite REX_IN_DEPS.
-  rewrite dom_union.
-  rewrite dom_ctrl_in_D, dom_rmw_in_D.
-  basic_solver.
-Qed.
+(* Lemma Rex_in_D (REX_IN_DEPS : GR_ex ⊆₁ dom_rel (Gctrl ∪ Grmw)) : GR_ex ∩₁ E ⊆₁ D. *)
+(* Proof. *)
+(*   rewrite REX_IN_DEPS. *)
+(*   rewrite dom_union. *)
+(*   rewrite dom_ctrl_in_D, dom_rmw_in_D. *)
+(*   basic_solver. *)
+(* Qed. *)
 
 Lemma dom_detour_D : dom_rel (Gdetour ⨾ ⦗D⦘) ⊆₁ I.
 Proof.
@@ -375,6 +375,26 @@ unionL.
 - ie_unfolder; basic_solver.
 Qed.
 
+Lemma dom_Rex_fail_sb_in_D : dom_rel (⦗GR_ex \₁ dom_rel Grmw⦘ ⨾ Gsb) ⊆₁ D.
+Proof.
+rewrite (dom_r (@wf_sbE G)).
+rewrite E_to_I.
+rewrite id_union; relsf; unionL; splits.
+- generalize (dom_sb_covered TCCOH).
+  unfold D; basic_solver 21.
+- rewrite dom_rel_eqv_dom_rel.
+  arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
+  { generalize (issuedW TCCOH); basic_solver. }
+  rewrite <- dom_eqv1.
+  arewrite (Gsb ⨾ Gsb^? ⊆ Gsb).
+  { generalize (@sb_trans G). basic_solver. }
+  arewrite (⦗GR_ex \₁ dom_rel Grmw⦘ ⊆ <|R|> ;; ⦗GR_ex \₁ dom_rel Grmw⦘).
+  { type_solver. }
+  arewrite (⦗R⦘ ⨾ ⦗GR_ex \₁ dom_rel Grmw⦘ ⨾ Gsb ⨾ ⦗W⦘ ⊆ Gppo).
+  2: by unfold D; basic_solver 21.
+  unfold ppo; rewrite <- ct_step; basic_solver 12.
+Qed.
+
 Lemma dom_ppo_D : dom_rel (Gppo ⨾ ⦗D⦘) ⊆₁ D.
 Proof.
 cut (Gppo ⨾ ⦗D⦘ ⊆ ⦗D⦘ ⨾ (fun _ _ => True)).
@@ -395,6 +415,7 @@ relsf; unionL.
 - rewrite (dom_rel_helper dom_rfi_D); sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_rmw_in_D). rewrite !seqA. sin_rewrite H; basic_solver.
 - rewrite (dom_rel_helper dom_frmw_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
+- rewrite (dom_rel_helper dom_Rex_fail_sb_in_D); rewrite !seqA; sin_rewrite H; basic_solver.
 Qed.
 
 Lemma dom_ppo_CI : dom_rel (Gppo ⨾ ⦗C ∪₁ I⦘) ⊆₁ D.
@@ -1469,10 +1490,11 @@ Qed.
 
 Lemma cert_ppo_D : Cppo ⨾ ⦗ D ⦘ ⊆ Gppo.
 Proof.
-  remember (Gdata ∪ Gctrl ∪ Gaddr ⨾ Gsb^? ∪ Grmw ∪ Grmw_dep ;; Gsb^?) as X.
+  remember (Gdata ∪ Gctrl ∪ Gaddr ⨾ Gsb^? ∪ Grmw ∪ Grmw_dep ;; Gsb^?
+                  ∪ ⦗GR_ex \₁ dom_rel Grmw⦘ ⨾ Gsb) as X.
   unfold ppo; ins.
   arewrite (Cppo ⊆ ⦗R⦘ ⨾ (X ∪ Crfi)⁺ ⨾ ⦗W⦘).
-  { unfold ppo; rewrite cert_R, cert_W, cert_sb.
+  { unfold ppo; rewrite cert_R, cert_W, cert_sb, cert_R_ex.
     rewrite HeqX; hahn_frame; apply inclusion_t_t; basic_solver 12. }
   arewrite (Gppo ≡ ⦗R⦘ ⨾ (X ∪ Grfi)⁺ ⨾ ⦗W⦘).
   { unfold ppo. rewrite HeqX. split; hahn_frame; apply inclusion_t_t; basic_solver 12. }
@@ -1489,7 +1511,8 @@ Proof.
     { rewrite (dom_rel_helper dom_ctrl_in_D). basic_solver. }
     { rewrite (dom_rel_helper dom_addr_in_D). basic_solver. }
     { rewrite (dom_rel_helper dom_rmw_in_D). basic_solver. }
-    rewrite (dom_rel_helper dom_frmw_in_D). basic_solver. }
+    { rewrite (dom_rel_helper dom_frmw_in_D). basic_solver. }
+    rewrite (dom_rel_helper dom_Rex_fail_sb_in_D). basic_solver. }
 
   assert (X_D: dom_rel (X＊ ⨾ ⦗D⦘) ⊆₁ D).
   { cut (X＊ ⨾ ⦗D⦘ ⊆ ⦗D⦘ ⨾ (fun _ _ => True)).
