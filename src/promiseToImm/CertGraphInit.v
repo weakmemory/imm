@@ -55,6 +55,9 @@ assert (RELCOV: (fun a : actid => is_w (lab Gf) a) ∩₁ (fun a : actid => is_r
 ⊆₁ covered T).
 by cdes SIMREL; cdes COMMON.
 
+assert (RMWCLOS: forall r w : actid, rmw Gf r w -> covered T r <-> covered T w).
+by cdes SIMREL; cdes COMMON.
+
 assert (ACQEX: W_ex Gf ⊆₁ W_ex Gf ∩₁ (fun a : actid => is_xacq (lab Gf) a)).
 by cdes SIMREL; cdes COMMON.
 
@@ -460,8 +463,7 @@ basic_solver. }
 rewrite TEH''.(tr_acts_set).
 unfolder; ins; desc.
 eapply H5; eauto.
-eapply (Rex_in_D thread); eauto.
-{ admit. }
+eapply Rex_in_D; eauto.
 split; [|done].
 unfold R_ex, rmwmod in *.
 rewrite TEH''.(tr_lab) in H2; auto.
@@ -883,6 +885,6 @@ eexists. red. splits.
 { apply STEPS'. }
 { intros HH. inv HH. }
 done.
-Admitted.
+Qed.
 
 End Cert.

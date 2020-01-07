@@ -220,14 +220,6 @@ Proof.
   unfold D. basic_solver 10.
 Qed.
 
-(* Lemma Rex_in_D (REX_IN_DEPS : GR_ex ⊆₁ dom_rel (Gctrl ∪ Grmw)) : GR_ex ∩₁ E ⊆₁ D. *)
-(* Proof. *)
-(*   rewrite REX_IN_DEPS. *)
-(*   rewrite dom_union. *)
-(*   rewrite dom_ctrl_in_D, dom_rmw_in_D. *)
-(*   basic_solver. *)
-(* Qed. *)
-
 Lemma dom_detour_D : dom_rel (Gdetour ⨾ ⦗D⦘) ⊆₁ I.
 Proof.
   unfold D.
@@ -424,6 +416,17 @@ rewrite C_in_D, I_in_D; relsf.
 apply dom_ppo_D.
 Qed.
 
+Lemma Rex_in_D : GR_ex ∩₁ E ⊆₁ D.
+Proof.
+  arewrite (GR_ex ∩₁ E ⊆₁ GR_ex ∩₁ E ∩₁ (dom_rel Grmw ∪₁ set_compl (dom_rel Grmw))).
+  { unfolder. ins. tauto. }
+  rewrite set_inter_union_r.
+  unionL.
+  { rewrite dom_rmw_in_D. basic_solver. }
+  rewrite E_to_I.
+  rewrite C_in_D, I_in_D. 
+  generalize dom_Rex_fail_sb_in_D. basic_solver 10.
+Qed.
 
 (******************************************************************************)
 (**  new co relation  *)
