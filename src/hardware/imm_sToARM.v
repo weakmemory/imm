@@ -110,6 +110,7 @@ Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis DEPS_RMW_SB : rmw_dep ⨾ sb ⊆ ctrl.
+Hypothesis REX_IN_RMW_CTRL : <|R_ex|> ;; sb ⊆ rmw ;; sb^? ∪ ctrl.
 
 Hypothesis CON: ArmConsistent G.
 
@@ -143,11 +144,24 @@ Proof.
   unfold Arm.dob. basic_solver 10.
 Qed.
 
+Lemma R_ex_fail_sb_in_ctrl : ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb ⊆ ctrl.
+Proof.
+  unfolder. ins. desf.
+  edestruct REX_IN_RMW_CTRL; eauto.
+  { basic_solver. }
+  match goal with
+  | H : (rmw ⨾ sb^?) _ _ |- _ => unfolder in H
+  end.
+  desf; exfalso; eauto.
+Qed.
+
 Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
 Proof.
   unfold imm_s_ppo.ppo.
-  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⊆ data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi).
-  { rewrite RMW_DEPS. eauto with hahn. }
+  rewrite R_ex_fail_sb_in_ctrl.
+  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^? ∪ ctrl ⊆
+            data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw_dep ⨾ sb^?).
+  { rewrite RMW_DEPS. unionL; eauto with hahn. }
   rewrite path_union, !seq_union_l, !seq_union_r. unionL.
   { apply ppo_in_dob_helper; auto. }
   assert ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)＊ ⊆ sb^?) as AA.

@@ -95,6 +95,7 @@ Hypothesis WF : Wf Gf.
 Hypothesis WF_SC : wf_sc Gf sc.
 Hypothesis IMMCON : imm_consistent Gf sc.
 Hypothesis RELCOV : FW ∩₁ FRel ∩₁ I ⊆₁ C.
+Hypothesis RMWCOV : forall r w (RMW : Frmw r w), C r <-> C w.
 Hypothesis TCCOH : tc_coherent Gf sc T.
 Hypothesis ACQEX : FW_ex ⊆₁ FW_ex_acq.
 
@@ -181,6 +182,11 @@ Qed.
 Lemma C_in_E : C ⊆₁ E.
 Proof.
 rewrite E_E0; unfold E0; basic_solver.
+Qed.
+
+Lemma Fsb_tid_I_in_E : dom_rel (Fsb ⨾ ⦗Tid_ thread ∩₁ I⦘) ⊆₁ E.
+Proof.
+rewrite E_E0; unfold E0. eauto with hahn.
 Qed.
 
 Lemma SUB: sub_execution Gf rstG sc rst_sc.
@@ -905,8 +911,31 @@ Proof. eapply sub_coh_sc; eauto; [eapply SUB| eapply IMMCON]. Qed.
 Lemma coherence_rst : coherence rstG .
 Proof. eapply sub_coherence; eauto; [eapply SUB| eapply IMMCON]. Qed.
 
+Lemma Frmw_E_prefix_clos : codom_rel (⦗E⦘ ⨾ Frmw) ⊆₁ E.
+Proof.
+  rewrite E_E0 at 1.
+  unfold E0. rewrite !id_union, !seq_union_l. rewrite !codom_union.
+  unionL.
+  { rewrite <- C_in_E. unfolder. ins. desf.
+    eapply RMWCOV with (r:=x0); eauto. }
+  { rewrite TCCOH.(issuedW).
+    rewrite WF.(wf_rmwD). type_solver. }
+  { unfolder. ins. desf.
+    assert (Fsb^? x y) as [|SB]; try subst x.
+    { apply WF.(transp_rmw_sb). eexists; eauto. }
+    { by apply I_in_E. }
+    apply Fsb_tid_I_in_E. basic_solver 10. }
+  unfolder. ins. desf.
+  assert (y = x); subst.
+  2: by apply I_in_E.
+  eapply wf_rmwf; eauto.
+Qed.
+
 Lemma acyc_ext_rst : acyc_ext rstG rst_sc.
-Proof. eapply sub_acyc_ext; eauto; [eapply SUB| eapply IMMCON]. Qed.
+Proof.
+  eapply sub_acyc_ext; eauto; [eapply SUB| |eapply IMMCON].
+  apply Frmw_E_prefix_clos.
+Qed.
 
 Lemma rmw_atomicity_rst : rmw_atomicity rstG.
 Proof. eapply sub_rmw_atomicity; eauto; [eapply INIT| eapply SUB| eapply IMMCON]. Qed.
@@ -1093,7 +1122,8 @@ Proof.
   eapply I_in_E.
   generalize (dom_rfe_ppo_issued WF TCCOH).
   apply (sub_ppo_in SUB) in H1.
-  basic_solver 21.
+  { basic_solver 21. }
+  apply Frmw_E_prefix_clos.
 Qed.
 
 Lemma urr_helper: 
@@ -1387,6 +1417,7 @@ red; splits.
   * rewrite (sub_W SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_fwbob_in SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_ar_in SUB).
+    2: by apply Frmw_E_prefix_clos.
     rewrite II at 1; basic_solver 12.
 Qed.
 
@@ -1514,7 +1545,8 @@ basic_solver.
   rewrite tc_sc_C; basic_solver.
 - apply I_in_E.
 - rewrite (sub_fwbob_in SUB), tc_fwbob_I; basic_solver.
-- by rewrite (sub_ar_in SUB). 
+- rewrite (sub_ar_in SUB); auto. 
+  apply Frmw_E_prefix_clos.
 Qed.
 
 End RestExec.
