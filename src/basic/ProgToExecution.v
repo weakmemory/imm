@@ -120,7 +120,7 @@ Section State.
        rmw := rw_edge ∪ G.(rmw);
        data := G.(data) ∪ ddata × (eq ew);
        addr := G.(addr) ∪ daddr × (eq er ∪₁ eq ew);
-       ctrl := G.(ctrl) ∪ rw_edge ∪ dctrl × (eq er ∪₁ eq ew);
+       ctrl := G.(ctrl) ∪ dctrl × (eq er ∪₁ eq ew);
        rmw_dep := G.(rmw_dep) ∪ drmw_dep × (eq er);
        rf := ∅₂;
        co := ∅₂;
