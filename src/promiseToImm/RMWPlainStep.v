@@ -128,7 +128,6 @@ Proof.
 
   assert (R r /\ W w) as [RREAD WWRITE].
   { apply (wf_rmwD WF) in RMW.
-    hahn_rewrite R_ex_in_R in RMW.
     apply seq_eqv_l in RMW; destruct RMW as [WW RMW].
     apply seq_eqv_r in RMW; desf. }
 
@@ -706,7 +705,6 @@ Proof.
 
   assert (R r /\ W w) as [RREAD WWRITE].
   { apply (wf_rmwD WF) in RMW.
-    hahn_rewrite (R_ex_in_R) in RMW.
     apply seq_eqv_l in RMW; destruct RMW as [WW RMW].
     apply seq_eqv_r in RMW; desf. }
 

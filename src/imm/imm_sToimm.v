@@ -92,8 +92,8 @@ Proof. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
 Lemma s_ppo_in_ppo (WF: Wf G) : s_ppo ⊆ ppo.
 Proof.
   unfold imm_s_ppo.ppo, imm_ppo.ppo.
-  assert (rmw ∪ (rmw_dep ⨾ sb^? ∪ ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb) ⊆
-          (⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺) as AA.
+  assert (rmw ∪ (rmw_dep ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb) ⊆
+          (rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺) as AA.
   2: { rewrite !unionA. rewrite AA.
        rewrite <- !unionA. rewrite ct_of_union_ct_r. by rewrite <- !unionA. }
   unionL.
@@ -101,9 +101,7 @@ Proof.
        { rewrite <- ct_step. basic_solver. }
        rewrite <- ct_unit. rewrite <- ct_step.
        rewrite (dom_r WF.(wf_rmw_depD)) at 1. basic_solver 10. }
-  all: rewrite <- ct_step; unionR left.
-  2: basic_solver.
-  rewrite (dom_l WF.(wf_rmwD)). by rewrite WF.(rmw_in_sb).
+  all: rewrite <- ct_step; unionR left; basic_solver 10.
 Qed.
 
 Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.

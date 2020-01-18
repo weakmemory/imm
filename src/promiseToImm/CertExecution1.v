@@ -933,8 +933,7 @@ Qed.
 
 Lemma acyc_ext_rst : acyc_ext rstG rst_sc.
 Proof.
-  eapply sub_acyc_ext; eauto; [eapply SUB| |eapply IMMCON].
-  apply Frmw_E_prefix_clos.
+  eapply sub_acyc_ext; eauto; [eapply SUB |eapply IMMCON].
 Qed.
 
 Lemma rmw_atomicity_rst : rmw_atomicity rstG.
@@ -1122,8 +1121,7 @@ Proof.
   eapply I_in_E.
   generalize (dom_rfe_ppo_issued WF TCCOH).
   apply (sub_ppo_in SUB) in H1.
-  { basic_solver 21. }
-  apply Frmw_E_prefix_clos.
+  basic_solver 21.
 Qed.
 
 Lemma urr_helper: 
@@ -1417,7 +1415,6 @@ red; splits.
   * rewrite (sub_W SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_fwbob_in SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_ar_in SUB).
-    2: by apply Frmw_E_prefix_clos.
     rewrite II at 1; basic_solver 12.
 Qed.
 
@@ -1546,7 +1543,6 @@ basic_solver.
 - apply I_in_E.
 - rewrite (sub_fwbob_in SUB), tc_fwbob_I; basic_solver.
 - rewrite (sub_ar_in SUB); auto. 
-  apply Frmw_E_prefix_clos.
 Qed.
 
 End RestExec.

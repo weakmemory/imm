@@ -686,7 +686,7 @@ Proof.
   repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_bob.bob G).
   repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_bob.bob G).
   rewrite RMWSC, WF.(wf_rmwD).
-  arewrite ((fun a : actid => R_ex lab a) ⊆₁ R) by type_solver.
+  rewrite !seqA.
   arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
   rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_bob.bob G).
   rewrite bob_in_ar.

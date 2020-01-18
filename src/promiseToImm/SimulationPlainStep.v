@@ -138,14 +138,14 @@ Proof.
     basic_solver 10. }
   { (* Relaxed RMW covering *)
     assert (R r) as RR.
-    { apply (dom_l WF.(wf_rmwD)) in RMW. hahn_rewrite (R_ex_in_R) in RMW. apply seq_eqv_l in RMW. desf. }
+    { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. }
     cdes TS1. desf.
     2: { red in ISS0. type_solver. }
     edestruct rlx_rmw_cover_step; eauto.
     red. split; [split|]; auto. all: apply COV. }
   (* Release RMW covering *)
   assert (R r) as RR.
-  { apply (dom_l WF.(wf_rmwD)) in RMW. hahn_rewrite (R_ex_in_R) in RMW. apply seq_eqv_l in RMW. desf. }
+  { apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW. desf. }
   cdes TS1. desf.
   2: { red in ISS. type_solver. }
   edestruct rel_rmw_cover_step; eauto.

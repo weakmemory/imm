@@ -674,18 +674,8 @@ case_refl _.
 unfolder; ins; eapply t_step; basic_solver 21.
 
 unfolder; ins; desf; eapply t_trans; eapply t_step; basic_solver 21.
--
-
-arewrite (rmw' ⨾ sb' ⨾ ⦗W'⦘ ⊆ ppo').
-{ unfold imm_ppo.ppo; rewrite <- ct_step.
-rewrite (dom_l (wf_rmwD WFp)) at 1; rewrite !seqA.
-rewrite (dom_l (wf_rmwD WFp)), R_ex_in_R at 1; rewrite !seqA.
-rewrite (rmw_in_sb WFp).
-generalize (@sb_trans G'); basic_solver 21.
-}
-
+- rewrite rmw_sb_W_in_ppo; auto.
 by red; ins; eapply t_step; basic_solver 12.
-
 }
 arewrite (psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪ bob' ⊆
           psc' ∪ ppo' ∪ rfe' ∪ detour' ∪ ⦗W_ex_acq'⦘ ⨾ sb' ⨾ ⦗W'⦘ ∪
