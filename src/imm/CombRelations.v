@@ -572,6 +572,15 @@ forward (apply is_w_loc); ins; desf; eauto.
 unfold urr; basic_solver 21.
 Qed.
 
+Lemma rf_in_furr WF : rf ⊆ furr.
+Proof.
+  unfold furr, urr.
+  do 2 rewrite (dom_l WF.(wf_rfD)).
+  unfolder; ins; desc.
+  apply is_w_loc in H1; desf.
+  basic_solver 21.
+Qed.
+
 Lemma eco_furr_irr WF WF_SC CSC COH : irreflexive (eco ⨾ furr).
 Proof.
 unfold furr.

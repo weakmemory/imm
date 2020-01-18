@@ -463,7 +463,7 @@ rewrite (dom_r (wf_rfiD WFp)) at 1.
 rewrite (dom_r (wf_rfeD WFp)) at 1.
 basic_solver 12.
    *)
-  sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC COMP).
+  sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC).
   rewrite !seqA.
 
 
@@ -547,7 +547,7 @@ Proof.
 unfold coherence; intro COHp.
 rewrite <- eco_eq.
 rewrite (hb_eq1 WF WFp), (rmw_in_fr WFp (coherence_sc_per_loc COHp) COMPp).
-sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC COMP).
+sin_rewrite !(sw_in_sb_eco_sb WF SC_PER_LOC).
 rewrite fr_in_eco.
 rewrite !seqA.
   arewrite ((sb ⨾ ⦗F ∩₁ Acq⦘)^? ⨾ hb'^? ⊆ hb'^?).

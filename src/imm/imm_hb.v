@@ -284,7 +284,7 @@ unfold sw; rewrite !seqA.
 arewrite ((sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗R⦘ ⊆ ⦗Acq⦘) by type_solver 42.
 Qed.
 
-Lemma rs_in_co WF SC_PER_LOC COMP: rs ⊆ ⦗W⦘ ⨾ co^?.
+Lemma rs_in_co WF SC_PER_LOC : rs ⊆ ⦗W⦘ ⨾ co^?.
 Proof.
 unfold rs.
 
@@ -300,7 +300,7 @@ arewrite (sb ∩ same_loc ⊆ (sb ∩ same_loc)^?).
 by rewrite A.
 
 rewrite rtE; relsf; unionL; [basic_solver|].
-sin_rewrite !(rf_rmw_in_co WF SC_PER_LOC COMP).
+sin_rewrite !(rf_rmw_in_co WF SC_PER_LOC).
 sin_rewrite (dom_r (wf_coD WF)).
 
 
@@ -317,18 +317,18 @@ rewrite inclusion_ct_seq_eqv_l.
 generalize (co_trans WF); ins; relsf.
 Qed.
 
-Lemma rs_in_eco WF SC_PER_LOC COMP: rs ⊆ eco^?.
+Lemma rs_in_eco WF SC_PER_LOC : rs ⊆ eco^?.
 Proof.
 rewrite rs_in_co, co_in_eco; try done; basic_solver.
 Qed.
 
-Lemma release_in_co WF SC_PER_LOC COMP: ⦗W⦘ ⨾ release ⊆ co^?.
+Lemma release_in_co WF SC_PER_LOC : ⦗W⦘ ⨾ release ⊆ co^?.
 Proof.
 unfold release; rewrite rs_in_co; try done.
 type_solver.
 Qed.
 
-Lemma sw_in_eco_helper WF SC_PER_LOC COMP :
+Lemma sw_in_eco_helper WF SC_PER_LOC  :
  rs ⨾ (rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⊆ eco.
 Proof.
 rewrite (dom_l (wf_rsD WF)).
@@ -349,30 +349,30 @@ relsf; unionL.
   generalize (eco_trans WF); type_solver 42.
 Qed.
 
-Lemma sw_in_eco WF SC_PER_LOC COMP : ⦗W⦘ ⨾ sw ⨾ ⦗R⦘ ⊆ eco.
+Lemma sw_in_eco WF SC_PER_LOC : ⦗W⦘ ⨾ sw ⨾ ⦗R⦘ ⊆ eco.
 Proof.
 unfold sw; rewrite !seqA.
 unfold release; rewrite !seqA.
 arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
 by type_solver.
 rels.
-sin_rewrite (sw_in_eco_helper WF SC_PER_LOC COMP).
+sin_rewrite (sw_in_eco_helper WF SC_PER_LOC).
 generalize (eco_trans WF); type_solver 42.
 Qed.
 
-Lemma sw_in_eco_sb WF SC_PER_LOC COMP : ⦗W⦘ ⨾ sw ⨾ ⦗F⦘ ⊆ eco ⨾ sb ⨾ ⦗F⦘.
+Lemma sw_in_eco_sb WF SC_PER_LOC : ⦗W⦘ ⨾ sw ⨾ ⦗F⦘ ⊆ eco ⨾ sb ⨾ ⦗F⦘.
 Proof.
 unfold sw; rewrite !seqA.
 unfold release; rewrite !seqA.
 arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
 by type_solver.
 rels.
-sin_rewrite (sw_in_eco_helper WF SC_PER_LOC COMP).
+sin_rewrite (sw_in_eco_helper WF SC_PER_LOC).
 rewrite (wf_ecoD WF) at 1.
 generalize (eco_trans WF); type_solver 42.
 Qed.
 
-Lemma sw_in_sb_eco_sb WF SC_PER_LOC COMP :
+Lemma sw_in_sb_eco_sb WF SC_PER_LOC :
     sw ⊆ (⦗F ∩₁ Rel⦘ ⨾ sb)^? ⨾ eco ⨾ (sb ⨾ ⦗F ∩₁ Acq⦘)^?.
 Proof.
 unfold sw.
@@ -381,7 +381,7 @@ sin_rewrite sw_in_eco_helper; try done.
 basic_solver 42.
 Qed.
 
-Lemma eco_sw_helper WF SC_PER_LOC COMP 
+Lemma eco_sw_helper WF SC_PER_LOC 
   x y z (ECO: eco x y) (SW: sw y z) (NECO: ~ eco y z) :
   exists k, eco x k /\ sb k z /\ ~ rmw k z.
 Proof.
@@ -405,14 +405,14 @@ destruct SW2.
   unfolder; ins; desf.
 Qed.
 
-Lemma eco_sw WF SC_PER_LOC COMP :
+Lemma eco_sw WF SC_PER_LOC :
 eco ⨾ (sw \ eco) ⊆ eco ⨾ (sb \ rmw).
 Proof.
 unfold seq, minus_rel, inclusion; ins; desc.
 eapply eco_sw_helper; eauto.
 Qed.
 
-Lemma eco_sw_1 WF SC_PER_LOC COMP :
+Lemma eco_sw_1 WF SC_PER_LOC :
 eco ⨾ sw ⊆ eco ∪ eco ⨾ (sb \ rmw).
 Proof.
 unfolder; ins; desf.
@@ -432,7 +432,7 @@ sin_rewrite eco_sw; auto.
 rewrite !seqA; auto with hahn.
 Qed.
 
-Lemma release_in_hb_co WF SC_PER_LOC COMP: release ⊆ (hb^? ⨾ co^?).
+Lemma release_in_hb_co WF SC_PER_LOC: release ⊆ (hb^? ⨾ co^?).
 Proof.
 unfold release; rewrite rs_in_co; try done.
 rewrite sb_in_hb; basic_solver 10.
@@ -575,13 +575,13 @@ Proof.
 apply COH.
 Qed.
 
-Lemma hb_irr WF COH COMP : irreflexive hb.
+Lemma hb_irr WF COH : irreflexive hb.
 Proof.
 unfold hb.
 rewrite path_ut_first.
 relsf; repeat (splits; try apply irreflexive_union).
 by rewrite (ct_of_trans (@sb_trans G)); apply sb_irr.
-rewrite (sw_in_sb_eco_sb WF (coherence_sc_per_loc COH) COMP) at 1.
+rewrite (sw_in_sb_eco_sb WF (coherence_sc_per_loc COH)) at 1.
 rotate 2.
 arewrite ((sb ⨾ ⦗F ∩₁ Acq⦘)^? ⊆ (sb ∪ sw)＊).
 arewrite (sb＊ ⊆ (sb ∪ sw)＊).
@@ -592,17 +592,17 @@ red in COH; revert COH.
 basic_solver.
 Qed.
 
-Lemma hb_acyc WF COH COMP : acyclic hb.
+Lemma hb_acyc WF COH : acyclic hb.
 Proof.
   eapply trans_irr_acyclic.
   2: by apply hb_trans.
   apply hb_irr; auto.
 Qed.
 
-Lemma w_hb_loc_w_in_co WF COH COMP:
+Lemma w_hb_loc_w_in_co WF COH :
   ⦗W⦘ ⨾ hb ∩ same_loc ⨾ ⦗W⦘ ⊆ co.
 Proof.
-apply (w_r_loc_w_in_co WF (wf_hbE WF) (hb_irr WF COH COMP) (hb_eco_irr COH)).
+apply (w_r_loc_w_in_co WF (wf_hbE WF) (hb_irr WF COH) (hb_eco_irr COH)).
 Qed.
 
 Lemma w_hb_loc_r_in_co_rf WF COH COMP:
@@ -711,7 +711,7 @@ Proof.
   basic_solver.
 Qed.
 
-Lemma sprop_irr WF COH COMP : irreflexive sprop.
+Lemma sprop_irr WF COH : irreflexive sprop.
 Proof.
   unfold sprop.
   rewrite sb_in_hb.
