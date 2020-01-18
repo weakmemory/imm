@@ -120,7 +120,7 @@ Section State.
        rmw := rw_edge ∪ G.(rmw);
        data := G.(data) ∪ ddata × (eq ew);
        addr := G.(addr) ∪ daddr × (eq er ∪₁ eq ew);
-       ctrl := G.(ctrl) ∪ rw_edge ∪ dctrl × (eq er ∪₁ eq ew);
+       ctrl := G.(ctrl) ∪ dctrl × (eq er ∪₁ eq ew);
        rmw_dep := G.(rmw_dep) ∪ drmw_dep × (eq er);
        rf := ∅₂;
        co := ∅₂;
@@ -217,12 +217,12 @@ Section State.
   | inc expr_add xmod ordr ordw reg lexpr val l nval
       (L: l = RegFile.eval_lexpr s1.(regf) lexpr)
       (NVAL: nval = val + RegFile.eval_expr s1.(regf) expr_add)
-      (LABELS : labels = [Astore xmod ordw l nval; Aload true ordr l val])
+      (LABELS : labels = [Astore xmod ordw l nval; Aload false ordr l val])
       (II : instr = Instr.update (Instr.fetch_add expr_add) xmod ordr ordw reg lexpr)
       (UPC   : s2.(pc) = s1.(pc) + 1)
       (UG    : s2.(G) =
                  add_rmw s1.(G) tid s1.(eindex)
-                     (Aload true ordr l val)
+                     (Aload false ordr l val)
                      (Astore xmod ordw l nval)
                      ((eq (ThreadEvent tid s1.(eindex))) ∪₁ (DepsFile.expr_deps s1.(depf) expr_add))
                      (DepsFile.lexpr_deps s1.(depf) lexpr) s1.(ectrl)

@@ -152,9 +152,10 @@ sin_rewrite SB; rewrite !seqA; relsf; basic_solver.
 arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ∪ (sb ∩ same_loc)^? ⨾ rfe ⨾ rmw)＊ ⊆ rs).
 by unfold imm_hb.rs; rewrite rfi_union_rfe; relsf.
 sin_rewrite rs_sb_loc_rfe.
-rewrite (dom_l (wf_rmwD WF)), R_ex_in_R at 1.
+rewrite (dom_l (wf_rmwD WF)).
 arewrite (rfi ⊆ sb); rewrite (rmw_in_sb WF).
 arewrite ((sb ∩ same_loc)^? ⊆ sb^?).
+arewrite_id ⦗R⦘ at 2.
 generalize (@sb_trans G); ins; relsf.
 Qed.
 

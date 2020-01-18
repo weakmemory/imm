@@ -92,8 +92,8 @@ Notation "'F^sync'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 Hypothesis SC_F: Sc ⊆₁ F∩₁Sc.
 Hypothesis NO_W_REL : W∩₁Rel ≡₁ ∅.
 Hypothesis R_ACQ_SB : ⦗R∩₁Acq⦘ ⨾ sb ⊆ rmw ∪ ctrl ⨾ ⦗F^isync⦘ ⨾ sb^? ∪ sb ⨾ ⦗F^lwsync⦘ ⨾ sb^?.
-(* Hypothesis RMW_DEPS : rmw ⊆ deps. *)
-Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∩ data ∪ ctrl.
+Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
+Hypothesis RMW_CTRL_FAIL : ⦗R_ex⦘ ⨾ sb ⊆ ctrl.
 Hypothesis DATA_RMW : data ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 
@@ -219,20 +219,15 @@ Qed.
 
 Lemma rmw_sb_in_ctrl: rmw ⨾ sb ⊆ ctrl.
 Proof.
-rewrite (dom_l (wf_rmwD WF)).
-rewrite (wf_rmwi WF), immediateE, !seqA.
-unfolder; ins; desf.
-assert (A: (rmw ∩ data ∪ ctrl) x y).
-by revert RMW_CTRL_FAIL; generalize (@sb_trans G); basic_solver 14.
-unfolder in A; desf.
-exfalso; eapply (wf_rmwi WF); eauto.
+  rewrite rmw_W_ex. rewrite seqA.
+  rewrite RMW_DEPS. rewrite !seq_union_l.
+  unionL; auto.
+  arewrite_id ⦗W_ex⦘. rewrite seq_id_l. apply WF.
 Qed.
-
 
 Lemma rmw_in_deps: rmw ⊆ deps.
 Proof.
-rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF).
-rewrite RMW_CTRL_FAIL; unfold Execution.deps; basic_solver.
+rewrite RMW_DEPS. unfold Execution.deps. eauto with hahn.
 Qed.
 
 Lemma rmw_sb_in_deps: rmw ⨾ sb^? ⊆ deps.
@@ -390,7 +385,6 @@ Proof.
 - rewrite (dom_l (wf_rmwD WF)) at 1.
   rewrite (rmw_in_sb WF); rewrite !seqA.
   generalize (@sb_trans G); ins; relsf.
-  rewrite (R_ex_in_R).
   sin_rewrite (@R_sb_F_sb_RW_in_fence G).
   arewrite (fence ⊆ hbp＊); relsf; basic_solver 12.
 - sin_rewrite r_acq_sb.
@@ -406,7 +400,7 @@ Proof.
   arewrite (fence ⊆ hbp＊); relsf; basic_solver 12.
 Qed.
 
-Lemma hb_in_S_sb : hb ⊆ sb ∪ S⨾ sb^?.
+Lemma hb_in_S_sb : hb ⊆ sb ∪ S ⨾ sb^?.
 Proof.
 rewrite hb_in_sb_swe, path_union.
 rewrite (ct_of_trans (@sb_trans G)), (rt_of_trans (@sb_trans G)).
@@ -535,7 +529,7 @@ Lemma ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour :
   ((ppo ∪ ctrli ∪ detour) ⨾ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘) ⊆ ppo ∪ ctrli ∪ detour.
 Proof.
   relsf; unionL.
-  * rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL) at 1.
+  * rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL) at 1.
     rewrite !seqA.
     rewrite ct_end; relsf; rewrite !seqA.
     arewrite_false (rfi ⨾ ⦗W⦘).
@@ -721,9 +715,9 @@ relsf; unionL.
   sin_rewrite C_EXT_helper05. rewrite !seqA.
   rewrite path_union2.
   rewrite !seq_union_l, !seq_union_r. unionL.
-  { rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+  { rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL).
       by rewrite !(r_deps_rfi WF). }
-  { rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+  { rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL).
     rewrite ct_begin. rewrite !seqA. 
     rewrite WF.(W_ex_in_W). type_solver. }
   rewrite !seqA.
@@ -749,11 +743,11 @@ relsf; unionL.
   { basic_solver. }
   sin_rewrite ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour.
   arewrite ((ppo ∪ ctrli ∪ detour)＊ ⨾ (ppo ∪ ctrli ∪ detour) ⊆ (ppo ∪ ctrli ∪ detour)⁺).
-  rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+  rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL).
   rewrite !(r_deps_rfi WF).
   arewrite (W ⊆₁ RW).
   rewrite (r_ct_ppo_detour_ppo WF); vauto.
-- rewrite (ppo_alt WF rmw_in_deps RMW_CTRL_FAIL' DEPS_RMW_FAIL).
+- rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL).
   rewrite !(r_deps_rfi WF).
   rewrite (Power_ppo.ppo_in_sb WF), (ctrli_in_sb WF), detour_in_sb.
   arewrite (⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb) by basic_solver.

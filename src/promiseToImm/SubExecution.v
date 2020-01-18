@@ -240,7 +240,7 @@ constructor.
 - rewrite (sub_ctrl SUB), wf_ctrlD, sub_R; basic_solver 12.
 - rewrite (sub_ctrl SUB), sub_sb. 
   generalize (ctrl_sb WF); basic_solver 12.
-- apply dom_helper_3; rewrite (sub_rmw SUB), wf_rmwD, sub_R_ex, sub_W; basic_solver 12.
+- apply dom_helper_3; rewrite (sub_rmw SUB), wf_rmwD, sub_R, sub_W; basic_solver 12.
 - rewrite sub_rmw_in, sub_same_loc; apply WF.
 - rewrite (sub_rmw SUB).
   unfolder; ins; desf; splits.
@@ -343,11 +343,6 @@ apply union_mori.
 rewrite (dom_l (@wf_sbE G')).
 rewrite sub_R_ex, sub_sb_in.
 unfolder. ins. desf.
-splits; auto.
-intros HH. desf.
-apply H2. exists y0.
-apply SUB. apply seq_eqv_lr. splits; auto.
-apply RMWCLOS. basic_solver 10.
 Qed.
 
 Lemma sub_fr_in : fr' ⊆ fr.

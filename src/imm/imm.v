@@ -252,6 +252,23 @@ Proof.
   generalize sb_trans. basic_solver.
 Qed.
 
+Lemma ar_int_in_ar : ar_int ⊆ ar.
+Proof. unfold ar. eauto with hahn. Qed.
+
+Lemma rmw_sb_cr_W_in_ar WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar.
+Proof.
+  rewrite <- ppo_in_ar.
+  unfold imm_ppo.ppo.
+  rewrite <- ct_step, (dom_l (wf_rmwD WF)).
+  basic_solver 21.
+Qed.
+
+Lemma fwbob_in_ar : fwbob G ⊆ ar.
+Proof.
+  unfold ar. unfold imm_ppo.ar_int.
+  rewrite fwbob_in_bob. basic_solver 10.
+Qed.
+
 Lemma sw_in_ar WF :
   sw ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ∪ sb.
 Proof.
@@ -259,14 +276,6 @@ Proof.
   { arewrite (⦗Acq⦘ ⊆ ⦗Acq/Rel⦘) by mode_solver.
       unfold ar, imm_ppo.ar_int, imm_bob.bob, imm_bob.fwbob.
       basic_solver 21. }
-  assert (rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar) as CC.
-  { unfold ar, imm_ppo.ar_int, imm_ppo.ppo.
-    rewrite <- ct_step, (dom_l (wf_rmwD WF)), (rmw_in_sb WF) at 1.
-    generalize (@sb_trans G) (R_ex_in_R); basic_solver 21. }
-
-  assert (fwbob G ⊆ ar) as EE.
-  { unfold ar. unfold imm_ppo.ar_int.
-    rewrite fwbob_in_bob. basic_solver 10. }
 
   assert (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar^?) as DD.
   { rewrite crE. rewrite !seq_union_l, !seq_union_r, seq_id_l.
@@ -275,7 +284,7 @@ Proof.
     rewrite crE, seq_union_l, seq_id_l. unionR left.
     arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ ⦗W⦘ ⨾ fwbob G).
     { unfold fwbob. basic_solver 10. }
-    rewrite EE. basic_solver. }
+    rewrite fwbob_in_ar. basic_solver. }
   
   assert (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar^?) as FF.
   { rewrite crE with (r:=sb ∩ same_loc). rewrite !seq_union_l, !seq_union_r, seq_id_l.
@@ -372,13 +381,10 @@ arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? �
 { case_refl (rmw ⨾ sb^?).
   - arewrite (⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ∪ ⦗F ∩₁ Acq/Rel⦘) by mode_solver.
     unfold ar, imm_ppo.ar_int, imm_bob.bob, imm_bob.fwbob; basic_solver 15.
-  - unfold ar, imm_ppo.ar_int, imm_ppo.ppo.
-    rewrite <- ct_step.
-    arewrite_id ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘; relsf.
-    rewrite (dom_l (wf_rmwD WF)) at 1.
-    rewrite (dom_l (wf_rmwD WF)), R_ex_in_R at 1.
-    rewrite (rmw_in_sb WF).
-    generalize (@sb_trans G); basic_solver 21. }
+  - arewrite_id ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘. rewrite seq_id_l.
+    arewrite (sb^? ⨾ sb^? ⊆ sb^?).
+    { generalize (@sb_trans G). basic_solver. }
+    rewrite rmw_sb_cr_W_in_ar; auto. eauto with hahn. }
 arewrite ((rmw ⨾ sb^?)^? ⨾ ⦗F ∩₁ Acq ∪₁ R ∩₁ Acq⦘ ⨾ sb^? ⊆ sb^?).
 by rewrite (rmw_in_sb WF); basic_solver.
 arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar^?).

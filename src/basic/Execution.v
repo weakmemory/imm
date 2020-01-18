@@ -87,7 +87,7 @@ Record Wf :=
     ctrl_in_sb : ctrl ⊆ sb ;
     wf_ctrlD : ctrl ≡ ⦗R⦘ ⨾ ctrl ;
     ctrl_sb : ctrl ⨾ sb ⊆ ctrl ;
-    wf_rmwD : rmw ≡ ⦗R_ex⦘ ⨾ rmw ⨾ ⦗W⦘ ;
+    wf_rmwD : rmw ≡ ⦗R⦘ ⨾ rmw ⨾ ⦗W⦘ ;
     wf_rmwl : rmw ⊆ same_loc ;
     wf_rmwi : rmw ⊆ immediate sb ;
     wf_rfE : rf ≡ ⦗E⦘ ⨾ rf ⨾ ⦗E⦘ ;
@@ -389,7 +389,7 @@ Qed.
 Lemma rmw_from_non_init WF : rmw ≡ ⦗fun x => ~ is_init x⦘ ⨾ rmw.
 Proof.
 split; [|basic_solver].
-rewrite (wf_rmwD WF), R_ex_in_R at 1.
+rewrite (wf_rmwD WF).
 generalize (read_or_fence_is_not_init WF).
 basic_solver 42.
 Qed.

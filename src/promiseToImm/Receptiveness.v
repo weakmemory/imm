@@ -41,6 +41,16 @@ all: rewrite UG; try done.
 all: unfold add, add_rmw; ins; basic_solver.
 Qed.
 
+Lemma rmw_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(G).(rmw) ⊆ s'.(G).(rmw).
+Proof.
+destruct STEP; desc.
+red in H; desc.
+destruct ISTEP0.
+all: rewrite UG; try done.
+all: unfold add, add_rmw; ins; basic_solver.
+Qed.
+
 Lemma rmw_dep_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(G).(rmw_dep) ⊆ s'.(G).(rmw_dep).
 Proof.
@@ -989,7 +999,7 @@ Lemma receptiveness_sim_inc (tid : thread_id)
 (val_ : nat)
 (UPC : pc s2 = pc s1 + 1)
 (UG : G s2 =
-     add_rmw (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) val_)
+     add_rmw (G s1) tid (eindex s1) (Aload false ordr (RegFile.eval_lexpr (regf s1) lexpr) val_)
        (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
           (val_ + RegFile.eval_expr (regf s1) expr_add))
        ((eq (ThreadEvent tid s1.(eindex))) ∪₁ (DepsFile.expr_deps s1.(depf) expr_add))
@@ -1003,6 +1013,7 @@ Lemma receptiveness_sim_inc (tid : thread_id)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
   (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
   (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
+  (NRMW:  MOD ∩₁ dom_rel (s2.(G).(rmw)) ⊆₁ ∅)
   (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
@@ -1029,8 +1040,7 @@ do 7 eexists; splits; red; splits.
     eapply inc; try reflexivity.
   * ins; congruence.
   * ins; congruence.
-  * ins.
-    destruct (G s2) as [acts2 lab2 rmw2 data2 addr2 ctrl2 rf2 co2].
+  * destruct (G s2) as [acts2 lab2 rmw2 data2 addr2 ctrl2 rf2 co2].
     inversion UG; subst; clear UG; ins.
     unfold acts_set, R_ex in NREX; ins.
     red in EXEC; desc.
@@ -1042,8 +1052,10 @@ do 7 eexists; splits; red; splits.
       by subst; rewrite !upds; rewrite SAME_LOC.
       rewrite updo; try done.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds; rewrite updo; [| by desf]; rewrite upds; rewrite SAME_LOC.
-      rewrite !updo; auto.
+      2: by rewrite !updo; auto.
+      subst; rewrite !upds. rewrite updo; [| by desf].
+      rewrite upds; rewrite SAME_LOC. eauto.
+      intros _. red. splits; auto.
     + rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1' + 1))).
       -- subst; rewrite SAME_LOC.
@@ -1078,11 +1090,10 @@ do 7 eexists; splits; red; splits.
     by rewrite upds in WRITE; desf.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
-      eapply NREX; split; [eauto|].
+      eapply NRMW; split; [eauto|].
       rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
-      rewrite UG; unfold add; unfold R_ex; ins.
-       by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
+      rewrite EINDEX; eauto.
+      red. clear. basic_solver.
     + unfold val; rewrite updo; [|done].
       rewrite updo; [|done].
       destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'+1))); subst.
@@ -1107,11 +1118,10 @@ do 7 eexists; splits; red; splits.
     unfold val; rewrite updo; [|done].
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
-      eapply NREX; split; [eauto|].
+      eapply NRMW; split; [eauto|].
       rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
-      rewrite UG; unfold add; unfold R_ex; ins.
-      by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
+      rewrite EINDEX; eauto.
+      red. clear. basic_solver.
     + unfold val; rewrite updo; try done.
       apply NEW_VAL2; try done.
       unfold is_r in *; rewrite !updo in READ; try done.
@@ -1126,6 +1136,7 @@ Lemma receptiveness_sim_step (tid : thread_id)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
   (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
   (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
+  (NRMW:  MOD ∩₁ dom_rel (s2.(G).(rmw)) ⊆₁ ∅)
   (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (new_rfif : functional new_rfi⁻¹)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
@@ -1155,6 +1166,7 @@ Lemma receptiveness_sim (tid : thread_id)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
   (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
   (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
+  (NRMW:  MOD ∩₁ dom_rel (s2.(G).(rmw)) ⊆₁ ∅)
   (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (new_rfif : functional new_rfi⁻¹)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
@@ -1183,6 +1195,9 @@ exploit IHSTEPS.
   by apply clos_rtn1_rt.
   basic_solver.
 * unfolder; splits; ins; eauto; desf.
+  eapply rmw_increasing in H1; eauto.
+  eapply NRMW; basic_solver.
+* unfolder; splits; ins; eauto; desf.
   eapply data_increasing in H1; eauto.
   eapply NDATA; basic_solver.
 * intro; desc.
@@ -1208,6 +1223,7 @@ Lemma receptiveness_helper (tid : thread_id)
       (NFRMW: MOD ∩₁ dom_rel (s.(G).(rmw_dep)) ⊆₁ ∅)
       (NADDR : MOD ∩₁ dom_rel (s.(G).(addr)) ⊆₁ ∅)
       (NREX:  MOD ∩₁ s.(G).(acts_set) ∩₁ (R_ex s.(G).(lab)) ⊆₁ ∅) 
+      (NRMW:  MOD ∩₁ dom_rel (s.(G).(rmw)) ⊆₁ ∅)
       (NDATA: ⦗MOD⦘ ⨾ s.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) 
       (new_rfiMOD : codom_rel new_rfi ⊆₁ MOD)
       (NMODINIT: MOD ∩₁ s_init.(ProgToExecution.G).(acts_set) ⊆₁ ∅)
@@ -1298,6 +1314,7 @@ Lemma receptiveness_full (tid : thread_id)
       (NFRMW: MOD ∩₁ dom_rel (s.(G).(rmw_dep)) ⊆₁ ∅)
       (NADDR : MOD ∩₁ dom_rel (s.(G).(addr)) ⊆₁ ∅)
       (NREX:  MOD ∩₁ s.(G).(acts_set) ∩₁(R_ex s.(G).(lab)) ⊆₁ ∅) 
+      (NRMW:  MOD ∩₁ dom_rel (s.(G).(rmw)) ⊆₁ ∅)
       (NCTRL: MOD ∩₁ dom_rel (s.(G).(ctrl)) ⊆₁ ∅)
       (NDATA: ⦗MOD⦘ ⨾ s.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) :
     exists s',

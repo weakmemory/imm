@@ -399,7 +399,7 @@ Qed.
 
 Lemma rmw_in_fr WF SC_PER_LOC COMP : rmw ⊆ fr.
 Proof.
-rewrite (wf_rmwD WF), (rmw_in_sb_loc WF), R_ex_in_R.
+rewrite (wf_rmwD WF), (rmw_in_sb_loc WF).
 rewrite (r_sb_loc_w_in_fri WF SC_PER_LOC COMP).
 ie_unfolder; basic_solver.
 Qed.
