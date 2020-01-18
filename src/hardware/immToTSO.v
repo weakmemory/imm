@@ -248,7 +248,7 @@ Proof.
   apply acyclic_utt; auto.
   { by apply sb_co_trans. }
   splits.
-  { apply hb_irr; auto. apply CON. }
+  { apply hb_irr; auto. }
   { by apply sb_co_irr. }
   arewrite_id ⦗F⦘. rewrite !seq_id_l.
   rewrite sb_in_hb. 

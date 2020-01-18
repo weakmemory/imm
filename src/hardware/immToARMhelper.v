@@ -119,7 +119,7 @@ Qed.
 
 Lemma rs_sb_loc : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
 Proof.
-rewrite (rs_in_co  WF SC_PER_LOC COMP), !seqA.
+rewrite (rs_in_co  WF SC_PER_LOC), !seqA.
 apply co_sb_loc.
 Qed.
 
@@ -160,7 +160,7 @@ Qed.
 
 Lemma rs_rfi_Q: rs ⨾ rfi ⨾ ⦗Q⦘ ⊆ sb ∩ same_loc ⨾ ⦗Q⦘ ∪ (obs' ∪ dob ∪ aob ∪ boba')⁺  ⨾ ⦗Q⦘.
 Proof.
-generalize (rs_in_co  WF SC_PER_LOC COMP).
+generalize (rs_in_co  WF SC_PER_LOC).
 unfold imm_hb.rs.
 intro X.
 rewrite rtE; relsf; unionL.

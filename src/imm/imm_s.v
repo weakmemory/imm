@@ -647,7 +647,7 @@ Proof using.
 Qed.
 
 Lemma rfe_n_same_tid : rfe ∩ same_tid ⊆ ∅₂.
-Proof using WF IMMCON.
+Proof using WF COH.
   arewrite (rfe ∩ same_tid ⊆ rfe ∩ (<|E|> ;; same_tid ;; <|E|>)).
   { rewrite WF.(wf_rfeE) at 1. basic_solver. }
   arewrite (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘ ⊆ same_tid ∩ (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘)) by basic_solver.
@@ -656,8 +656,7 @@ Proof using WF IMMCON.
   unionL.
   3: { rewrite WF.(wf_rfeD). rewrite init_w; eauto. type_solver. }
   2: { unfolder. ins. desf.
-       cdes IMMCON.
-       eapply Cint. eexists. split.
+       eapply COH. eexists. split.
        { eby apply sb_in_hb. }
        right. apply rf_in_eco.
        match goal with
@@ -668,8 +667,7 @@ Proof using WF IMMCON.
     match goal with
     | H : rfe _ _ |- _ => apply H
     end. }
-  cdes IMMCON.
-  eapply (thread_rfe_sb WF (coherence_sc_per_loc Cint)).
+  eapply (thread_rfe_sb WF (coherence_sc_per_loc COH)).
   basic_solver 10.
 Qed.
 

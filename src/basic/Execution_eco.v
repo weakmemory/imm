@@ -76,6 +76,12 @@ Proof. unfold eco; basic_solver 6. Qed.
 Lemma fr_in_eco: fr ⊆ eco.
 Proof. unfold eco; basic_solver 6. Qed.
 
+Lemma co_rf_in_eco: co ;; rf ⊆ eco.
+Proof. unfold eco; basic_solver 6. Qed.
+
+Lemma fr_rf_in_eco: fr ;; rf ⊆ eco.
+Proof. unfold eco; basic_solver 6. Qed.
+
 Lemma loceq_eco WF : funeq loc eco.
 Proof. destruct WF; desf. eauto 10 with hahn. Qed.
 
@@ -404,18 +410,45 @@ rewrite (r_sb_loc_w_in_fri WF SC_PER_LOC COMP).
 ie_unfolder; basic_solver.
 Qed.
 
-Lemma rf_rmw_in_co WF SC_PER_LOC COMP: rf ⨾ rmw ⊆ co.
+Lemma rf_rmw_in_co_helper WF SC_PER_LOC: rf ⨾ rmw ⊆ co ∪ co^{-1}.
 Proof.
-rewrite rmw_in_fr; eauto using rf_fr. 
+rewrite (dom_l WF.(wf_rfE)).
+rewrite (dom_r WF.(wf_rmwE)).
+rewrite (dom_l WF.(wf_rfD)).
+rewrite (dom_r WF.(wf_rmwD)).
+unfolder; ins; desf.
+eapply WF.(wf_co_total); [basic_solver| |].
+{ unfolder; ins; desf; splits; eauto.
+  apply WF.(wf_rfl) in H0.
+  apply WF.(wf_rmwl) in H1.
+  unfold Events.same_loc in *; congruence. }
+intro; subst.
+eapply SC_PER_LOC.
+exists y; splits; eauto.
+eapply WF.(rmw_in_sb); edone.
+eapply rf_in_eco; edone.
 Qed.
 
-Lemma rf_rmw_ct_in_co WF SC_PER_LOC COMP: (rf ⨾ rmw)⁺ ⊆ co.
+Lemma rf_rmw_in_co WF SC_PER_LOC : rf ⨾ rmw ⊆ co.
+Proof.
+arewrite (rf ⨾ rmw ⊆ (rf ⨾ rmw) ∩ (rf ;; rmw)).
+rewrite rf_rmw_in_co_helper at 1; eauto.
+rewrite inter_union_l; unionL; [basic_solver|].
+transitivity (fun _ _ : actid => False); [|basic_solver].
+unfolder; ins; desf.
+eapply SC_PER_LOC.
+exists y; splits; eauto.
+eapply WF.(rmw_in_sb); edone.
+eapply co_rf_in_eco; basic_solver.
+Qed.
+
+Lemma rf_rmw_ct_in_co WF SC_PER_LOC : (rf ⨾ rmw)⁺ ⊆ co.
 Proof. by rewrite rf_rmw_in_co, (ct_of_trans (co_trans WF)). Qed.
 
-Lemma rf_rmw_rt_in_co WF SC_PER_LOC COMP: (rf ⨾ rmw)＊ ⊆ co^?.
+Lemma rf_rmw_rt_in_co WF SC_PER_LOC : (rf ⨾ rmw)＊ ⊆ co^?.
 Proof. by rewrite rf_rmw_in_co, (rt_of_trans (co_trans WF)). Qed.
 
-Lemma rf_rmw_in_coimm WF SC_PER_LOC COMP ATOM: rf ⨾ rmw ⊆ immediate co.
+Lemma rf_rmw_in_coimm WF SC_PER_LOC ATOM: rf ⨾ rmw ⊆ immediate co.
 Proof.
 ins; split; [by apply rf_rmw_in_co|].
 ins; unfolder in *; desf.

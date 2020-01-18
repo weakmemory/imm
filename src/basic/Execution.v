@@ -641,6 +641,15 @@ Proof. split; [|basic_solver]. apply (re_dom (wf_coD WF)). Qed.
 Lemma wf_freD WF : fre ≡ ⦗R⦘ ⨾ fre ⨾ ⦗W⦘.
 Proof. split; [|basic_solver]. apply (re_dom (wf_frD WF)). Qed.
 
+Lemma rfi_in_sb : rfi ⊆ sb.
+Proof. unfold rfi; basic_solver. Qed.
+
+Lemma rfi_in_rf : rfi ⊆ rf.
+Proof. unfold rfi; basic_solver. Qed.
+
+Lemma rfe_in_rf : rfe ⊆ rf.
+Proof. unfold rfe; basic_solver. Qed.
+
 (******************************************************************************)
 (** ** properties of external/internal relations *)
 (******************************************************************************)

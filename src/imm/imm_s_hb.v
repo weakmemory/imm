@@ -57,7 +57,6 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 Notation "'W_ex'" := G.(W_ex).
 
 Implicit Type WF : Wf G.
-Implicit Type COMP : complete G.
 Implicit Type SC_PER_LOC : sc_per_loc G.
 
 (******************************************************************************)
@@ -241,7 +240,7 @@ arewrite ((sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⨾ ⦗R⦘ ⊆ ⦗Acq⦘) by type_so
 Qed.
 
 
-Lemma rs_in_co WF SC_PER_LOC COMP: rs ⊆ ⦗W⦘ ⨾ co^?.
+Lemma rs_in_co WF SC_PER_LOC : rs ⊆ ⦗W⦘ ⨾ co^?.
 Proof.
 unfold rs.
 
@@ -254,7 +253,7 @@ assert (A: ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ ⦗W⦘ ⨾ co^?).
 
 
 rewrite rtE; relsf; unionL; [done|].
-sin_rewrite !(rf_rmw_in_co WF SC_PER_LOC COMP).
+sin_rewrite !(rf_rmw_in_co WF SC_PER_LOC).
 sin_rewrite (dom_r (wf_coD WF)).
 
 sin_rewrite A.
@@ -264,7 +263,7 @@ arewrite_id ⦗W⦘.
 generalize (co_trans WF); ins; relsf.
 Qed.
 
-Lemma release_in_hb_co WF SC_PER_LOC COMP: release ⊆ (hb^? ⨾ co^?).
+Lemma release_in_hb_co WF SC_PER_LOC : release ⊆ (hb^? ⨾ co^?).
 Proof.
 unfold release; rewrite rs_in_co; try done.
 rewrite sb_in_hb; basic_solver 10.
