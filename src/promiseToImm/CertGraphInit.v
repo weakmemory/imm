@@ -468,10 +468,6 @@ split; [|done].
 unfold R_ex, rmwmod in *.
 rewrite TEH''.(tr_lab) in H2; auto.
 eapply TEH''.(tr_acts_set). by split. }
-{ rewrite TEH''.(tr_rmw).
-arewrite_id ⦗Tid_ thread⦘; rels.
-rewrite dom_rmw_in_D with (T:=T); try done.
-basic_solver. }
 { rewrite TEH''.(tr_ctrl).
 arewrite_id ⦗Tid_ thread⦘; rels.
 rewrite (dom_ctrl_in_D thread WF_G TCCOH_G); try done.
