@@ -370,7 +370,7 @@ Proof.
     { by apply inhabited_future_init. }
  
     eexists; eexists; eexists; splits; eauto; simpls.
-    { eapply tau_steps_rmw_is_xacq; eauto. }
+    1,2: by erewrite tau_steps_step_same_instrs; eauto.
     { ins. rewrite IdentMap.gso in TID'; auto.
       edestruct (PROM_DISJOINT thread') as [H|]; eauto.
       left. erewrite Memory.remove_o; eauto. desf. }
@@ -780,7 +780,7 @@ Proof.
       intros a [BB|BB] OO; [by desf|intros CC; subst].
       type_solver. }
     exists state'''; eexists. splits; simpls.
-    { eapply tau_steps_rmw_is_xacq; eauto. }
+    1,2: by erewrite tau_steps_step_same_instrs; eauto.
     { rewrite IdentMap.gss. simpls. }
     { ins. eapply PROM_DISJOINT0; eauto.
       rewrite IdentMap.gso in *; eauto. }

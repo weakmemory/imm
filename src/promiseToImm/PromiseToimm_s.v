@@ -27,6 +27,7 @@ Require Import PromiseOutcome.
 
 Require Import SimTraversalProperties.
 Require Import ProgToExecutionProperties.
+Require Import RMWinstrProps.
 Require Import TraversalCounting.
 
 Require Import SimulationPlainStepAux.
@@ -206,6 +207,9 @@ Hypothesis PROG_EX : program_execution prog G.
 Hypothesis XACQRMW : forall thread linstr
                             (IN : Some linstr = IdentMap.find thread prog),
     rmw_is_xacq_instrs linstr.
+Hypothesis CASREX  : forall thread linstr
+                            (IN : Some linstr = IdentMap.find thread prog),
+    cas_produces_R_ex_instrs linstr.
 Hypothesis WF : Wf G.
 Variable sc : relation actid.
 Hypothesis IMMCON : imm_consistent G sc.
@@ -564,6 +568,7 @@ Proof.
   exists (init l), (Local.init); splits; auto.
   { red; ins; desf; apply TNONULL, IdentMap.Facts.in_find_iff; congruence. }
   { apply wf_thread_state_init. }
+  { eapply CASREX. eauto. }
   { eapply XACQRMW. eauto. }
   { ins. left. apply Memory.bot_get. }
   { red. ins.
@@ -785,15 +790,14 @@ Proof.
     eapply PROM_IN_MEM; eauto. }
   simpls.
   destruct (classic (thread0 = thread)) as [|NEQ]; subst.
-  { rewrite IdentMap.gss. 
+  { assert (instrs state' = instrs state) as AA.
+    { clear -STATE1. cdes STATE1.
+      eapply steps_preserve_instrs; eauto. }
+    rewrite IdentMap.gss. 
     eexists; eexists. splits.
-    1,4: done.
+    1,5: done.
     all: eauto.
-    { arewrite (instrs state' = instrs state); auto.
-      clear -STATE1. cdes STATE1.
-      clear -STEPS. induction STEPS; auto.
-      2: by rewrite IHSTEPS2.
-      inv H. inv H0. }
+    1,2: by rewrite AA.
     { ins. left. rewrite PBOT. apply Memory.bot_get. }
     red. splits.
     { by rewrite EII. }

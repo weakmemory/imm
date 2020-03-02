@@ -248,7 +248,7 @@ Proof.
       type_solver. }
     rewrite IdentMap.gss.
     eexists; eexists; eexists; splits; eauto; simpls.
-    { eapply tau_steps_rmw_is_xacq; eauto. }
+    1,2: by erewrite tau_steps_step_same_instrs; eauto.
     { ins.
       rewrite IdentMap.gso in TID'; auto.
       eapply PROM_DISJOINT; eauto. }

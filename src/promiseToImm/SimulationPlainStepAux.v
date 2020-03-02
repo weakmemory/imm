@@ -10,6 +10,7 @@ Require Import ViewRel.
 Require Import SimulationRel.
 Require Import PromiseLTS.
 Require Import ProgToExecution.
+Require Import RMWinstrProps.
 
 Lemma rtc_lang_tau_step_rtc_thread_tau_step
       thread st1 st2 lc sc mem
@@ -39,10 +40,9 @@ Proof.
     by cdes ISTEP.
 Qed.
 
-Lemma tau_steps_rmw_is_xacq (PC : Configuration.t) thread
+Lemma tau_steps_step_same_instrs (PC : Configuration.t) thread
       (state : ProgToExecution.state)
       (local : Local.t)
-      (XACQIN : ProgToExecutionProperties.rmw_is_xacq_instrs (instrs state))
       (ev : ProgramEvent.t)
       (state'' state''' : ProgToExecution.state)
       (ESTEPS : rtc (Thread.tau_step (lang:=thread_lts thread))
@@ -55,7 +55,7 @@ Lemma tau_steps_rmw_is_xacq (PC : Configuration.t) thread
                                PC.(Configuration.sc)
                                PC.(Configuration.memory)))
       (STEP : lts_step thread ev state'' state''') :
-  ProgToExecutionProperties.rmw_is_xacq_instrs (instrs state''').
+  instrs state''' = instrs state.
 Proof.
   cdes STEP. cdes ISTEP. rewrite <- INSTRS.
   arewrite (instrs state'' = instrs state); auto.

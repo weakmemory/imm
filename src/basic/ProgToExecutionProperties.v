@@ -1,4 +1,4 @@
-Require Import RelationClasses List Omega.
+Require Import RelationClasses List Lia.
 From PromisingLib Require Import Basic.
 From hahn Require Import Hahn.
 Require Import AuxDef.
@@ -111,104 +111,6 @@ Qed.
 
 End StateWF.
 
-Definition rmw_is_xacq_instr (i : Instr.t) :=
-  match i with
-  | Instr.update _ Xpln _ _  _ _ => False
-  | _ => True
-  end.
-
-Definition rmw_is_xacq_instrs (il : list Instr.t) :=
-  forall (i : Instr.t) (IN : In i il), rmw_is_xacq_instr i.
-
-Definition w_ex_is_xacq s :=
-  W_ex (ProgToExecution.G s) ⊆₁
-  W_ex (ProgToExecution.G s) ∩₁ is_xacq (lab (ProgToExecution.G s)).
-
-Lemma w_ex_is_xacq_add_preserves thread s s'
-      (WF : wf_thread_state thread s) lbl vl lc cl ff
-      (UG : G s' =
-            add (G s) thread (eindex s) lbl vl lc cl ff) 
-      (SS : w_ex_is_xacq s) :
-    w_ex_is_xacq s'.
-Proof.
-  unfold w_ex_is_xacq in *.
-  unfold add in UG.
-  split; auto. destruct H as [y RMW].
-  rewrite UG. simpls.
-  unfold is_xacq, xmod.
-  destruct (classic (x = (ThreadEvent thread (eindex s)))) as [|NEQ]; subst.
-  2: { rewrite updo; auto. 
-       eapply SS. rewrite UG in RMW. simpls.
-         by exists y. }
-  exfalso.
-  rewrite UG in RMW. simpls.
-  apply (dom_r WF.(wft_rmwE)) in RMW.
-  apply seq_eqv_r in RMW. destruct RMW as [_ HH].
-  apply WF.(acts_rep) in HH.
-  desf. omega.
-Qed.
-
-Lemma w_ex_is_xacq_add_rmw_preserves thread s s'
-      (WF : wf_thread_state thread s) lbl1 ordw vl lc vl' lc' cl ff
-      (UG : G s' =
-            add_rmw (G s) thread (eindex s) lbl1
-                    (Astore Xacq ordw vl lc) vl' lc' cl ff) 
-      (SS : w_ex_is_xacq s) :
-    w_ex_is_xacq s'.
-Proof.
-  unfold w_ex_is_xacq in *.
-  unfold add_rmw in UG.
-  split; auto. destruct H as [y RMW].
-  rewrite UG. simpls.
-  unfold is_xacq, xmod.
-  destruct (classic (x = (ThreadEvent thread (eindex s + 1)))) as [|NEQ]; subst.
-  { by rewrite upds. }
-  rewrite updo; auto. 
-  destruct (classic (x = (ThreadEvent thread (eindex s)))) as [|NEQ']; subst.
-  2: { rewrite updo; auto.
-       eapply SS. rewrite UG in RMW. simpls.
-       destruct RMW as [MM|].
-       2: by exists y.
-       red in MM. desf. }
-  rewrite upds. exfalso.
-  rewrite UG in RMW. simpls.
-  destruct RMW as [MM|RMW].
-  { red in MM; desf. omega. }
-  apply (dom_r WF.(wft_rmwE)) in RMW.
-  apply seq_eqv_r in RMW. destruct RMW as [_ HH].
-  apply WF.(acts_rep) in HH.
-  desf. omega.
-Qed.
-
-Lemma rmw_is_xacq_instr_xmod rmw xmod ordr ordw reg lexpr s
-      (XACQIN : rmw_is_xacq_instrs s.(instrs))
-      (ISTEP :
-         Some
-           (Instr.update rmw xmod ordr ordw reg
-                         lexpr) = nth_error (instrs s) (pc s)) :
-  xmod = Xacq.
-Proof.
-  symmetry in ISTEP; apply nth_error_In in ISTEP.
-  apply XACQIN in ISTEP; simpls; desf.
-Qed.
-
-Lemma w_ex_is_xacq_thread_step thread s s'
-      (XACQIN : rmw_is_xacq_instrs s.(instrs))
-      (WF : wf_thread_state thread s)
-      (STEP : step thread s s')
-      (SS : w_ex_is_xacq s) :
-  w_ex_is_xacq s'.
-Proof.
-  unfold w_ex_is_xacq in *.
-  destruct STEP as [ll STEP]. cdes STEP.
-  destruct ISTEP0.
-  1,2: by rewrite UG.
-  1-4: by eapply w_ex_is_xacq_add_preserves; eauto.
-  all: assert (xmod = Xacq); subst;
-    [ |eapply w_ex_is_xacq_add_rmw_preserves; eauto].
-  all: eapply rmw_is_xacq_instr_xmod; eauto.
-Qed.
-
 Lemma wf_thread_state_init l thread:
       wf_thread_state thread (init l).
 Proof.
@@ -217,6 +119,31 @@ Proof.
   { basic_solver. }
   1-4: basic_solver.
   ins. unfold DepsFile.init. simpls.
+Qed.
+
+Lemma add_preserves_lab thread s s' e hl s1 s2 s3 s4
+      (WF : wf_thread_state thread s)
+      (UG : G s' = add (G s) thread (eindex s) hl s1 s2 s3 s4)
+      (ACT : acts_set (G s) e) :
+  lab (G s') e = lab (G s) e.
+Proof.
+  unfold add in UG. rewrite UG. simpls.
+  rewrite updo; auto.
+  intros HH; subst. red in ACT. apply WF in ACT.
+  desc. inv REP. lia.
+Qed.
+
+Lemma add_rmw_preserves_lab thread s s' e hl s1 s2 s3 s4 s5
+      (WF : wf_thread_state thread s)
+      (UG : G s' = add_rmw (G s) thread (eindex s) hl s1 s2 s3 s4 s5)
+      (ACT : acts_set (G s) e) :
+  lab (G s') e = lab (G s) e.
+Proof.
+  unfold add in UG. rewrite UG. simpls.
+  rewrite !updo; auto.
+  all: intros HH; subst.
+  all: red in ACT; apply WF in ACT.
+  all: desc; inv REP; lia.
 Qed.
 
 Lemma add_preserves_acts_clos thread ll s s' hl s1 s2 s3 s4
@@ -231,11 +158,11 @@ Lemma add_preserves_acts_clos thread ll s s' hl s1 s2 s3 s4
        (acts (add (G s) thread (eindex s) hl s1 s2 s3 s4)).
 Proof.
   unfold add. simpls. ins.
-  apply le_lt_n_Sm in H.
+  apply Lt.le_lt_n_Sm in H.
   apply Const.le_lteq in H.
   destruct H as [LT|LT]; [right|left].
-  { apply WF.(acts_clos). omega. }
-  rewrite plus_comm in LT. inv LT.
+  { apply WF.(acts_clos). lia. }
+  rewrite Const.add_comm in LT. inv LT.
 Qed.
 
 Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
@@ -250,16 +177,16 @@ Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
        (acts (add_rmw (G s) thread (eindex s) rl wl s1 s2 s3 s4)).
 Proof.
   unfold add_rmw. simpls. ins.
-  apply le_lt_n_Sm in H.
+  apply Lt.le_lt_n_Sm in H.
   apply Const.le_lteq in H.
   destruct H as [LT|LT].
   { apply Const.le_lteq in LT.
     destruct LT as [LT|LT].
-    { right. right. apply WF.(acts_clos). omega. }
-    rewrite plus_comm in LT. inv LT.
+    { right. right. apply WF.(acts_clos). lia. }
+    rewrite Const.add_comm in LT. inv LT.
     right. by left. }
-  rewrite plus_comm in LT. inv LT.
-  rewrite plus_comm. by left.
+  rewrite Const.add_comm in LT. inv LT.
+  rewrite Const.add_comm. eauto.
 Qed.
 
 Lemma step_preserves_E thread state state'
@@ -275,6 +202,78 @@ Proof.
   all: by unfold add_rmw, acts_set; simpls; repeat right.
 Qed.
 
+Lemma step_preserves_instrs thread state state'
+      (STEP : step thread state state') :
+  instrs state' = instrs state.
+Proof. inv STEP. inv H. Qed.
+
+Lemma steps_preserve_instrs thread state state'
+      (STEPS : (step thread)＊ state state') :
+  instrs state' = instrs state.
+Proof.
+  apply clos_rt_rtn1 in STEPS. induction STEPS; auto.
+  rewrite <- IHSTEPS.
+  eapply step_preserves_instrs; eauto.
+Qed.
+
+Lemma ectrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(ectrl) ⊆₁ s'.(ectrl).
+Proof.
+destruct STEP; desc.
+red in H; desc.
+destruct ISTEP0; rewrite UECTRL; try done. 
+basic_solver.
+Qed.
+
+Lemma ectrl_increasing_steps (tid : thread_id) s s' (STEP : (step tid)＊ s s'):
+  s.(ectrl) ⊆₁ s'.(ectrl).
+Proof.
+  induction STEP.
+  { eby eapply ectrl_increasing. }
+  { done. }
+  unfolder in *; basic_solver.
+Qed.
+
+Lemma ctrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(G).(ctrl) ⊆ s'.(G).(ctrl).
+Proof.
+  destruct STEP; desc.
+  red in H; desc.
+  destruct ISTEP0.
+  all: rewrite UG; try done.
+  all: unfold add, add_rmw; ins; basic_solver.
+Qed.
+
+Lemma rmw_dep_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(G).(rmw_dep) ⊆ s'.(G).(rmw_dep).
+Proof.
+  destruct STEP; desc.
+  red in H; desc.
+  destruct ISTEP0.
+  all: rewrite UG; try done.
+  all: unfold add, add_rmw; ins; basic_solver.
+Qed.
+
+Lemma addr_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(G).(addr) ⊆ s'.(G).(addr).
+Proof.
+  destruct STEP; desc.
+  red in H; desc.
+  destruct ISTEP0.
+  all: rewrite UG; try done.
+  all: unfold add, add_rmw; ins; basic_solver.
+Qed.
+
+Lemma data_increasing (tid : thread_id) s s' (STEP : step tid s s'):
+  s.(G).(data) ⊆ s'.(G).(data).
+Proof.
+  destruct STEP; desc.
+  red in H; desc.
+  destruct ISTEP0.
+  all: rewrite UG; try done.
+  all: unfold add, add_rmw; ins; basic_solver.
+Qed.
+
 Lemma wf_thread_state_step thread s s'
       (WF : wf_thread_state thread s)
       (STEP : step thread s s') :
@@ -286,18 +285,18 @@ Proof.
     all: rewrite UG.
     all: try rewrite UINDEX.
     all: try apply WF.
-    all: try (intros e [HH|IN]; [eexists; splits; eauto; omega|];
+    all: try (intros e [HH|IN]; [eexists; splits; eauto; lia|];
         edestruct WF.(acts_rep); eauto; desc;
-        eexists; splits; eauto; omega).
+        eexists; splits; eauto; lia).
     all: intros e [HH|[IN|IN]].
-    all: try (eexists; splits; eauto; omega).
+    all: try (eexists; splits; eauto; lia).
     all: edestruct WF.(acts_rep); eauto; desc.
-    all: eexists; splits; eauto; omega. }
+    all: eexists; splits; eauto; lia. }
   { destruct ISTEP0.
     all: rewrite UG.
     all: try rewrite UINDEX.
     1,2: by apply WF.
-    1-4: eapply add_preserves_acts_clos; eauto.
+    1-4: by eapply add_preserves_acts_clos; eauto.
     all: eapply add_rmw_preserves_acts_clos; eauto. }
   { split; [|basic_solver].
     destruct ISTEP0.
@@ -315,13 +314,13 @@ Proof.
       destruct RMW as [RMW|RMW].
       2: by apply WF.
       red in RMW. desf.
-      rewrite plus_comm.
+      rewrite Const.add_comm.
       eexists. splits; eauto. }
     unfold add_rmw. simpls. ins.
     destruct RMW as [RMW|RMW].
     2: by apply WF.
     red in RMW. desf.
-    rewrite plus_comm.
+    rewrite Const.add_comm.
     eexists. splits; eauto. }
   { split; [|basic_solver].
     destruct ISTEP0.
@@ -523,7 +522,7 @@ Proof.
     red in HH. desf.
     exfalso.
     edestruct GPC.(acts_rep); eauto.
-    desf. omega. }
+    desf. lia. }
   unfold add_rmw. simpls.
   rewrite seq_union_r.
   apply inclusion_union_l; [|basic_solver].
@@ -532,7 +531,7 @@ Proof.
   red in HH. desf.
   exfalso.
   edestruct GPC.(acts_rep); eauto.
-  desf. omega.
+  desf. lia.
 Qed.
 
 Lemma steps_dont_add_rmw thread state state'
@@ -580,7 +579,7 @@ Proof.
   1-4: unfold add; simpls; rewrite updo; auto.
   5,6: unfold add_rmw; simpls; rewrite updo; auto;
     [unfold add_rmw; simpls; rewrite updo; auto|].
-  all: intros HH; rewrite REP in HH; inv HH; omega.
+  all: intros HH; rewrite REP in HH; inv HH; lia.
 Qed.
 
 Lemma steps_preserve_lab e state state'
@@ -630,7 +629,7 @@ Proof.
   assert (~ In (ThreadEvent thread (eindex state))
             (Execution.acts (ProgToExecution.G state))) as XX.
   { intros HH. apply GPC.(acts_rep) in HH.
-    desc. inv REP. omega. }
+    desc. inv REP. lia. }
   red in STEP. desc.
   red in STEP. desc.
   split; intros IN.
@@ -748,9 +747,9 @@ Lemma step_old_restrict thread state state'
 Proof.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
-  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. omega. }
+  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. lia. }
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state + 1))) as YY.
-  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. omega. }
+  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. lia. }
   destruct ISTEP0; simpls.
   all: rewrite UG.
   1,2: by splits; apply GPC.
@@ -865,10 +864,10 @@ Proof.
       by split. }
   assert (wf_thread_state thread y) as GPC'.
   { eapply wf_thread_state_step; eauto. }
-  destruct (le_ge_dec cindex (eindex y)) as [LL|LL].
+  destruct (Compare_dec.le_ge_dec cindex (eindex y)) as [LL|LL].
   { assert (C ⊆₁ acts_set (G y)) as UU.
     { intros a HH. apply CREP in HH. desc. subst.
-      apply GPC'.(acts_clos). omega. }
+      apply GPC'.(acts_clos). lia. }
     edestruct step_middle_set with (state0:=x) (state':=y) as [YY|YY]; eauto.
     { ins. apply RMWC. eapply steps_preserve_rmw; eauto. }
     { exists x. splits.
@@ -881,7 +880,7 @@ Proof.
       by rewrite YY. }
   assert (acts_set (G y) ⊆₁ C) as UU.
   { intros a HH. apply GPC'.(acts_rep) in HH. desc. subst.
-    apply CCLOS. omega. }
+    apply CCLOS. lia. }
   specialize (IHSTEP GPC' UU INN RMWC). desc.
   exists state''. splits; auto.
   apply rt_begin. right. eexists; eauto.
@@ -915,7 +914,7 @@ Lemma istep_eindex_shift thread st st' lbl
   eindex st' = eindex st + length lbl.
 Proof.
   cdes STEP. inv ISTEP0. 
-  all: simpls; omega.
+  all: simpls; lia.
 Qed.
 
 Lemma eindex_step_mon thread st st'
@@ -923,7 +922,7 @@ Lemma eindex_step_mon thread st st'
   eindex st <= eindex st'.
 Proof.
   cdes STEP.
-  rewrite (istep_eindex_shift STEP0). omega.
+  rewrite (istep_eindex_shift STEP0). lia.
 Qed.
 
 Lemma eindex_steps_mon thread st st'
@@ -933,7 +932,7 @@ Proof.
   apply clos_rt_rt1n in STEPS.
   induction STEPS; auto.
   apply eindex_step_mon in H.
-  omega.
+  lia.
 Qed.
 
 Lemma eindex_not_in_rmw thread st st'
@@ -949,7 +948,7 @@ Proof.
   { eapply wft_rmwE in RMW; eauto.
     destruct_seq RMW as [AA BB].
     eapply acts_rep in BB; eauto.
-    desf. omega. }
+    desf. lia. }
   apply IHSTEPS.
   destruct H as [ll HH].
   cdes HH.
@@ -960,7 +959,7 @@ Proof.
   all: red in RMW; desf.
   all: apply clos_rtn1_rt in STEPS.
   all: apply eindex_steps_mon in STEPS.
-  all: omega.
+  all: lia.
 Qed.
 
 End Props.

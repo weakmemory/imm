@@ -6,80 +6,13 @@ Require Import Execution.
 Require Import Prog.
 Require Import ProgToExecution.
 Require Import ProgToExecutionProperties.
+Require Import RMWinstrProps.
 
 Set Implicit Arguments.
 
 (******************************************************************************)
 (** **  *)
 (******************************************************************************)
-
-Lemma ectrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(ectrl) ⊆₁ s'.(ectrl).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0; rewrite UECTRL; try done. 
-basic_solver.
-Qed.
-
-Lemma ectrl_increasing_steps (tid : thread_id) s s' (STEP : (step tid)＊ s s'):
-  s.(ectrl) ⊆₁ s'.(ectrl).
-Proof.
-induction STEP.
-eby eapply ectrl_increasing.
-done.
-unfolder in *; basic_solver.
-Qed.
-
-Lemma ctrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(ctrl) ⊆ s'.(G).(ctrl).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0.
-all: rewrite UG; try done.
-all: unfold add, add_rmw; ins; basic_solver.
-Qed.
-
-Lemma rmw_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(rmw) ⊆ s'.(G).(rmw).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0.
-all: rewrite UG; try done.
-all: unfold add, add_rmw; ins; basic_solver.
-Qed.
-
-Lemma rmw_dep_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(rmw_dep) ⊆ s'.(G).(rmw_dep).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0.
-all: rewrite UG; try done.
-all: unfold add, add_rmw; ins; basic_solver.
-Qed.
-
-Lemma addr_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(addr) ⊆ s'.(G).(addr).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0.
-all: rewrite UG; try done.
-all: unfold add, add_rmw; ins; basic_solver.
-Qed.
-
-Lemma data_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(data) ⊆ s'.(G).(data).
-Proof.
-destruct STEP; desc.
-red in H; desc.
-destruct ISTEP0.
-all: rewrite UG; try done.
-all: unfold add, add_rmw; ins; basic_solver.
-Qed.
 
 Lemma ectrl_ctrl_step (tid : thread_id) 
          s s' (STEP : step tid s s')
@@ -726,39 +659,45 @@ do 7 eexists; splits; red; splits.
     by unfold add, acts_set in IN; ins; desf.
 Qed.
 
-
-
 Lemma receptiveness_sim_cas_fail (tid : thread_id)
   s1 s2 (INSTRS0 : instrs s1 = instrs s2)
+  (CASREX : cas_produces_R_ex_instrs (instrs s1))
   (expr_old expr_new : Instr.expr)
+  rexmod
   xmod
-(ordr ordw : mode)
-(reg : Reg.t)
-(lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr) =
-        nth_error (instrs s1) (pc s1))
-(val_ : value)
-(NEXPECTED : val_ <> RegFile.eval_expr (regf s1) expr_old)
-(UPC : pc s2 = pc s1 + 1)
-(UG : G s2 =
-     add (G s1) tid (eindex s1) (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr) val_) 
-       ∅ (DepsFile.lexpr_deps (depf s1) lexpr) (ectrl s1)
-       (DepsFile.expr_deps (depf s1) expr_old))
-(UINDEX : eindex s2 = eindex s1 + 1)
-(UREGS : regf s2 = RegFun.add reg val_ (regf s1))
-(UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
-(UECTRL : ectrl s2 = ectrl s1)
+  (ordr ordw : mode)
+  (reg : Reg.t)
+  (lexpr : Instr.lexpr)
+  (ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) rexmod xmod ordr ordw reg lexpr) =
+           nth_error (instrs s1) (pc s1))
+  (val_ : value)
+  (NEXPECTED : val_ <> RegFile.eval_expr (regf s1) expr_old)
+  (UPC : pc s2 = pc s1 + 1)
+  (UG : G s2 =
+        add (G s1) tid (eindex s1)
+            (Aload rexmod ordr (RegFile.eval_lexpr (regf s1) lexpr) val_) 
+            ∅ (DepsFile.lexpr_deps (depf s1) lexpr) (ectrl s1)
+            (DepsFile.expr_deps (depf s1) expr_old))
+  (UINDEX : eindex s2 = eindex s1 + 1)
+  (UREGS : regf s2 = RegFun.add reg val_ (regf s1))
+  (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
+  (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
   (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
   (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
- exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
+  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
 red in SIM; desc.
+assert (rexmod = true); subst.
+{ clear -ISTEP CASREX. red in CASREX.
+  set (AA:=ISTEP).
+  symmetry in AA. apply nth_error_In in AA.
+  apply CASREX in AA. red in AA. desf. }
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
-{ ins; eapply regf_lexpr_helper; eauto.
+{ eapply regf_lexpr_helper; eauto.
 ins; intro; eapply NADDR; unfolder; splits; eauto.
 exists (ThreadEvent tid (eindex s1)).
 rewrite UG; unfold add; basic_solver. } 
@@ -836,30 +775,30 @@ do 7 eexists; splits; red; splits.
       by unfold add, acts_set in IN; ins; desf.
 Qed.
 
-
 Lemma receptiveness_sim_cas_suc (tid : thread_id)
   s1 s2 (INSTRS0 : instrs s1 = instrs s2)
+  (CASREX : cas_produces_R_ex_instrs (instrs s1))
   (expr_old expr_new : Instr.expr)
-  xmod
-(ordr ordw : mode)
-(reg : Reg.t)
-(lexpr : Instr.lexpr)
-(ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr) =
-        nth_error (instrs s1) (pc s1))
-(UPC : pc s2 = pc s1 + 1)
-(UG : G s2 =
-     add_rmw (G s1) tid (eindex s1)
-       (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr)
-          (RegFile.eval_expr (regf s1) expr_old))
-       (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
-          (RegFile.eval_expr (regf s1) expr_new))
-       (DepsFile.expr_deps (depf s1) expr_new)
-       (DepsFile.lexpr_deps (depf s1) lexpr) (ectrl s1)
-       (DepsFile.expr_deps (depf s1) expr_old))
-(UINDEX : eindex s2 = eindex s1 + 2)
-(UREGS : regf s2 = RegFun.add reg (RegFile.eval_expr (regf s1) expr_old) (regf s1))
-(UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
-(UECTRL : ectrl s2 = ectrl s1)
+  rexmod xmod
+  (ordr ordw : mode)
+  (reg : Reg.t)
+  (lexpr : Instr.lexpr)
+  (ISTEP : Some (Instr.update (Instr.cas expr_old expr_new) rexmod xmod ordr ordw reg lexpr) =
+           nth_error (instrs s1) (pc s1))
+  (UPC : pc s2 = pc s1 + 1)
+  (UG : G s2 =
+        add_rmw (G s1) tid (eindex s1)
+                (Aload rexmod ordr (RegFile.eval_lexpr (regf s1) lexpr)
+                       (RegFile.eval_expr (regf s1) expr_old))
+                (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
+                        (RegFile.eval_expr (regf s1) expr_new))
+                (DepsFile.expr_deps (depf s1) expr_new)
+                (DepsFile.lexpr_deps (depf s1) lexpr) (ectrl s1)
+                (DepsFile.expr_deps (depf s1) expr_old))
+  (UINDEX : eindex s2 = eindex s1 + 2)
+  (UREGS : regf s2 = RegFun.add reg (RegFile.eval_expr (regf s1) expr_old) (regf s1))
+  (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
+  (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
   (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
@@ -868,9 +807,15 @@ Lemma receptiveness_sim_cas_suc (tid : thread_id)
   (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
- exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
+  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
 red in SIM; desc.
+
+assert (rexmod = true); subst.
+{ clear -ISTEP CASREX. red in CASREX.
+  set (AA:=ISTEP).
+  symmetry in AA. apply nth_error_In in AA.
+  apply CASREX in AA. red in AA. desf. }
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
 { ins; eapply regf_lexpr_helper; eauto.
@@ -949,7 +894,7 @@ do 7 eexists; splits; red; splits.
       rewrite UG; unfold add; unfold acts_set; ins.
       split; [eauto| rewrite EINDEX; eauto].
       rewrite UG; unfold add; unfold R_ex; ins.
-       by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
+      by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
     + unfold val; rewrite updo; [|done].
       rewrite updo; [|done].
       destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'+1))); subst.
@@ -988,18 +933,18 @@ Qed.
 Lemma receptiveness_sim_inc (tid : thread_id)
       s1 s2 (INSTRS0 : instrs s1 = instrs s2)
       (expr_add : Instr.expr)
-      xmod
+      rexmod xmod
       (ordr ordw : mode)
       (reg : Reg.t)
       (lexpr : Instr.lexpr)
       (ISTEP : Some (Instr.update
-                       (Instr.fetch_add expr_add) xmod ordr ordw reg lexpr) =
+                       (Instr.fetch_add expr_add) rexmod xmod ordr ordw reg lexpr) =
                nth_error (instrs s1) (pc s1))
       (val_ : nat)
       (UPC : pc s2 = pc s1 + 1)
       (UG : G s2 =
             add_rmw (G s1) tid (eindex s1)
-                    (Aload false ordr
+                    (Aload rexmod ordr
                            (RegFile.eval_lexpr (regf s1) lexpr) val_)
                     (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
                             (val_ + RegFile.eval_expr (regf s1) expr_add))
@@ -1060,7 +1005,7 @@ Proof.
         rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
         rewrite !upds. unfold same_label_u2v.
         rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
-        rewrite upds; auto.  }
+        rewrite upds; auto. }
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
       { subst.
         rewrite !upds. unfold same_label_u2v; auto. }
@@ -1164,6 +1109,7 @@ Qed.
 Lemma receptiveness_sim_step (tid : thread_id)
   s1 s2
   (STEP : (step tid) s1 s2) 
+  (CASREX : cas_produces_R_ex_instrs (instrs s1))
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
@@ -1193,6 +1139,7 @@ Qed.
 Lemma receptiveness_sim (tid : thread_id)
   s1 s2
   (STEPS : (step tid)＊ s1 s2)
+  (CASREX : cas_produces_R_ex_instrs (instrs s1))
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
@@ -1205,39 +1152,43 @@ Lemma receptiveness_sim (tid : thread_id)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid)＊ s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof.
-apply clos_rt_rtn1 in STEPS.
-induction STEPS.
-by eexists; vauto.
-exploit IHSTEPS.
-* unfolder; splits; ins; eauto; desf.
-  eapply ectrl_increasing in H1; eauto.
-  eapply NCTRL; basic_solver.
-* unfolder; splits; ins; eauto; desf.
-  eapply rmw_dep_increasing in H1; eauto.
-  eapply NFRMW; basic_solver.
-*  unfolder; splits; ins; eauto; desf.
-  eapply addr_increasing in H1; eauto.
-  eapply NADDR; basic_solver.
-* unfolder; splits; ins; eauto; desf.
-  eapply NREX; split; [split; [eauto |] |].
-  eapply acts_increasing; edone.
-  eapply is_r_ex_increasing; eauto.
-  eapply thread_wf_steps; try edone.
-  by apply clos_rtn1_rt.
-  basic_solver.
-* unfolder; splits; ins; eauto; desf.
-  eapply data_increasing in H1; eauto.
-  eapply NDATA; basic_solver.
-* intro; desc.
+  apply clos_rt_rtn1 in STEPS.
+  induction STEPS.
+  { by eexists; vauto. }
+  exploit IHSTEPS.
+  { unfolder; splits; ins; eauto; desf.
+    eapply ectrl_increasing in H1; eauto.
+    eapply NCTRL; basic_solver. }
+  { unfolder; splits; ins; eauto; desf.
+    eapply rmw_dep_increasing in H1; eauto.
+    eapply NFRMW; basic_solver. }
+  { unfolder; splits; ins; eauto; desf.
+    eapply addr_increasing in H1; eauto.
+    eapply NADDR; basic_solver. }
+  { unfolder; splits; ins; eauto; desf. 
+    eapply NREX; split; [split; [eauto |] |].
+    eapply acts_increasing; edone.
+    eapply is_r_ex_increasing; eauto.
+    eapply thread_wf_steps; try edone. 
+    { by apply clos_rtn1_rt. }
+    basic_solver. }
+  { unfolder; splits; ins; eauto; desf.
+    eapply data_increasing in H1; eauto.
+    eapply NDATA; basic_solver. }
+  intro; desc.
   eapply receptiveness_sim_step in x0; eauto; desf.
-  + exists s2'0; splits; eauto. 
-    by eapply rt_trans; [eauto | econs].
-  + eapply thread_wf_steps; try edone.
+  { exists s2'0; splits; eauto. 
+      by eapply rt_trans; [eauto | econs]. }
+  { arewrite (instrs y = instrs s1); auto.
+    apply clos_rtn1_rt in STEPS.
+    eapply steps_preserve_instrs; eauto. }
+  eapply thread_wf_steps; try edone.
     by apply clos_rtn1_rt.
 Qed.
 
 Lemma receptiveness_helper (tid : thread_id)
       s_init s
+      (CASREX : cas_produces_R_ex_instrs (instrs s_init))
       (GPC : wf_thread_state tid s_init)
       (new_val : actid -> value)
       (new_rfi : relation actid)
@@ -1330,6 +1281,7 @@ Lemma receptiveness_full (tid : thread_id)
       (new_rfi : relation actid)
       (MOD: actid -> Prop)
       (GPC : wf_thread_state tid s_init)
+      (CASREX : cas_produces_R_ex_instrs (instrs s_init))
       (STEPS : (step tid)＊ s_init s)
       (new_rfiE : new_rfi ≡ ⦗s.(G).(acts_set)⦘ ⨾ new_rfi ⨾ ⦗s.(G).(acts_set)⦘)
       (new_rfiD : new_rfi ≡ ⦗is_w s.(G).(lab)⦘ ⨾ new_rfi ⨾ ⦗is_r s.(G).(lab)⦘)

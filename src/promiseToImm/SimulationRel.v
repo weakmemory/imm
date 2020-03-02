@@ -16,6 +16,7 @@ Require Import Event_imm_promise.
 Require Import PromiseLTS.
 Require Import ProgToExecution.
 Require Import ProgToExecutionProperties.
+Require Import RMWinstrProps.
 Require Import SimState.
 Require Import MemoryAux.
 
@@ -391,6 +392,7 @@ Definition simrel_thread_local
   exists state local,
     ⟪ TNNULL : thread <> tid_init ⟫ /\
     ⟪ GPC : wf_thread_state thread state ⟫ /\
+    ⟪ CASRES : cas_produces_R_ex_instrs state.(instrs) ⟫ /\
     ⟪ XACQIN : rmw_is_xacq_instrs state.(instrs) ⟫ /\
     ⟪ LLH : IdentMap.find thread threads =
              Some (existT _ (thread_lts thread) state, local) ⟫ /\

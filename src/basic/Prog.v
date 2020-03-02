@@ -105,7 +105,7 @@ Module Instr.
   | assign (lhs:Reg.t) (rhs:expr)
   | load (ord:mode) (lhs:Reg.t) (loc:lexpr)
   | store (ord:mode) (loc:lexpr) (val:expr)
-  | update (rmw:rmw) (xmod:x_mode) (ordr ordw:mode) (lhs:Reg.t) (loc:lexpr)
+  | update (rmw:rmw) (rexmod : bool) (xmod:x_mode) (ordr ordw:mode) (lhs:Reg.t) (loc:lexpr)
   | fence (ord:mode)
   | ifgoto (e:expr) (n:nat)
   .

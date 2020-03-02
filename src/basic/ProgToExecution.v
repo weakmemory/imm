@@ -183,30 +183,33 @@ Section State.
       (UREGS : s2.(regf) = s1.(regf))
       (UDEPS : s2.(depf) = s1.(depf))
       (UECTRL : s2.(ectrl) = s1.(ectrl))
-  | cas_un expr_old expr_new xmod ordr ordw reg lexpr val l
+  | cas_un expr_old expr_new rexmod xmod ordr ordw reg lexpr val l
       (L: l = RegFile.eval_lexpr s1.(regf) lexpr)
       (NEXPECTED : val <> RegFile.eval_expr s1.(regf) expr_old)
-      (LABELS : labels = [Aload true ordr l val])
-      (II : instr= Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr)
+      (LABELS : labels = [Aload rexmod ordr l val])
+      (II : instr =
+            Instr.update (Instr.cas expr_old expr_new) rexmod xmod ordr ordw reg lexpr)
       (UPC   : s2.(pc) = s1.(pc) + 1)
       (UG    : s2.(G) =
-                 add s1.(G) tid s1.(eindex) (Aload true ordr l val) ∅
+                 add s1.(G) tid s1.(eindex) (Aload rexmod ordr l val) ∅
                      (DepsFile.lexpr_deps s1.(depf) lexpr) s1.(ectrl)
                      (DepsFile.expr_deps s1.(depf) expr_old))
       (UINDEX : s2.(eindex) = s1.(eindex) + 1)
       (UREGS : s2.(regf) = RegFun.add reg val s1.(regf))
       (UDEPS : s2.(depf) = RegFun.add reg (eq (ThreadEvent tid s1.(eindex))) s1.(depf))
       (UECTRL : s2.(ectrl) = s1.(ectrl))
-  | cas_suc expr_old expr_new xmod ordr ordw reg lexpr l expected new_value
+  | cas_suc expr_old expr_new rexmod xmod ordr ordw reg lexpr l expected new_value
       (L: l = RegFile.eval_lexpr s1.(regf) lexpr)
       (EXPECTED: expected = RegFile.eval_expr s1.(regf) expr_old)
       (NEW: new_value = RegFile.eval_expr s1.(regf) expr_new)
-      (LABELS : labels = [Astore xmod ordw l new_value; Aload true ordr l expected])
-      (II : instr = Instr.update (Instr.cas expr_old expr_new) xmod ordr ordw reg lexpr)
+      (LABELS : labels = [Astore xmod ordw l new_value; Aload rexmod ordr l expected])
+      (II : instr =
+            Instr.update (Instr.cas expr_old expr_new) rexmod xmod ordr ordw reg lexpr)
       (UPC   : s2.(pc) = s1.(pc) + 1)
       (UG    : s2.(G) =
                  add_rmw s1.(G)
-                     tid s1.(eindex) (Aload true ordr l expected) (Astore xmod ordw l new_value)
+                     tid s1.(eindex)
+                     (Aload rexmod ordr l expected) (Astore xmod ordw l new_value)
                      (DepsFile.expr_deps s1.(depf) expr_new)
                      (DepsFile.lexpr_deps s1.(depf) lexpr) s1.(ectrl)
                      (DepsFile.expr_deps s1.(depf) expr_old))
@@ -214,15 +217,16 @@ Section State.
       (UREGS : s2.(regf) = RegFun.add reg expected s1.(regf))
       (UDEPS : s2.(depf) = RegFun.add reg (eq (ThreadEvent tid s1.(eindex))) s1.(depf))
       (UECTRL : s2.(ectrl) = s1.(ectrl))
-  | inc expr_add xmod ordr ordw reg lexpr val l nval
+  | inc expr_add rexmod xmod ordr ordw reg lexpr val l nval
       (L: l = RegFile.eval_lexpr s1.(regf) lexpr)
       (NVAL: nval = val + RegFile.eval_expr s1.(regf) expr_add)
-      (LABELS : labels = [Astore xmod ordw l nval; Aload false ordr l val])
-      (II : instr = Instr.update (Instr.fetch_add expr_add) xmod ordr ordw reg lexpr)
+      (LABELS : labels = [Astore xmod ordw l nval; Aload rexmod ordr l val])
+      (II : instr =
+            Instr.update (Instr.fetch_add expr_add) rexmod xmod ordr ordw reg lexpr)
       (UPC   : s2.(pc) = s1.(pc) + 1)
       (UG    : s2.(G) =
                  add_rmw s1.(G) tid s1.(eindex)
-                     (Aload false ordr l val)
+                     (Aload rexmod ordr l val)
                      (Astore xmod ordw l nval)
                      ((eq (ThreadEvent tid s1.(eindex))) ∪₁ (DepsFile.expr_deps s1.(depf) expr_add))
                      (DepsFile.lexpr_deps s1.(depf) lexpr) s1.(ectrl)
