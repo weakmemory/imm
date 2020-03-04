@@ -26,7 +26,7 @@ Variable G : execution.
 Lemma s_imm_consistentimplies_c11_consistent (WF: Wf G) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   c11_consistent G.
-Proof.
+Proof using.
   cdes IPC. cdes IC. red. splits; auto.
 Qed.
 

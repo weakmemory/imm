@@ -18,7 +18,7 @@ Lemma rtc_lang_tau_step_rtc_thread_tau_step
   rtc (@Thread.tau_step (thread_lts thread))
       (Thread.mk (thread_lts thread) st1 lc sc mem)
       (Thread.mk (thread_lts thread) st2 lc sc mem).
-Proof.
+Proof using.
   induction STEP.
   { econs 1. }
   econs 2; eauto. econs.
@@ -30,7 +30,7 @@ Lemma tau_steps_same_instrs thread
       (s1 s2 : Thread.t (thread_lts thread))
       (ESTEPS : rtc (Thread.tau_step (lang:=thread_lts thread)) s1 s2) :
   instrs (Thread.state s2) = instrs (Thread.state s1).
-Proof.
+Proof using.
   induction ESTEPS; ins; desf.
   destruct y; simpls.
   rewrite IHESTEPS.
@@ -56,7 +56,7 @@ Lemma tau_steps_step_same_instrs (PC : Configuration.t) thread
                                PC.(Configuration.memory)))
       (STEP : lts_step thread ev state'' state''') :
   instrs state''' = instrs state.
-Proof.
+Proof using.
   cdes STEP. cdes ISTEP. rewrite <- INSTRS.
   arewrite (instrs state'' = instrs state); auto.
   clear -ESTEPS.

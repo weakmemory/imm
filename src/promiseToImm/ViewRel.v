@@ -113,7 +113,7 @@ Lemma sim_tview_read_step
     (C ∪₁ eq r) f_to
     (TView.read_tview tview locr (f_to w) rel (rmod ordr))
     thread.
-Proof.
+Proof using WF.
   assert (R r) as RR by type_solver.
   assert (W w) as WW by (apply (wf_rfD WF) in RF; revert RF; basic_solver).
   assert (Loc_ locr w) as WLOC.
@@ -240,7 +240,7 @@ Lemma sim_tview_write_step f_to f_from
     (TView.write_tview
        tview sc_view locw (f_to w) (wmod ordw))
     thread.
-Proof.
+Proof using WF.
   assert (W w) as WW.
   { by unfold is_w; rewrite WPARAMS. }
   assert (loc lab w = Some locw) as LOC.
@@ -330,7 +330,7 @@ Lemma sim_tview_f_issued f_to f_to' T tview thread
       (ISSEQ : forall e (ISS: issued T e), f_to' e = f_to e)
       (SIMTVIEW : sim_tview (covered T) f_to tview thread):
   sim_tview (covered T) f_to' tview thread.
-Proof.
+Proof using WF.
   cdes SIMTVIEW.
   red; splits; red; ins; eapply max_value_new_f.
   1, 3, 5: by eauto.
@@ -366,7 +366,7 @@ Lemma sim_sc_fence_step
                  l (TView.write_fence_sc
                       (TView.read_fence_tview tview ordr) 
                       sc_view ordw)).
-Proof.
+Proof using WF.
   cdes IMMCON.
   intros l. specialize (SC_VIEW l).
   destruct (classic (is_sc lab f)) as [FISSC|FISNOSC].
@@ -422,7 +422,7 @@ Lemma sim_tview_fence_step T
     (TView.write_fence_tview
        (TView.read_fence_tview tview ordr) 
        sc_view ordw) (tid f).
-Proof.
+Proof using WF.
   cdes IMMCON.
   assert (is_f lab f) as FENCE.
   { by unfold is_f; rewrite FPARAMS. }
@@ -486,7 +486,7 @@ Lemma sim_tview_other_thread_step f_to
       (COVSTEP : forall a, tid a = thread -> C' a -> C a)
       (SIMTVIEW : sim_tview C f_to tview thread) :
   sim_tview C' f_to tview thread.
-Proof.
+Proof using.
   red; splits; red; splits; ins.
   all: eapply max_value_same_set.
   all: try by (apply SIMTVIEW).

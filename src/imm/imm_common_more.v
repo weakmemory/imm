@@ -80,7 +80,7 @@ sb^? ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
   ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘ ⨾ sb^?)⁺.
-Proof.
+Proof using.
 assert (helper: 
 (sb ⨾ ⦗W ∩₁ Rel⦘ ∪ ⦗W ∩₁ Rel⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ sb ⨾ ⦗F ∩₁ Acq/Rel⦘
  ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊
@@ -149,7 +149,7 @@ sb ⨾ ⦗F∩₁Acq/Rel⦘ ⨾ sb^? ∪
 (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
   ppo  ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺.
-Proof.
+Proof using.
 
 arewrite (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   sb ⨾ ⦗F∩₁Acq/Rel⦘ ∪ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
@@ -191,7 +191,7 @@ Qed.
 
 Lemma W_sb_same_loc_detour WF (SC_PER_LOC: sc_per_loc G) :
 ⦗fun x => ~ is_init x⦘ ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⨾ detour ⊆ detour.
-Proof.
+Proof using.
 sin_rewrite (w_sb_loc_w_in_coi WF SC_PER_LOC).
 unfold Execution.detour. 
 unfolder; ins; desf.
@@ -215,7 +215,7 @@ Lemma ct_ar_int_alt3 WF (SC_PER_LOC: sc_per_loc G) :
 ∪ 
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺ ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
-Proof.
+Proof using.
 
 arewrite (sb ⨾ ⦗W∩₁Rel⦘ ∪ ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ∪
   detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
@@ -265,7 +265,7 @@ sb ⨾ ⦗W∩₁Rel⦘ ∪
 ( (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ detour ⨾ (⦗R∩₁Acq⦘ ⨾ sb)^? ∪ 
   ppo  ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc)⨾ ⦗W⦘)^? ⨾ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
 ∪ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?)⁺.
-Proof.
+Proof using.
 rewrite !unionA.
 assert (transitive (sb ⨾ ⦗W ∩₁ Rel⦘)).
 { apply transitiveI.
@@ -316,7 +316,7 @@ ppo ∪
 ppo^? ⨾ (sb ⨾ ⦗W∩₁Rel⦘)^? ⨾ (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^? ⨾ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb^?
 )⁺
 ⨾ ppo^?.
-Proof.
+Proof using.
 
 arewrite ((sb ⨾ ⦗W ∩₁ Rel⦘)^? ⨾ detour ⨾ (⦗R ∩₁ Acq⦘ ⨾ sb)^? ∪ ppo
   ⊆
@@ -351,7 +351,7 @@ ppo ⨾
 (⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
 
 
-Proof.
+Proof using.
 rewrite (ct_ar_int_alt1 WF).
 unionL; [basic_solver 12| basic_solver 12|].
 rewrite (ct_ar_int_alt2 WF).

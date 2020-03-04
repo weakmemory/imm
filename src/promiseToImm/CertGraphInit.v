@@ -42,7 +42,7 @@ Lemma cert_graph_init Gf sc T PC f_to f_from thread
     ⟪ IMMCON : imm_consistent G' sc' ⟫ /\
     ⟪ NTID  : NTid_ thread ∩₁ G'.(acts_set) ⊆₁ covered T' ⟫ /\
     ⟪ SIMREL : simrel_thread G' sc' PC thread T' f_to f_from sim_certification ⟫.
-Proof.
+Proof using.
 assert (exists G, G = rstG Gf T thread) by eauto; desc.
 
 assert (WF_SC: wf_sc Gf sc).
@@ -480,7 +480,7 @@ unfolder; ins; desc.
 eapply H4; splits; eauto.
 intro.
 apply H6.
-apply (@dom_data_D (rstG Gf T thread) Gsc T thread WF_G RELCOV_G); try done.
+apply (@dom_data_D (rstG Gf T thread) Gsc T thread WF_G); try done.
 basic_solver 12. }
 
 ins; desc. 
@@ -753,13 +753,12 @@ all: eauto.
        rewrite <- lab_G_eq_lab_Gf; eauto. }
   { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
     2: { apply seq_eqv_r in XX. desf. }
-    eapply msg_rel_I; eauto.
-    eapply cert_msg_rel; eauto.
+    eapply msg_rel_I with (thread:=thread); eauto.
+    arewrite (rst_sc Gf sc T thread = Gsc).
+    eapply cert_msg_rel with (lab':=lab'); eauto.
     { by rewrite <- H. }
     all: rewrite <- H; eauto.
-    all: try by unfold rst_sc; rewrite <- HeqGsc.
-    apply seq_eqv_r. split; auto.
-      by unfold rst_sc; rewrite <- HeqGsc. }
+    apply seq_eqv_r. split; auto. }
   assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ⨾ ⦗ issued T ⦘) x b) as XX.
   2: { apply seq_eqv_r in XX. desf. }
   rewrite HeqGsc. rewrite H.
@@ -787,13 +786,12 @@ all: eauto.
          rewrite <- lab_G_eq_lab_Gf; eauto. }
     { assert ((msg_rel Gf sc ll ⨾ ⦗ issued T ⦘) x b) as XX.
       2: { apply seq_eqv_r in XX. desf. }
-      eapply msg_rel_I; eauto.
-      eapply cert_msg_rel; eauto.
+      eapply msg_rel_I with (thread:=thread); eauto.
+      arewrite (rst_sc Gf sc T thread = Gsc).
+      eapply cert_msg_rel with (lab':=lab'); eauto.
       { by rewrite <- H. }
       all: rewrite <- H; eauto.
-      all: try by unfold rst_sc; rewrite <- HeqGsc.
-      apply seq_eqv_r. split; auto.
-        by unfold rst_sc; rewrite <- HeqGsc. }
+      apply seq_eqv_r. split; auto. }
     assert ((msg_rel (certG G Gsc T thread lab') Gsc ll ⨾ ⦗ issued T ⦘) x b) as XX.
     2: { apply seq_eqv_r in XX. desf. }
     rewrite HeqGsc. rewrite H.
@@ -816,8 +814,7 @@ all: eauto.
     exists z. apply seq_eqv_l. split; auto.
     apply RFRMW_IN. apply seq_eqv_r. by split. }
   exists p. splits; eauto.
-  { 
-    destruct INRMW as [z [RF RMW]].
+  { destruct INRMW as [z [RF RMW]].
     assert ((E0 Gf T thread) z).
       by unfold E0; left; right; exists b; generalize (rmw_in_sb WF); basic_solver 12.
       assert ((E0 Gf T thread) b).
@@ -860,7 +857,6 @@ all: eauto.
   assert (t_rel (certG G Gsc T thread lab') Gsc thread l l'
                 (covered T ∪₁ acts_set G ∩₁ NTid_ thread) ≡₁
                 t_rel Gf sc thread l l' (covered T)) as XX.
-
   { rewrite cert_t_rel_thread; try done.
     arewrite (Gsc ≡ (rst_sc Gf sc T thread)).
       by unfold rst_sc; rewrite <- HeqGsc.

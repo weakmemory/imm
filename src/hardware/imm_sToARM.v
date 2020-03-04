@@ -115,21 +115,21 @@ Hypothesis REX_IN_RMW_CTRL : <|R_ex|> ;; sb ⊆ ctrl.
 Hypothesis CON: ArmConsistent G.
 
 Lemma WF : Wf G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 Lemma COMP : complete G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 Lemma SC_PER_LOC : sc_per_loc G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 
 Lemma rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi.
-Proof.
+Proof using CON RMW_DEPS.
   rewrite RMW_DEPS, seq_union_l.
   rewrite (dom_r WF.(wf_coiD)).
   arewrite (coi ⊆ sb) at 1. by sin_rewrite WF.(ctrl_sb).
 Qed.
 
 Lemma rmw_coi_helper1 : rmw ⨾ coi^? ⊆ ctrl ∪ data ;; coi^?.
-Proof.
+Proof using CON RMW_DEPS.
   rewrite crE at 1. rewrite seq_union_r, seq_id_r.
   unionL.
   2: { rewrite rmw_coi_helper. basic_solver 10. }
@@ -137,7 +137,7 @@ Proof.
 Qed.
 
 Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba.
-Proof.
+Proof using CON RMW_DEPS.
   transitivity dob; [|by eauto with hahn].
   rewrite rmw_coi_helper.
   rewrite (dom_r WF.(wf_dataD)).
@@ -145,13 +145,13 @@ Proof.
 Qed.
 
 Lemma R_ex_fail_sb_in_ctrl : ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb ⊆ ctrl.
-Proof.
+Proof using REX_IN_RMW_CTRL.
   rewrite <- REX_IN_RMW_CTRL.
   basic_solver.
 Qed.
 
 Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
-Proof.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   unfold imm_s_ppo.ppo.
   rewrite REX_IN_RMW_CTRL.
   arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^? ∪ ctrl ⊆
@@ -177,12 +177,12 @@ Proof.
 Qed.
 
 Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
-Proof.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   rewrite s_ppo_in_dob. apply clos_trans_mori. eauto with hahn. 
 Qed.
 
 Lemma s_ar_int_in_ord : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   unfold imm_s_ppo.ar_int.
   transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘).
   2: { rewrite path_union.
@@ -222,7 +222,7 @@ Proof.
 Qed.
 
 Lemma C_EXT_helper: imm_s.acyc_ext G (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
-Proof.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   apply (s_acyc_ext_psc_helper WF).
   rewrite s_ar_int_in_ord.
   arewrite (rfe ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ ).
@@ -235,14 +235,14 @@ Proof.
 Qed.
 
 Lemma C_SC : acyclic (imm_s.psc_f G ∪ imm_s.psc_base G).
-Proof.
+Proof using CON RMW_DEPS W_EX_ACQ_SB.
   unfold imm_s.psc_f, imm_s.psc_base, imm_s.scb.
   rewrite s_hb_in_hb. 
   apply immToARMhelper.C_SC; auto. apply RMW_COI.
 Qed.
 
 Lemma IMM_s_psc_consistent : exists sc, imm_psc_consistent G sc.
-Proof.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   edestruct (imm_s.s_acyc_ext_helper WF C_EXT_helper) as [sc HH]. desc.
   exists sc. red. splits; eauto.
   2: by apply C_SC.

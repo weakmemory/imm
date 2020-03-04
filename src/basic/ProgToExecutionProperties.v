@@ -28,7 +28,7 @@ Record thread_restricted_execution (G : execution) t (G' : execution) :=
 
 Lemma depf_preserves_set_expr s (depfs : DepsFile.t) (AA : forall r, depfs r ⊆₁ s) :
   forall expr, DepsFile.expr_deps depfs expr ⊆₁ s.
-Proof.
+Proof using.
   ins. induction expr.
   1,2: unfold DepsFile.expr_deps, DepsFile.val_deps; desf; apply AA.
   unfold DepsFile.expr_deps.
@@ -41,7 +41,7 @@ Qed.
 
 Lemma depf_preserves_set_lexpr s (depfs : DepsFile.t) (AA : forall r, depfs r ⊆₁ s) :
   forall expr, DepsFile.lexpr_deps depfs expr ⊆₁ s.
-Proof.
+Proof using.
   ins. induction expr.
   all: unfold DepsFile.lexpr_deps, DepsFile.val_deps; desf; apply AA.
 Qed.
@@ -104,7 +104,7 @@ Record wf_thread_state := {
 }.
 
 Lemma wft_sbE : sb ≡ ⦗E⦘ ⨾ sb ⨾ ⦗E⦘.
-Proof. 
+Proof using. 
 split; [|basic_solver].
 unfold Execution.sb; basic_solver 42. 
 Qed.
@@ -113,7 +113,7 @@ End StateWF.
 
 Lemma wf_thread_state_init l thread:
       wf_thread_state thread (init l).
-Proof.
+Proof using.
   unfold init. constructor; simpls.
   { ins. inv LT. }
   { basic_solver. }
@@ -126,7 +126,7 @@ Lemma add_preserves_lab thread s s' e hl s1 s2 s3 s4
       (UG : G s' = add (G s) thread (eindex s) hl s1 s2 s3 s4)
       (ACT : acts_set (G s) e) :
   lab (G s') e = lab (G s) e.
-Proof.
+Proof using.
   unfold add in UG. rewrite UG. simpls.
   rewrite updo; auto.
   intros HH; subst. red in ACT. apply WF in ACT.
@@ -138,7 +138,7 @@ Lemma add_rmw_preserves_lab thread s s' e hl s1 s2 s3 s4 s5
       (UG : G s' = add_rmw (G s) thread (eindex s) hl s1 s2 s3 s4 s5)
       (ACT : acts_set (G s) e) :
   lab (G s') e = lab (G s) e.
-Proof.
+Proof using.
   unfold add in UG. rewrite UG. simpls.
   rewrite !updo; auto.
   all: intros HH; subst.
@@ -156,7 +156,7 @@ Lemma add_preserves_acts_clos thread ll s s' hl s1 s2 s3 s4
     n < eindex s + 1 ->
     In (ThreadEvent thread n)
        (acts (add (G s) thread (eindex s) hl s1 s2 s3 s4)).
-Proof.
+Proof using.
   unfold add. simpls. ins.
   apply Lt.le_lt_n_Sm in H.
   apply Const.le_lteq in H.
@@ -175,7 +175,7 @@ Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
     n < eindex s + 2 ->
     In (ThreadEvent thread n)
        (acts (add_rmw (G s) thread (eindex s) rl wl s1 s2 s3 s4)).
-Proof.
+Proof using.
   unfold add_rmw. simpls. ins.
   apply Lt.le_lt_n_Sm in H.
   apply Const.le_lteq in H.
@@ -194,7 +194,7 @@ Lemma step_preserves_E thread state state'
       (STEP : step thread state state') :
   acts_set state.(ProgToExecution.G) ⊆₁
   acts_set state'.(ProgToExecution.G).
-Proof.
+Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
   all: rewrite UG; auto.
@@ -205,12 +205,12 @@ Qed.
 Lemma step_preserves_instrs thread state state'
       (STEP : step thread state state') :
   instrs state' = instrs state.
-Proof. inv STEP. inv H. Qed.
+Proof using. inv STEP. inv H. Qed.
 
 Lemma steps_preserve_instrs thread state state'
       (STEPS : (step thread)＊ state state') :
   instrs state' = instrs state.
-Proof.
+Proof using.
   apply clos_rt_rtn1 in STEPS. induction STEPS; auto.
   rewrite <- IHSTEPS.
   eapply step_preserves_instrs; eauto.
@@ -218,7 +218,7 @@ Qed.
 
 Lemma ectrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(ectrl) ⊆₁ s'.(ectrl).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0; rewrite UECTRL; try done. 
@@ -227,7 +227,7 @@ Qed.
 
 Lemma ectrl_increasing_steps (tid : thread_id) s s' (STEP : (step tid)＊ s s'):
   s.(ectrl) ⊆₁ s'.(ectrl).
-Proof.
+Proof using.
   induction STEP.
   { eby eapply ectrl_increasing. }
   { done. }
@@ -236,7 +236,7 @@ Qed.
 
 Lemma ctrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(G).(ctrl) ⊆ s'.(G).(ctrl).
-Proof.
+Proof using.
   destruct STEP; desc.
   red in H; desc.
   destruct ISTEP0.
@@ -246,7 +246,7 @@ Qed.
 
 Lemma rmw_dep_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(G).(rmw_dep) ⊆ s'.(G).(rmw_dep).
-Proof.
+Proof using.
   destruct STEP; desc.
   red in H; desc.
   destruct ISTEP0.
@@ -256,7 +256,7 @@ Qed.
 
 Lemma addr_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(G).(addr) ⊆ s'.(G).(addr).
-Proof.
+Proof using.
   destruct STEP; desc.
   red in H; desc.
   destruct ISTEP0.
@@ -266,7 +266,7 @@ Qed.
 
 Lemma data_increasing (tid : thread_id) s s' (STEP : step tid s s'):
   s.(G).(data) ⊆ s'.(G).(data).
-Proof.
+Proof using.
   destruct STEP; desc.
   red in H; desc.
   destruct ISTEP0.
@@ -278,7 +278,7 @@ Lemma wf_thread_state_step thread s s'
       (WF : wf_thread_state thread s)
       (STEP : step thread s s') :
   wf_thread_state thread s'.
-Proof.
+Proof using.
   destruct STEP as [ll STEP]. cdes STEP.
   constructor.
   { destruct ISTEP0.
@@ -407,7 +407,7 @@ Lemma wf_thread_state_steps thread s s'
       (WF : wf_thread_state thread s)
       (STEP : (step thread)＊ s s') :
   wf_thread_state thread s'.
-Proof.
+Proof using.
   induction STEP.
   2: done.
   { eapply wf_thread_state_step; eauto. }
@@ -419,7 +419,7 @@ Lemma steps_preserve_E thread state state'
       (STEP : (step thread)＊ state state') :
   acts_set state.(ProgToExecution.G) ⊆₁
   acts_set state'.(ProgToExecution.G).
-Proof.
+Proof using.
   intros e EE.
   induction STEP.
   2: done.
@@ -465,11 +465,11 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 (* Lemma E_thread_in_thread_restricted_E thread pe *)
 (*       (TEH : thread_restricted_execution G thread pe) : *)
 (*   E ∩₁ Tid_ thread ⊆₁ acts_set pe. *)
-(* Proof. by rewrite TEH.(tr_acts). Qed. *)
+(* Proof using. by rewrite TEH.(tr_acts). Qed. *)
 
 (* Lemma thread_restricted_E_in_E thread : *)
 (*   acts_set (thread_restricted_execution G thread) ⊆₁ E. *)
-(* Proof. *)
+(* Proof using. *)
 (*   unfold thread_restricted_execution. unfold acts_set. simpls. *)
 (*   intros x EE. apply in_filter_iff in EE. desf. *)
 (* Qed. *)
@@ -477,13 +477,13 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 Lemma rmw_in_thread_restricted_rmw thread G'
       (TEH : thread_restricted_execution G thread G') :
   rmw G' ⊆ rmw G.
-Proof. rewrite TEH.(tr_rmw). basic_solver. Qed.
+Proof using. rewrite TEH.(tr_rmw). basic_solver. Qed.
 
 Lemma step_preserves_rmw thread state state'
       (STEP : step thread state state') :
   rmw state.(ProgToExecution.G) ⊆
   rmw state'.(ProgToExecution.G).
-Proof.
+Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
   all: rewrite UG; auto.
@@ -496,7 +496,7 @@ Lemma steps_preserve_rmw thread state state'
       (STEP : (step thread)＊ state state') :
   rmw state.(ProgToExecution.G) ⊆
   rmw state'.(ProgToExecution.G).
-Proof.
+Proof using.
   induction STEP.
   2: done.
   { eapply step_preserves_rmw; eauto. }
@@ -508,7 +508,7 @@ Lemma step_dont_add_rmw thread state state'
       (STEP : step thread state state') :
   ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
   rmw state.(ProgToExecution.G).
-Proof.
+Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
   all: rewrite UG; auto.
@@ -539,7 +539,7 @@ Lemma steps_dont_add_rmw thread state state'
       (STEP : (step thread)＊ state state') :
   ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
   rmw state.(ProgToExecution.G).
-Proof.
+Proof using.
   induction STEP.
   2: basic_solver.
   { eapply step_dont_add_rmw; eauto. }
@@ -558,12 +558,12 @@ Lemma lab_thread_eq_thread_restricted_lab thread e G'
       (EE : G'.(acts_set) e)
       (TEH : thread_restricted_execution G thread G') :
   lab G e = lab G' e.
-Proof. rewrite TEH.(tr_lab); auto. Qed.
+Proof using. rewrite TEH.(tr_lab); auto. Qed.
 
 Lemma same_lab_u2v_dom_restricted thread G'
   (TEH : thread_restricted_execution G thread G') :
   same_lab_u2v_dom G'.(acts_set) G.(lab) G'.(lab).
-Proof. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
+Proof using. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
 
 Lemma step_preserves_lab e state state'
       (GPC : wf_thread_state (tid e) state)
@@ -571,7 +571,7 @@ Lemma step_preserves_lab e state state'
       (EE : acts_set state.(ProgToExecution.G) e) :
   lab state'.(ProgToExecution.G) e =
   lab state.(ProgToExecution.G) e.
-Proof.
+Proof using.
   red in STEP. desc. cdes STEP.
   edestruct GPC.(acts_rep) as [ii]; eauto. desc.
   destruct ISTEP0.
@@ -588,7 +588,7 @@ Lemma steps_preserve_lab e state state'
       (EE : acts_set state.(ProgToExecution.G) e) :
   lab state'.(ProgToExecution.G) e =
   lab state.(ProgToExecution.G) e.
-Proof.
+Proof using.
   induction STEP.
   2: done.
   { apply step_preserves_lab; auto. }
@@ -602,7 +602,7 @@ Lemma step_empty_same_E thread state state'
       (STEP : istep thread nil state state') :
   acts_set state'.(ProgToExecution.G) ≡₁
   acts_set state.(ProgToExecution.G).
-Proof.
+Proof using.
   cdes STEP. inv ISTEP0.
   all: by rewrite UG.
 Qed.
@@ -611,7 +611,7 @@ Lemma steps_empty_same_E thread state state'
       (STEPS : (istep thread nil)＊ state state') :
   acts_set state'.(ProgToExecution.G) ≡₁
   acts_set state.(ProgToExecution.G).
-Proof.
+Proof using.
   induction STEPS.
   2: done.
   { eapply step_empty_same_E; eauto. }
@@ -625,7 +625,7 @@ Lemma step_same_E_empty_in thread state state'
     acts_set state.(ProgToExecution.G)
   <->
   istep thread nil state state'.
-Proof.
+Proof using.
   assert (~ In (ThreadEvent thread (eindex state))
             (Execution.acts (ProgToExecution.G state))) as XX.
   { intros HH. apply GPC.(acts_rep) in HH.
@@ -652,7 +652,7 @@ Lemma step_same_E_empty thread state state'
     acts_set state.(ProgToExecution.G)
   <->
   istep thread nil state state'.
-Proof.
+Proof using.
   etransitivity.
   2: eapply step_same_E_empty_in; eauto.
   split; [basic_solver|].
@@ -668,7 +668,7 @@ Lemma steps_same_E_empty_in thread state state'
     acts_set state.(ProgToExecution.G)
   <->
   (istep thread nil)＊ state state'.
-Proof.
+Proof using.
   assert (istep thread [] ⊆ step thread) as AA.
   { unfold step. basic_solver. }
   split.
@@ -706,7 +706,7 @@ Lemma steps_same_E_empty thread state state'
     acts_set state.(ProgToExecution.G)
   <->
   (istep thread nil)＊ state state'.
-Proof.
+Proof using.
   etransitivity.
   2: by eapply steps_same_E_empty_in; eauto.
   split; [basic_solver|].
@@ -718,7 +718,7 @@ Lemma steps_same_eindex thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (istep thread nil)＊ state state') :
   state'.(eindex) = state.(eindex).
-Proof.
+Proof using.
   induction STEP.
   2: done.
   { cdes H. destruct ISTEP0; desf. }
@@ -744,7 +744,7 @@ Lemma step_old_restrict thread state state'
              ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OFAILDEP : GO.(rmw_dep) ≡
                 ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
-Proof.
+Proof using.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
   { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. lia. }
@@ -779,7 +779,7 @@ Lemma steps_old_restrict thread state state'
              ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
   ⟪ OFAILDEP : GO.(rmw_dep) ≡
                 ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
-Proof.
+Proof using.
   induction STEP.
   2: { simpls. splits; apply GPC. }
   { eapply step_old_restrict; eauto. }
@@ -809,7 +809,7 @@ Lemma step_middle_set thread state state' C
                        C r <-> C w) :
         C ≡₁ state.(G).(acts_set) \/
         C ≡₁ state'.(G).(acts_set).
-Proof.
+Proof using.
   destruct (classic (C ⊆₁ state.(G).(acts_set))) as [INO|NINO].
   { left. by split. }
   right. split; auto.
@@ -856,7 +856,7 @@ Lemma steps_middle_set thread state state' C cindex
     ⟪ STEP1 : (step thread)＊ state state'' ⟫ /\
     ⟪ STEP2 : (step thread)＊ state'' state' ⟫ /\
     ⟪ CACTS : state''.(G).(acts_set) ≡₁ C ⟫.
-Proof.
+Proof using.
   apply clos_rt_rt1n in STEP.
   induction STEP.
   { exists x. splits.
@@ -898,7 +898,7 @@ Lemma tid_initi G prog
       (GPROG : program_execution prog G)
       (PROG_NINIT : ~ (IdentMap.In tid_init prog)) : 
   (acts_set G) ∩₁ Tid_ tid_init ⊆₁ is_init.
-Proof. 
+Proof using. 
   red. unfolder. 
   intros e [EE TIDe].
   unfold tid, is_init in *.
@@ -912,7 +912,7 @@ Qed.
 Lemma istep_eindex_shift thread st st' lbl
       (STEP : ProgToExecution.istep thread lbl st st') :
   eindex st' = eindex st + length lbl.
-Proof.
+Proof using.
   cdes STEP. inv ISTEP0. 
   all: simpls; lia.
 Qed.
@@ -920,7 +920,7 @@ Qed.
 Lemma eindex_step_mon thread st st'
       (STEP : ProgToExecution.step thread st st') :
   eindex st <= eindex st'.
-Proof.
+Proof using.
   cdes STEP.
   rewrite (istep_eindex_shift STEP0). lia.
 Qed.
@@ -928,7 +928,7 @@ Qed.
 Lemma eindex_steps_mon thread st st'
       (STEPS : (ProgToExecution.step thread)＊ st st') :
   eindex st <= eindex st'.
-Proof.
+Proof using.
   apply clos_rt_rt1n in STEPS.
   induction STEPS; auto.
   apply eindex_step_mon in H.
@@ -941,7 +941,7 @@ Lemma eindex_not_in_rmw thread st st'
       (STEPS : (ProgToExecution.step thread)＊ st st') :
   ~ (codom_rel (Execution.rmw (ProgToExecution.G st'))
                (ThreadEvent thread (eindex st))).
-Proof.
+Proof using.
   intros [y RMW].
   apply clos_rt_rtn1 in STEPS.
   induction STEPS.

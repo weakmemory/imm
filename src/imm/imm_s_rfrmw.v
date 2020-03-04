@@ -78,7 +78,7 @@ Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 
 Lemma ar_rfrmw_in_ar_ct : ar ;; rf ;; rmw ⊆ ar⁺.
-Proof.
+Proof using IMMCON WF.
   unfold imm_s.ar.
   rewrite unionA, seq_union_l.
   unionL.
@@ -90,14 +90,14 @@ Proof.
 Qed.
 
 Lemma ar_ct_rfrmw_in_ar_ct : ar⁺ ;; rf ;; rmw ⊆ ar⁺.
-Proof.
+Proof using IMMCON WF.
   rewrite ct_end at 1. rewrite !seqA.
   rewrite ar_rfrmw_in_ar_ct.
   apply rt_ct.
 Qed.
 
 Lemma ar_rfrmw_acyclic : acyclic (ar ∪ rf ;; rmw).
-Proof.
+Proof using IMMCON WF.
   rewrite ct_step with (r:=ar).
   rewrite unionC.
   apply acyclic_absorb.
@@ -110,7 +110,7 @@ Proof.
 Qed.
 
 Lemma ar_ct_rfrmw_ct_in_ar_ct : ar⁺ ⨾ (rf ⨾ rmw)⁺ ⊆ ar⁺.
-Proof.
+Proof using IMMCON WF.
   intros x y [z [AA BB]].
   apply clos_trans_t1n in BB.
   induction BB.
@@ -120,12 +120,12 @@ Proof.
 Qed.
 
 Lemma ar_rfrmw_ct_in_ar_ct : ar ⨾ (rf ⨾ rmw)⁺ ⊆ ar⁺.
-Proof.
+Proof using IMMCON WF.
   rewrite ct_step with (r:=ar) at 1. by apply ar_ct_rfrmw_ct_in_ar_ct.
 Qed.
 
 Lemma wf_ar_rfrmw_ct : well_founded (ar ∪ rf ;; rmw)⁺.
-Proof.
+Proof using IMMCON WF WFSC.
   eapply wf_finite; auto.
   { red. rewrite ct_of_ct. apply ar_rfrmw_acyclic; auto. }
   rewrite wf_ar_rfrmw_ctE; auto.

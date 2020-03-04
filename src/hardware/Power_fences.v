@@ -52,7 +52,7 @@ Definition fence := sync ∪ lwsync.
 (******************************************************************************)
 
 Lemma wf_syncE WF: sync ≡ ⦗E⦘ ⨾ sync ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold sync.
 rewrite (wf_sbE) at 1 2.
@@ -60,7 +60,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_lwsyncE WF: lwsync ≡ ⦗E⦘ ⨾ lwsync ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold lwsync.
 rewrite (wf_sbE) at 1 2.
@@ -68,7 +68,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_fenceE WF: fence ≡ ⦗E⦘ ⨾ fence ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold fence.
 rewrite (wf_syncE WF) at 1.
@@ -81,21 +81,21 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_syncD WF: sync ≡ ⦗RW⦘ ⨾ sync ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold sync.
 basic_solver 42.
 Qed.
 
 Lemma wf_lwsyncD WF: lwsync ≡ ⦗RW⦘ ⨾ lwsync ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold lwsync.
 basic_solver 42.
 Qed.
 
 Lemma wf_fenceD WF: fence ≡ ⦗RW⦘ ⨾ fence ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold fence.
 rewrite (wf_syncD WF) at 1.
@@ -108,13 +108,13 @@ Qed.
 (******************************************************************************)
 
 Lemma sync_in_sb : sync ⊆ sb.
-Proof.
+Proof using.
 unfold sync; generalize (@sb_trans G); basic_solver.
 Qed.
 
 Lemma lwsync_alt : lwsync ≡ 
   ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘ ∪ ⦗W⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗W⦘.
-Proof.
+Proof using.
 unfold lwsync.
 split.
 by apply inclusion_minus_l; basic_solver 12.
@@ -122,27 +122,27 @@ by unfolder; ins; desf; splits; eauto 10; intro; type_solver.
 Qed.
 
 Lemma lwsync_in_sb : lwsync ⊆ sb.
-Proof.
+Proof using.
 rewrite lwsync_alt.
 generalize (@sb_trans G); basic_solver.
 Qed.
 
 Lemma fence_in_sb : fence ⊆ sb.
-Proof.
+Proof using.
 unfold fence.
 rewrite sync_in_sb, lwsync_in_sb.
 basic_solver.
 Qed.
 
 Lemma sync_sb_w_in_sync WF : sync ⨾ sb ⨾ ⦗W⦘ ⊆ sync.
-Proof.
+Proof using.
 unfold sync.
 generalize (@sb_trans G).
 basic_solver 20.
 Qed.
 
 Lemma sync_fri_in_sync WF : sync ⨾ fri ⊆ sync.
-Proof.
+Proof using.
 rewrite (wf_friD WF).
 ie_unfolder.
 generalize (sync_sb_w_in_sync WF).
@@ -150,14 +150,14 @@ basic_solver 12.
 Qed.
 
 Lemma lwsync_sb_w_in_lwsync WF : lwsync ⨾ sb ⨾ ⦗W⦘ ⊆ lwsync.
-Proof.
+Proof using.
 rewrite lwsync_alt.
 generalize (@sb_trans G).
 basic_solver 20.
 Qed.
 
 Lemma lwsync_fri_in_lwsync WF : lwsync ⨾ fri ⊆ lwsync.
-Proof.
+Proof using.
 rewrite (wf_friD WF).
 ie_unfolder.
 generalize (lwsync_sb_w_in_lwsync WF).
@@ -165,54 +165,54 @@ basic_solver 12.
 Qed.
 
 Lemma fence_sb_w_in_fence WF : fence ⨾ sb ⨾ ⦗W⦘ ⊆ fence ⨾ ⦗W⦘.
-Proof.
+Proof using.
 unfold fence.
 generalize (sync_sb_w_in_sync WF) (lwsync_sb_w_in_lwsync WF).
 basic_solver 12.
 Qed.
 
 Lemma fence_fri_in_fence WF : fence ⨾ fri ⊆ fence.
-Proof.
+Proof using.
 unfold fence.
 generalize (sync_fri_in_sync WF) (lwsync_fri_in_lwsync WF).
 basic_solver 12.
 Qed.
 
 Lemma RW_sb_sync_in_sync : ⦗RW⦘ ⨾ sb ⨾ sync ⊆ sync.
-Proof.
+Proof using.
 unfold sync.
 generalize (@sb_trans G).
 basic_solver 12.
 Qed.
 
 Lemma RW_sb_lwsync_in_lwsync : ⦗RW⦘ ⨾ sb ⨾ lwsync ⨾ ⦗W⦘ ⊆ lwsync.
-Proof.
+Proof using.
 rewrite lwsync_alt.
 generalize (@sb_trans G).
 basic_solver 20.
 Qed.
 
 Lemma RW_sb_fence_in_fence WF: ⦗RW⦘ ⨾ sb ⨾ fence ⨾ ⦗W⦘ ⊆ fence.
-Proof.
+Proof using.
 unfold fence.
 generalize (RW_sb_sync_in_sync) (RW_sb_lwsync_in_lwsync).
 basic_solver 12.
 Qed.
 
 Lemma RW_sb_F_sb_W_in_fence : ⦗RW⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ fence.
-Proof.
+Proof using.
 unfold fence; rewrite lwsync_alt.
 basic_solver 20.
 Qed.
 
 Lemma R_sb_F_sb_RW_in_fence : ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ fence.
-Proof.
+Proof using.
 unfold fence; rewrite lwsync_alt.
 basic_solver 12.
 Qed.
 
 Proposition sync_trans : transitive sync.
-Proof.
+Proof using.
 unfold sync.
 apply transitiveI.
 arewrite_id ⦗F^sync⦘ at 2; rels.
@@ -222,7 +222,7 @@ basic_solver 42.
 Qed.
 
 Proposition lwsync_trans : transitive lwsync.
-Proof.
+Proof using.
 apply transitiveI.
 rewrite lwsync_alt at 2.
 arewrite_id !⦗F^lwsync⦘; rels.
@@ -242,7 +242,7 @@ basic_solver 12.
 Qed.
 
 Proposition lwsync_sync : lwsync ⨾ sync ⊆ sync.
-Proof.
+Proof using.
 unfold lwsync, sync.
 arewrite_id ⦗F^lwsync⦘.
 generalize (@sb_trans G).
@@ -250,7 +250,7 @@ basic_solver 42.
 Qed.
 
 Proposition sync_lwsync : sync ⨾ lwsync ⊆ sync.
-Proof.
+Proof using.
 unfold lwsync, sync.
 arewrite_id ⦗F^lwsync⦘.
 generalize (@sb_trans G).
@@ -258,7 +258,7 @@ basic_solver 42.
 Qed.
 
 Proposition fence_trans : transitive fence.
-Proof.
+Proof using.
 unfold fence. 
 apply transitiveI.
 relsf.
@@ -270,7 +270,7 @@ basic_solver 12.
 Qed.
 
 Lemma rf_fence_W_in_fence WF: rf^? ⨾ fence ⨾ ⦗W⦘ ⊆ rfe^? ⨾ fence ⨾ ⦗W⦘.
-Proof.
+Proof using.
 rewrite (dom_l (wf_rfD WF)) at 1.
 rewrite (@rfi_union_rfe G) at 1 3.
 arewrite(rfi ⊆ sb).

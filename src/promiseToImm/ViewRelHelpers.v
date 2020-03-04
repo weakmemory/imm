@@ -54,7 +54,7 @@ Lemma next_helper C a
   (CC : C ⊆₁ dom_cond sb C)
   (NEXT: next G C a) :
   ⦗Tid_ (tid a) ∪₁ Init⦘ ⨾ ⦗C⦘ ≡ ⦗dom_rel (sb ⨾ ⦗eq a⦘)⦘.
-Proof.
+Proof using WF.
 split.
 - unfolder; ins; desc; splits; eauto; eexists; splits; eauto; subst.
   assert (~ is_init a) as NA.
@@ -84,7 +84,7 @@ Lemma next_helper' a
 (TCCOH : tc_coherent G sc T)
   (NEXT: next G (covered T) a) :
   ⦗Tid_ (tid a) ∪₁ Init⦘ ⨾ ⦗covered T⦘ ≡ ⦗dom_rel (sb ⨾ ⦗eq a⦘)⦘.
-Proof.
+Proof using WF.
 apply next_helper; auto.
 apply TCCOH.
 all: intros x H; apply TCCOH in H; apply H.
@@ -102,7 +102,7 @@ Lemma s_tm_cov_sc_fence T
   forall l,
     S_tm G l (covered T ∪₁ eq f) ≡₁
     S_tm G l (covered T) ∪₁ t_acq G sc thread l (covered T).
-Proof.
+Proof using WF.
   cdes IMMCON.
   intro l; split.
   - unfold S_tm, t_acq.
@@ -150,7 +150,7 @@ Lemma msg_rel_alt T (TCCOH : tc_coherent G sc T)
    then t_cur G sc (tid w) l (covered T ∪₁ eq w)
    else t_rel G sc (tid w) l locw (covered T)) ∪₁
   dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗ eq w ⦘).
-Proof.
+Proof using WF.
   assert (E w) as EW.
   { apply ISS. }
   assert (~ is_init w) as WNIT.
@@ -306,7 +306,7 @@ Lemma msg_rel_alt2 T (TCCOH : tc_coherent G sc T)
    else t_rel G sc (tid w) l locw (covered T)) ∪₁
   dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗ eq w ⦘) ∪₁
   Rel ∩₁ Loc_ l ∩₁ eq w.
-Proof.
+Proof using WF.
   rewrite msg_rel_alt; eauto.
   desf.
   2: by arewrite (Rel ∩₁ Loc_ l ∩₁ eq w ≡₁ ∅); basic_solver 10. 
@@ -327,7 +327,7 @@ Lemma msg_rel_rfrmw_helper T (TCCOH : tc_coherent G sc T)
   dom_rel ((urr G sc l ⨾ release) ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ⊆₁
   dom_rel (urr G sc l ⨾ ⦗Rel⦘ ⨾ ⦗W_ locw ∪₁ F⦘ ⨾ ⦗Tid_ (tid w) ∪₁ Init⦘ ⨾ ⦗covered T⦘)
   ∪₁ dom_rel ((urr G sc l ⨾ release) ⨾ (⦗W_ex⦘ ⨾ rfi ∪ rfe) ⨾ rmw ⨾ ⦗eq w⦘).
-Proof.
+Proof using WF.
 rewrite rfi_union_rfe; relsf; unionL; splits.
 2: basic_solver 12.
 unfold imm_s_hb.release.
@@ -383,7 +383,7 @@ Lemma t_rel_msg_rel_rfrmw T (TCCOH : tc_coherent G sc T)
   t_rel G sc (tid w) l locw (covered T) ∪₁ dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ≡₁
   t_rel G sc (tid w) l locw (covered T) ∪₁
   dom_rel (msg_rel G sc l ⨾ (⦗ W_ex ⦘ ⨾ rfi ∪ rfe) ⨾ rmw ⨾ ⦗eq w⦘).
-Proof. 
+Proof using WF.
 ins; split; unionL; desf.
 1,3: basic_solver.
 2: rewrite rfi_union_rfe; basic_solver 12.
@@ -396,7 +396,7 @@ Lemma t_cur_msg_rel_rfrmw T (TCCOH : tc_coherent G sc T)
   t_cur G sc (tid w) l (covered T) ∪₁ dom_rel (msg_rel G sc l ⨾ (rf ⨾ rmw) ⨾ ⦗eq w⦘) ≡₁
   t_cur G sc (tid w) l (covered T) ∪₁
   dom_rel (msg_rel G sc l ⨾ (⦗ W_ex ⦘ ⨾ rfi ∪ rfe) ⨾ rmw ⨾ ⦗eq w⦘).
-Proof. 
+Proof using WF.
 ins; split; unionL; desf.
 1,3: basic_solver.
 2: rewrite rfi_union_rfe; basic_solver 12.
@@ -417,7 +417,7 @@ Lemma t_cur_n_sc_fence_step T (TCCOH : tc_coherent G sc T)
     if is_acq lab f
     then t_acq G sc (tid f) l (covered T)
     else t_cur G sc (tid f) l (covered T).
-Proof.
+Proof using WF.
 ins; split; rewrite t_cur_union; unionL; desf.
 by apply t_cur_in_t_acq.
 4: basic_solver.
@@ -450,7 +450,7 @@ Lemma t_acq_n_sc_fence_step T (TCCOH : tc_coherent G sc T)
   forall l,
     t_acq G sc (tid f) l (covered T ∪₁ eq f) ≡₁
     t_acq G sc (tid f) l (covered T).
-Proof.
+Proof using WF.
 ins; split; rewrite t_acq_union; unionL; splits; desf; [|basic_solver].
 unfold t_acq, c_acq.
 arewrite (⦗Tid_ (tid f) ∪₁ Init⦘ ⨾ ⦗eq f⦘ ⊆ ⦗eq f⦘ ⨾ ⦗Tid_ (tid f) ∪₁ Init⦘) by basic_solver.
@@ -483,7 +483,7 @@ Lemma t_rel_n_sc_fence_step T (TCCOH : tc_coherent G sc T)
         (if LocSet.Facts.eq_dec l l'
          then W ∩₁ Loc_ l' ∩₁ Tid_ (tid f) ∩₁ (covered T)
          else ∅).
-Proof.
+Proof using WF.
 ins; split; try rewrite t_rel_union; unionL; desf.
 by apply t_rel_in_t_acq.
 by apply t_rel_in_t_cur.
@@ -544,7 +544,7 @@ Qed.
 Lemma sc_helper' T (TCCOH : tc_coherent G sc T) (Wf_sc : wf_sc G sc)
  f (FENCE : F f) (SC : Sc f) (COV : coverable G sc T f) (NCOV : ~ covered T f) :
  ⦗F ∩₁ Sc⦘ ⨾ ⦗covered T⦘ ≡ ⦗dom_rel (sc ⨾ ⦗eq f⦘)⦘.
-Proof.
+Proof using.
 cdes TCCOH; unfold coverable, dom_cond in *.
 unfolder in *; desf; [type_solver| type_solver|].
 split.
@@ -571,7 +571,7 @@ Lemma t_cur_sc_fence_step T (TCCOH : tc_coherent G sc T)
   forall l,
     t_cur G sc (tid f) l (covered T ∪₁ eq f) ≡₁
     S_tm G l (covered T) ∪₁ t_acq G sc (tid f) l (covered T).
-Proof.
+Proof using WF.
   cdes IMMCON.
 ins; split; try rewrite t_cur_union; unionL; desf.
 by rewrite t_cur_in_t_acq; basic_solver.
@@ -625,7 +625,7 @@ Lemma t_acq_sc_fence_step T (TCCOH : tc_coherent G sc T)
     t_acq G sc (tid f) l (covered T ∪₁ eq f) ≡₁
     t_acq G sc (tid f) l (covered T) ∪₁
     S_tm G l (covered T).
-Proof.
+Proof using WF.
   cdes IMMCON.
 ins; split; try rewrite t_acq_union; unionL; desf.
 1,3: basic_solver.
@@ -668,7 +668,7 @@ Lemma t_rel_sc_fence_step T (TCCOH : tc_coherent G sc T)
      then W ∩₁ Loc_ l' ∩₁ Tid_ (tid f) ∩₁ (covered T ∪₁ eq f)
      else ∅) ≡₁
      S_tm G l (covered T) ∪₁ t_acq G sc (tid f) l (covered T).
-Proof.
+Proof using WF.
   cdes IMMCON.
 ins; split; try rewrite t_rel_union; unionL; desf.
 by rewrite t_rel_in_t_acq; basic_solver.
@@ -746,7 +746,7 @@ Lemma t_cur_fence_step T (TCCOH : tc_coherent G sc T)
       if is_acq lab f
       then t_acq G sc (tid f) l (covered T)
       else t_cur G sc (tid f) l (covered T).
-Proof.
+Proof using WF.
   destruct (is_sc lab f) eqn: H.
   apply t_cur_sc_fence_step; auto.
   apply t_cur_n_sc_fence_step; auto.
@@ -764,7 +764,7 @@ Lemma t_acq_fence_step T (TCCOH : tc_coherent G sc T)
     if is_sc lab f
     then S_tm G l (covered T)
     else ∅.
-Proof.
+Proof using WF.
   destruct (is_sc lab f) eqn: H.
   apply t_acq_sc_fence_step; auto.
   ins; rewrite set_union_empty_r; apply t_acq_n_sc_fence_step; auto.
@@ -794,7 +794,7 @@ Lemma t_rel_fence_step T (TCCOH : tc_coherent G sc T)
            (if LocSet.Facts.eq_dec l l'
             then W ∩₁ Loc_ l' ∩₁ Tid_ (tid f) ∩₁ (covered T)
             else ∅)).
-Proof.
+Proof using WF.
   destruct (is_sc lab f) eqn: H.
   apply t_rel_sc_fence_step; auto.
   apply t_rel_n_sc_fence_step; auto.

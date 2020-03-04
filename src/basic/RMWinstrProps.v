@@ -31,7 +31,7 @@ Lemma w_ex_is_xacq_add_preserves thread s s'
             add (G s) thread (eindex s) lbl vl lc cl ff) 
       (SS : w_ex_is_xacq s) :
     w_ex_is_xacq s'.
-Proof.
+Proof using.
   unfold w_ex_is_xacq in *.
   apply set_subset_inter_r. split; [done|].
   unfold W_ex in *.
@@ -49,7 +49,7 @@ Lemma w_ex_is_xacq_add_rmw_preserves thread s s'
                     (Astore Xacq ordw vl lc) vl' lc' cl ff) 
       (SS : w_ex_is_xacq s) :
     w_ex_is_xacq s'.
-Proof.
+Proof using.
   unfold w_ex_is_xacq in *.
   apply set_subset_inter_r. split; [done|].
   unfold W_ex in *.
@@ -70,7 +70,7 @@ Lemma rmw_is_xacq_instr_xmod rmw rexmod xmod ordr ordw reg lexpr s
            (Instr.update rmw rexmod xmod ordr ordw reg
                          lexpr) = nth_error (instrs s) (pc s)) :
   xmod = Xacq.
-Proof.
+Proof using.
   symmetry in ISTEP; apply nth_error_In in ISTEP.
   apply XACQIN in ISTEP; simpls; desf.
 Qed.
@@ -81,7 +81,7 @@ Lemma w_ex_is_xacq_thread_step thread s s'
       (STEP : step thread s s')
       (SS : w_ex_is_xacq s) :
   w_ex_is_xacq s'.
-Proof.
+Proof using.
   unfold w_ex_is_xacq in *.
   destruct STEP as [ll STEP]. cdes STEP.
   destruct ISTEP0.
@@ -114,7 +114,7 @@ Lemma dom_rmw_in_rex_add_preserves thread s s'
             add (G s) thread (eindex s) lbl vl lc cl ff) 
       (SS : dom_rmw_in_rex s) :
     dom_rmw_in_rex s'.
-Proof.
+Proof using.
   unfold dom_rmw_in_rex in *.
   unfold add in UG. rewrite UG. simpls.
   rewrite (dom_l (wft_rmwE WF)). rewrite dom_eqv1.
@@ -132,7 +132,7 @@ Lemma dom_rmw_in_rex_add_rmw_preserves thread s s'
       (REX : rexmod = true)
       (SS : dom_rmw_in_rex s) :
     dom_rmw_in_rex s'.
-Proof.
+Proof using.
   unfold dom_rmw_in_rex, R_ex in *.
   unfold add_rmw in UG. rewrite UG. simpls.
   rewrite dom_union. unionL.
@@ -155,7 +155,7 @@ Lemma rmw_is_rex_instr_rexmod rmw rexmod xmod ordr ordw reg lexpr s
            (Instr.update rmw rexmod xmod ordr ordw reg
                          lexpr) = nth_error (instrs s) (pc s)) :
   rexmod = true.
-Proof.
+Proof using.
   symmetry in ISTEP; apply nth_error_In in ISTEP.
   apply RMWREX in ISTEP; simpls; desf.
 Qed.
@@ -166,7 +166,7 @@ Lemma dom_rmw_in_rex_thread_step thread s s'
       (STEP : step thread s s')
       (SS : dom_rmw_in_rex s) :
   dom_rmw_in_rex s'.
-Proof.
+Proof using.
   unfold dom_rmw_in_rex in *.
   destruct STEP as [ll STEP]. cdes STEP.
   destruct ISTEP0.
@@ -197,7 +197,7 @@ Lemma cas_produces_R_ex_instr_rexmod old new rexmod xmod ordr ordw reg lexpr s
            (Instr.update (Instr.cas old new) rexmod xmod ordr ordw reg
                          lexpr) = nth_error (instrs s) (pc s)) :
   rexmod = true.
-Proof.
+Proof using.
   symmetry in ISTEP; apply nth_error_In in ISTEP.
   apply RMWREX in ISTEP; simpls; desf.
 Qed.

@@ -86,14 +86,14 @@ Notation "'MFENCE'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 Hypothesis CON: TSOConsistent G.
 
 Lemma WF : Wf G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 
 (******************************************************************************)
 (** * coherence   *)
 (******************************************************************************)
 
 Lemma release_in : release ⊆ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)＊.
-Proof.
+Proof using CON.
 unfold imm_hb.release, imm_hb.rs.
 arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⊆ sb^?) by basic_solver.
 arewrite (⦗W⦘ ⊆ ⦗W⦘ ⨾ ⦗W⦘) at 1. 
@@ -122,7 +122,7 @@ rewrite rfi_union_rfe; relsf; unionL.
 Qed.
 
 Lemma sw_in : sw ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)⁺ ⨾ ⦗R⦘ ⨾ sb^?.
-Proof.
+Proof using CON.
 generalize (@sb_trans G); ins.
 unfold imm_hb.sw.
 rewrite (dom_r (wf_releaseD WF)).
@@ -155,7 +155,7 @@ relsf.
 Qed.
 
 Lemma hb_in : hb ⊆ sb ∪ sb^? ⨾ ⦗W⦘ ⨾ (ppot ∪ rfe)⁺ ⨾ ⦗R⦘ ⨾ sb^?.
-Proof.
+Proof using CON.
 generalize (@sb_trans G); ins.
 unfold imm_hb.hb.
 rewrite sw_in, <- !unionA; rels.
@@ -172,7 +172,7 @@ relsf.
 Qed.
 
 Lemma Coherence : coherence G.
-Proof.
+Proof using CON.
 generalize (@sb_trans G); ins.
 generalize (eco_trans WF); ins.
 cdes CON; unfold TSO.hb in *.
@@ -232,7 +232,7 @@ relsf; eapply acyclic_mon; [edone|basic_solver 12].
 Qed.
 
 Lemma hb_rel_co_acyc : acyclic (hb ∪ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
-Proof.
+Proof using CON.
   assert (Wf G) as WF by apply CON.
   assert (coherence G) as COH by apply Coherence.
   assert (transitive hb) by apply hb_trans.
@@ -280,7 +280,7 @@ Qed.
 (******************************************************************************)
 
 Lemma eco_in : eco ⊆ sb ∪ hbt⁺ ⨾ sb^?.
-Proof.
+Proof using.
 unfold Execution_eco.eco.
 rewrite rfi_union_rfe.
 arewrite (rfi ⊆ sb).
@@ -291,7 +291,7 @@ basic_solver 40.
 Qed.
 
 Lemma psct : psc ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb.
-Proof.
+Proof using CON.
 generalize (@sb_trans G); ins.
 unfold imm.psc.
 rewrite (wf_ecoD WF), !seqA.
@@ -344,7 +344,7 @@ Lemma ct_pscXt X (XX : X ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb)
       (XD : X ⊆ ⦗ MFENCE ⦘ ⨾ X ⨾ ⦗ MFENCE ⦘) : 
   (sb^? ⨾ X ⨾ sb^?)⁺ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
-Proof.
+Proof using CON.
 generalize (@sb_trans G); ins.
 rewrite XD, XX.
 apply inclusion_t_ind_right.
@@ -368,10 +368,10 @@ Qed.
 Lemma ct_psct : 
   (sb^? ⨾ psc ⨾ sb^?)⁺ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
-Proof. apply (ct_pscXt psct). by rewrite (@wf_pscD G) at 1. Qed.
+Proof using CON. apply (ct_pscXt psct). by rewrite (@wf_pscD G) at 1. Qed.
 
 Lemma psc_ft : psc_f ⊆ sb ∪ sb ⨾ hbt⁺ ⨾ sb.
-Proof.
+Proof using CON.
   unfold imm.psc_f.
   rewrite crE.
   rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
@@ -392,14 +392,14 @@ Qed.
 Lemma ct_psc_ft : 
   (sb^? ⨾ psc_f ⨾ sb^?)⁺ ⊆ 
        sb^? ⨾ ⦗MFENCE⦘ ⨾ (sb ∪ sb ⨾ hbt⁺ ⨾ sb) ⨾ ⦗MFENCE⦘ ⨾ sb^?.
-Proof.
+Proof using CON.
   apply (ct_pscXt psc_ft).
   unfold imm.psc_f. rewrite !seqA.
   basic_solver 10.
 Qed.
 
 (* Lemma psc_baset : psc_base ⊆ sb ∪ sb^? ⨾ hbt⁺ ⨾ sb^?. *)
-(* Proof. *)
+(* Proof using. *)
 (*   unfold imm.psc_base. *)
 (*   unfold imm.scb. *)
 (*   arewrite (sb ∪ (sb \ same_loc) ⨾ hb ⨾ (sb \ same_loc) ∪ hb ∩ same_loc ⊆ *)
@@ -478,7 +478,7 @@ Qed.
 (* Qed. *)
 
 Lemma C_EXT : acyc_ext G.
-Proof.
+Proof using CON.
   generalize (@sb_trans G); ins.
   apply (acyc_ext_helper WF).
   arewrite (rfe ⊆ hbt⁺).
@@ -524,14 +524,14 @@ Proof.
 Qed.
 
 Lemma wf_psc_baseD : psc_base ≡ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘.
-Proof.
+Proof using.
   split; [|basic_solver].
   unfold imm.psc_base.
   basic_solver 42.
 Qed.
 
 Lemma wf_psc_fD : psc_f ≡ ⦗Sc⦘ ⨾ psc_f ⨾ ⦗Sc⦘.
-Proof.
+Proof using.
   split; [|basic_solver].
   unfold imm.psc_f.
   basic_solver 42.
@@ -541,7 +541,7 @@ Definition ehbt :=
   hbt ∪ sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb.
 
 Lemma ehbt_ac : acyclic ehbt.
-Proof.
+Proof using CON.
   unfold ehbt.
   rewrite unionA.
   rewrite unionC.
@@ -587,7 +587,7 @@ Proof.
 Qed.
 
 Lemma fsc_hb_rw_in_ehbt : ⦗MFENCE⦘ ⨾ hb ⨾ ⦗RW⦘ ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   assert (ppot ∪ rfe ⊆ hbt) as EE.
   { unfold TSO.hb. unionL; eauto 10 with hahn. }
   assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
@@ -617,7 +617,7 @@ Proof.
 Qed.
 
 Lemma rw_hb_fsc_in_ehbt : ⦗RW⦘ ⨾ hb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   assert (ppot ∪ rfe ⊆ hbt) as EE.
   { unfold TSO.hb. unionL; eauto 10 with hahn. }
   assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
@@ -647,7 +647,7 @@ Proof.
 Qed.
 
 Lemma fsc_hb_fsc_in_ehbt : ⦗MFENCE⦘ ⨾ hb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   assert (ppot ∪ rfe ⊆ hbt) as EE.
   { unfold TSO.hb. unionL; eauto 10 with hahn. }
   assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
@@ -670,7 +670,7 @@ Proof.
 Qed.
 
 Lemma psc_f_in_ehbt : psc_f ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   assert (ppot ∪ rfe ⊆ hbt) as EE.
   { unfold TSO.hb. unionL; eauto 10 with hahn. }
   assert (⦗MFENCE⦘ ⨾ sb^? ⨾ ⦗W⦘ ⊆ ⦗MFENCE⦘ ⨾ sb) as AA
@@ -717,7 +717,7 @@ Proof.
 Qed.
 
 Lemma sc_hb_fsc_in_ehbt : ⦗Sc⦘ ⨾ hb ⨾ ⦗MFENCE⦘ ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   arewrite (hb ⊆ ⦗F ∪₁ RW⦘ ⨾ hb) by type_solver 10.
   rewrite id_union, !seq_union_l, !seq_union_r.
   arewrite (⦗Sc⦘ ⨾ ⦗F⦘ ⊆ ⦗MFENCE⦘) by basic_solver.
@@ -727,7 +727,7 @@ Proof.
 Qed.
 
 Lemma fsc_hb_sc_in_ehbt : ⦗MFENCE⦘ ⨾ hb ⨾ ⦗Sc⦘ ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   arewrite (hb ⊆ hb ⨾ ⦗F ∪₁ RW⦘) by type_solver 10.
   rewrite id_union, !seq_union_l, !seq_union_r.
   arewrite (⦗F⦘ ⨾ ⦗Sc⦘ ⊆ ⦗MFENCE⦘) by basic_solver.
@@ -737,7 +737,7 @@ Proof.
 Qed.
 
 Lemma ppot_in_ehbt : ppot ⊆ ehbt.
-Proof.
+Proof using.
   arewrite (ppot ⊆ hbt).
   { unfold TSO.hb. eauto with hahn. }
   unfold ehbt. basic_solver.
@@ -747,7 +747,7 @@ Lemma psc_base_in_ehbt
       (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆
                 sb ⨾ ⦗MFENCE⦘ ⨾ sb) :
   psc_base ⊆ ehbt⁺.
-Proof.
+Proof using CON.
   assert (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ ehbt⁺) as SCSB.
   { arewrite (sb ⊆ ⦗F ∪₁ RW⦘ ⨾ sb) by type_solver 10.
     rewrite id_union.
@@ -880,7 +880,7 @@ Qed.
 Lemma C_SC (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆
                   sb ⨾ ⦗MFENCE⦘ ⨾ sb) :
   acyclic (psc_f ∪ psc_base).
-Proof.
+Proof using CON.
   rewrite psc_f_in_ehbt.
   rewrite psc_base_in_ehbt; auto.
   rewrite unionK.
@@ -895,7 +895,7 @@ Qed.
 Lemma IMM_consistent
       (SCF : ⦗ W∩₁Sc ⦘ ⨾ sb ⨾ ⦗ R∩₁Sc⦘ ⊆ sb ⨾ ⦗MFENCE⦘ ⨾ sb):
   imm_consistent G.
-Proof.
+Proof using CON.
 cdes CON.
 red; splits; eauto.
 apply Coherence.

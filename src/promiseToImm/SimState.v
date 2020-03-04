@@ -27,7 +27,7 @@ Lemma sim_state_other_thread_step G
       (COVSTEP : forall a, tid a = thread -> C' a -> C a)
       (SIMSTATE: sim_state G smode C state) :
   sim_state G smode C' state.
-Proof.
+Proof using.
   cdes SIMSTATE.
   red. splits; eauto.
   ins. split; ins.
@@ -42,7 +42,7 @@ Lemma sim_state_set_tid_eq G mode thread s s' state
       (EQ : s ∩₁ Tid_ thread ≡₁ s' ∩₁ Tid_ thread):
   @sim_state G mode s thread state <->
   @sim_state G mode s' thread state.
-Proof.
+Proof using.
   split; intros AA. 
   all: red; splits; [|by apply AA].
   all: ins; split; intros BB.
@@ -54,4 +54,4 @@ Lemma sim_state_set_eq G mode thread s s' state
       (EQ : s ≡₁ s'):
   @sim_state G mode s thread state <->
   @sim_state G mode s' thread state.
-Proof. apply sim_state_set_tid_eq. by rewrite EQ. Qed.
+Proof using. apply sim_state_set_tid_eq. by rewrite EQ. Qed.

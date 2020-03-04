@@ -15,7 +15,7 @@ Section MaxValue.
                       ⟪LB': Time.le val (f a_max)⟫) ⟫.
 
   Lemma max_value_singleton f b t (T: t = f b) : max_value f (eq b) t.
-  Proof.
+  Proof using.
     red; splits; ins; desc; subst.
       by apply Time.le_lteq; eauto.
       right; exists b; splits; try apply Time.le_lteq; eauto.
@@ -23,7 +23,7 @@ Section MaxValue.
 
   Lemma max_value_new_f f f' P t 
         (MAX: max_value f P t) (F: forall x, P x -> f' x = f x): max_value f' P t.
-  Proof.
+  Proof using.
     unfold max_value in *; ins; desf; splits; ins.
     all: try rewrite F; auto.
     right; exists a_max; rewrite F; auto.
@@ -31,7 +31,7 @@ Section MaxValue.
 
   Lemma max_value_same_set f P P' t 
         (MAX: max_value f P t) (SAME: P' ≡₁ P): max_value f P' t.
-  Proof.
+  Proof using.
     unfolder in *; desc.
     unfold max_value in *; ins; desf; splits; ins.
     all: try specialize (SAME a); desf; eauto.
@@ -42,7 +42,7 @@ Section MaxValue.
         (MAX: max_value f P t) (MAX':  max_value f P' t')
         (SAME_: P'' ≡₁ P ∪₁ P'):
     max_value f P'' (Time.join t t').
-  Proof.
+  Proof using.
     assert (SAME: forall x, P'' x <-> P x \/ P' x).
       by unfolder in *; basic_solver 12.
     unfold max_value in *; ins; desf; splits; ins.
@@ -72,7 +72,7 @@ Section MaxValue.
         (SAME_: P' ≡₁ P ∪₁ eq b)
         (F: forall x, P x -> f' x = f x):
     max_value f' P'  (Time.join t (f' b)).
-  Proof.
+  Proof using.
     assert (SAME: forall x, P' x <-> P x \/ eq b x).
       by unfolder in *; basic_solver 12.
     eapply max_value_join with (P':= eq b); eauto.
@@ -81,7 +81,7 @@ Section MaxValue.
   Qed.
 
   Lemma max_value_empty f P (SAME: forall x, ~ P x): max_value f P Time.bot.
-  Proof.
+  Proof using.
     red; splits.
     ins; exfalso; eapply SAME; edone.
     left; splits; eauto.
@@ -92,7 +92,7 @@ Section MaxValue.
         (MAX: max_value f P (LocFun.find l tm))
         (LT: Time.lt (f b) (f c))
         (IN: P c) : False.
-  Proof.
+  Proof using.
     unfold LocFun.find in *.
     red in MAX; desf.
     eby eapply MAX0.
@@ -105,7 +105,7 @@ Section MaxValue.
         (MAX: max_value f P (LocFun.find l tm))
         (LT2: Time.lt (tm l) t)
         (IN: P b) : False.
-  Proof.
+  Proof using.
     unfold LocFun.find in *.
     red in MAX; desf.
     eby eapply MAX0.
@@ -116,7 +116,7 @@ Section MaxValue.
   Qed.
   
 Lemma time_lt_bot a : ~ Time.lt a Time.bot.
-Proof.
+Proof using.
   intros H.
   destruct (classic (a = Time.bot)) as [|NEQ]; subst.
   all: eapply Time.lt_strorder; etransitivity; eauto.
@@ -127,7 +127,7 @@ Qed.
 Lemma max_value_le_join f (P P' : A -> Prop) t
       (LT: forall x, P' x -> Time.lt (f x) t) :
   max_value f (P ∪₁ P') t -> max_value f P t.
-Proof.
+Proof using.
   intros MAX; red in MAX; desf; red; split; unnw; ins.
   1,3: by apply UB; left.
   { destruct (classic (exists a, P a)) as [[a PP]|NN]; [right|left].
@@ -142,7 +142,7 @@ Qed.
 Lemma max_value_same_value f S a b
       (H : max_value f S a) (B : max_value f S b) :
   a = b.
-Proof.
+Proof using.
   red in H; red in B; desf.
   { exfalso. eapply MAX; eauto. }
   { exfalso. eapply MAX0; eauto. }
@@ -155,7 +155,7 @@ Qed.
 Lemma timemap_same_max_value_implies_eq f S (a b : TimeMap.t)
       (H : forall l, max_value f (S l) (a l)) (B : forall l, max_value f (S l) (b l)):
   a = b.
-Proof.
+Proof using.
   apply LocFun.ext.
   intros l. specialize (H l). specialize (B l).
   eapply max_value_same_value; eauto.
@@ -167,7 +167,7 @@ Lemma view_same_max_value_implies_eq f S a b
       (H : forall l, max_value f (S l) (View.rlx a l))
       (B : forall l, max_value f (S l) (View.rlx b l)) :
   a = b.
-Proof.
+Proof using.
   apply View.ext.
   rewrite A_PLN_RLX. rewrite B_PLN_RLX.
   all: eapply timemap_same_max_value_implies_eq; eauto.
@@ -175,7 +175,7 @@ Qed.
 
 Lemma max_value_bot_f S :
   max_value (fun _ => Time.bot) S Time.bot.
-Proof.
+Proof using.
   red. splits.
   { ins. apply Time.bot_spec. }
   destruct (classic (exists e, S e)) as [[e SE]|SE]; [right|left].

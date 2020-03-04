@@ -101,7 +101,7 @@ basic_solver 10.
 Qed.
 
 (* Lemma rmw_sb_W_in_ppo WF : rmw ⨾ sb ⨾ ⦗W⦘ ⊆ ppo. *)
-(* Proof. *)
+(* Proof using. *)
 (* unfold ppo; rewrite (wf_rmwD WF). *)
 (* rewrite (dom_l (wf_rmwD WF)), R_ex_in_R at 1. *)
 (* rewrite (rmw_in_sb WF) at 1. *)
@@ -208,7 +208,7 @@ Qed.
 (* TODO: move to a more appropriate place. *)
 Lemma rmw_sb_loc_in_rmw_coi WF (SPL : sc_per_loc G) :
   rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?.
-Proof.
+Proof using.
   rewrite !crE, !seq_union_r, !seq_id_r.
   apply union_mori; [done|].
   rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.

@@ -49,17 +49,17 @@ Definition is_init a :=
 Definition same_tid := (fun x y => tid x = tid y).
 
 Lemma restr_eq_rel_same_tid r :  restr_eq_rel tid r  ≡ r ∩ same_tid.
-Proof. unfold same_tid; basic_solver. Qed.
+Proof using. unfold same_tid; basic_solver. Qed.
 
 Lemma loceq_same_tid (r: relation actid) (H: funeq tid r):
  r ⊆ r ∩ same_tid.
-Proof.
+Proof using.
 unfold same_tid; basic_solver.
 Qed.
 
 Lemma same_tid_loceq (r: relation actid) (H: r ⊆ r ∩ same_tid):
  funeq tid r.
-Proof.
+Proof using.
 unfold same_tid; unfolder; firstorder.
 Qed.
 
@@ -69,7 +69,7 @@ Qed.
 
 Lemma eq_dec_actid :
   forall x y : actid, {x = y} + {x <> y}.
-Proof.
+Proof using.
 repeat decide equality.
 Qed.
 
@@ -214,7 +214,7 @@ Definition is_sc a : bool :=
 Definition is_ra a : bool := is_acq a || is_rel a.
 
 Lemma lab_rwf a : is_r a \/ is_w a \/ is_f a.
-Proof. unfold is_r, is_w, is_f; destruct (lab a); auto. Qed.
+Proof using. unfold is_r, is_w, is_f; destruct (lab a); auto. Qed.
 
 Definition is_xacq a := 
   match xmod a with
@@ -229,7 +229,7 @@ Definition R_ex a :=
   end.
 
 Lemma R_ex_in_R : R_ex ⊆₁ is_r.
-Proof.
+Proof using.
 unfold R_ex, is_r; basic_solver.
 Qed.
 
@@ -247,41 +247,41 @@ Definition rmwmod a :=
 Definition same_loc := (fun x y => loc x = loc y).
 
 Lemma restr_eq_rel_same_loc r :  restr_eq_rel loc r  ≡ r ∩ same_loc.
-Proof. unfold same_loc; basic_solver. Qed.
+Proof using. unfold same_loc; basic_solver. Qed.
 
 Lemma loceq_same_loc (r: relation A) (H: funeq loc r):
  r ⊆ r ∩ same_loc.
-Proof.
+Proof using.
 unfold same_loc; basic_solver.
 Qed.
 
 Lemma same_loc_loceq (r: relation A) (H: r ⊆ r ∩ same_loc):
  funeq loc r.
-Proof.
+Proof using.
 unfold same_loc; unfolder; firstorder.
 Qed.
 
 Lemma same_loc_trans : transitive same_loc.
-Proof. unfold same_loc; red; ins. by rewrite H. Qed.
+Proof using. unfold same_loc; red; ins. by rewrite H. Qed.
 
 Lemma same_loc_sym : symmetric same_loc.
-Proof. unfold same_loc; red; ins. Qed.
+Proof using. unfold same_loc; red; ins. Qed.
 
 (******************************************************************************)
 (** ** Values and locations getters  *)
 (******************************************************************************)
 
 Lemma is_w_val x (WX : is_w x) : exists v, val x = Some v.
-Proof. unfold is_w, val in *; desf. eexists; eauto. Qed.
+Proof using. unfold is_w, val in *; desf. eexists; eauto. Qed.
 
 Lemma is_w_loc x (WX : is_w x) : exists l, loc x = Some l.
-Proof. unfold is_w, loc in *; desf. eexists; eauto. Qed.
+Proof using. unfold is_w, loc in *; desf. eexists; eauto. Qed.
 
 Lemma is_r_val x (WX : is_r x) : exists v, val x = Some v.
-Proof. unfold is_r, val in *; desf. eexists; eauto. Qed.
+Proof using. unfold is_r, val in *; desf. eexists; eauto. Qed.
 
 Lemma is_r_loc x (WX : is_r x) : exists l, loc x = Some l.
-Proof. unfold is_r, loc in *; desf. eexists; eauto. Qed.
+Proof using. unfold is_r, loc in *; desf. eexists; eauto. Qed.
 
 End Labels.
 
@@ -325,15 +325,15 @@ Ltac same_lab_set_solver_f SAME :=
 
 Lemma same_lab_u2v_dom_loc (SAME: same_lab_u2v_dom) :
   eq_dom s (loc lab1) (loc lab2).
-Proof. same_lab_set_solver_f SAME. Qed.
+Proof using. same_lab_set_solver_f SAME. Qed.
 
 Lemma same_lab_u2v_dom_mod (SAME: same_lab_u2v_dom) :
   eq_dom s (mod lab1) (mod lab2).
-Proof. same_lab_set_solver_f SAME. Qed.
+Proof using. same_lab_set_solver_f SAME. Qed.
 
 Lemma same_lab_u2v_dom_xmod (SAME: same_lab_u2v_dom) :
   eq_dom s (xmod lab1) (xmod lab2).
-Proof. same_lab_set_solver_f SAME. Qed.
+Proof using. same_lab_set_solver_f SAME. Qed.
 
 Ltac same_lab_set_solver_s SAME :=
   repeat (autounfold with same_lab_unfoldDb in *); unfolder;
@@ -341,59 +341,59 @@ Ltac same_lab_set_solver_s SAME :=
 
 Lemma same_lab_u2v_dom_is_r (SAME: same_lab_u2v_dom) :
   s ∩₁ is_r lab1 ≡₁ s ∩₁ is_r lab2.
-Proof. same_lab_set_solver_s SAME. Qed.
+Proof using. same_lab_set_solver_s SAME. Qed.
 
 Lemma same_lab_u2v_dom_is_w (SAME: same_lab_u2v_dom) :
   s ∩₁ is_w lab1 ≡₁ s ∩₁ is_w lab2.
-Proof. same_lab_set_solver_s SAME. Qed.
+Proof using. same_lab_set_solver_s SAME. Qed.
 
 Lemma same_lab_u2v_dom_is_f (SAME: same_lab_u2v_dom) :
   s ∩₁ is_f lab1 ≡₁ s ∩₁ is_f lab2.
-Proof. same_lab_set_solver_s SAME. Qed.
+Proof using. same_lab_set_solver_s SAME. Qed.
 
 Lemma same_lab_u2v_dom_R_ex (SAME: same_lab_u2v_dom) :
   s ∩₁ R_ex lab1 ≡₁ s ∩₁ R_ex lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_only_pln (SAME: same_lab_u2v_dom) :
   s ∩₁ is_only_pln lab1 ≡₁ s ∩₁ is_only_pln lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_only_rlx (SAME: same_lab_u2v_dom) :
   s ∩₁ is_only_rlx lab1 ≡₁ s ∩₁ is_only_rlx lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_rlx (SAME: same_lab_u2v_dom) :
   s ∩₁ is_rlx lab1 ≡₁ s ∩₁ is_rlx lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_acq (SAME: same_lab_u2v_dom) :
   s ∩₁ is_acq lab1 ≡₁ s ∩₁ is_acq lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_rel (SAME: same_lab_u2v_dom) :
   s ∩₁ is_rel lab1 ≡₁ s ∩₁ is_rel lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_acqrel (SAME: same_lab_u2v_dom) :
   s ∩₁ is_acqrel lab1 ≡₁ s ∩₁ is_acqrel lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_sc (SAME: same_lab_u2v_dom) :
   s ∩₁ is_sc lab1 ≡₁ s ∩₁ is_sc lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_is_ra (SAME: same_lab_u2v_dom) :
   s ∩₁ is_ra lab1 ≡₁ s ∩₁ is_ra lab2.
-Proof. same_lab_set_solver_s SAME; desf. all: by rewrite Bool.orb_true_r. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. all: by rewrite Bool.orb_true_r. Qed.
 
 Lemma same_lab_u2v_dom_is_xacq (SAME: same_lab_u2v_dom) :
   s ∩₁ is_xacq lab1 ≡₁ s ∩₁ is_xacq lab2.
-Proof. same_lab_set_solver_s SAME; desf. Qed.
+Proof using. same_lab_set_solver_s SAME; desf. Qed.
 
 Lemma same_lab_u2v_dom_same_loc (SAME: same_lab_u2v_dom) :
   restr_rel s (same_loc lab1) ≡ restr_rel s (same_loc lab2).
-Proof.
+Proof using.
   unfolder. split.
   all: ins; desf; splits; auto.
   all: unfold same_loc, loc, same_lab_u2v_dom, same_label_u2v in *.
@@ -407,7 +407,7 @@ Lemma same_label_u2v_val {A} (lab lab' : A -> label) x
       (U2V : same_label_u2v (lab x) (lab' x))
       (VAL : val lab x = val lab' x) :
   lab x = lab' x.
-Proof. unfold same_label_u2v, val in *. desf; desf. Qed.
+Proof using. unfold same_label_u2v, val in *. desf; desf. Qed.
 
 Section SameFuns.
 
@@ -419,71 +419,71 @@ Definition same_lab_u2v :=
 
 Lemma same_lab_u2v_loc (SAME: same_lab_u2v) :
   loc lab1 = loc lab2.
-Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_loc. Qed.
+Proof using. apply eq_dom_full_eq. by apply same_lab_u2v_dom_loc. Qed.
 
 Lemma same_lab_u2v_mod (SAME: same_lab_u2v) :
   mod lab1 = mod lab2.
-Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_mod. Qed.
+Proof using. apply eq_dom_full_eq. by apply same_lab_u2v_dom_mod. Qed.
 
 Lemma same_lab_u2v_xmod (SAME: same_lab_u2v) :
   xmod lab1 = xmod lab2.
-Proof. apply eq_dom_full_eq. by apply same_lab_u2v_dom_xmod. Qed.
+Proof using. apply eq_dom_full_eq. by apply same_lab_u2v_dom_xmod. Qed.
 
 Lemma same_lab_u2v_is_r (SAME: same_lab_u2v) :
   is_r lab1 ≡₁ is_r lab2.
-Proof. generalize (same_lab_u2v_dom_is_r SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_r SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_w (SAME: same_lab_u2v) :
   is_w lab1 ≡₁ is_w lab2.
-Proof. generalize (same_lab_u2v_dom_is_w SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_w SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_f (SAME: same_lab_u2v) :
   is_f lab1 ≡₁ is_f lab2.
-Proof. generalize (same_lab_u2v_dom_is_f SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_f SAME). relsf. Qed.
 
 Lemma same_lab_u2v_R_ex (SAME: same_lab_u2v) :
   R_ex lab1 ≡₁ R_ex lab2.
-Proof. generalize (same_lab_u2v_dom_R_ex SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_R_ex SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_only_pln (SAME: same_lab_u2v) :
   is_only_pln lab1 ≡₁ is_only_pln lab2.
-Proof. generalize (same_lab_u2v_dom_is_only_pln SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_only_pln SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_only_rlx (SAME: same_lab_u2v) :
   is_only_rlx lab1 ≡₁ is_only_rlx lab2.
-Proof. generalize (same_lab_u2v_dom_is_only_rlx SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_only_rlx SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_rlx (SAME: same_lab_u2v) :
   is_rlx lab1 ≡₁ is_rlx lab2.
-Proof. generalize (same_lab_u2v_dom_is_rlx SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_rlx SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_acq (SAME: same_lab_u2v) :
   is_acq lab1 ≡₁ is_acq lab2.
-Proof. generalize (same_lab_u2v_dom_is_acq SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_acq SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_rel (SAME: same_lab_u2v) :
   is_rel lab1 ≡₁ is_rel lab2.
-Proof. generalize (same_lab_u2v_dom_is_rel SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_rel SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_acqrel (SAME: same_lab_u2v) :
   is_acqrel lab1 ≡₁ is_acqrel lab2.
-Proof. generalize (same_lab_u2v_dom_is_acqrel SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_acqrel SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_sc (SAME: same_lab_u2v) :
   is_sc lab1 ≡₁ is_sc lab2.
-Proof. generalize (same_lab_u2v_dom_is_sc SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_sc SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_ra (SAME: same_lab_u2v) :
   is_ra lab1 ≡₁ is_ra lab2.
-Proof. generalize (same_lab_u2v_dom_is_ra SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_ra SAME). relsf. Qed.
 
 Lemma same_lab_u2v_is_xacq (SAME: same_lab_u2v) :
   is_xacq lab1 ≡₁ is_xacq lab2.
-Proof. generalize (same_lab_u2v_dom_is_xacq SAME). relsf. Qed.
+Proof using. generalize (same_lab_u2v_dom_is_xacq SAME). relsf. Qed.
 
 Lemma same_lab_u2v_same_loc (SAME: same_lab_u2v) :
   same_loc lab1 ≡ same_loc lab2.
-Proof. generalize (same_lab_u2v_dom_same_loc SAME). by rewrite !restr_full. Qed.
+Proof using. generalize (same_lab_u2v_dom_same_loc SAME). by rewrite !restr_full. Qed.
 End SameFuns.
 
 Section SameFuns2.
@@ -491,7 +491,7 @@ Section SameFuns2.
 Lemma same_lab_u2v_comm {A} (lab1 lab2 : A -> label)
       (S1 : same_lab_u2v lab1 lab2) :
   same_lab_u2v lab2 lab1.
-Proof.
+Proof using.
   unfold same_lab_u2v, same_lab_u2v_dom. ins.
   specialize (S1 e EE).
   unfold same_label_u2v in *.
@@ -501,30 +501,30 @@ Qed.
 Lemma same_lab_u2v_follows_set {A} s (lab1 lab2 : A -> label)
       (S1 : same_lab_u2v lab1 lab2) :
   same_lab_u2v_dom s lab1 lab2.
-Proof. unfold same_lab_u2v, same_lab_u2v_dom in *. ins. by apply S1. Qed.
+Proof using. unfold same_lab_u2v, same_lab_u2v_dom in *. ins. by apply S1. Qed.
 
 Lemma same_lab_u2v_dom_inclusion {A} s s' (lab lab' : A -> label)
       (SS : s' ⊆₁ s)
       (S1 : same_lab_u2v_dom s lab lab') :
   same_lab_u2v_dom s' lab lab'.
-Proof. red. ins. apply S1. by apply SS. Qed.
+Proof using. red. ins. apply S1. by apply SS. Qed.
 
 Lemma same_label_u2v_trans lbl1 lbl2 lbl3
       (S1 : same_label_u2v lbl1 lbl2)
       (S2 : same_label_u2v lbl2 lbl3) :
   same_label_u2v lbl1 lbl3.
-Proof. unfold same_label_u2v in *. desf; desf. Qed.
+Proof using. unfold same_label_u2v in *. desf; desf. Qed.
 
 Lemma same_label_u2v_comm lbl1 lbl2
       (S1 : same_label_u2v lbl1 lbl2) :
   same_label_u2v lbl2 lbl1.
-Proof. unfold same_label_u2v in *. desf; desf. Qed.
+Proof using. unfold same_label_u2v in *. desf; desf. Qed.
 
 Lemma same_lab_u2v_dom_trans {A} (s : A -> Prop) lab1 lab2 lab3
       (S1 : same_lab_u2v_dom s lab1 lab2)
       (S2 : same_lab_u2v_dom s lab2 lab3) :
   same_lab_u2v_dom s lab1 lab3.
-Proof.
+Proof using.
   red. ins.
   specialize (S1 e EE).
   specialize (S2 e EE).
@@ -534,7 +534,7 @@ Qed.
 Lemma same_lab_u2v_dom_comm {A} (s : A -> Prop) lab1 lab2
       (S2 : same_lab_u2v_dom s lab1 lab2) :
   same_lab_u2v_dom s lab2 lab1.
-Proof.
+Proof using.
   red. ins. specialize (S2 e EE).
     by apply same_label_u2v_comm.
 Qed.
@@ -542,7 +542,7 @@ Qed.
 Lemma same_lab_u2v_dom_same_mod {A} (lab lab' : A -> label) (s : A -> Prop)
       (SAME: same_lab_u2v_dom s lab lab') :
   restr_rel s (same_mod lab) ≡ restr_rel s (same_mod lab').
-Proof.
+Proof using.
   unfolder. split.
   all: ins; desf; splits; auto.
   all: unfold same_mod, mod, same_lab_u2v_dom, same_label_u2v in *.
@@ -566,27 +566,27 @@ Definition ext_sb a b :=
    end.
 
 Lemma ext_sb_trans : transitive ext_sb.
-Proof.
+Proof using.
 unfold ext_sb; red; ins.
 destruct x,y,z; ins; desf; splits; eauto.
 by rewrite H2.
 Qed.
 
 Lemma ext_sb_irr : irreflexive ext_sb.
-Proof.
+Proof using.
 unfold ext_sb; red; ins.
 destruct x; firstorder.
 Qed.
 
 Lemma ext_sb_to_non_init : ext_sb ⊆ ext_sb ⨾  ⦗fun x => ~ is_init x⦘.
-Proof.
+Proof using.
 unfold is_init, ext_sb; basic_solver.
 Qed.
 
 Lemma ext_sb_semi_total_l x y z 
   (N: ~ is_init x) (NEQ: index y <> index z) (XY: ext_sb x y) (XZ: ext_sb x z): 
   ext_sb y z \/ ext_sb z y.
-Proof.
+Proof using.
 unfold ext_sb in *.
 destruct x,y,z; ins; desf.
 cut(index1 < index2 \/ index2 < index1).
@@ -597,7 +597,7 @@ Qed.
 Lemma ext_sb_semi_total_r x y z 
   (NEQ: index y <> index z) (XY: ext_sb y x) (XZ: ext_sb z x): 
   ext_sb y z \/ ext_sb z y.
-Proof.
+Proof using.
 unfold ext_sb in *.
 destruct x,y,z; ins; desf; eauto.
 cut(index1 < index2 \/ index2 < index1).
@@ -606,17 +606,17 @@ omega.
 Qed.
 
 Lemma ext_sb_tid_init x y (SB : ext_sb x y): tid x = tid y \/ is_init x.
-Proof.
+Proof using.
 unfold ext_sb in *; desf; ins; desf; eauto.
 Qed.
 
 Lemma ext_sb_tid_init': ext_sb ⊆ ext_sb ∩ same_tid ∪ ⦗is_init⦘ ⨾ ext_sb.
-Proof.
+Proof using.
 generalize ext_sb_tid_init; firstorder.
 Qed.
 
 Lemma tid_ext_sb: same_tid ⊆ ext_sb^? ∪ ext_sb^{-1} ∪ (is_init × is_init).
-Proof.
+Proof using.
 unfold ext_sb, same_tid, tid, is_init, cross_rel; unfolder.
 ins; destruct x, y; desf; eauto.
 cut(index0 < index1 \/ index1 < index0 \/ index0 = index1).
@@ -625,7 +625,7 @@ omega.
 Qed.
 
 Lemma tid_n_init_ext_sb: same_tid ⨾ ⦗set_compl is_init⦘ ⊆ ext_sb^? ∪ ext_sb^{-1}.
-Proof.
+Proof using.
 rewrite tid_ext_sb at 1.
 unfold cross_rel.
 basic_solver 12.
@@ -637,10 +637,10 @@ Qed.
 
 Lemma is_init_tid : 
   is_init ⊆₁ fun x => tid x = tid_init. 
-Proof. unfolder. unfold is_init. ins. desf. Qed.
+Proof using. unfolder. unfold is_init. ins. desf. Qed.
 
 Lemma initninit_in_ext_sb : is_init × (set_compl is_init) ⊆ ext_sb.
-Proof. unfold ext_sb. basic_solver. Qed.
+Proof using. unfold ext_sb. basic_solver. Qed.
 
 (******************************************************************************)
 (** ** Tactics *)

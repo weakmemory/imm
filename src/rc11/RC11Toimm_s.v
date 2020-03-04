@@ -74,7 +74,7 @@ Lemma s_imm_consistentimplies_rc11_consistent (WF: Wf G)
       (COND: ⦗R \₁ Acq⦘ ⨾ sb ⨾ ⦗W \₁ Rel⦘ ⊆ sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⨾ sb ∪ ⦗R⦘ ⨾ deps ⨾ ⦗W⦘ ∪ rmw) sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   rc11_consistent G.
-Proof.
+Proof using.
   cdes IPC. cdes IC.
   red. splits; auto.
   rewrite rfi_union_rfe with (G:=G). 

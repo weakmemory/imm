@@ -94,7 +94,7 @@ Lemma fence_step PC T f_to f_from thread f smode
     ⟪ SIMREL :
         smode = sim_normal -> simrel G sc PC T f_to f_from ->
         simrel G sc PC' T' f_to f_from ⟫.
-Proof.
+Proof using All.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
   
   assert (sc_per_loc G) as SC_PER_LOC.

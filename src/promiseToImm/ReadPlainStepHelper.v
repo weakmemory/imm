@@ -128,7 +128,7 @@ Lemma read_step_helper PC T f_to f_from r w locr valr rel smode
   ⟪ SIM_TVIEW : sim_tview G sc (covered T') f_to tview' (tid r) ⟫ /\
   ⟪ PLN_RLX_EQ : pln_rlx_eq tview' ⟫ /\
   ⟪ MEM_CLOSE : memory_close tview' PC.(Configuration.memory) ⟫.
-Proof.
+Proof using All.
   simpls.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
   set (X := STATE).

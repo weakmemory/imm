@@ -91,7 +91,7 @@ Lemma global_sc_helper
   ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾
     (⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb' ∪ eco) ⨾ ⦗RW∩₁Sc⦘)＊ ⨾
       eco^? ⨾ hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc_f⁺.
-Proof.
+Proof using WF.
   assert (transitive eco) as TECO by (by apply eco_trans).
   assert (transitive hb ) as THB  by (by apply hb_trans).
 
@@ -131,11 +131,11 @@ Lemma RW_scb_RW :
   ⦗RW∩₁Sc⦘ ⨾
     (sb ∪ sb_neq_loc ⨾ hb ⨾ sb_neq_loc ∪ ⦗RW⦘ ⨾ (hb∩same_loc) ⨾ ⦗RW⦘ ∪ co ∪ fr)
       ⨾ ⦗RW∩₁Sc⦘.
-Proof. unfold imm.scb; basic_solver 42. Qed.
+Proof using. unfold imm.scb; basic_solver 42. Qed.
 
 Lemma psc_base_rw_rw :
   ⦗RW∩₁Sc⦘ ⨾ psc_base ⨾ ⦗RW∩₁Sc⦘ ⊆ ⦗RW∩₁Sc⦘ ⨾ scb ⨾ ⦗RW∩₁Sc⦘.
-Proof.
+Proof using.
   unfold imm.psc, imm.psc_base. rewrite !seqA.
   rewrite !crE.
   rewrite !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
@@ -147,14 +147,14 @@ Proof.
 Qed.
 
 Lemma scb_in_hb_eco : scb ⊆ hb ∪ eco.
-Proof.
+Proof using.
   unfold imm.scb. rewrite sb_in_hb, co_in_eco, fr_in_eco.
   generalize (@hb_trans G). basic_solver.
 Qed.
 
 Lemma psc_base_f :
   ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ ar⁺.
-Proof.
+Proof using WF.
   unfold imm.psc, imm.psc_base, imm.scb.
   rewrite sb_in_hb, co_in_eco, fr_in_eco.
   arewrite (hb ∪ (hb \ same_loc) ⨾ hb ⨾ (hb \ same_loc) ∪ hb ∩ same_loc ⊆ hb).
@@ -177,7 +177,7 @@ Qed.
 
 Lemma psc_base_rw_f :
   ⦗RW∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘ ⊆ ⦗RW∩₁Sc⦘ ⨾ eco^? ⨾ hb ⨾ (⦗F∩₁Sc⦘).
-Proof.
+Proof using WF.
   unfold imm.psc, imm.psc_base.
   rewrite scb_in_hb_eco; auto. rewrite !seqA.
   arewrite (⦗RW ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⨾ (⦗F⦘ ⨾ hb)^? ⊆ ⦗RW ∩₁ Sc⦘).
@@ -191,7 +191,7 @@ Qed.
 
 Lemma psc_base_f_rw :
   ⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗RW∩₁Sc⦘ ⊆ ⦗F∩₁Sc⦘ ⨾ hb ⨾ eco^? ⨾ (⦗RW∩₁Sc⦘).
-Proof.
+Proof using WF.
   unfold imm.psc, imm.psc_base.
   rewrite scb_in_hb_eco; auto. rewrite !seqA.
   arewrite ((hb ⨾ ⦗F⦘)^? ⨾ ⦗Sc⦘ ⨾ ⦗RW ∩₁ Sc⦘ ⊆ ⦗RW ∩₁ Sc⦘).
@@ -204,7 +204,7 @@ Proof.
 Qed.
 
 Lemma psc_base_f_f : (⦗F∩₁Sc⦘ ⨾ psc_base ⨾ ⦗F∩₁Sc⦘) ⊆ psc_f.
-Proof.
+Proof using WF.
   unfold imm.psc_f, imm.psc_base.
   rewrite scb_in_hb_eco.
   rewrite !crE.
@@ -230,7 +230,7 @@ Lemma global_scb_rw_acyc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic psc) :
   acyclic (⦗RW ∩₁ Sc⦘ ⨾ scb ⨾ ⦗RW ∩₁ Sc⦘).
-Proof.
+Proof using COH COMP SC_PER_LOC WF.
   rewrite RW_scb_RW.
   rewrite hb_loc_in_eco; auto.
   arewrite (sb_neq_loc ⊆ sb').
@@ -270,7 +270,7 @@ Lemma global_sc
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic psc_f) :
   acyclic (psc_f ∪ psc_base).
-Proof.
+Proof using COH COMP SC_PER_LOC WF.
   assert (transitive eco) as TECO by (by apply eco_trans).
   assert (transitive hb ) as THB  by (by apply hb_trans).
 
@@ -331,7 +331,7 @@ Lemma global_sc_ar
       (HSC: ⦗RW∩₁Sc⦘ ⨾ (sb' ∪ sb' ⨾ hb ⨾ sb') ⨾ ⦗RW∩₁Sc⦘ ⊆ hb ⨾ ⦗F∩₁Sc⦘ ⨾ hb)
       (ACYC: acyclic ar) :
   acyclic (psc_f ∪ psc_base).
-Proof.
+Proof using COH COMP SC_PER_LOC WF.
   apply global_sc; auto.
   arewrite (psc_f ⊆ ar⁺); auto.
   2: { red. by rewrite ct_of_ct. }

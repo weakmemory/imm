@@ -98,7 +98,7 @@ Lemma rlx_write_cover_step PC T f_to f_from thread w smode
     ⟪ SIMREL :
         smode = sim_normal -> simrel G sc PC T f_to f_from ->
         simrel G sc PC' T' f_to f_from ⟫.
-Proof.
+Proof using All.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
 
   assert (sc_per_loc G) as SC_PER_LOC.
@@ -506,7 +506,7 @@ Lemma rlx_write_promise_step PC T f_to f_from thread w smode
     ⟪ SIMREL :
         smode = sim_normal -> simrel G sc PC T f_to f_from ->
         simrel G sc PC' T' f_to' f_from' ⟫.
-Proof.
+Proof using All.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
 
   assert (W w /\ E w) as [TYPE WACT].
@@ -640,7 +640,7 @@ Lemma rel_write_step PC T f_to f_from thread w smode
     ⟪ SIMREL :
         smode = sim_normal -> simrel G sc PC T f_to f_from ->
         simrel G sc PC' T' f_to' f_from' ⟫.
-Proof.
+Proof using All.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
 
   assert (~ covered T w) as WNCOV.

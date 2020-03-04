@@ -83,14 +83,14 @@ Definition PowerConsistent :=
 Implicit Type CON : PowerConsistent.
 
 Lemma CON_WF CON : Wf G.
-Proof. apply CON. Qed.
+Proof using. apply CON. Qed.
 
 (******************************************************************************)
 (** ** Relations in graph *)
 (******************************************************************************)
 
 Lemma wf_hbE WF: hb ≡ ⦗E⦘ ⨾ hb ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold hb.
 rewrite (wf_ppoE WF) at 1.
@@ -100,7 +100,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_prop1E WF: prop1 ≡ ⦗E⦘ ⨾ prop1 ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold prop1.
 rewrite (wf_rfeE WF) at 1.
@@ -113,7 +113,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_prop2E WF: prop2 ≡ ⦗E⦘ ⨾ prop2 ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold prop2.
 rewrite (wf_coeE WF) at 1.
@@ -129,7 +129,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_propE WF: prop ≡ ⦗E⦘ ⨾ prop ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold prop.
 rewrite (wf_prop1E WF) at 1.
@@ -142,7 +142,7 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_hbD WF: hb ≡ ⦗RW⦘ ⨾ hb ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold hb.
 rewrite (wf_ppoD WF) at 1.
@@ -152,7 +152,7 @@ type_solver 42.
 Qed.
 
 Lemma wf_cthbD WF: hb⁺ ≡ ⦗RW⦘ ⨾ hb⁺ ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 rewrite (dom_r (wf_hbD WF)) at 1.
 rewrite inclusion_ct_seq_eqv_r at 1.
@@ -166,17 +166,17 @@ Qed.
 (******************************************************************************)
 
 Lemma rfe_in_hb : rfe ⊆ hb.
-Proof.
+Proof using.
 vauto.
 Qed.
 
 Lemma fence_in_hb : fence ⊆ hb.
-Proof.
+Proof using.
 vauto.
 Qed.
 
 Lemma ctrli_RW_in_hb WF : ctrli ⨾ ⦗RW⦘ ⊆ hb.
-Proof.
+Proof using.
 unfold hb; rewrite ctrli_RW_in_ppo; basic_solver.
 Qed.
 
@@ -185,7 +185,7 @@ Qed.
 (******************************************************************************)
 
 Lemma hb_helper WF: hb＊ ⊆ sb^? ∪ sb^? ⨾ rfe ⨾ hb＊.
-Proof.
+Proof using.
 rewrite rtE; relsf; unionL; [basic_solver|].
 unfold hb.
 rewrite path_ut_first at 1.
@@ -197,7 +197,7 @@ Qed.
 
 Lemma sync_hb_rbi WF: 
   sync ⨾ hb＊ ⨾ fri ⊆ sync ⨾ hb＊ ⨾ co^?.
-Proof.
+Proof using.
   rewrite rtEE at 1; relsf; unionL; ins.
   induction x.
   - (* x = 0 *)
@@ -225,7 +225,7 @@ Qed.
 
 Lemma lwsync_hb_rbi WF: 
   lwsync ⨾ hb＊ ⨾ fri ⊆ lwsync ⨾ hb＊ ⨾ co^?.
-Proof.
+Proof using.
   rewrite rtEE at 1; relsf; unionL; ins.
   induction x.
   - (* x = 0 *)
@@ -253,7 +253,7 @@ Qed.
 
 Proposition fence_hb_fri WF: 
   fence ⨾ hb＊ ⨾ fri ⊆ fence ⨾ hb＊ ⨾ co^?.
-Proof.
+Proof using.
 unfold Power_fences.fence.
 generalize (sync_hb_rbi WF) (lwsync_hb_rbi WF).
 relsf.
@@ -263,7 +263,7 @@ Qed.
 (* Proposition F.11 *)
 Proposition fence_hb WF: 
   fence ⨾ hb＊ ⊆ sb ∪ fence ⨾ ⦗W⦘ ⨾ hb＊.
-Proof.
+Proof using.
 rewrite rtE at 1. relsf.
 apply inclusion_union_l.
 - rewrite fence_in_sb at 1; basic_solver.
@@ -290,7 +290,7 @@ Qed.
 (* Proposition F.12 *)
 Proposition RW_sb_fence_hb_sync WF:
   ⦗RW⦘ ⨾ sb ⨾ (fence ⨾ hb＊)^? ⨾ sync ⊆ (fence ⨾ hb＊)^? ⨾ sync.
-Proof.
+Proof using.
 rewrite (fence_hb WF) at 1; auto.
 rewrite cr_union_r.
 relsf.
@@ -301,7 +301,7 @@ Qed.
 
 Proposition eco_fench_hb_acyclic CON:
   acyclic (eco^? ⨾ (fence ⨾ hb＊)^? ⨾ sync ⨾ hb＊).
-Proof.
+Proof using.
   rewrite eco_refl, seq_union_l.
   remember (((co ∪ fre)^? ⨾ rf^? ∪ fri ⨾ (rfi)^?) ⨾ (fence ⨾ hb＊)^? ⨾ sync ⨾ hb＊) as A.
   remember ((fri ⨾ rfe) ⨾ (fence ⨾ hb＊)^? ⨾ sync ⨾ hb＊) as B.
@@ -349,7 +349,7 @@ Qed.
 Definition S := sb^? ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ rfe ⨾ hb＊ ⨾ (sb ⨾ ⦗F^lwsync⦘ ∪ (eco ∩ sb))^?.
 
 Lemma S_helper_1 WF: rfe ⨾ hb＊ ⊆ rfe ⨾ hb＊ ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 rewrite (dom_r (wf_rfeD WF)) at 1.
 rewrite rtE.
 rewrite (dom_r (wf_cthbD WF)) at 1.
@@ -358,7 +358,7 @@ Qed.
 
 Lemma S_helper_2: 
  ⦗RW⦘ ⨾ (sb ⨾ ⦗F^lwsync⦘ ∪ eco ∩ sb)^? ⨾ sb^? ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗W⦘  ⊆ fence.
-Proof.
+Proof using.
 unfold Power_fences.fence; rewrite lwsync_alt.
 arewrite ((sb ⨾ ⦗F^lwsync⦘ ∪ eco ∩ sb)^? ⨾ sb^? ⊆ sb^?).
 generalize (@sb_trans G); basic_solver.
@@ -367,7 +367,7 @@ basic_solver 20.
 Qed.
 
 Lemma S_trans WF : transitive S.
-Proof.
+Proof using.
 apply transitiveI.
 unfold S.
 sin_rewrite (S_helper_1 WF).
@@ -380,7 +380,7 @@ rels.
 Qed.
 
 Lemma S_irr CON : irreflexive (S ⨾ sb^?).
-Proof.
+Proof using.
 unfold S.
 sin_rewrite (S_helper_1 (CON_WF CON)).
 rewrite (dom_l (wf_rfeD (CON_WF CON))) at 1.
@@ -397,7 +397,7 @@ Qed.
 
 
 Lemma eco_fence_hb_irr CON: irreflexive (eco ⨾ fence ⨾ hb＊).
-Proof.
+Proof using.
 rewrite (fence_hb (CON_WF CON)).
 relsf; unionL.
 by rotate 1; apply CON.
@@ -443,7 +443,7 @@ all: simpl_rels.
 Qed.
 
 Lemma rw_S CON : ⦗RW⦘ ⨾ S ⊆ fence ⨾ rfe ⨾ hb＊ ⨾ (sb ⨾ ⦗F^lwsync⦘ ∪ eco ∩ sb)^?.
-Proof.
+Proof using.
 unfold S.
 arewrite (⦗RW⦘ ⨾ sb^? ⨾ ⦗F^lwsync⦘ ⊆ ⦗RW⦘ ⨾ sb ⨾ ⦗F^lwsync⦘) by type_solver.
 rewrite (dom_l (wf_rfeD (CON_WF CON))) at 1; rewrite !seqA.
@@ -451,7 +451,7 @@ by sin_rewrite (@RW_sb_F_sb_W_in_fence G).
 Qed.
 
 Lemma S_rw CON : S ⨾ ⦗RW⦘ ⊆ sb^? ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ rfe ⨾ hb＊ ⨾ (eco ∩ sb)^?.
-Proof.
+Proof using.
 unfold S; rewrite !seqA.
 arewrite ((sb ⨾ ⦗F^lwsync⦘ ∪ eco ∩ sb)^? ⨾ ⦗RW⦘ ⊆ (eco ∩ sb)^?).
 type_solver 12.
@@ -459,7 +459,7 @@ done.
 Qed.
 
 Lemma S_eco_irr CON : irreflexive (S ⨾ eco).
-Proof.
+Proof using.
 rewrite (dom_r (wf_ecoD (CON_WF CON))).
 rotate 1.
 sin_rewrite (rw_S CON).
@@ -476,7 +476,7 @@ Qed.
 
 Proposition eco_sb_fence_hb_irr CON : 
   irreflexive (eco ⨾ (sb ∪ fence ⨾ hb＊)).
-Proof.
+Proof using.
 relsf.
 cdes CON; red in SC_PER_LOC; unfolder in SC_PER_LOC.
 generalize (eco_fence_hb_irr CON).
@@ -485,7 +485,7 @@ Qed.
 
 Proposition eco_sb_fence_hb_eco_R_irr CON:
   irreflexive (eco ⨾ (sb ∪ (fence ⨾ hb＊ ⨾ (sb ⨾ ⦗F⦘ ∪ eco)^?))).
-Proof.
+Proof using.
   relsf; unionL.
   by rotate 1; apply CON.
   rewrite crE.

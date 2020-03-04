@@ -166,7 +166,7 @@ Hypothesis SC_F : Sc ⊆₁ F∩₁Sc.
 Hypothesis W_REL : sb ⨾ ⦗W∩₁Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb ∪ rmw.
 
 Lemma non_rmw_w_rel : (sb \ rmw) ⨾ ⦗W ∩₁ Rel⦘ ⊆ sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb.
-Proof.
+Proof using W_REL.
 unfolder; ins; desc.
 assert( (sb^? ⨾ ⦗F∩₁Rel⦘ ⨾ sb ∪ rmw) x y).
 apply W_REL; basic_solver.
@@ -176,7 +176,7 @@ Qed.
 
 
 Lemma Rel_eq : Rel' ≡₁  Rel \₁ W∩₁Rel.
-Proof. 
+Proof using. 
 unfold G', relax_release_labels, is_rel, is_w, Events.mod; ins.
 unfolder; splits; ins; desf.
 all: try (split; eauto; intro; desf; eauto).
@@ -184,41 +184,49 @@ all: tauto.
 Qed.
 
 Lemma F_eq : F' ≡₁ F.
-Proof. unfold G', relax_release_labels; type_solver 22. Qed.
+Proof using SC_F W_REL. unfold G', relax_release_labels; type_solver 22. Qed.
 Lemma W_eq : W' ≡₁ W.
-Proof. unfold G', relax_release_labels; type_solver 22. Qed.
+Proof using SC_F W_REL. unfold G', relax_release_labels; type_solver 22. Qed.
 Lemma W_ex_acq_eq : W_ex_acq' ≡₁ W_ex_acq.
-Proof. unfold G', relax_release_labels.
-unfold Execution.W_ex; mode_unfolder; ins; unfold xmod; basic_solver 22. Qed.
+Proof using SC_F W_REL.
+  unfold G', relax_release_labels.
+  unfold Execution.W_ex; mode_unfolder; ins; unfold xmod; basic_solver 22.
+Qed.
 Lemma R_ex_eq : R_ex' ≡₁ R_ex.
-Proof. unfold G', relax_release_labels; type_solver. Qed.
+Proof using SC_F W_REL. unfold G', relax_release_labels; type_solver. Qed.
 Lemma R_eq : R' ≡₁ R.
-Proof. unfold G', relax_release_labels; type_solver 22. Qed.
+Proof using SC_F W_REL. unfold G', relax_release_labels; type_solver 22. Qed.
 Lemma R_Acq_eq: R ∩₁ Acq' ≡₁ R ∩₁ Acq.
-Proof. unfold G', relax_release_labels; ins.
-by unfolder; ins; split; ins; desf; splits; eauto;
-type_unfolder; mode_unfolder; unfold Events.mod in *; destruct (lab x); eauto; exfalso.
+Proof using.
+  unfold G', relax_release_labels; ins.
+  unfolder; ins; split; ins; desf; splits; eauto.
+  all: type_unfolder; mode_unfolder; unfold Events.mod in *.
+  all: by destruct (lab x); eauto; exfalso.
 Qed.
 
 Lemma FR_Acq_eq: FR ∩₁ Acq' ≡₁ FR ∩₁ Acq.
-Proof. unfold G', relax_release_labels; ins.
-by unfolder; ins; split; ins; desf; splits; eauto;
-type_unfolder; mode_unfolder; unfold Events.mod in *; destruct (lab x); eauto; exfalso.
+Proof using.
+  unfold G', relax_release_labels; ins.
+  all: unfolder; ins; split; ins; desf; splits; eauto.
+  all: type_unfolder; mode_unfolder; unfold Events.mod in *.
+  all: by destruct (lab x); eauto; exfalso.
 Qed.
+
 Lemma F_AcqRel_eq : F ∩₁ Acq/Rel' ≡₁  F ∩₁ Acq/Rel.
-Proof. unfold G', relax_release_labels, is_f, is_ra, is_rel, is_acq, Events.mod; ins.
-unfolder; ins; split; ins; desf; splits; eauto.
+Proof using.
+  unfold G', relax_release_labels, is_f, is_ra, is_rel, is_acq, Events.mod; ins.
+  unfolder; ins; split; ins; desf; splits; eauto.
 Qed.
 
 Lemma F_Rel_eq : F'∩₁Rel' ≡₁ F∩₁Rel.
-Proof.
+Proof using SC_F W_REL.
   rewrite Rel_eq. rewrite F_eq.
   split; [basic_solver|].
   unfolder. ins. desf. splits; auto. intros HH. type_solver.
 Qed.
 
 Lemma FR_Rel_eq : FR'∩₁Rel' ≡₁ FR∩₁Rel.
-Proof.
+Proof using SC_F W_REL.
   rewrite Rel_eq. rewrite F_eq, R_eq.
   split; [basic_solver|].
   unfolder. ins. desf; splits; auto.
@@ -226,12 +234,13 @@ Proof.
 Qed.
 
 Lemma F_Sc_eq : F'∩₁Sc' ≡₁  F∩₁Sc.
-Proof. unfold G', relax_release_labels, is_f, is_sc, Events.mod; ins.
-unfolder; ins; split; ins; desf; splits; eauto.
+Proof using.
+  unfold G', relax_release_labels, is_f, is_sc, Events.mod; ins.
+  unfolder; ins; split; ins; desf; splits; eauto.
 Qed.
 
 Lemma Acq_or_W_eq : Acq'∪₁W' ≡₁ Acq∪₁W.
-Proof.
+Proof using SC_F W_REL.
   arewrite (Acq'∪₁W' ≡₁ (FR'∩₁Acq')∪₁W').
   { split; [|basic_solver].
     unionL; [|eauto with hahn].
@@ -245,38 +254,38 @@ Proof.
 Qed.
 
 Lemma same_loc_eq : same_loc' ≡ same_loc.
-Proof. unfold G', relax_release_labels, Events.same_loc, Events.loc; ins.
+Proof using. unfold G', relax_release_labels, Events.same_loc, Events.loc; ins.
 type_solver 22.
 Qed.
 Lemma E_eq : E' ≡₁ E.
-Proof. unfold G'; unfold acts_set; ins; basic_solver. Qed.
+Proof using. unfold G'; unfold acts_set; ins; basic_solver. Qed.
 Lemma sb_eq : sb' ≡ sb.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma rf_eq : rf' ≡ rf.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma rmw_eq : rmw' ≡ rmw.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma co_eq : co' ≡ co.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma fr_eq : fr' ≡ fr.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma eco_eq : eco' ≡ eco.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma data_eq : data' ≡ data.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma addr_eq : addr' ≡ addr.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma ctrl_eq : ctrl' ≡ ctrl.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma rfe_eq : rfe' ≡ rfe.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma rfi_eq : rfi' ≡ rfi.
-Proof. by unfold G'; ins. Qed.
+Proof using. by unfold G'; ins. Qed.
 Lemma W_ex_eq : W_ex' ≡₁ W_ex.
-Proof. unfold G', relax_release_labels; type_solver 22. Qed.
+Proof using. unfold G', relax_release_labels; type_solver 22. Qed.
 
 Lemma bob_eq : bob ⊆ bob'⁺ ∪ rmw' ∪ ⦗W ∩₁ Rel⦘ ⨾ sb' ∩ same_loc' ⨾ ⦗W'⦘.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_bob.bob, imm_bob.fwbob.
 rewrite F_eq, R_eq, W_eq, Rel_eq, sb_eq, F_AcqRel_eq, R_Acq_eq, same_loc_eq.
 unionL.
@@ -295,24 +304,24 @@ rewrite rmw_eq; basic_solver.
 Qed.
 
 Lemma ppo_eq: ppo' ≡ ppo.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_ppo.ppo, Execution.rfi.
 by rewrite W_eq, R_eq, sb_eq, data_eq, addr_eq, ctrl_eq, rf_eq, R_ex_eq.
 Qed.
 
 Lemma detour_eq: detour' ≡ detour.
-Proof.
+Proof using.
 unfold Execution.detour; ie_unfolder.
 by rewrite sb_eq, rf_eq, co_eq.
 Qed.
 
 Lemma rs_eq : rs' ≡ rs.
-Proof.
+Proof using SC_F W_REL.
 by unfold imm_hb.rs; rewrite W_eq, same_loc_eq, sb_eq, rf_eq, rmw_eq.
 Qed.
 
 Lemma rmw_release_eq WF WFp: rmw ⨾ release ⊆ rmw' ⨾ rs'.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.release.
 rewrite (dom_r (wf_rmwD WF)), !seqA.
 arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
@@ -324,7 +333,7 @@ Qed.
 
 
 Lemma non_rmw_release_eq WF WFp: (sb \ rmw) ⨾ release ⊆ sb'^? ⨾ release'.
-Proof.
+Proof using SC_F W_REL.
 rewrite (dom_l (wf_releaseD WF)).
 rewrite (dom_l (wf_releaseD WFp)). 
 
@@ -345,7 +354,7 @@ sin_rewrite non_rmw_w_rel; basic_solver 22.
 Qed.
 
 Lemma F_release_eq WF: ⦗F⦘ ⨾ release ⊆ release'.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.release; rewrite sb_eq, rs_eq, F_eq, Rel_eq.
 rewrite (dom_l (wf_rsD WF)).
 case_refl _; [type_solver 12|].
@@ -357,7 +366,7 @@ Qed.
 Lemma sw_eq_helper WF: 
   (rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ 
   ⊆ (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾  (sb' ⨾ ⦗F'⦘)^? ⨾ ⦗Acq'⦘.
-Proof.
+Proof using SC_F W_REL.
 rewrite sb_eq, rfi_eq, rfe_eq, F_eq, same_loc_eq.
 arewrite ((rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⊆ (rfi ∪ (sb ∩ same_loc)^? ⨾ rfe) ⨾ ⦗R⦘).
 rewrite (dom_r (wf_rfeD WF)) at 1.
@@ -368,14 +377,14 @@ rewrite <- FR_Acq_eq; basic_solver 42.
 Qed.
 
 Lemma F_sw_eq WF: ⦗F⦘ ⨾ sw ⊆ sw'.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.sw.
 sin_rewrite (F_release_eq WF).
 by sin_rewrite (sw_eq_helper WF).
 Qed.
 
 Lemma rmw_sw_eq WF WFp: rmw ⨾ sw ⊆ rmw' ⨾ rs' ⨾  (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾ (sb' ⨾ ⦗F'⦘)^? ⨾ ⦗Acq'⦘.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.sw.
 sin_rewrite !(rmw_release_eq WF WFp).
 sin_rewrite (sw_eq_helper WF).
@@ -383,7 +392,7 @@ by relsf; rewrite !seqA.
 Qed.
 
 Lemma non_rmw_sw_eq WF WFp: (sb \ rmw) ⨾ sw ⊆ sb'^? ⨾ sw'.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.sw.
 sin_rewrite !(non_rmw_release_eq WF WFp).
 sin_rewrite (sw_eq_helper WF).
@@ -392,7 +401,7 @@ Qed.
 
 Lemma hb_eq1 WF WFp: 
   hb ⊆ hb' ∪ (⦗W⦘ ∪ rmw) ⨾ sw ⨾ hb'^?.
-Proof.
+Proof using SC_F W_REL.
 unfold imm_hb.hb at 1.
 apply inclusion_t_ind_left.
 unionL.
@@ -437,7 +446,7 @@ Qed.
 (*
 Lemma hb_eq WF WFp: 
   hb ⊆ hb' ∪ ⦗W⦘ ⨾ sw ⨾ hb'^? ∪ rmw' ⨾ rs' ⨾  (rfi' ∪ (sb' ∩ same_loc')^? ⨾ rfe') ⨾ (sb' ⨾ ⦗F'⦘)^? ⨾ ⦗Acq'⦘ ⨾ hb'^?.
-Proof.
+Proof using.
 rewrite (hb_alt2 WF), (F_sw_eq WF), (non_rmw_sw_eq WF WFp), (rmw_sw_eq WF WFp).
 arewrite (sb ∪ sw' ∪ sb'^? ⨾ sw' ⊆ hb').
 by rewrite <- sb_eq, sb_in_hb, sw_in_hb; unfold imm_hb.hb; relsf.
@@ -446,7 +455,7 @@ Qed.
 *)
 Lemma psc_eq WF WFp SC_PER_LOC COMP COHp COMPp: 
   psc ⊆ psc'.
-Proof.
+Proof using SC_F W_REL.
   unfold imm.psc.
   rewrite (hb_eq1 WF WFp) at 1 2.
 
@@ -489,7 +498,7 @@ Qed.
 
 Lemma psc_f_eq WF WFp SC_PER_LOC COMP COHp COMPp: 
   psc_f ⊆ psc_f'.
-Proof.
+Proof using SC_F W_REL.
   unfold imm.psc_f at 1.
   rewrite crE.
   rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
@@ -510,7 +519,7 @@ Proof.
 Qed.
 
 Lemma wf_eq: Wf G' -> Wf G.
-Proof.
+Proof using SC_F W_REL.
 intros WF.
 destruct WF.
 eexists; rewrite <- ?sb_eq, <- ?W_eq, <- ?R_eq, <- ?same_loc_eq, <- ?R_ex_eq; try done.
@@ -533,17 +542,17 @@ eexists; rewrite <- ?sb_eq, <- ?W_eq, <- ?R_eq, <- ?same_loc_eq, <- ?R_ex_eq; tr
 Qed.
 
 Lemma complete_eq: complete G' -> complete G.
-Proof.
+Proof using SC_F W_REL.
 by unfold complete; rewrite E_eq, R_eq, rf_eq.
 Qed.
 
 Lemma sc_per_loc_eq: sc_per_loc G' -> sc_per_loc G.
-Proof.
+Proof using.
 by unfold sc_per_loc; rewrite sb_eq, eco_eq.
 Qed.
 
 Lemma coherence_eq WF SC_PER_LOC COMP WFp COMPp: coherence G' -> coherence G.
-Proof.
+Proof using SC_F W_REL.
 unfold coherence; intro COHp.
 rewrite <- eco_eq.
 rewrite (hb_eq1 WF WFp), (rmw_in_fr WFp (coherence_sc_per_loc COHp) COMPp).
@@ -580,7 +589,7 @@ eauto using eco_irr.
 Qed.
 
 Lemma acyc_ext_eq WF WFp SC_PER_LOC COMP COHp COMPp: acyc_ext G' -> acyc_ext G.
-Proof.
+Proof using SC_F W_REL.
 unfold acyc_ext.
 intros HH.
 unfold ar, ar_int in *.
@@ -689,12 +698,12 @@ Qed.
 
 
 Lemma rmw_atomicity_eq: rmw_atomicity G' -> rmw_atomicity G.
-Proof.
+Proof using.
 by unfold rmw_atomicity; rewrite rmw_eq, fr_eq, sb_eq, co_eq.
 Qed.
 
 Lemma rel_opt WFp COMPp  (CONSp: imm_consistent G'): imm_consistent G.
-Proof.
+Proof using SC_F W_REL.
   cdes CONSp.
   assert (Wf G) as WF by (by apply wf_eq).
   assert (complete G) as COM by (by apply complete_eq).

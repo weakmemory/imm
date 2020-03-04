@@ -89,7 +89,7 @@ Definition ppo := ⦗R⦘ ⨾ ii ⨾ ⦗R⦘ ∪ ⦗R⦘ ⨾ ic ⨾ ⦗W⦘.
 (******************************************************************************)
 
 Lemma wf_ctrliE WF: ctrli ≡ ⦗E⦘ ⨾ ctrli ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ctrli.
 sin_rewrite (wf_ctrlE WF).
@@ -98,7 +98,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_rdwE WF: rdw ≡ ⦗E⦘ ⨾ rdw ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold rdw.
 sin_rewrite (wf_freE WF).
@@ -107,7 +107,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_ii0E WF: ii0 ≡ ⦗E⦘ ⨾ ii0 ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ii0.
 rewrite (wf_addrE WF) at 1.
@@ -118,7 +118,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_ci0E WF: ci0 ≡ ⦗E⦘ ⨾ ci0 ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ci0.
 rewrite (wf_ctrliE WF) at 1.
@@ -127,7 +127,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_cc0E WF: cc0 ≡ ⦗E⦘ ⨾ cc0 ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold cc0.
 rewrite (wf_dataE WF) at 1.
@@ -143,7 +143,7 @@ forall x y,
 (ic x y -> E x /\ E y) /\
 (ci x y -> E x /\ E y) /\ 
 (cc x y -> E x /\ E y).
-Proof.
+Proof using.
 generalize (dom_to_doma (wf_ii0E WF)) (dom_to_domb (wf_ii0E WF)).
 generalize (dom_to_doma (wf_ci0E WF)) (dom_to_domb (wf_ci0E WF)).
 generalize (dom_to_doma (wf_cc0E WF)) (dom_to_domb (wf_cc0E WF)).
@@ -152,31 +152,31 @@ apply ppo_comp_ind; basic_solver.
 Qed.
 
 Lemma wf_iiE WF: ii ≡ ⦗E⦘ ⨾ ii ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply wf_helperE in H; desf.
 Qed.
 
 Lemma wf_icE WF: ic ≡ ⦗E⦘ ⨾ ic ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply wf_helperE in H; desf.
 Qed.
 
 Lemma wf_ciE WF: ci ≡ ⦗E⦘ ⨾ ci ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply wf_helperE in H; desf.
 Qed.
 
 Lemma wf_ccE WF: cc ≡ ⦗E⦘ ⨾ cc ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply wf_helperE in H; desf.
 Qed.
 
 Lemma wf_ppoE WF: ppo ≡ ⦗E⦘ ⨾ ppo ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ppo.
 rewrite (wf_iiE WF) at 1.
@@ -189,12 +189,12 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_ctrliD : ctrli ⊆ ⦗R⦘ ⨾ ctrli.
-Proof.
+Proof using.
 unfold ctrli; basic_solver 12.
 Qed.
 
 Lemma wf_rdwD WF : rdw ≡ ⦗R⦘ ⨾ rdw ⨾ ⦗R⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold rdw.
 sin_rewrite (wf_freD WF).
@@ -203,14 +203,14 @@ basic_solver 42.
 Qed.
 
 Lemma wf_ppoD WF: ppo ≡ ⦗R⦘ ⨾ ppo ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ppo.
 type_solver 42.
 Qed.
 
 Lemma wf_ii0D WF: ii0 ≡ ⦗RW⦘ ⨾ ii0 ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ii0.
 rewrite (wf_addrD WF) at 1.
@@ -221,7 +221,7 @@ type_solver 42.
 Qed.
 
 Lemma wf_ci0D WF: ci0 ≡ ⦗RW⦘ ⨾ ci0 ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ci0.
 rewrite wf_ctrliD at 1.
@@ -230,7 +230,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_cc0D WF: cc0 ≡ ⦗RW⦘ ⨾ cc0 ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold cc0.
 rewrite (wf_dataD WF) at 1.
@@ -245,7 +245,7 @@ forall x y,
 (ic x y -> RW x /\ RW y) /\
 (ci x y -> RW x /\ RW y) /\ 
 (cc x y -> RW x /\ RW y).
-Proof.
+Proof using.
 generalize (dom_to_doma (wf_ii0D WF)) (dom_to_domb (wf_ii0D WF)).
 generalize (dom_to_doma (wf_ci0D WF)) (dom_to_domb (wf_ci0D WF)).
 generalize (dom_to_doma (wf_cc0D WF)) (dom_to_domb (wf_cc0D WF)).
@@ -254,25 +254,25 @@ apply ppo_comp_ind; basic_solver.
 Qed.
 
 Lemma wf_iiD WF: ii ≡ ⦗RW⦘ ⨾ ii ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply (wf_helperD WF) in H; desc; eauto.
 Qed.
 
 Lemma wf_icD WF: ic ≡ ⦗RW⦘ ⨾ ic ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply (wf_helperD WF) in H; desc; eauto.
 Qed.
 
 Lemma wf_ciD WF: ci ≡ ⦗RW⦘ ⨾ ci ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply (wf_helperD WF) in H; desc; eauto.
 Qed.
 
 Lemma wf_ccD WF: cc ≡ ⦗RW⦘ ⨾ cc ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfolder; ins; splits; try done; eapply (wf_helperD WF) in H; desc; eauto.
 Qed.
@@ -281,77 +281,77 @@ Qed.
 (** ** Inclusion *)
 (******************************************************************************)
 Lemma ctrli_in_sb WF : ctrli ⊆ sb.
-Proof. 
+Proof using. 
 unfold ctrli.
 rewrite (ctrl_in_sb WF).
 generalize (@sb_trans G); basic_solver.
 Qed.
 
 Lemma ctrli_sb : ctrli ⨾ sb ⊆ ctrli.
-Proof.
+Proof using.
 unfold ctrli.
 generalize (@sb_trans G); basic_solver 12.
 Qed.
 
 Lemma ctrli_in_ctrl WF : ctrli ⊆ ctrl.
-Proof. 
+Proof using. 
 unfold ctrli.
 generalize (ctrl_sb WF); basic_solver.
 Qed.
 
 Lemma ii0_in_ii : ii0 ⊆ ii.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma ci0_in_ci : ci0 ⊆ ci.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma cc0_in_cc : cc0 ⊆ cc.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 
 Lemma ci_in_ii : ci ⊆ ii.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma ci_in_ic : ci ⊆ ic.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma ii_in_ic : ii ⊆ ic.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma ci_in_cc : ci ⊆ cc.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 Lemma cc_in_ic : cc ⊆ ic.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 
 Lemma ic_ci_in_ii : ic ⨾ ci ⊆ ii.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ii_ii_in_ii : ii ⨾ ii ⊆ ii.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ic_cc_in_ic : ic ⨾ cc ⊆ ic.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ii_ic_in_ic : ii ⨾ ic ⊆ ic.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ci_ii_in_ci : ci ⨾ ii ⊆ ci.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma cc_ci_in_ci : cc ⨾ ci ⊆ ci.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ci_ic_in_cc : ci ⨾ ic ⊆ cc.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma cc_cc_in_cc : cc ⨾ cc ⊆ cc.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 Lemma ii_cc_in_ic : ii ⨾ cc ⊆ ic.
-Proof. unfolder; ins; desf; vauto. Qed.
+Proof using. unfolder; ins; desf; vauto. Qed.
 
 Lemma ii0_in_sb WF: ii0 ⊆ sb.
-Proof.
+Proof using.
 unfold ii0, rdw; ie_unfolder.
 rewrite addr_in_sb, data_in_sb; try done.
 basic_solver 42.
 Qed.
 
 Lemma ci0_in_sb WF: ci0 ⊆ sb.
-Proof.
+Proof using.
 unfold ci0, Execution.detour.
 rewrite ctrli_in_sb; try done.
 basic_solver 42.
 Qed.
 
 Lemma cc0_in_sb WF: cc0 ⊆ sb.
-Proof.
+Proof using.
 unfold cc0.
 rewrite addr_in_sb, data_in_sb, ctrl_in_sb; try done.
 generalize (@sb_trans G).
@@ -364,7 +364,7 @@ forall x y,
 (ic x y -> sb x y) /\
 (ci x y -> sb x y) /\ 
 (cc x y -> sb x y).
-Proof.
+Proof using.
 generalize (ii0_in_sb WF) (ci0_in_sb WF) (cc0_in_sb WF).
 generalize (@sb_trans G).
 unfolder; intros A A1 A2 A3.
@@ -372,33 +372,33 @@ apply ppo_comp_ind; basic_solver.
 Qed.
 
 Lemma ii_in_sb WF: ii ⊆ sb.
-Proof.
+Proof using.
 unfolder; ins; splits; try done; eapply in_sb_helper in H; desf.
 Qed.
 
 Lemma ic_in_sb WF: ic ⊆ sb.
-Proof.
+Proof using.
 unfolder; ins; splits; try done; eapply in_sb_helper in H; desf.
 Qed.
 
 Lemma ci_in_sb WF: ci ⊆ sb.
-Proof.
+Proof using.
 unfolder; ins; splits; try done; eapply in_sb_helper in H; desf.
 Qed.
 
 Lemma cc_in_sb WF: cc ⊆ sb.
-Proof.
+Proof using.
 unfolder; ins; splits; try done; eapply in_sb_helper in H; desf.
 Qed.
 Lemma ppo_in_sb WF : ppo ⊆ sb.
-Proof.
+Proof using.
 unfold ppo.
 rewrite ii_in_sb, ic_in_sb; try done.
 basic_solver.
 Qed.
 
 Lemma rdw_in_ppo WF : rdw ⊆ ppo.
-Proof.
+Proof using.
 unfold ppo.
 rewrite (wf_rdwD WF).
 rewrite <- ii0_in_ii.
@@ -406,48 +406,48 @@ unfold ii0; basic_solver 42.
 Qed.
 
 Lemma rfi_in_ii : rfi ⊆ ii.
-Proof.
+Proof using.
 rewrite <- ii0_in_ii.
 unfold ii0; basic_solver 42.
 Qed.
 
 Lemma detour_in_ci : detour ⊆ ci.
-Proof.
+Proof using.
 rewrite <- ci0_in_ci.
 unfold ci0; basic_solver 42.
 Qed.
 
 Lemma detour_in_ii : detour ⊆ ii.
-Proof.
+Proof using.
 by rewrite <- ci_in_ii, detour_in_ci.
 Qed.
 
 Lemma data_in_ii : data ⊆ ii.
-Proof.
+Proof using.
 rewrite <- ii0_in_ii.
 unfold ii0; basic_solver 42.
 Qed.
 
 Lemma addr_in_ii : addr ⊆ ii.
-Proof.
+Proof using.
 rewrite <- ii0_in_ii.
 unfold ii0; basic_solver 42.
 Qed.
 
 Lemma ctrl_in_cc : ctrl ⨾ ⦗RW⦘ ⊆ cc.
-Proof.
+Proof using.
 rewrite <- cc0_in_cc.
 unfold cc0; basic_solver 42.
 Qed.
 
 Lemma addr_sb_in_cc : addr ⨾ sb^? ⨾ ⦗RW⦘ ⊆ cc.
-Proof.
+Proof using.
 rewrite <- cc0_in_cc.
 unfold cc0; basic_solver 42.
 Qed.
 
 Lemma deps_in_ppo WF: deps ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
 unfold Execution.deps, ppo.
 rewrite (wf_dataD WF), (wf_addrD WF), (wf_ctrlD WF).
 rewrite data_in_ii, addr_in_ii.
@@ -456,7 +456,7 @@ basic_solver 42.
 Qed.
 
 Lemma addrsbW_in_ppo WF: addr ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
 unfold ppo.
 rewrite <- cc_in_ic, <- cc0_in_cc.
 rewrite (wf_addrD WF) at 1.
@@ -464,14 +464,14 @@ unfold cc0; basic_solver 42.
 Qed.
 
 Lemma rdw_rbi_in_rbi WF: rdw ⨾ fri ⊆ fri.
-Proof.
+Proof using.
 unfold rdw; ie_unfolder.
 generalize (rf_fr WF) (fr_co WF) (@sb_trans G).
 basic_solver 42.
 Qed.
 
 Lemma ctrli_fri_in_ci0 WF: ctrli ⨾ fri ⊆ ci0.
-Proof.
+Proof using.
 rewrite (wf_friD WF).
 arewrite (⦗R⦘ ⨾ fri ⊆ sb).
 by ie_unfolder; basic_solver.
@@ -480,7 +480,7 @@ unfold ci0; type_solver.
 Qed.
 
 Lemma ctrli_fri_in_cc0 WF: ctrli ⨾ fri ⊆ cc0.
-Proof.
+Proof using.
 rewrite (wf_friD WF).
 arewrite (⦗R⦘ ⨾ fri ⊆ sb).
 by ie_unfolder; basic_solver.
@@ -490,7 +490,7 @@ unfold cc0; basic_solver 12.
 Qed.
 
 Lemma R_ci0_W_in_ppo : ⦗R⦘ ⨾ ci0 ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
 unfold ppo.
 rewrite <- ci_in_ic, <- ci0_in_ci.
 basic_solver.
@@ -518,7 +518,7 @@ Combined Scheme L_comb from L_rec, Li_rec.
 
 
 Lemma L_in_union : L ⊆ ii ∪ ic ∪ ci ∪ cc.
-Proof.
+Proof using.
   red; ins.
   apply L_rec with (x:=x) 
   (P:=fun y => (ii ∪ ic ∪ ci ∪ cc) x y) (P0:=fun y => (ii ∪ ci) x y);
@@ -531,7 +531,7 @@ Qed.
 Lemma seq_alt A (r r' r'' : relation A) :
   (forall x y, r' x y -> forall z, r z x -> r'' z y) <->
   r ⨾ r' ⊆ r''.
-Proof.
+Proof using.
   split.
   - ins; red; ins; unfold seq in H0; desf; eapply H; eauto; edone.
   - unfolder; ins; apply H; eexists; splits; eauto.
@@ -542,7 +542,7 @@ Lemma basic_to_transitional :
   (Li^? ⨾ ic ⊆ L) /\
   (L^? ⨾ ci ⊆ Li) /\
   (L^? ⨾ cc ⊆ L).
-Proof.
+Proof using.
   rewrite <- !seq_alt.
   cut (forall x y, 
     (ii x y -> forall z, Li^? z x -> Li z y) /\ 
@@ -568,7 +568,7 @@ Proof.
 Qed.
 
 Lemma L_Li_in_ppo_components : Li ⊆ ii ∪ ci /\ L ⊆ ii ∪ ic ∪ ci ∪ cc.
-Proof.
+Proof using.
   unfolder.
   assert (forall x y,
     (L x y -> ii x y \/ ic x y \/ ci x y \/ cc x y) /\ 
@@ -587,7 +587,7 @@ Proof.
 Qed.
 
 Lemma Li_is_ii : Li ≡ ii.
-Proof.
+Proof using.
   split.
   - arewrite (Li ⊆ ii ∪ ci) by apply L_Li_in_ppo_components.
     rewrite ci_in_ii.
@@ -597,7 +597,7 @@ basic_solver 12.
 Qed.
 
 Lemma L_is_ic : L ≡ ic.
-Proof.
+Proof using.
   split.
   - arewrite (L ⊆ ii ∪ ic ∪ ci ∪ cc) by apply L_Li_in_ppo_components.
   rewrite ii_in_ic, ci_in_ic, cc_in_ic; basic_solver.
@@ -607,22 +607,22 @@ Proof.
 Qed.
 
 Lemma wf_LD WF: L ⊆ ⦗RW⦘ ⨾ L ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 by rewrite L_is_ic; apply wf_icD. 
 Qed.
 
 Lemma wf_LiD WF: Li ⊆ ⦗RW⦘ ⨾ Li ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 by rewrite Li_is_ii; apply wf_iiD. 
 Qed.
 
 Lemma L_in_ppo : ⦗R⦘ ⨾ L ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
 rewrite L_is_ic; unfold ppo; basic_solver.
 Qed.
 
 Lemma Li_in_ppo WF: ⦗R⦘ ⨾ Li ⊆ ppo.
-Proof.
+Proof using.
 rewrite Li_is_ii; unfold ppo.
 rewrite (wf_iiD WF) at 1.
 generalize ii_in_ic.
@@ -630,10 +630,10 @@ basic_solver 42.
 Qed.
 
 Lemma Li_in_L : Li ⊆ L.
-Proof. vauto. Qed.
+Proof using. vauto. Qed.
 
 Lemma ppo_in_L WF: ppo ⊆ ⦗R⦘ ⨾ L.
-Proof.
+Proof using.
 unfold ppo.
 rewrite L_is_ic, ii_in_ic.
 rewrite (wf_icD WF) at 3.
@@ -641,13 +641,13 @@ basic_solver.
 Qed.
 
 Lemma ppo_R_in_R_Li WF: ppo ⨾ ⦗R⦘ ⊆ ⦗R⦘ ⨾ Li.
-Proof.
+Proof using.
 rewrite (wf_ppoD WF), Li_is_ii.
 unfold ppo; type_solver 12.
 Qed.
 
 Lemma ppo_W_in_R_L WF: ppo ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ L.
-Proof.
+Proof using.
 rewrite (wf_ppoD WF), L_is_ic.
 unfold ppo; type_solver 12.
 Qed.
@@ -657,20 +657,20 @@ Qed.
 (******************************************************************************)
 
 Lemma deps_in_cc: deps ⨾ ⦗RW⦘ ⊆ cc.
-Proof.
+Proof using.
 rewrite <- cc0_in_cc.
 unfold Execution.deps, cc0; basic_solver 42.
 Qed.
 
 Lemma deps_in_ic : deps ⨾ ⦗RW⦘ ⊆ ic.
-Proof.
+Proof using.
 rewrite <- cc_in_ic.
 by apply deps_in_cc.
 Qed.
 
 (*
 Lemma ctrl_sb_W_in_ppo WF: ctrl ⨾ sb ⨾ ⦗W⦘ ⊆ ppo ⨾ ⦗W⦘.
-Proof.
+Proof using.
 unfold ppo.
 rewrite (wf_ctrlD WF).
 rewrite !seqA.
@@ -682,17 +682,17 @@ Qed.
 *)
 
 Lemma ctrli_RW_in_ic: ctrli ⨾ ⦗RW⦘ ⊆ ic.
-Proof.
+Proof using.
 rewrite <- ci_in_ic, <- ci0_in_ci; vauto.
 Qed.
 
 Lemma ctrli_R_in_ii: ctrli ⨾ ⦗RW⦘ ⊆ ii.
-Proof.
+Proof using.
 rewrite <- ci_in_ii, <- ci0_in_ci; vauto.
 Qed.
 
 Lemma ctrl_ctrli_in_ii WF: ctrl ⨾ ctrli ⨾ ⦗RW⦘ ⊆ ii.
-Proof.
+Proof using.
 rewrite wf_ctrliD.
 unfolder; ins; desc.
 eapply CI, CC_CI.
@@ -702,7 +702,7 @@ Qed.
 
 
 Lemma ctrl_ctrli_RW_in_ppo WF: ctrl ⨾ ctrli ⨾ ⦗RW⦘ ⊆ ppo.
-Proof.
+Proof using.
 rewrite (wf_ctrlD WF).
 arewrite (⦗RW⦘ ⊆ ⦗RW⦘ ⨾ ⦗RW⦘) by basic_solver.
 sin_rewrite (ctrl_ctrli_in_ii WF).
@@ -712,7 +712,7 @@ basic_solver 12.
 Qed.
 
 Lemma ctrli_RW_in_ppo WF : ctrli ⨾ ⦗RW⦘ ⊆ ppo.
-Proof.
+Proof using.
 unfold ppo.
 rewrite wf_ctrliD.
 generalize ctrli_RW_in_ic, ctrli_R_in_ii.
@@ -724,7 +724,7 @@ Qed.
 (******************************************************************************)
 
 Lemma ppo_trans : transitive ppo.
-Proof.
+Proof using.
   unfold transitive, ppo; unfolder.
   ins; desf; try type_solver.
   by left; exists z2; split; auto; exists z; vauto.
@@ -732,7 +732,7 @@ Proof.
 Qed.
 
 Lemma ct_ppo_ctrli_rw_in_ppo WF : (ppo ∪ ctrli)⁺ ⨾ ⦗RW⦘ ⊆ ppo.
-Proof.
+Proof using.
 apply ct_ind_left with (P:= fun r => r ⨾ ⦗RW⦘).
 - by eauto with hahn.
 - generalize ctrli_RW_in_ppo; basic_solver.
@@ -746,7 +746,7 @@ Qed.
 
 Lemma deps_R_in_ppo WF: 
   (deps ∪ addr ⨾ sb) ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
  arewrite ((deps ∪ addr ⨾ sb) ⨾ ⦗R⦘ ⊆ ctrl ∪ addr ⨾ sb^?).
   by unfold Execution.deps; rewrite (wf_dataD WF); type_solver 42.
 relsf.
@@ -758,7 +758,7 @@ basic_solver 42.
 Qed.
 
 Lemma ci0_fri WF:  ci0 ⨾ fri ⊆ ppo ∪ co.
-Proof.
+Proof using.
 unfold ci0.
 rewrite wf_ctrliD at 1.
 rewrite (wf_friD WF) at 1.
@@ -769,7 +769,7 @@ basic_solver 42.
 Qed.
 
 Lemma L_ctrli_fri WF:  ⦗R⦘ ⨾  L ⨾ ctrli ⨾ fri ⊆ ppo.
-Proof.
+Proof using.
 rewrite (dom_r (wf_friD WF)).
 rewrite <- L_in_ppo.
 rewrite (ctrli_in_ctrl WF).
@@ -781,7 +781,7 @@ unfold cc0; basic_solver 20.
 Qed.
 
 Lemma ppo_fri WF : ppo ⨾ fri ⊆ ppo ∪ ppo ⨾ co ∪ co ∪ fri.
-Proof.
+Proof using.
 rewrite (wf_friD WF) at 1.
 rels.
 sin_rewrite ppo_R_in_R_Li; auto.
@@ -855,7 +855,7 @@ Qed.
 
 Lemma deps_rfi WF : 
   (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)⁺ ⊆ ctrl ∪ addr ⨾ sb^? ∪ ii ⨾ (ctrl ∪ addr ⨾ sb^?)^?.
-Proof.
+Proof using.
 eapply ct_ind_left with (P:= fun x : _ => x).
 by eauto with hahn.
 by rewrite <- ii0_in_ii; unfold ii0; basic_solver 12.
@@ -875,7 +875,7 @@ generalize (@sb_trans G); basic_solver 12.
 Qed.
 
 Lemma r_deps_rfi WF: ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)⁺ ⨾ ⦗W⦘ ⊆ ppo.
-Proof.
+Proof using.
 rewrite (deps_rfi WF).
 unfold ppo.
 rewrite (wf_ctrlD WF) at 1.
@@ -885,7 +885,7 @@ Qed.
 
 (*
 Lemma r_deps_rfi_w WF : ⦗R⦘ ⨾ (deps ∪ rfi)⁺ ⨾ ⦗W⦘ ⊆ ppo ⨾ ⦗W⦘.
-Proof.
+Proof using.
 rewrite (deps_rfi WF).
 unfold ppo.
 rewrite (wf_ctrlD WF) at 1.
@@ -895,7 +895,7 @@ Qed.
 *)
 
 Lemma ppo_detour_ppo WF : ppo ⨾  detour ⨾  ppo^?  ⊆ ppo.
-Proof.
+Proof using.
 rewrite (wf_detourD WF).
 unfold ppo.
 rewrite detour_in_ci.
@@ -905,7 +905,7 @@ generalize ic_ci_in_ii, ii_ii_in_ii, ii_ic_in_ic; basic_solver 22.
 Qed.
 
 Lemma ppo_rt_detour_ppo WF : ppo ⨾ (detour ⨾ ppo^?)⁺ ⊆ ppo.
-Proof.
+Proof using.
 eapply ct_ind_left. 
 by eauto with hahn.
 apply (ppo_detour_ppo WF).
@@ -914,7 +914,7 @@ by sin_rewrite (ppo_detour_ppo WF).
 Qed.
 
 Lemma r_ct_ppo_detour_ppo WF: ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour)⁺ ⨾ ⦗RW⦘ ⊆ ppo.
-Proof.
+Proof using.
 rewrite path_union.
 rewrite (dom_l (wf_detourD WF)) at 1.
 relsf.

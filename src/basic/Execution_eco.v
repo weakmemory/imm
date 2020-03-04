@@ -68,25 +68,25 @@ Implicit Type SC_PER_LOC : sc_per_loc.
 (******************************************************************************)
 
 Lemma co_in_eco: co ⊆ eco.
-Proof. unfold eco; basic_solver 6. Qed.
+Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma rf_in_eco: rf ⊆ eco.
-Proof. unfold eco; basic_solver 6. Qed.
+Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma fr_in_eco: fr ⊆ eco.
-Proof. unfold eco; basic_solver 6. Qed.
+Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma co_rf_in_eco: co ;; rf ⊆ eco.
-Proof. unfold eco; basic_solver 6. Qed.
+Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma fr_rf_in_eco: fr ;; rf ⊆ eco.
-Proof. unfold eco; basic_solver 6. Qed.
+Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma loceq_eco WF : funeq loc eco.
-Proof. destruct WF; desf. eauto 10 with hahn. Qed.
+Proof using. destruct WF; desf. eauto 10 with hahn. Qed.
 
 Lemma wf_ecoE WF : eco ≡ ⦗E⦘ ⨾ eco ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold eco.
 rewrite (wf_rfE WF) at 1 2 3.
@@ -96,7 +96,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_ecoD WF : eco ≡ ⦗RW⦘ ⨾ eco ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold eco.
 rewrite wf_rfD at 1 2 3; try done.
@@ -106,17 +106,17 @@ type_solver 42.
 Qed.
 
 Lemma eco_alt WF: eco ≡ (co ∪ fr) ∪ (co ∪ fr)^? ⨾ rf.
-Proof.
+Proof using.
   unfold eco, Execution.fr; basic_solver 42.
 Qed.
 
 Lemma eco_alt2 WF: eco ≡ rf ∪ (rf⁻¹)^? ⨾ co ⨾ rf^?.
-Proof.
+Proof using.
   unfold eco, Execution.fr; basic_solver 42.
 Qed.
 
 Lemma eco_trans WF: transitive eco.
-Proof.
+Proof using.
 unfold eco.
 apply transitiveI.
 generalize (rf_rf WF) (rf_fr WF) (co_co WF) (rf_co WF) (co_fr WF) (fr_fr WF) (fr_co WF).
@@ -126,7 +126,7 @@ all: basic_solver 42.
 Qed.
 
 Lemma eco_irr WF: irreflexive eco.
-Proof.
+Proof using.
 unfold eco.
 generalize (co_irr WF) (rf_irr WF) (fr_irr WF).
 generalize (rf_fr WF) (rf_co WF).
@@ -134,14 +134,14 @@ basic_solver 5.
 Qed.
 
 Lemma eco_alt3 WF: eco ≡ (rf ∪ co ∪ fr)⁺.
-Proof.
+Proof using.
 split; eauto 8 using rf_in_eco, co_in_eco, fr_in_eco, eco_trans with hahn.
 unfold eco; rewrite !crE; relsf. 
 unionL; eauto 6 using inclusion_step2_ct with hahn.
 Qed.
 
 Lemma eco_f WF : eco ⨾ ⦗F⦘ ⊆ ∅₂.
-Proof.
+Proof using.
 rewrite (wf_ecoD WF); type_solver.
 Qed.
 
@@ -150,7 +150,7 @@ Lemma eco_almost_total WF COMP x y
   (RWx: RW x) (RWy: RW y) (LOC: loc x = loc y)
   (NEQ: x <> y): 
   eco x y \/ eco y x \/ exists z, rf z x /\ rf z y.
-Proof.
+Proof using.
 generalize (dom_to_doma (wf_rfE WF)); intro rfE1; unfolder in rfE1.
 generalize (dom_to_domb (wf_rfE WF)); intro rfE2; unfolder in rfE2.
 generalize (dom_to_doma (wf_rfD WF)); intro rfD1; unfolder in rfD1.
@@ -189,7 +189,7 @@ Qed.
 
 
 Lemma transp_rf_rf_eco_in_eco WF : rf⁻¹ ⨾ rf ⨾ eco ⊆ eco.
-Proof.
+Proof using.
 unfold eco, Execution.fr; relsf.
 rewrite rf_rf; auto.
 seq_rewrite rf_co; auto.
@@ -198,7 +198,7 @@ sin_rewrite rf_transp_rf; basic_solver 10.
 Qed.
 
 Lemma eco_transp_rf_rf_in_eco WF : eco ⨾ rf⁻¹ ⨾ rf ⊆ eco.
-Proof.
+Proof using.
 unfold eco, Execution.fr; relsf.
 rewrite !seqA, !crE; relsf.
 arewrite_false (co ⨾ rf⁻¹).
@@ -212,7 +212,7 @@ Qed.
 (******************************************************************************)
 
 Lemma no_co_to_init WF SC_PER_LOC : co ⊆ co ⨾  ⦗fun x => ~ is_init x⦘.
-Proof.
+Proof using.
 rewrite wf_coE at 1; try done.
 unfolder; ins; splits; auto; desf; intro.
 eapply SC_PER_LOC; exists x; splits; [|eby apply co_in_eco].
@@ -226,7 +226,7 @@ eby subst; eapply (co_irr WF).
 Qed.
 
 Lemma no_fr_to_init WF SC_PER_LOC : fr ⊆ fr ⨾  ⦗fun x => ~ is_init x⦘.
-Proof.
+Proof using.
 unfold Execution.fr.
 rewrite no_co_to_init at 1; try done.
 basic_solver.
@@ -234,7 +234,7 @@ Qed.
 
 Lemma co_from_init WF SC_PER_LOC : 
   ⦗fun x => is_init x⦘ ⨾ (same_loc \ (fun x y => x = y)) ⨾ ⦗E ∩₁ W⦘ ⊆ co.
-Proof.
+Proof using.
 unfolder; ins; desf.
 generalize (init_w WF H); intro Wx.
 generalize (is_w_loc lab x Wx).
@@ -255,7 +255,7 @@ eapply tot_ex.
 Qed.
 
 Lemma atomicity_alt WF SC_PER_LOC ATOM : rmw ∩ (fr ⨾ co) ⊆ ∅₂.
-Proof.
+Proof using.
 rewrite rmw_from_non_init, no_fr_to_init; eauto.
 unfolder; red in ATOM; red in SC_PER_LOC; ins; desf.
 destruct (classic (sb x z));
@@ -277,7 +277,7 @@ destruct (classic (sb z y)); eauto 8.
 Qed.
 
 Lemma BasicRMW WF SC_PER_LOC: irreflexive (co^? ⨾ rf ⨾ rmw).
-Proof.
+Proof using.
 rewrite rmw_in_sb; try done.
 unfold sc_per_loc, eco in *; unfolder in *; basic_solver 10.
 Qed.
@@ -286,7 +286,7 @@ Lemma w_r_loc_w_in_co WF r
   (rE: r ≡ ⦗E⦘ ⨾ r ⨾  ⦗E⦘) (IRR: irreflexive r)
   (A: irreflexive (r ⨾ eco)): 
   ⦗W⦘ ⨾ r ∩ same_loc ⨾ ⦗W⦘ ⊆ co.
-Proof.
+Proof using.
 rewrite rE.
 unfolder; ins; desf.
 eapply tot_ex.
@@ -301,7 +301,7 @@ Lemma w_r_loc_r_in_co_rf WF r
   (rE: r ≡ ⦗E⦘ ⨾ r ⨾  ⦗E⦘) 
   (A: irreflexive (r ⨾ eco)) COMP : 
   ⦗W⦘ ⨾ r ∩ same_loc ⨾ ⦗R⦘ ⊆ co^? ⨾ rf.
-Proof.
+Proof using.
 rewrite rE.
 cut (⦗W⦘ ⨾  ⦗E⦘ ⨾ r ∩ same_loc ⨾ ⦗E ∩₁ R⦘ ⊆ co^? ⨾ rf).
 by basic_solver 12.
@@ -324,7 +324,7 @@ Lemma r_r_loc_w_in_fr WF r
   (rE: r ≡ ⦗E⦘ ⨾ r ⨾  ⦗E⦘) 
   (A: irreflexive (r ⨾ eco)) COMP : 
   ⦗R⦘ ⨾ r ∩ same_loc ⨾ ⦗W⦘ ⊆ fr.
-Proof.
+Proof using.
 rewrite rE.
 cut (⦗E ∩₁ R⦘ ⨾ r ∩ same_loc ⨾ ⦗E ∩₁ W⦘ ⊆ fr).
 by basic_solver 12.
@@ -349,7 +349,7 @@ Lemma r_r_loc_r_in_fr_rf WF r
   (rE: r ≡ ⦗E⦘ ⨾ r ⨾  ⦗E⦘) 
   (A: irreflexive (r ⨾ eco)) COMP : 
   ⦗R⦘ ⨾ r ∩ same_loc ⨾ ⦗R⦘ ⊆ fr ⨾ rf ∪ rf^{-1} ⨾ rf.
-Proof.
+Proof using.
 rewrite rE.
 cut (⦗E ∩₁ R⦘ ⨾ r ∩ same_loc ⨾ ⦗E ∩₁ R⦘ ⊆ fr ⨾ rf ∪ rf^{-1} ⨾ rf).
 by basic_solver 12.
@@ -375,7 +375,7 @@ Qed.
 
 Lemma w_sb_loc_w_in_coi WF SC_PER_LOC:
   ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ coi.
-Proof.
+Proof using.
 arewrite (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘) ∩ sb).
 basic_solver.
 rewrite (w_r_loc_w_in_co WF (@wf_sbE G) (@sb_irr G) SC_PER_LOC).
@@ -384,13 +384,13 @@ Qed.
 
 Lemma w_sb_loc_r_in_co_rf WF SC_PER_LOC COMP:
   ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⊆ co^? ⨾ rf.
-Proof.
+Proof using.
 apply (w_r_loc_r_in_co_rf WF (@wf_sbE G) SC_PER_LOC COMP).
 Qed.
 
 Lemma r_sb_loc_w_in_fri WF SC_PER_LOC COMP:
   ⦗R⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ fri.
-Proof.
+Proof using.
 arewrite (⦗R⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ (⦗R⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘) ∩ sb).
 basic_solver.
 rewrite (r_r_loc_w_in_fr WF (@wf_sbE G) SC_PER_LOC COMP).
@@ -399,19 +399,19 @@ Qed.
 
 Lemma r_sb_loc_r_in_fr_rf WF SC_PER_LOC COMP:
   ⦗R⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⊆ fr ⨾ rf ∪ rf^{-1} ⨾ rf.
-Proof.
+Proof using.
 apply (r_r_loc_r_in_fr_rf WF (@wf_sbE G) SC_PER_LOC COMP).
 Qed.
 
 Lemma rmw_in_fr WF SC_PER_LOC COMP : rmw ⊆ fr.
-Proof.
+Proof using.
 rewrite (wf_rmwD WF), (rmw_in_sb_loc WF).
 rewrite (r_sb_loc_w_in_fri WF SC_PER_LOC COMP).
 ie_unfolder; basic_solver.
 Qed.
 
 Lemma rf_rmw_in_co_helper WF SC_PER_LOC: rf ⨾ rmw ⊆ co ∪ co^{-1}.
-Proof.
+Proof using.
 rewrite (dom_l WF.(wf_rfE)).
 rewrite (dom_r WF.(wf_rmwE)).
 rewrite (dom_l WF.(wf_rfD)).
@@ -430,7 +430,7 @@ eapply rf_in_eco; edone.
 Qed.
 
 Lemma rf_rmw_in_co WF SC_PER_LOC : rf ⨾ rmw ⊆ co.
-Proof.
+Proof using.
 arewrite (rf ⨾ rmw ⊆ (rf ⨾ rmw) ∩ (rf ;; rmw)).
 rewrite rf_rmw_in_co_helper at 1; eauto.
 rewrite inter_union_l; unionL; [basic_solver|].
@@ -443,13 +443,13 @@ eapply co_rf_in_eco; basic_solver.
 Qed.
 
 Lemma rf_rmw_ct_in_co WF SC_PER_LOC : (rf ⨾ rmw)⁺ ⊆ co.
-Proof. by rewrite rf_rmw_in_co, (ct_of_trans (co_trans WF)). Qed.
+Proof using. by rewrite rf_rmw_in_co, (ct_of_trans (co_trans WF)). Qed.
 
 Lemma rf_rmw_rt_in_co WF SC_PER_LOC : (rf ⨾ rmw)＊ ⊆ co^?.
-Proof. by rewrite rf_rmw_in_co, (rt_of_trans (co_trans WF)). Qed.
+Proof using. by rewrite rf_rmw_in_co, (rt_of_trans (co_trans WF)). Qed.
 
 Lemma rf_rmw_in_coimm WF SC_PER_LOC ATOM: rf ⨾ rmw ⊆ immediate co.
-Proof.
+Proof using.
 ins; split; [by apply rf_rmw_in_co|].
 ins; unfolder in *; desf.
 eapply atomicity_alt; try done.
@@ -461,7 +461,7 @@ Qed.
 (******************************************************************************)
 
 Lemma coe_coi WF SC_PER_LOC: (co \ sb) ⨾ (co ∩ sb) ⊆ co \ sb.
-Proof.
+Proof using.
 cut ((co \ sb) ⨾ co ∩ sb ⊆ co ⨾ co \ sb).
 by rewrite (co_co WF).
 apply re_ri; try done; try by apply no_co_to_init.
@@ -471,7 +471,7 @@ by rewrite co_in_eco.
 Qed.
 
 Lemma fre_coi WF SC_PER_LOC : (fr \ sb) ⨾ (co ∩ sb) ⊆ fr \ sb.
-Proof.
+Proof using.
 cut ((fr \ sb) ⨾ co ∩ sb ⊆ fr ⨾ co \ sb).
 by rewrite (fr_co WF).
 apply re_ri; try done; try by apply no_fr_to_init.
@@ -482,7 +482,7 @@ Qed.
 
 Lemma coi_coe WF SC_PER_LOC: 
  ⦗fun x => ~ is_init x⦘ ⨾ (co ∩ sb) ⨾ (co \ sb) ⊆ co \ sb.
-Proof.
+Proof using.
 cut (⦗fun x => ~ is_init x⦘ ⨾ (co ∩ sb) ⨾ (co \ sb) ⊆ co ⨾ co \ sb).
 by rewrite (co_co WF).
 apply ri_re; try done; try by apply no_co_to_init.
@@ -493,7 +493,7 @@ Qed.
 
 Lemma eco_refl : 
   eco^? ⊆ ((co ∪ fre)^? ⨾ rf^?) ∪ fri ⨾ rfi^? ∪ fri ⨾ rfe.
-Proof.
+Proof using.
 unfold eco.
 rewrite !(@fri_union_fre G).
 rewrite !(@rfi_union_rfe G).
@@ -501,7 +501,7 @@ basic_solver 12.
 Qed.
 
 Lemma eco_alt4 WF : eco ⊆ ⦗RW⦘ ⨾ sb ∪ rfe ∪ co ⨾ rf^? ∪ fre ⨾ rf^? ∪ fri ⨾ rfe.
-Proof.
+Proof using.
 unfold eco.
 rewrite (dom_l (wf_rfD WF)) at 1.
 rewrite (dom_l (wf_frD WF)) at 1.
@@ -522,7 +522,7 @@ unionL.
 Qed.
 
 Lemma thread_rfe_sb WF SC_PER_LOC : (rfe^{-1} ⨾ sb) ∩ same_tid ⊆ ∅₂.
-Proof.
+Proof using.
 ie_unfolder; unfolder; unfold same_tid; ins; desf.
 hahn_rewrite (@wf_sbE G) in H1; unfolder in H1; desf.
 hahn_rewrite (wf_rfE WF) in H; unfolder in H; desf.

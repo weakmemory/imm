@@ -109,7 +109,7 @@ Hypothesis WATF2: W ∩₁ AT ⊆₁ dom_rel (immediate sb ⨾ ⦗F ∩₁ Sc⦘
 
 Lemma mode_split (S: actid -> Prop) (HASLOC: forall x, S x -> exists l, loc x = Some l):
   S ≡₁ (S ∩₁ NA) ∪₁ (S ∩₁ AT).
-Proof.
+Proof using.
   red. split; [| basic_solver].
   rewrite <- set_inter_union_r.
   apply set_subset_inter_r. split; [basic_solver| ]. 
@@ -122,7 +122,7 @@ Qed.
     
 Lemma sb_f_helper T M (TF: T ⊆₁ codom_rel (⦗F ∩₁ M⦘ ⨾ immediate sb)):
   ⦗RW⦘ ⨾ sb ⨾ ⦗T⦘ ⊆ ⦗RW⦘ ⨾ sb ⨾ ⦗F ∩₁ M⦘ ⨾ sb ⨾ ⦗T⦘.
-Proof.
+Proof using.
   unfolder. intros e a H. destruct H as [RWe [SBew Ta]]. split; auto.
   red in TF. specialize (@TF a).
   pose proof (TF Ta) as [f HH].
@@ -142,7 +142,7 @@ Qed.
 
 Lemma sb_f_w:
   ⦗RW⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ⦗RW⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ ⦗W ∩₁ AT⦘ ∪ ⦗RW⦘ ⨾ sb ⨾ ⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W ∩₁ NA⦘.
-Proof.
+Proof using.
   assert (FENCE: forall MW MF (COMP: W ∩₁ MW
           ⊆₁ codom_rel (⦗F ∩₁ MF⦘ ⨾ immediate sb) ∪₁ Init),
              ⦗RW⦘ ⨾ sb ⨾ ⦗W ∩₁ MW⦘ ⊆ ⦗RW⦘ ⨾ sb ⨾ ⦗F ∩₁ MF⦘ ⨾ sb ⨾ ⦗W ∩₁ MW⦘). 
@@ -161,7 +161,7 @@ Proof.
 Qed. 
   
 Lemma sb_rf_acyclic: acyclic (sb ⨾ rfe).
-Proof.
+Proof using.
   rewrite (WF.(wf_rfeD)). arewrite (R ⊆₁ RW).
   rewrite <- !seqA, acyclic_rotl, !seqA.
   sin_rewrite sb_f_w.
@@ -184,7 +184,7 @@ Qed.
 
 
 Lemma sb_rfe_crt_hb: (⦗RW⦘ ⨾ sb ⨾ rfe)^* ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ hb.
-Proof.
+Proof using.
   rewrite (dom_l WF.(wf_rfeD)).
   sin_rewrite sb_f_w.  
   arewrite (F ∩₁ Sc ⊆₁ F ∩₁ Acqrel) by mode_solver.
@@ -219,7 +219,7 @@ Qed.
 
 Lemma sl_mode r (SL: r ⊆ same_loc):
   ⦗RW⦘ ⨾ r ⨾ ⦗RW⦘ ⊆ restr_rel NA r ∪ restr_rel AT r.
-Proof.
+Proof using.
   unfolder. ins. destruct H as [RWx [RELxy RWy]].
   assert (exists l, Loc_ l x) as [l Lx].
   { unfold Events.loc. unfold is_f in *.
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Lemma sb_f_at: RW ∩₁ AT ∩₁ NInit ⊆₁ codom_rel (⦗F ∩₁ Sc⦘ ⨾ immediate sb).
-Proof.
+Proof using.
   do 2 rewrite set_inter_union_l.
   apply set_subset_union_l.
   split.
@@ -245,7 +245,7 @@ Qed.
 
   
 Lemma f_sb_at: RW ∩₁ AT ∩₁ NInit  ⊆₁ dom_rel (immediate sb ⨾ ⦗F ∩₁ Sc⦘).
-Proof.   
+Proof using.   
   do 2 rewrite set_inter_union_l.
   apply set_subset_union_l.
   split.
@@ -257,7 +257,7 @@ Qed.
 
 Lemma ct_dom_start: forall (A: Type) (r: relation A) (dom: A -> Prop), 
     ⦗dom⦘ ⨾ (r ⨾ ⦗dom⦘)^+ ≡ (⦗dom⦘ ⨾ r ⨾ ⦗dom⦘)^+.
-Proof.
+Proof using.
   intros A r dom. 
   rewrite ct_rotl.
   rewrite <- (seqA ⦗dom⦘ r ⦗dom⦘). rewrite ct_rotl.
@@ -267,20 +267,20 @@ Proof.
 Qed.
 
 Lemma acyclic_empty: forall (A: Type), @acyclic A ∅₂.
-Proof.
+Proof using.
   intros A. red.
   rewrite ct_of_trans; [| basic_solver]. 
   basic_solver.
 Qed. 
 
 Lemma sb_eco_sb_psc: ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ psc G.
-Proof. unfold psc. rewrite sb_in_hb. basic_solver 10. Qed. 
+Proof using. unfold psc. rewrite sb_in_hb. basic_solver 10. Qed. 
 
 Lemma RFE1: rfe^+ ≡ rfe.
-Proof.  apply ct_no_step. rewrite WF.(wf_rfeD). type_solver. Qed. 
+Proof using.  apply ct_no_step. rewrite WF.(wf_rfeD). type_solver. Qed. 
 
 Lemma no_eco_to_init: eco ≡ eco ⨾ ⦗NInit⦘. 
-Proof.
+Proof using.
   split; [| basic_solver].
   arewrite (eco ≡ eco ⨾ ⦗codom_rel eco⦘) at 1 by basic_solver.
   apply seq_mori; [basic_solver|]. 
@@ -294,7 +294,7 @@ Proof.
 Qed. 
 
 Lemma acyclic_sb_rf_eco: acyclic (sb ∪ restr_rel NA rf ∪ restr_rel AT eco). 
-Proof.
+Proof using.
   rewrite rfi_union_rfe, <- union_restr, <- unionA.
   arewrite (restr_rel NA rfi ⊆ sb). rewrite unionK. 
   assert (na_at_rels_empty: restr_rel NA rfe ⨾ restr_rel AT eco ≡ ∅₂).
@@ -387,7 +387,7 @@ Qed.
   
 Lemma imm_to_ocaml_causal:
   acyclic (sb ∪ rfe ∪ restr_rel AT (coe ∪ fre G)).
-Proof.
+Proof using.
   arewrite (rfe ⊆ rf). 
   arewrite (rf ⊆ restr_rel NA rf ∪ restr_rel AT rf).
   { rewrite (wf_rfD WF) at 1. arewrite (R ⊆₁ RW). arewrite (W ⊆₁ RW) at 1.  
@@ -404,7 +404,7 @@ Qed.
 Lemma f_sb_helper T M (TF: T ⊆₁ dom_rel (immediate sb ⨾ ⦗F ∩₁ M⦘))
   (NIT: T ∩₁ is_init ≡₁ ∅):
   ⦗T⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ ⦗T⦘ ⨾ sb ⨾ ⦗F ∩₁ M⦘ ⨾ sb ⨾ ⦗RW⦘.
-Proof.
+Proof using.
   unfolder. intros a e [Ta [SBae RWe]]. split; auto. 
   red in TF. specialize (@TF a).
   pose proof (TF Ta) as [f HH].
@@ -424,13 +424,13 @@ Proof.
 Qed.
   
 Lemma ac_irr: forall A (r: relation A), acyclic r <-> irreflexive r^+.
-Proof. intros A r. basic_solver. Qed. 
+Proof using. intros A r. basic_solver. Qed. 
 
 Definition ae := (⦗AT⦘ ⨾ (rfe ∪ co) ⨾ ⦗AT⦘).
 
 
 Lemma imm_to_ocaml_coherent: irreflexive ((sb ∪ ae)^+ ⨾ (co ∪ fr)).
-Proof.
+Proof using.
   arewrite (co ∪ fr ⊆ eco) by unfold Execution_eco.eco; basic_solver 10. 
   rewrite ct_unionE.
   assert (ae_in_eco: ae ⊆ eco).
@@ -535,7 +535,7 @@ Qed.
 
 Theorem ldrf_condition_ext:
   acyclic(sb ∪ rf ∪ ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗F ∩₁ Sc⦘). 
-Proof.
+Proof using.
   apply acyclic_union1.
   { rewrite (wf_rfD WF). arewrite (W ⊆₁ RW). arewrite (R ⊆₁ RW) at 2 .
     rewrite (sl_mode); [| apply (wf_rfl WF)].
@@ -586,7 +586,7 @@ Proof.
 Qed.
 
 Theorem ldrf_condition: acyclic(sb ∪ rf ∪ ⦗AT⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗AT⦘).
-Proof. 
+Proof using. 
   arewrite (sb ∪ rf ∪ ⦗AT⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗AT⦘ ⊆ (sb ∪ rf ∪ ⦗AT⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗AT⦘) ⨾ ⦗NInit⦘).
   { rewrite (no_sb_to_init G) at 1. rewrite (no_sb_to_init G) at 3.
     rewrite (no_rf_to_init WF) at 1. 

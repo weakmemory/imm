@@ -57,7 +57,7 @@ Lemma urr_n_f_alt_union_eqv l A r thread
   ⦗ Loc_ l ⦘ ⨾ rf ⨾ ⦗eq r⦘ ∪
   (msg_rel G sc l ∪ ⦗ Loc_ l ⦘) ⨾
     rf ⨾ ⦗ Acq ⦘ ⨾ ⦗eq r⦘.
-Proof.
+Proof using WF Wf_sc.
 rewrite c_cur_union.
 unfold c_cur; split.
 - unionL; [basic_solver 21|].
@@ -92,7 +92,7 @@ Lemma urr_w_alt_union_eqv l A w thread
       ≡
   urr G sc l ⨾ ⦗A⦘ ⨾ (sb ⨾ ⦗eq w⦘)^? ⨾ ⦗ Tid_ thread ∪₁ Init ⦘ ∪
   ⦗ W_ l ⦘ ⨾ ⦗eq w⦘.
-Proof.
+Proof using WF Wf_sc.
   rewrite urr_n_f_alt_union_eqv; auto.
   rewrite (dom_r (wf_rfD WF)); type_solver 21.
   type_solver 21.
@@ -109,7 +109,7 @@ Lemma urr_acq_n_f_alt_union_eqv l A r thread
   ⦗ W_ l ⦘ ⨾ ⦗eq r⦘ ∪
   ⦗ Loc_ l ⦘ ⨾ rf ⨾ ⦗eq r⦘ ∪
   (msg_rel G sc l ∪ ⦗Loc_ l⦘) ⨾ rf ⨾ ⦗eq r⦘.
-Proof.
+Proof using WF Wf_sc.
   unfold c_acq; rewrite crE at 1.
   rewrite seq_union_l; rewrite seq_union_r; rewrite seq_id_l.
   arewrite (urr G sc l ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗A ∪₁ eq r⦘ ≡
@@ -129,7 +129,7 @@ Lemma urr_rel_n_f_alt_union_eqv l l' A w thread
   c_rel G sc thread l l' (A ∪₁ eq w) ≡
   c_rel G sc thread l l' A ∪ ⦗Rel⦘ ⨾ ⦗Loc_ l⦘ ⨾ ⦗Loc_ l'⦘ ⨾ ⦗eq w⦘ ∪
   urr G sc l ⨾ ⦗A⦘ ⨾ sb ⨾ ⦗Rel⦘ ⨾ ⦗Loc_ l'⦘ ⨾ ⦗eq w⦘.
-Proof.
+Proof using WF Wf_sc.
 unfold c_rel.
 split.
 - rewrite (id_union A) at 1; relsf.
@@ -158,7 +158,7 @@ Lemma dom_rel_sb_clos B A r thread
     (SB : dom_rel (sb ⨾ ⦗ eq r ⦘) ⊆₁ A) :
     dom_rel (B ⨾ ⦗A⦘ ⨾ (sb ⨾ ⦗eq r⦘)^? ⨾ ⦗Tid_ thread ∪₁ Init⦘) ≡₁
     dom_rel (B ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗A⦘).
-Proof.
+Proof using.
 split.
 rewrite (@no_sb_to_init G); generalize (@sb_tid_init G); basic_solver 20.
 revert SB; basic_solver 20.
@@ -172,7 +172,7 @@ Lemma dom_rel_r l locr thread w r
     (dom_rel
        (⦗Loc_ l⦘ ⨾ rf ⨾ ⦗eq r⦘) ≡₁
        if LocSet.Facts.eq_dec l locr then eq w else ∅).
-Proof.
+Proof using WF.
 split.
 - unfolder; ins; desf.
   generalize (wf_rff WF); basic_solver.
@@ -194,7 +194,7 @@ Lemma t_cur_urr_union_eqv l A thread r
    dom_rel
      ((msg_rel G sc l ∪ ⦗Loc_ l⦘)
       ⨾ rf ⨾ ⦗fun a : actid => Acq a⦘ ⨾ ⦗eq r⦘)).
-Proof.
+Proof using WF Wf_sc.
   unfold t_cur.
   rewrite urr_n_f_alt_union_eqv; auto.
   rewrite (@no_sb_to_init G); generalize (@sb_tid_init G); basic_solver 20.
@@ -207,7 +207,7 @@ Lemma t_cur_urr_union_eqv_w l A thread w
   t_cur G sc thread l (A ∪₁ eq w) ≡₁
   dom_rel (urr G sc l ⨾ ⦗Tid_ thread ∪₁ Init ⦘⨾ ⦗A⦘) ∪₁
   Loc_ l ∩₁ eq w.
-Proof.
+Proof using WF Wf_sc.
   rewrite t_cur_urr_union_eqv; auto.
   2: by intros H; type_solver.
   split; [|basic_solver 10].
@@ -227,7 +227,7 @@ Lemma t_acq_urr_union_eqv l A thread r
   (W_ l ∩₁ eq r ∪₁
    dom_rel (⦗Loc_ l⦘ ⨾ rf ⨾ ⦗eq r⦘) ∪₁
    dom_rel ((msg_rel G sc l ∪ ⦗Loc_ l⦘) ⨾ rf ⨾ ⦗eq r⦘)).
-Proof.
+Proof using WF Wf_sc.
   unfold t_acq.
   rewrite urr_acq_n_f_alt_union_eqv; eauto.
   unfold c_acq.
@@ -240,7 +240,7 @@ Lemma t_rel_union_eqv l l' A thread r
   (RR : R r)
   (TID : tid r = thread) :
   t_rel G sc thread l l' (A ∪₁ eq r) ≡₁ t_rel G sc thread l l' A.
-Proof.
+Proof using.
   unfold t_rel, c_rel.
   rewrite (id_union A); rewrite !seq_union_r.
   arewrite (⦗W_ l' ∪₁ F⦘ ⨾ ⦗Tid_ thread ∪₁ Init⦘ ⨾ ⦗eq r⦘ ≡ ∅₂); rels.
@@ -284,7 +284,7 @@ Lemma t_rel_w_union_eqv l l0 A thread w locw
     (if Loc.eq_dec l0 l
      then W ∩₁ Loc_ l ∩₁ Tid_ thread ∩₁ A
      else ∅).
-Proof.
+Proof using WF.
   rewrite !ite_alt; rewrite !iteb_alt; rewrite !ite_alt.
   rewrite !set_inter_union_r.
   rewrite ite_union_t.
@@ -372,14 +372,14 @@ Lemma t_cur_urr_init
       wi (C : actid -> Prop) l thread
       (INC : C wi) (INIT : is_init wi) (LOC : Loc_ l wi):
   t_cur G sc thread l C wi.
-Proof.
+Proof using WF.
 unfold t_cur, c_cur, urr.
 generalize (init_w WF); unfold seq; basic_solver 42.
 Qed.
 
 Lemma urr_refl l y (YW : W y) (LOC : loc lab y = Some l):
   urr G sc l y y.
-Proof.
+Proof using.
 unfold urr.
 basic_solver 21.
 Qed.
@@ -400,7 +400,7 @@ Lemma t_rel_if_other_thread
     then
       W ∩₁ Loc_ l' ∩₁ Tid_ thread ∩₁ C
     else ∅)).
-Proof.
+Proof using.
   apply set_equiv_union; [by symmetry; apply t_rel_other_thread|].
   desf; basic_solver 21.
 Qed.
@@ -411,7 +411,7 @@ Lemma s_tm_n_f_steps
       (CINCL : C ⊆₁ C')
       (COVSTEP : forall a, C' a -> ~ C a -> ~ (F∩₁Sc) a) :
   S_tm G l C' ≡₁ S_tm G l C.
-Proof.
+Proof using.
   unfold S_tm, S_tmr.
   arewrite (⦗F∩₁Sc⦘ ⨾ ⦗C'⦘ ≡ ⦗F∩₁Sc⦘ ⨾ ⦗C⦘); [|done].
   split; [|by rewrite CINCL].

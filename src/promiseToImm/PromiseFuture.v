@@ -40,7 +40,7 @@ Record up_memory memory memory' :=
 
 Lemma up_memory_refl memory :
   up_memory memory memory.
-Proof.
+Proof using.
   constructor; ins.
   { eexists. eexists. splits; eauto.
     all: reflexivity. }
@@ -54,7 +54,7 @@ Lemma exists_all_conj_disj (A B : Type) (P Q R : A -> B -> Prop)
       (HH : exists f, forall a : A, P a f /\ Q a f /\ R a f) :
   exists f, (forall a : A, P a f) /\ (forall a : A, Q a f) /\
             (forall a : A, R a f).
-Proof. desf. exists f. splits; apply HH. Qed.
+Proof using. desf. exists f. splits; apply HH. Qed.
 
 Require Import Logic.IndefiniteDescription.
 
@@ -76,7 +76,7 @@ Lemma up_memory_closed_bigger_timemap memory memory' tmap
                      Some (from, Message.mk val view'))
              (TLE  : Time.le (tmap loc) to),
         Time.le (tmap' loc) to ⟫.
-Proof.
+Proof using.
   unnw.
   unfold TimeMap.le.
   unfold Memory.closed_timemap.
@@ -160,7 +160,7 @@ Lemma up_memory_closed_bigger_view memory memory' view
                      Some (from, Message.mk val released'))
              (TLE  : Time.le (View.rlx (View.unwrap view) loc) to),
         Time.le (View.rlx (View.unwrap view') loc) to ⟫.
-Proof.
+Proof using.
   destruct view as [view|].
   2: { exists None. splits; auto.
        { reflexivity. }
@@ -189,7 +189,7 @@ Lemma up_memory_add_exists_r_view_eq memory memory' memory_add
   exists memory_add',
     ⟪ ADDU       : Memory.add memory' loc from to val released' memory_add' ⟫ /\
     ⟪ UP_MEM_ADD : up_memory memory_add memory_add' ⟫.
-Proof.
+Proof using.
   assert (ADD':=ADD).
   destruct ADD'. destruct ADD0.
   edestruct Memory.add_exists with (mem1:=memory') (released:=released')
@@ -239,7 +239,7 @@ Lemma up_memory_add_bigger_view memory_add memory' memory_add''
   exists memory_add',
     ⟪ ADDU : Memory.add memory' loc from to val released' memory_add' ⟫ /\
     ⟪ UP_MEM_ADD : up_memory memory_add memory_add' ⟫.
-Proof.
+Proof using.
   inv ADDU. inv ADD.
   edestruct Memory.add_exists with (released:=released')
     as [memory_add' ADD']; eauto.
@@ -310,7 +310,7 @@ Lemma up_memory_add_exists_r memory memory' memory_add
     ⟪ ADDU : Memory.add memory' loc from to val released' memory_add' ⟫ /\
     ⟪ FUTURE : Memory.future Memory.init memory_add' ⟫ /\
     ⟪ UP_MEM_ADD : up_memory memory_add memory_add' ⟫.
-Proof.
+Proof using.
   assert (View.opt_wf released) as VW_WF.
   { inv ADD. inv ADD0. }
   edestruct up_memory_add_exists_r_view_eq as [memory_add'']; eauto.
@@ -376,7 +376,7 @@ Lemma up_memory_add_exists_l memory memory' memory_add'
     ⟪ MSG_DISJ : message_disjoint memory_add ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_add ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_add' ⟫.
-Proof.
+Proof using.
   assert (ADD':=ADD).
   destruct ADD'. destruct ADD0.
   edestruct Memory.add_exists with (mem1:=memory) (released:=released)
@@ -434,7 +434,7 @@ Lemma up_memory_add_exists_l_view_eq memory memory' memory_add'
     ⟪ MSG_DISJ : message_disjoint memory_add ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_add ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_add' ⟫.
-Proof.
+Proof using.
   eapply up_memory_add_exists_l; eauto.
   { reflexivity. }
   inv ADD. inv ADD0.
@@ -444,7 +444,7 @@ Lemma up_memory_closed_view view memory memory'
       (UP_MEM : up_memory memory memory')
       (CLOS : Memory.closed_view view memory') :
   Memory.closed_view view memory.
-Proof.
+Proof using.
   destruct CLOS.
   constructor; red; ins.
   2: specialize (RLX loc).
@@ -460,7 +460,7 @@ Lemma up_memory_closed_opt_view view memory memory'
       (UP_MEM : up_memory memory memory')
       (CLOS : Memory.closed_opt_view view memory') :
   Memory.closed_opt_view view memory.
-Proof.
+Proof using.
   destruct view.
   2: by apply Memory.closed_opt_view_none.
   apply Memory.closed_opt_view_some.
@@ -477,7 +477,7 @@ Lemma future_memory_to_append_memory
     ⟪ FUTURE : Memory.future Memory.init memory'' ⟫ /\
     ⟪ MEM_LE   : Memory.le memory memory'' ⟫ /\
     ⟪ UP_MEM   : up_memory memory' memory'' ⟫.
-Proof.
+Proof using.
   assert (Memory.future Memory.init memory') as FUTURE_INIT'.
   { etransitivity; eauto. }
   apply clos_rt1n_rt in FUTURE.
@@ -596,7 +596,7 @@ Lemma up_memory_split_exists memory memory' memory_split'
     ⟪ MSG_DISJ : message_disjoint memory_split ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_split ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_split' ⟫.
-Proof.
+Proof using.
   assert (Memory.get loc ts memory' = Some (from, Message.mk val' view)) as GET'.
   { eapply memory_split_get_old. eauto. }
   assert (ts <> to) as TT.
@@ -710,7 +710,7 @@ Lemma up_memory_split_exists_view_eq memory memory' memory_split'
     ⟪ MSG_DISJ : message_disjoint memory_split ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_split ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_split' ⟫.
-Proof.
+Proof using.
   eapply up_memory_split_exists; eauto.
   2: reflexivity.
   inv SP'. inv SPLIT.
@@ -733,7 +733,7 @@ Lemma up_memory_lower_exists memory memory' memory_lower'
     ⟪ MSG_DISJ : message_disjoint memory_lower ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_lower ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_lower' ⟫.
-Proof.
+Proof using.
   inv LW'. inv LOWER.
   edestruct Memory.lower_exists with (mem1:=memory) (released1:=view) (released2:=released)
     as [memory_lower]; eauto.
@@ -800,7 +800,7 @@ Lemma up_memory_lower_exists_view_eq memory memory' memory_lower'
     ⟪ MSG_DISJ : message_disjoint memory_lower ⟫ /\
     ⟪ TS_LT    : ts_lt_or_bot memory_lower ⟫ /\
     ⟪ INHAB'   : Memory.inhabited memory_lower' ⟫.
-Proof.
+Proof using.
   eapply up_memory_lower_exists; eauto.
   2: reflexivity.
   inv LW'. inv LOWER.
@@ -826,7 +826,7 @@ Lemma future_sim_step lang (tc tc' tc_new' : Thread.t lang)
   exists tc_new,
       ⟪ STEP : (Thread.tau_step (lang:=lang))⁺ tc tc_new ⟫ /\
       ⟪ SIM : future_sim_rel tc_new tc_new' ⟫.
-Proof.
+Proof using.
   destruct SIM.
   destruct STEP. destruct TSTEP.
   destruct STEP.
@@ -1380,7 +1380,7 @@ Lemma future_memory_switch
               (Thread.mk lang state local sc_view' memory')
               thread_conf' ⟫ /\
         ⟪ SIM : future_sim_rel thread_conf' thread_conf ⟫ ⟫.
-Proof.
+Proof using.
   assert (Memory.closed memory') as MEM_CLOS'.
   { eapply Memory.future_closed; eauto.
     eapply Memory.future_closed; eauto.

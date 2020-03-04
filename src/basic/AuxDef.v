@@ -21,7 +21,7 @@ Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Lemma ntid_tid_set_inter s thread :
   s ⊆₁ s ∩₁ NTid_ thread ∪₁ s ∩₁ Tid_ thread.
-Proof.
+Proof using.
   ins.
   rewrite <- set_inter_union_r.
   unfolder. ins. splits; auto.
@@ -31,14 +31,14 @@ End Props.
 
 Lemma dom_rel_to_cond {A} r (s t : A -> Prop) :
   dom_rel (r ⨾ ⦗t⦘) ⊆₁ s -> t ⊆₁ dom_cond r s.
-Proof.
+Proof using.
   unfold dom_cond; unfolder.
   intro H; ins; desf; eapply H; eauto.
 Qed.
 
 Lemma dom_cond_to_rel {A} r (s t : A -> Prop) :
   t ⊆₁ dom_cond r s -> dom_rel (r ⨾ ⦗t⦘) ⊆₁ s.
-Proof.
+Proof using.
   unfold dom_cond; unfolder.
   intro H; ins; desf; eapply H; eauto.
 Qed.

@@ -110,7 +110,7 @@ Definition bob' :=
 (******************************************************************************)
 
 Lemma wf_obsE WF: obs ≡ ⦗E⦘ ⨾ obs ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold obs.
 rewrite (wf_rfeE WF) at 1.
@@ -120,7 +120,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_dobE WF: dob ≡ ⦗E⦘ ⨾ dob ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold dob.
 rewrite (wf_addrE WF) at 1 2 3.
@@ -133,7 +133,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_aobE WF: aob ≡ ⦗E⦘ ⨾ aob ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold aob.
 rewrite (wf_rmwE WF) at 1.
@@ -142,7 +142,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_bobE WF: bob ≡ ⦗E⦘ ⨾ bob ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold bob.
 rewrite wf_sbE at 1 2 3 4 5 6 7.
@@ -151,7 +151,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_obs'E WF: obs' ≡ ⦗E⦘ ⨾ obs' ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold obs'.
 rewrite (wf_rfeE WF) at 1.
@@ -161,7 +161,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_bob'E WF: bob' ≡ ⦗E⦘ ⨾ bob' ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold bob'.
 rewrite (wf_bobE WF) at 1.
@@ -174,7 +174,7 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_obs'D WF: obs' ≡ ⦗RW⦘ ⨾ obs' ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold obs'.
 rewrite (wf_rfeD WF) at 1.
@@ -184,7 +184,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_dobD WF: dob ≡ dob ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold dob.
 rewrite (dom_r (wf_addrD WF)) at 1.
@@ -195,7 +195,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_aobD WF: aob ≡ aob ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold aob.
 rewrite (dom_r (wf_rmwD WF)) at 1.
@@ -212,7 +212,7 @@ Lemma dob_alt WF :
  ∪ (addr ∪ data) ⨾ rfi
  ∪ (ctrl ∪ data) ⨾ ⦗W⦘ ⨾ coi^?
  ∪ addr ⨾ sb ⨾ ⦗W⦘.
-Proof.
+Proof using.
 unfold dob.
 rewrite (dom_r (wf_dataD WF)) at 1 3.
 basic_solver 42.
@@ -220,7 +220,7 @@ Qed.
 
 Lemma deps_in_ctrl_or_dob WF:
     deps ⊆ ctrl ∪ dob.
-Proof.
+Proof using.
     rewrite (dob_alt WF).
 unfold Execution.deps;
 rewrite (dom_r (wf_dataD WF)) at 1.
@@ -228,7 +228,7 @@ basic_solver 12.
 Qed.
 
 Lemma dob_in_sb WF: dob ⊆ sb.
-Proof.
+Proof using.
 unfold dob.
 rewrite (addr_in_sb WF).
 rewrite (data_in_sb WF).
@@ -240,7 +240,7 @@ basic_solver 21.
 Qed.
 
 Lemma aob_in_sb WF: aob ⊆ sb.
-Proof.
+Proof using.
 unfold aob.
 rewrite (rmw_in_sb WF).
 arewrite (rfi ⊆ sb).
@@ -248,7 +248,7 @@ basic_solver 21.
 Qed.
 
 Lemma bob_in_sb WF: bob ⊆ sb.
-Proof.
+Proof using.
 unfold bob.
 arewrite (coi ⊆ sb).
 generalize (@sb_trans G).
@@ -256,7 +256,7 @@ basic_solver 21.
 Qed.
 
 Lemma bob'_in_sb WF: bob' ⊆ sb.
-Proof.
+Proof using.
 unfold bob'.
 rewrite (bob_in_sb WF).
 basic_solver 21.
@@ -264,7 +264,7 @@ Qed.
 
 Lemma external_alt_coi CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
     acyclic (coi ∪ obs ∪ dob ∪ aob ∪ bob).
-Proof.
+Proof using.
   cdes CON.
   rewrite !(unionA coi). 
   apply acyclic_absorb; ins.
@@ -312,7 +312,7 @@ Qed.
 
 Lemma external_alt WF CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
   acyclic (obs' ∪ dob ∪ aob ∪ bob).
-Proof.
+Proof using.
   forward eapply external_alt_coi as AA; ins.
   unfold obs'.
   unfold acyclic in *; rewrite <- ct_of_union_ct_r in *.
@@ -379,7 +379,7 @@ Qed.
 
 Lemma external_alt2 WF CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
   acyclic (obs' ∪ dob ∪ aob ∪ bob').
-Proof.
+Proof using.
   forward eapply external_alt as AA; ins.
   unfold bob'; rewrite <- !unionA in *.
   assert (APO: acyclic sb).

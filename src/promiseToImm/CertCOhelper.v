@@ -27,12 +27,12 @@ Notation "'W_' l" := (W ∩₁ Loc_ l) (at level 1).
 Hypothesis IT: I ∪₁ T ≡₁ E ∩₁ W.
 
 Lemma IN_I: I ⊆₁ E ∩₁ W.
-Proof.
+Proof using IT.
 rewrite <- IT; basic_solver 21.
 Qed.
 
 Lemma IN_T: T ⊆₁ E ∩₁ W.
-Proof.
+Proof using IT.
 rewrite <- IT; basic_solver 21.
 Qed.
 
@@ -52,12 +52,12 @@ Definition new_col l := pref_union (col0 l) ((I ∩₁ Loc_ l) × (E ∩₁ W �
 Definition new_co x y := exists l, (new_col l) x y.
 
 Lemma col_in_co l : col l ⊆ co.
-Proof. 
+Proof using. 
 unfold col; basic_solver. 
 Qed.
 
 Lemma co_in_col x y : co x y -> exists l, col l x y.
-Proof.
+Proof using wf_coD wf_col.
 unfold new_co, col; ins; unfolder; ins; desf.
 hahn_rewrite (dom_l wf_coD) in H; unfolder in H; desc.
 generalize (is_w_loc lab x H); ins; desf.
@@ -68,29 +68,29 @@ apply wf_col in H0; unfold Events.same_loc in H0; congruence.
 Qed.
 
 Lemma wf_colE l : col l ≡ ⦗E⦘ ⨾ col l ⨾ ⦗E⦘.
-Proof. 
+Proof using wf_coE. 
 apply dom_helper_3; unfold col; rewrite wf_coE; basic_solver. 
 Qed.
 
 Lemma wf_colD l : col l ≡ ⦗W_ l⦘ ⨾ col l ⨾ ⦗W_ l⦘.
-Proof.
+Proof using wf_coD.
 apply dom_helper_3; unfold col; rewrite wf_coD; basic_solver. 
 Qed.
 
 Lemma wf_coll l : col l ⊆ same_loc.
-Proof.
+Proof using wf_col.
 unfold col; rewrite wf_col; basic_solver. 
 Qed.
 
 Lemma col_trans l : transitive (col l).
-Proof.
+Proof using co_trans.
 unfold col.
 rewrite <- restr_relE.
 by apply transitive_restr.
 Qed.
 
 Lemma wf_col_total l : is_total (E ∩₁ W ∩₁ Loc_ l) (col l).
-Proof.
+Proof using wf_coD wf_coE wf_co_total.
 rewrite wf_colD, wf_colE.
 unfold col; rewrite !seqA.
 arewrite (⦗W_ l⦘ ⨾ ⦗E⦘ ⨾ ⦗Loc_ l⦘ ≡ ⦗E ∩₁ W ∩₁ Loc_ l⦘) by basic_solver.
@@ -101,14 +101,14 @@ apply wf_co_total.
 Qed.
 
 Lemma col_irr l: irreflexive (col l).
-Proof.
+Proof using co_irr.
 unfold col.
 rewrite <- restr_relE.
 by apply irreflexive_restr.
 Qed.
 
 Lemma acyclic_new_col l : acyclic (new_col l).
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 eapply acyclic_pref_union with (dom:=I ∩₁ Loc_ l).
 - unfold col0.
   arewrite_id ⦗I⦘.
@@ -126,7 +126,7 @@ eapply acyclic_pref_union with (dom:=I ∩₁ Loc_ l).
 Qed.
 
 Lemma wf_new_colE l : new_col l ≡ ⦗E⦘ ⨾ new_col l ⨾ ⦗E⦘.
-Proof.
+Proof using IT wf_coE.
 apply dom_helper_3.
 unfold new_col, pref_union, col0; unfolder; ins; desf.
 2: by generalize (IN_I H); basic_solver 12.
@@ -135,7 +135,7 @@ desf; apply (wf_colE l) in H0; unfolder in H0; desf; eauto.
 Qed.
 
 Lemma wf_new_colD l : new_col l ≡ ⦗W_ l⦘ ⨾ new_col l ⨾ ⦗W_ l⦘.
-Proof.
+Proof using IT wf_coD.
 apply dom_helper_3.
 unfold new_col, pref_union, col0; unfolder; ins; desf.
 2: by generalize (IN_I H); basic_solver 12.
@@ -144,13 +144,13 @@ desf; apply (wf_colD l) in H0; unfolder in H0; desf; eauto.
 Qed.
 
 Lemma wf_new_coll l : new_col l ⊆ same_loc.
-Proof.
+Proof using IT wf_coD.
 rewrite wf_new_colD; unfold Events.same_loc.
 unfolder; ins; desf; congruence.
 Qed.
 
 Lemma wf_new_col_total l : is_total (E ∩₁ W ∩₁ Loc_ l) (new_col l).
-Proof.
+Proof using IT wf_coD wf_coE wf_co_total.
 unfold new_col, pref_union.
 unfolder; ins; desf.
 destruct (classic (col0 l a b)) as [|X]; eauto 8.
@@ -180,7 +180,7 @@ Qed.
 
 
 Lemma new_col_trans l : transitive (new_col l).
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 apply transitiveI; unfolder; ins; desf.
 eapply tot_ex.
 - apply wf_new_col_total.
@@ -199,30 +199,30 @@ eapply t_trans; vauto.
 Qed.
 
 Lemma new_col_irr l : irreflexive (new_col l).
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 red; ins; eapply acyclic_new_col; vauto.
 Qed.
 
 Lemma wf_new_coE : new_co ≡ ⦗E⦘ ⨾ new_co ⨾ ⦗E⦘.
-Proof.
+Proof using IT wf_coE.
 unfold new_co; unfolder; ins; desf; splits; ins; desf; eauto.
 apply (wf_new_colE l) in H; unfolder in H; desf; eauto.
 Qed.
 
 Lemma wf_new_coD : new_co ≡ ⦗W⦘ ⨾ new_co ⨾ ⦗W⦘.
-Proof.
+Proof using IT wf_coD.
 unfold new_co; unfolder; ins; desf; splits; ins; desf; eauto.
 apply (wf_new_colD l) in H; unfolder in H; desf; eauto.
 Qed.
 
 Lemma wf_new_col : new_co ⊆ same_loc.
-Proof.
+Proof using IT wf_coD.
 unfold new_co; unfolder; ins; desf; splits; ins; desf; eauto.
 apply (@wf_new_coll l) in H; unfolder in H; desf; eauto.
 Qed.
 
 Lemma new_co_trans : transitive new_co.
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 unfold new_co; unfolder; ins; desf; splits; ins; desf; eauto.
 hahn_rewrite wf_new_colD in H0.
 hahn_rewrite wf_new_colD in H.
@@ -231,7 +231,7 @@ exists l; eapply new_col_trans; eauto.
 Qed.
 
 Lemma wf_new_co_total : forall ol, is_total (E ∩₁ W ∩₁ (fun x => loc x = ol)) new_co.
-Proof.
+Proof using IT wf_coD wf_coE wf_co_total.
 unfold new_co; ins; unfolder; ins; desf.
 generalize (is_w_loc lab a IWa1); ins; desf.
 cut (new_col l a b \/ new_col l b a); [by basic_solver 21|].
@@ -241,13 +241,13 @@ unfolder; splits; ins; desf; congruence.
 Qed.
 
 Lemma new_co_irr : irreflexive new_co.
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 unfold new_co; ins; unfolder; ins; desf.
 eapply new_col_irr; eauto.
 Qed.
 
 Lemma new_co_I : new_co ⨾ ⦗ I ⦘  ⊆ co ⨾ ⦗ I ⦘.
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 unfolder; intros x y [R K]; desf.
 unfold new_co in R; desc.
 hahn_rewrite wf_new_colE in R.
@@ -269,7 +269,7 @@ eby eapply new_col_irr.
 Qed.
 
 Lemma T_new_co : ⦗ T ⦘ ⨾ new_co  ⊆ ⦗ T ⦘ ⨾ co.
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 unfolder; intros x y [K1 R]; desf.
 unfold new_co in R; desc.
 hahn_rewrite wf_new_colE in R.
@@ -297,7 +297,7 @@ Qed.
 
 Lemma new_co_in : new_co  ⊆ co ⨾ ⦗ I ⦘ ∪ 
 ⦗ T ⦘ ⨾ co ∪ ⦗ I \₁ T ⦘ ⨾ new_co ⨾ ⦗ T \₁ I ⦘.
-Proof.
+Proof using IT co_irr co_trans wf_coD wf_coE wf_co_total.
 rewrite (wf_new_coD), (wf_new_coE) at 1.
 rewrite !seqA.
 arewrite (⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗E ∩₁ W⦘) by basic_solver.
@@ -320,7 +320,7 @@ Qed.
 Lemma T_I_col0_I_T l : 
   ⦗ T \₁ I ⦘ ⨾ col0 l ⨾ ⦗ I \₁ T ⦘  ⊆ 
   ⦗ T \₁ I ⦘ ⨾ col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l ⨾ ⦗ I \₁ T ⦘.
-Proof.
+Proof using co_trans.
 unfold col0 at 1.
 arewrite (⦗T⦘ ⊆ ⦗T \₁ I⦘ ∪ ⦗I ∩₁ T⦘) at 2.
 unfolder; ins ;desf; tauto.
@@ -347,7 +347,7 @@ Qed.
 Lemma T_I_new_col_I_T l : 
   ⦗ T \₁ I ⦘ ⨾ new_col l ⨾ ⦗ I \₁ T ⦘  ⊆ 
   col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l.
-Proof.
+Proof using co_trans.
 unfold new_col, pref_union.
 unfolder; ins; desf.
 assert (A: (⦗ T \₁ I ⦘ ⨾ col0 l ⨾ ⦗ I \₁ T ⦘) x y) by basic_solver.
@@ -357,7 +357,7 @@ Qed.
 Lemma T_I_new_co_I_T : 
   ⦗ T \₁ I ⦘ ⨾ new_co ⨾ ⦗ I \₁ T ⦘  ⊆ 
   co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co.
-Proof.
+Proof using co_trans.
 unfold new_co.
 unfolder; ins; desf.
 assert (A: (⦗ T \₁ I ⦘ ⨾ new_col l ⨾ ⦗ I \₁ T ⦘) x y) by basic_solver.
@@ -366,7 +366,7 @@ unfold col in *; unfolder in *; desf; eauto 10.
 Qed.
 
 Lemma co_for_split: codom_rel (⦗set_compl I⦘ ⨾ (immediate new_co)) ⊆₁ T.
-Proof.
+Proof using IT wf_coD wf_coE.
 unfolder; ins; desf.
 destruct (classic (T x)) as [|X]; auto.
 exfalso.
@@ -385,14 +385,14 @@ eauto 12.
 Qed.
 
 Lemma new_col_helper l : ⦗ T ⦘ ⨾ col l ⨾ ⦗ I ∩₁ T ⦘ ⨾ col l ⨾ ⦗ I ⦘ ⊆ new_col l.
-Proof.
+Proof using.
 unfold new_col, pref_union, col0.
 unfolder; ins; left; desf.
 eapply t_trans; apply t_step; eauto 15.
 Qed.
 
 Lemma new_co_helper : ⦗ T ⦘ ⨾ co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co ⨾ ⦗ I ⦘ ⊆ new_co.
-Proof.
+Proof using wf_coD wf_col.
 unfold new_co.
 unfolder; ins; desf.
 apply co_in_col in H0.
@@ -408,7 +408,7 @@ basic_solver 12.
 Qed.
 
 Lemma I_co_in_new_co : ⦗ I ⦘ ⨾ co ⊆ new_co.
-Proof.
+Proof using IT wf_coD wf_coE wf_col.
 unfold new_co.
 unfolder; ins; desf.
 apply co_in_col in H0.

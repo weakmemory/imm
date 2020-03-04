@@ -78,7 +78,7 @@ Lemma f_to_co_mon (IMMCON : imm_consistent G sc)
       I f_to f_from (FCOH : f_to_coherent I f_to f_from)
       e e' (CO : co e e') (ISS : I e) (ISS' : I e') :
   Time.lt (f_to e) (f_to e').
-Proof.
+Proof using WF.
   eapply TimeFacts.le_lt_lt.
   2: eapply FCOH; auto.
   { by apply FCOH. }
@@ -91,7 +91,7 @@ Qed.
 Lemma f_from_co_mon I f_to f_from (FCOH : f_to_coherent I f_to f_from)
       e e' (NINIT : ~ is_init e) (CO : co e e') (ISS : I e) (ISS' : I e') :
   Time.lt (f_from e) (f_from e').
-Proof.
+Proof using.
   eapply TimeFacts.lt_le_lt.
   { eapply FCOH; eauto. }
     by apply FCOH.
@@ -104,7 +104,7 @@ Lemma f_to_coherent_strict (IMMCON : imm_consistent G sc)
       x y z (ISSX : issued T x) (ISSY : issued T y) (ISSZ : issued T z)
       (COXY: co x y) (COYZ: co y z) :
   Time.lt (f_to x) (f_from z).
-Proof.
+Proof using WF.
   eapply TimeFacts.le_lt_lt.
   { apply FCOH.
     3: by apply COXY.
@@ -122,7 +122,7 @@ Lemma lt_init_ts T f_to f_from
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
   Time.lt tid_init (f_to e).
-Proof.
+Proof using WF.
   unfold is_w in *.
   destruct e; desf.
   cdes FCOH.
@@ -148,7 +148,7 @@ Lemma le_init_ts T f_to f_from
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) :
   Time.le tid_init (f_to e).
-Proof.
+Proof using WF.
   unfold is_w in *.
   destruct e; desf.
   { apply Time.le_lteq. right.
@@ -165,7 +165,7 @@ Lemma le_init_ts_from T f_to f_from
       (FCOH : f_to_coherent (issued T) f_to f_from) e (EE : E e)
       (WW : W e) (ISS : issued T e) (NINIT : ~ is_init e) :
   Time.le tid_init (f_from e).
-Proof.
+Proof using WF.
   unfold is_w in *.
   destruct e; desf.
   cdes FCOH.
@@ -190,7 +190,7 @@ Lemma f_to_eq (IMMCON : imm_consistent G sc) T (TCCOH : tc_coherent G sc T)
       e e' (SAME_LOC : same_loc lab e e') (ISS : issued T e) (ISS' : issued T e')
       (FEQ : f_to e = f_to e') :
   e = e'.
-Proof.
+Proof using WF.
   assert (E e /\ E e') as [EE EE']. 
   { by split; apply TCCOH. }
   assert (W e /\ W e') as [WE WE']. 
@@ -215,7 +215,7 @@ Lemma f_from_eq (IMMCON : imm_consistent G sc) T (TCCOH : tc_coherent G sc T)
       (NINIT : ~ is_init e) (NINIT' : ~ is_init e')
       (FEQ : f_from e = f_from e') :
   e = e'.
-Proof.
+Proof using WF.
   assert (E e /\ E e') as [EE EE']. 
   { by split; apply TCCOH. }
   assert (W e /\ W e') as [WE WE']. 
@@ -431,7 +431,7 @@ Definition simrel
         (NEXT : next G (covered T) e')
         (NCOV : forall e'', sb e e'' -> tid e'' = tid e' -> ~ covered T e'') :
     immediate sb e e'.
-  Proof.
+  Proof using.
     red; splits; eauto.
     red in NEXT; unfold dom_cond in *; unfolder in *; desf.
     ins; eapply NCOV; eauto 10.
@@ -445,7 +445,7 @@ Definition simrel
         (TID : IdentMap.find thread PC.(Configuration.threads) = Some (langst, local)) :
     TimeMap.le (View.rlx (TView.rel (Local.tview local) l))
                (View.rlx (TView.cur (Local.tview local))).
-  Proof.
+  Proof using.
     cdes SIM_TVIEW.
     intros l'.
     specialize (CUR l').

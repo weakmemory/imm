@@ -18,7 +18,7 @@ Definition countP (f: actid -> Prop) l :=
 
 Add Parametric Morphism : countP with signature
     set_subset ==> eq ==> le as countP_mori.
-Proof.
+Proof using.
   ins. unfold countP.
   induction y0.
   { simpls. }
@@ -29,7 +29,7 @@ Qed.
 
 Add Parametric Morphism : countP with signature
     set_equiv ==> eq ==> eq as countP_more.
-Proof.
+Proof using.
   ins. unfold countP.
   erewrite filterP_set_equiv; eauto.
 Qed.
@@ -52,7 +52,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_decrease (T T' : trav_config)
         (STEP : trav_step G sc T T') :
     trav_steps_left T > trav_steps_left T'.
-  Proof.
+  Proof using.
     red in STEP. desc. red in STEP.
     desf.
     { unfold trav_steps_left.
@@ -129,7 +129,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_decrease_sim (T T' : trav_config)
         (STEP : sim_trav_step G sc T T') :
     trav_steps_left T > trav_steps_left T'.
-  Proof.
+  Proof using.
     red in STEP. desc.
     destruct STEP.
     1-4: by apply trav_steps_left_decrease; red; eauto.
@@ -145,7 +145,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_null_cov (T : trav_config)
         (NULL : trav_steps_left T = 0) :
     E ⊆₁ covered T.
-  Proof.
+  Proof using.
     unfold trav_steps_left in *.
     assert (countP (set_compl (covered T)) (acts G) = 0) as HH by omega.
     clear NULL.
@@ -162,7 +162,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_ncov_nnull (T : trav_config) e
         (EE : E e) (NCOV : ~ covered T e):
     trav_steps_left T <> 0.
-  Proof.
+  Proof using.
     destruct (classic (trav_steps_left T = 0)) as [EQ|NEQ]; auto.
     exfalso. apply NCOV. apply trav_steps_left_null_cov; auto.
   Qed.
@@ -170,7 +170,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_nnull_ncov (T : trav_config) (TCCOH : tc_coherent G sc T)
         (NNULL : trav_steps_left T > 0):
     exists e, E e /\ ~ covered T e.
-  Proof.
+  Proof using.
     unfold trav_steps_left in *.
     assert (countP (set_compl (covered T)) (acts G) > 0 \/
             countP (W ∩₁ set_compl (issued T)) (acts G) > 0) as YY by omega.
@@ -196,7 +196,7 @@ Section TraversalCounting.
   Lemma trav_steps_left_decrease_sim_trans (T T' : trav_config)
         (STEPS : (sim_trav_step G sc)⁺ T T') :
     trav_steps_left T > trav_steps_left T'.
-  Proof.
+  Proof using.
     induction STEPS.
     { by apply trav_steps_left_decrease_sim. }
     eapply lt_trans; eauto.
@@ -205,7 +205,7 @@ Section TraversalCounting.
   Theorem nat_ind_lt (P : nat -> Prop)
           (HPi : forall n, (forall m, m < n -> P m) -> P n) :
     forall n, P n.
-  Proof.
+  Proof using.
     set (Q n := forall m, m <= n -> P m).
     assert (forall n, Q n) as HH.
     2: { ins. apply (HH n). omega. }
@@ -225,7 +225,7 @@ Section TraversalCounting.
         (RELCOV :  W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w (RMW : rmw r w), covered T r <-> covered T w) :
     exists T', (sim_trav_step G sc)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
-  Proof.
+  Proof using WF.
     assert
       (exists T' : trav_config, (sim_trav_step G sc)＊ T T' /\ trav_steps_left T' = 0).
     2: { desc. eexists. splits; eauto. by apply trav_steps_left_null_cov. }
@@ -265,7 +265,7 @@ Section TraversalCounting.
 
   Lemma sim_traversal (IMMCON : imm_consistent G sc) :
     exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
-  Proof.
+  Proof using WF.
     apply sim_traversal_helper; auto.
     { by apply init_trav_coherent. }
     { unfold init_trav. simpls. basic_solver. }
@@ -285,7 +285,7 @@ Section TraversalCounting.
         (TS : isim_trav_step G sc thread' T T')
         (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
     thread' = thread.
-  Proof.
+  Proof using.
     destruct (classic (thread' = thread)) as [|NEQ]; [by subst|].
     exfalso.
     apply sim_trav_step_to_step in TS; auto. desf.
@@ -303,7 +303,7 @@ Section TraversalCounting.
         (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w : actid, rmw r w -> covered T r <-> covered T w) : 
     exists T', (isim_trav_step G sc thread)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
-  Proof.
+  Proof using WF.
     edestruct sim_traversal_helper as [T']; eauto.
     desc. exists T'. splits; auto.
     clear H0.

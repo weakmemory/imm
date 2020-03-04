@@ -42,7 +42,7 @@ Inductive plain_step :
 
 Lemma pair_app :
   forall (A B : Prop), A -> (A -> A /\ B) -> A /\ B.
-Proof. ins. intuition. Qed.
+Proof using. ins. intuition. Qed.
 
 Section PlainStepBasic.
 
@@ -102,12 +102,12 @@ Definition msg_preserved memory memory' :=
     exists from', Memory.get loc ts memory' = Some (from', msg).
 
 Definition msg_preserved_refl memory : msg_preserved memory memory.
-Proof. red. ins. eauto. Qed.
+Proof using. red. ins. eauto. Qed.
 
 Definition msg_preserved_add memory memory' loc from to val released
            (ADD : Memory.add memory loc from to val released memory') :
   msg_preserved memory memory'.
-Proof. red. ins. exists from0. eapply memory_add_le; eauto. Qed.
+Proof using. red. ins. exists from0. eapply memory_add_le; eauto. Qed.
 
 Definition msg_preserved_split memory memory'
            loc ts1 ts2 ts3 val2 val3 released2 release3
@@ -115,7 +115,7 @@ Definition msg_preserved_split memory memory'
                       memory loc ts1 ts2 ts3
                       val2 val3 released2 release3 memory'):
   msg_preserved memory memory'.
-Proof.
+Proof using.
   red. ins.
   erewrite Memory.split_o; eauto.
   edestruct Memory.split_get0 as [HH BB]; eauto.
@@ -145,7 +145,7 @@ Lemma full_simrel_step thread PC PC' T T' label f_to f_from
       (SIMREL_THREAD : simrel_thread G sc PC' thread T' f_to f_from sim_normal)
       (SIMREL : simrel G sc PC T f_to f_from) :
   simrel G sc PC' T' f_to f_from.
-Proof.
+Proof using WF.
   red. splits; auto.
   { apply SIMREL_THREAD. }
   cdes SIMREL.
@@ -282,7 +282,7 @@ Lemma max_event_cur PC T f_to f_from l e thread foo local smode
     ⟪ LB : Time.le
       (View.rlx (TView.cur (Local.tview local)) l)
       (f_to p_max) ⟫.
-Proof.
+Proof using WF CON.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
   red in SIM_TVIEW; desf.
   red in CUR; desf.

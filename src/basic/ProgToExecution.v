@@ -256,7 +256,7 @@ Section State.
         s s' (STEPS : (step tid)＊ s s')
         e (INE : s.(G).(acts_set) e):
     s'.(G).(acts_set) e.
-  Proof.
+  Proof using.
     apply clos_rt_rt1n in STEPS.
     induction STEPS; [done|]; intros.
     apply IHSTEPS.
@@ -276,7 +276,7 @@ Section State.
         s  (WF : thread_wf tid s)
         s' (STEPS : (step tid)＊ s s'):
     thread_wf tid s'.
-  Proof.
+  Proof using.
     apply clos_rt_rt1n in STEPS.
     induction STEPS; [done|]; intros.
     apply IHSTEPS.
@@ -296,7 +296,7 @@ Section State.
         (WF : thread_wf tid s) (STEPS : (step tid)＊ s s')
         e (INE : s.(G).(acts_set) e):
     s'.(G).(lab) e = s.(G).(lab) e.
-  Proof.
+  Proof using.
     apply clos_rt_rt1n in STEPS.
     induction STEPS; [done|]; intros.
     assert (thread_wf tid y) as YWF.

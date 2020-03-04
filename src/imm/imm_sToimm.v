@@ -87,10 +87,10 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Lemma s_psc_in_psc : ⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc.
-Proof. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
+Proof using. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
 
 Lemma s_ppo_in_ppo (WF: Wf G) : s_ppo ⊆ ppo.
-Proof.
+Proof using.
   unfold imm_s_ppo.ppo, imm_ppo.ppo.
   assert (rmw ∪ (rmw_dep ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb) ⊆
           (rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺) as AA.
@@ -105,12 +105,12 @@ Proof.
 Qed.
 
 Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
-Proof. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite WF.(s_ppo_in_ppo). Qed.
+Proof using. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite WF.(s_ppo_in_ppo). Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext_helper (WF: Wf G)
       (AC : imm.acyc_ext G) :
   imm_s.acyc_ext G (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
-Proof.
+Proof using.
   unfold imm_s.acyc_ext, imm.acyc_ext in *.
   unfold imm_s.ar.
   apply s_acyc_ext_psc_helper; auto.
@@ -136,14 +136,14 @@ Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G) (AC : imm.acyc_ext G) :
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
-Proof.
+Proof using.
   apply WF.(imm_s.s_acyc_ext_helper).
     by apply acyc_ext_implies_s_acyc_ext_helper.
 Qed.
 
 Lemma imm_consistentimplies_s_imm_consistent (WF: Wf G): imm.imm_consistent G -> 
   exists sc, imm_s.imm_consistent G sc.
-Proof.
+Proof using.
 unfold imm_s.imm_consistent, imm.imm_consistent.
 ins; desf.
 apply acyc_ext_implies_s_acyc_ext in Cext; eauto; desf.
@@ -153,7 +153,7 @@ Qed.
 Lemma imm_consistentimplies_s_imm_psc_consistent (WF: Wf G)
       (IC : imm.imm_consistent G) :
   exists sc, imm_s.imm_psc_consistent G sc.
-Proof.
+Proof using.
   edestruct imm_consistentimplies_s_imm_consistent as [sc];
     eauto.
   exists sc. red. splits; auto.

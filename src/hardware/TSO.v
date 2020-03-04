@@ -72,14 +72,14 @@ Definition TSOConsistent :=
 Implicit Type CON : TSOConsistent.
 
 Lemma CON_WF CON : Wf G.
-Proof. apply CON. Qed.
+Proof using. apply CON. Qed.
 
 (******************************************************************************)
 (** ** Relations in graph *)
 (******************************************************************************)
 
 Lemma wf_ppoE WF: ppo ≡ ⦗E⦘ ⨾ ppo ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ppo.
 rewrite (@wf_sbE G) at 1.
@@ -87,7 +87,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_fenceE WF: fence ≡ ⦗E⦘ ⨾ fence ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold fence.
 rewrite (@wf_sbE G) at 1 2.
@@ -95,7 +95,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_implied_fenceE WF: implied_fence ≡ ⦗E⦘ ⨾ implied_fence ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold implied_fence.
 rewrite (@wf_sbE G) at 1 2.
@@ -107,7 +107,7 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_hbD WF : hb ≡ ⦗RW⦘ ⨾ hb ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 apply dom_helper_3.
 unfold hb.
@@ -122,7 +122,7 @@ Qed.
 
 
 Lemma wf_ct_hbD WF : hb⁺ ≡ ⦗RW⦘ ⨾ hb⁺ ⨾ ⦗RW⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 apply dom_helper_3.
 rewrite (wf_hbD WF).
@@ -137,7 +137,7 @@ Qed.
 
 Lemma ppo_alt : ppo ≡ 
   ⦗R⦘ ⨾ sb ⨾ ⦗RW⦘ ∪ ⦗W⦘ ⨾ sb ⨾ ⦗W⦘.
-Proof.
+Proof using.
 unfold ppo.
 split.
 by apply inclusion_minus_l; basic_solver 12.
@@ -145,7 +145,7 @@ by unfolder; ins; desf; splits; eauto 10; intro; type_solver.
 Qed.
 
 Lemma ppo_in_sb : ppo ⊆ sb. 
-Proof.
+Proof using.
 unfold ppo; basic_solver.
 Qed.
 

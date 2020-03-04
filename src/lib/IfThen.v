@@ -19,23 +19,23 @@ Add Parametric Morphism {A} (K : Prop) (L : Prop) (c : {K} + {L}) :
     set_equiv ==>
     set_equiv ==>
     set_equiv as ifthenelse_more.
-Proof. intros; unfold ifthenelse; desf. Qed.
+Proof using. intros; unfold ifthenelse; desf. Qed.
 
 Add Parametric Morphism {A} (c : bool) :
   (@ifthenelse_b (A -> Prop) c) with signature
     set_equiv ==>
     set_equiv ==>
     set_equiv as ifthenelse_b_more.
-Proof. intros; unfold ifthenelse_b; desf. Qed.
+Proof using. intros; unfold ifthenelse_b; desf. Qed.
 
 Lemma ite_alt {A} K L (c : {K} + {L}) (x y : A -> Prop) :
   (if c then x else y) ≡₁ ifthenelse c x y.
-Proof. rels. Qed.
+Proof using. rels. Qed.
 
 Lemma iteb_alt {A} (c : bool) (x y : A -> Prop) :
   (if c then x else y) ≡₁ ifthenelse_b c x y.
-Proof. rels. Qed.
+Proof using. rels. Qed.
 
 Lemma ite_union_t {A} K L (c : {K} + {L}) (x y z : A -> Prop) :
   ifthenelse c (x ∪₁ y) z ≡₁ ifthenelse c x z ∪₁ ifthenelse c y z.
-Proof. by rewrite <- !ite_alt; destruct c; [|rewrite set_unionK]. Qed.
+Proof using. by rewrite <- !ite_alt; destruct c; [|rewrite set_unionK]. Qed.

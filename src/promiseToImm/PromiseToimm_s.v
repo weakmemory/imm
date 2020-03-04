@@ -43,27 +43,27 @@ Remove Hints plus_n_O.
 Lemma istep_nil_eq_silent thread :
   istep thread nil ≡
   lts_step thread ProgramEvent.silent.
-Proof.
+Proof using.
   unfold lts_step. unfold lab_imm_promise.
   split; [|basic_solver].
   unfolder. ins. exists nil. eauto.
 Qed.
 
 Lemma InAE A x (l : list A) : SetoidList.InA eq x l <-> In x l.
-Proof.
+Proof using.
   split; [by induction 1; desf; ins; eauto|].
   induction l; ins; desf; eauto using SetoidList.InA.
 Qed.
 
 Lemma NoDupAE A (l : list A) : SetoidList.NoDupA eq l <-> NoDup l.
-Proof.
+Proof using.
   split; induction 1; constructor; eauto; rewrite InAE in *; eauto.
 Qed.
 
 Lemma NoDup_map_NoDupA A B (f : A -> B) l :
   SetoidList.NoDupA (fun p p' => f p = f p') l ->
   NoDup (map f l).
-Proof.
+Proof using.
   induction 1; ins; constructor; eauto.
   clear -H; intro M; destruct H; induction l; ins; desf;
     eauto using SetoidList.InA.
@@ -92,7 +92,7 @@ Lemma cert_sim_step G sc thread PC T T' f_to f_from smode
     exists PC' f_to' f_from',
       ⟪ PSTEP : plain_step None thread PC PC' ⟫ /\
       ⟪ SIMREL : simrel_thread G sc PC' thread T' f_to' f_from' smode ⟫.
-Proof.
+Proof using.
   eapply plain_sim_step in STEP; eauto.
   desf. eexists. eexists. eexists. splits; eauto.
 Qed.
@@ -105,7 +105,7 @@ Lemma cert_sim_steps G sc thread PC T T' f_to f_from smode
     exists PC' f_to' f_from',
       ⟪ PSTEP : (plain_step None thread)⁺ PC PC' ⟫ /\
       ⟪ SIMREL : simrel_thread G sc PC' thread T' f_to' f_from' smode ⟫.
-Proof.
+Proof using.
   generalize dependent f_from.
   generalize dependent f_to.
   generalize dependent PC.
@@ -137,7 +137,7 @@ Lemma cert_simulation G sc thread PC T f_to f_from
     ⟪ FINALT : G.(acts_set) ⊆₁ covered T' ⟫ /\
     ⟪ PSTEP  : (plain_step None thread)＊ PC PC' ⟫ /\
     ⟪ SIMREL : simrel_thread G sc PC' thread T' f_to' f_from' sim_certification⟫.
-Proof.
+Proof using.
   assert (tc_coherent G sc T) as TCCOH.
   { apply SIMREL. }
   generalize (sim_step_cov_full_traversal WF IMMCON TCCOH NCOV); intros H.
@@ -169,7 +169,7 @@ Lemma simrel_thread_bigger_sc_memory G sc T thread f_to f_from threads memory
                               thread T f_to f_from sim_certification) :
   simrel_thread G sc (Configuration.mk threads sc_view' memory') thread T f_to f_from
                 sim_certification.
-Proof.
+Proof using.
   cdes SIMREL. cdes COMMON. cdes LOCAL.
   red; splits; red; splits; eauto; ins.
   { ins. etransitivity.
@@ -215,7 +215,7 @@ Variable sc : relation actid.
 Hypothesis IMMCON : imm_consistent G sc.
 
 Lemma w_ex_is_xacq : W_ex G ⊆₁ W_ex G ∩₁ is_xacq (lab G).
-Proof.
+Proof using All.
   red in PROG_EX.
   intros x H.
   destruct H as [y RMW].
@@ -282,7 +282,7 @@ Lemma conf_steps_preserve_thread tid PC PC' (STEPS : (plain_step None tid)＊ PC
   exists lang' state' local',
     IdentMap.find tid PC'.(Configuration.threads) =
     Some (existT _ lang' state', local').
-Proof.
+Proof using All.
   induction STEPS.
   2: { ins. eauto. }
   { destruct H.
@@ -298,7 +298,7 @@ Lemma conf_steps_preserve_lang tid PC PC' (STEPS : (plain_step None tid)＊ PC P
          (THREAD' : IdentMap.find tid PC'.(Configuration.threads) =
                     Some (existT _ lang' state', local')),
     lang = lang'.
-Proof.
+Proof using All.
   induction STEPS.
   2: { ins. rewrite THREAD' in THREAD. inv THREAD. }
   { destruct H.
@@ -323,7 +323,7 @@ Lemma conf_steps_to_thread_steps tid PC PC' (STEPS : (plain_step None tid)＊ PC
          (TS' : ts' = Thread.mk lang state' local'
                                 PC'.(Configuration.sc) PC'.(Configuration.memory)),
     rtc (Thread.tau_step (lang:=lang)) ts ts'.
-Proof.
+Proof using All.
   induction STEPS.
   2: { ins. apply rtc_refl.
        rewrite TS, TS'.
@@ -348,7 +348,7 @@ Qed.
 
 Lemma event_to_prog_thread e (ACT : acts_set G e) (NINIT : ~ is_init e) :
   IdentMap.In (tid e) prog.
-Proof.
+Proof using All.
   red in PROG_EX.
   destruct PROG_EX as [HH OO].
   destruct (HH e ACT) as [|AA]; [by desf|done].
@@ -360,7 +360,7 @@ Lemma sim_step PC T T' f_to f_from
     exists PC' f_to' f_from',
       ⟪ PSTEP : conf_step PC PC' ⟫ /\
       ⟪ SIMREL : simrel G sc PC' T' f_to' f_from' ⟫.
-Proof.
+Proof using All.
   destruct STEP as [thread STEP].
   cdes SIMREL. cdes COMMON.
   eapply plain_sim_step in STEP; eauto.
@@ -461,7 +461,7 @@ Lemma sim_steps PC T T' f_to f_from
     exists PC' f_to' f_from',
       ⟪ PSTEP : conf_step⁺ PC PC' ⟫ /\
       ⟪ SIMREL : simrel G sc PC' T' f_to' f_from' ⟫.
-Proof.
+Proof using All.
   generalize dependent f_from.
   generalize dependent f_to.
   generalize dependent PC.
@@ -479,7 +479,7 @@ Qed.
 
 Lemma simrel_init :
   simrel G sc (conf_init prog) (init_trav G) (fun _ => tid_init) (fun _ => tid_init).
-Proof.
+Proof using All.
   red; splits; red; splits. 
   { apply w_ex_is_xacq. }
   { apply ALLRLX. }
@@ -621,7 +621,7 @@ Lemma simulation :
     ⟪ FINALT : G.(acts_set) ⊆₁ covered T ⟫ /\
     ⟪ PSTEP  : conf_step＊ (conf_init prog) PC ⟫ /\
     ⟪ SIMREL : simrel G sc PC T f_to f_from ⟫.
-Proof.
+Proof using All.
   generalize (sim_traversal WF IMMCON); ins; desc.
   exists T. apply rtE in H.
   destruct H as [H|H].
@@ -657,7 +657,7 @@ Lemma sim_thread_covered_exists_terminal PC thread T f_to f_from
     ⟪ PTERMINAL :
       forall thread' (TT : thread_is_terminal PC.(Configuration.threads) thread'),
         thread_is_terminal PC'.(Configuration.threads) thread' ⟫.
-Proof.
+Proof using All.
   cdes SIMREL.
   destruct (IdentMap.find thread (Configuration.threads PC)) as [j|] eqn: QQ.
   2: { exists PC. splits; auto.
@@ -819,7 +819,7 @@ Proof.
 Qed.
 
 Lemma length_nzero_in A (l : list A) n : length l = S n -> exists x, In x l.
-Proof.
+Proof using All.
   destruct l; ins; desf; eauto.
 Qed.
 
@@ -830,7 +830,7 @@ Lemma sim_covered_exists_terminal T PC f_to f_from
     ⟪ STEPS : conf_step＊ PC PC' ⟫ /\
     ⟪ SIMREL : simrel G sc PC' T f_to f_from ⟫ /\
     ⟪ TERMINAL : Configuration.is_terminal PC' ⟫.
-Proof.
+Proof using All.
   assert
     (exists l, 
          length (filterP (fun x => ~ thread_is_terminal (PC.(Configuration.threads)) x)
@@ -873,7 +873,7 @@ Lemma same_final_memory T PC f_to f_from
       (SIMREL : simrel G sc PC T f_to f_from) :
   forall l,
     final_memory_state (Configuration.memory PC) l = Some (final_memory l).
-Proof.
+Proof using All.
   ins. unfold final_memory_state.
   cdes SIMREL. cdes COMMON.
   assert (Memory.inhabited PC.(Configuration.memory)) as INHAB.
@@ -967,7 +967,7 @@ Proof.
 Qed.
 
 Theorem promise2imm : promise_allows prog final_memory.
-Proof.
+Proof using All.
   red.
   destruct simulation as [T [PC H]]. desc.
   edestruct sim_covered_exists_terminal as [PC']; eauto.

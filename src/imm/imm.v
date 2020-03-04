@@ -80,7 +80,7 @@ Definition psc := ⦗F∩₁Sc⦘ ⨾  hb ⨾ eco ⨾ hb ⨾ ⦗F∩₁Sc⦘.
 Definition ar := psc ∪ rfe ∪ ar_int.
 
 Lemma ppo_in_ar : ppo G ⊆ ar.
-Proof. rewrite ppo_in_ar_int. by arewrite (ar_int ⊆ ar). Qed.
+Proof using. rewrite ppo_in_ar_int. by arewrite (ar_int ⊆ ar). Qed.
 
 (******************************************************************************)
 (** ** Consistency  *)
@@ -106,12 +106,12 @@ Implicit Type PSC : acyclic psc.
 (******************************************************************************)
 
 Lemma psc_hb: psc ⨾ hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc.
-Proof.
+Proof using.
 unfold psc; generalize (@hb_trans G); basic_solver 20. 
 Qed.
 
 Lemma hb_psc: ⦗F∩₁Sc⦘ ⨾ hb ⨾ psc ⊆ psc.
-Proof.
+Proof using.
 unfold psc; generalize (@hb_trans G); basic_solver 20. 
 Qed.
 
@@ -120,14 +120,14 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_pscE WF : psc ≡ ⦗E⦘ ⨾ psc ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold psc; rewrite (wf_hbE WF) at 1 2.
 basic_solver 42.
 Qed.
 
 Lemma wf_scbE WF : scb ≡ ⦗E⦘ ⨾ scb ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold scb.
 rewrite wf_sbE at 1 2 3. rewrite WF.(wf_hbE) at 1 2.
@@ -136,7 +136,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_psc_baseE WF : psc_base ≡ ⦗E⦘ ⨾ psc_base ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold psc_base.
 rewrite WF.(wf_hbE) at 1 2.
@@ -146,7 +146,7 @@ Qed.
 
 
 Lemma wf_arE WF : ar ≡ ⦗E⦘ ⨾ ar ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold ar.
 rewrite (wf_pscE WF), (wf_ar_intE WF), (wf_rfeE WF) at 1.
@@ -159,13 +159,13 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_pscD : psc ≡ ⦗F∩₁Sc⦘ ⨾ psc ⨾ ⦗F∩₁Sc⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold psc; basic_solver 42.
 Qed.
 
 Lemma wf_psc_baseD : psc_base ≡ ⦗Sc⦘ ⨾ psc_base ⨾ ⦗Sc⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold psc_base; basic_solver 42.
 Qed.
@@ -175,7 +175,7 @@ Qed.
 (******************************************************************************)
 
 Lemma no_psc_to_init WF : psc ≡ psc ⨾  ⦗fun x => ~ is_init x⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 rewrite wf_pscD at 1.
 generalize (read_or_fence_is_not_init WF).
@@ -187,7 +187,7 @@ Qed.
 (******************************************************************************)
 
 Lemma CoherentPSC WF PSC: irreflexive (co ⨾ rf^? ⨾ hb ⨾ psc ⨾ hb ⨾ rf⁻¹ ^?).
-Proof.
+Proof using.
 rewrite wf_pscD.
 rotate 4.
 arewrite ((rf⁻¹)^? ⨾ co ⨾ rf^? ⊆ eco).
@@ -198,7 +198,7 @@ eby eapply PSC, t_trans; apply t_step.
 Qed.
 
 Lemma C_EXT_helper2 WF: (psc ∪ rfe)⁺ ⊆ psc⁺ ∪ rfe.
-Proof.
+Proof using.
 apply ct_ind_left with (P:= fun r => r).
 by eauto with hahn.
 by unionL; vauto.
@@ -213,7 +213,7 @@ Qed.
 Lemma sw_in_ar_helper_old WF:
   ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)＊ ⊆
   (sb ∩ same_loc ⨾ ⦗W⦘)^? ∪ (sb ∩ same_loc)^? ⨾ (rfe ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)⁺.
-Proof.
+Proof using.
   rewrite rtE at 1; relsf; unionL; [basic_solver 21|].
   rewrite rfi_union_rfe; relsf.
   rewrite path_union.
@@ -253,10 +253,10 @@ Proof.
 Qed.
 
 Lemma ar_int_in_ar : ar_int ⊆ ar.
-Proof. unfold ar. eauto with hahn. Qed.
+Proof using. unfold ar. eauto with hahn. Qed.
 
 Lemma rmw_sb_cr_W_in_ar WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ar.
-Proof.
+Proof using.
   rewrite <- ppo_in_ar.
   unfold imm_ppo.ppo.
   rewrite <- ct_step, (dom_l (wf_rmwD WF)).
@@ -264,14 +264,14 @@ Proof.
 Qed.
 
 Lemma fwbob_in_ar : fwbob G ⊆ ar.
-Proof.
+Proof using.
   unfold ar. unfold imm_ppo.ar_int.
   rewrite fwbob_in_bob. basic_solver 10.
 Qed.
 
 Lemma sw_in_ar WF :
   sw ⊆ sb^? ⨾ ⦗W⦘ ⨾ ar⁺ ⨾ (rmw ⨾ sb^?)^? ∪ sb.
-Proof.
+Proof using.
   assert ((sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ ar^?) as BB.
   { arewrite (⦗Acq⦘ ⊆ ⦗Acq/Rel⦘) by mode_solver.
       unfold ar, imm_ppo.ar_int, imm_bob.bob, imm_bob.fwbob.
@@ -365,7 +365,7 @@ Qed.
 
 Lemma f_sc_hb_f_sc_in_ar WF : 
   ⦗F ∩₁ Sc⦘ ⨾ hb ⨾ ⦗F ∩₁ Sc⦘ ⊆ ar⁺.
-Proof.
+Proof using.
 unfold imm_hb.hb.
 rewrite (dom_r (wf_swD WF)).
 rewrite (sw_in_ar WF); relsf.
@@ -396,7 +396,7 @@ Qed.
 
 Lemma acyc_ext_helper WF :
   acyclic (sb^? ⨾ psc ⨾ sb^? ∪ rfe ∪ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘) -> acyc_ext.
-Proof.
+Proof using.
   intros AC.
   generalize (@sb_trans G); intro SBT.
   red. unfold ar.
@@ -442,7 +442,7 @@ Qed.
 
 Lemma psc_base_in_psc_f WF (SC_F : Sc ⊆₁ F∩₁Sc): 
   psc_base ⊆ psc_f.
-Proof.
+Proof using.
   unfold psc_base, scb.
   arewrite (sb \ same_loc ⊆ sb).
   arewrite (sb ⊆ hb).

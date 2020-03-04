@@ -99,7 +99,7 @@ Section Props.
 Hypothesis tc_old : tc_coherent_alt_old.
 
 Lemma otc_tc_fwbob_I : dom_rel (fwbob⁺ ⨾ ⦗I⦘) ⊆₁ C.
-Proof.
+Proof using tc_old.
 rewrite ct_end, !seqA.
 rewrite (dom_rel_helper (otc_fwbob_I tc_old)).
 rewrite fwbob_in_sb.
@@ -110,7 +110,7 @@ Qed.
 
 Lemma otc_W_bob_I :
   dom_rel (⦗W⦘ ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
 rewrite tc_bob; relsf; splits; [| type_solver].
 rewrite (dom_rel_helper (otc_tc_fwbob_I)).
 generalize (otc_W_C_in_I tc_old).
@@ -118,21 +118,21 @@ basic_solver 12.
 Qed.
 
 Lemma otc_dr_bob_I : dom_rel ((rfe ∪ detour) ⨾ bob ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   etransitivity.
   2: by apply otc_dr_pb_I; auto.
   basic_solver 20.
 Qed.
 
 Lemma otc_dr_ppo_I : dom_rel ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   etransitivity.
   2: by apply otc_dr_pb_I; auto.
   basic_solver 20.
 Qed.
 
 Lemma otc_dr_bob_ct_I WF : dom_rel ((rfe ∪ detour) ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   remember (rfe ∪ detour) as rd.
   rewrite tc_bob. rewrite !seq_union_l, !seq_union_r, !dom_union. unionL.
   2: { arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
@@ -147,7 +147,7 @@ Qed.
 
 Lemma otc_I_ar_I_implied_helper_0 WF :
   dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   rewrite (bob_ppo_W_sb WF).
   rewrite crE.
   rewrite wf_ppoD at 1 2.
@@ -166,7 +166,7 @@ Qed.
 Lemma bob_W_ex_sb_W_ex_rfi_ct_alt :
   (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ;; <|W|> ⊆
   (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^* ;; (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ;; bob)^?.
-Proof.
+Proof using.
   rewrite unionC.
   rewrite path_union1.
   rewrite !seq_union_l. unionL.
@@ -196,7 +196,7 @@ Qed.
 
 Lemma dom_W_ex_rfi_Acq_bob_I_in_I :
   dom_rel (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   etransitivity.
   2: by apply otc_dr_pb_I; auto.
   basic_solver 20.
@@ -204,7 +204,7 @@ Qed.
             
 Lemma dom_W_ex_rfi_Acq_bob_cr_I_in_I :
   dom_rel ((⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^? ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   rewrite crE. rewrite seq_union_l, dom_union. unionL.
   { basic_solver. }
   rewrite !seqA. by apply dom_W_ex_rfi_Acq_bob_I_in_I.
@@ -212,7 +212,7 @@ Qed.
 
 Lemma otc_I_ar_I_implied_helper_1 WF :
   dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
-Proof.
+Proof using tc_old.
   rewrite (bob_ppo_W_ex_rfi_W_sb WF).
   rewrite crE.
   rewrite wf_ppoD at 1 2.
@@ -229,7 +229,7 @@ Qed.
 
 Lemma otc_I_ar_I_implied_helper_2  WF WF_SC :
    dom_rel (<|W|> ;; ar⁺ ;; <|I|>) ⊆₁ I.
-Proof.
+Proof using tc_old.
   assert (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) as AA.
   { rewrite (ppo_in_sb WF), bob_in_sb.
     arewrite (rfi ⊆ sb). basic_solver 10. }

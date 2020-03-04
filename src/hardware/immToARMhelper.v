@@ -98,18 +98,18 @@ Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis CON: ArmConsistent G.
 
 Lemma WF : Wf G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 Lemma COMP : complete G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 Lemma SC_PER_LOC : sc_per_loc G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 
 (******************************************************************************)
 (** * imm.hb in terms of Arm relations *)
 (******************************************************************************)
 
 Lemma co_sb_loc : ⦗W⦘ ⨾ co^? ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
-Proof.
+Proof using CON.
 case_refl (sb ∩ same_loc); [basic_solver|].
 rewrite (dom_r (wf_coD WF)).
 arewrite (⦗W⦘ ⨾ (co ⨾ ⦗W⦘)^? ⊆ co^? ⨾ ⦗W⦘) by basic_solver.
@@ -118,13 +118,13 @@ generalize (co_trans WF); ie_unfolder; basic_solver 12.
 Qed.
 
 Lemma rs_sb_loc : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
-Proof.
+Proof using CON.
 rewrite (rs_in_co  WF SC_PER_LOC), !seqA.
 apply co_sb_loc.
 Qed.
 
 Lemma rs_sb_loc_rfe : rs ⨾ (sb ∩ same_loc)^? ⨾ rfe ⊆ obs'⁺.
-Proof.
+Proof using CON.
 rewrite (dom_l (wf_rfeD WF)).
 sin_rewrite rs_sb_loc.
 unfold Arm.obs'.
@@ -133,7 +133,7 @@ basic_solver 12.
 Qed.
 
 Lemma rs_rfi: rs ⨾ rfi ⊆ sb ∩ same_loc ⨾ ⦗R⦘ ∪ obs'⁺ ⨾ ⦗R⦘ ⨾ sb.
-Proof.
+Proof using CON.
 generalize (@sb_same_loc_trans G); ins.
 assert (SB: (sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ⊆ sb ∩ same_loc).
 { rewrite (rfi_in_sbloc' WF).
@@ -160,7 +160,7 @@ generalize (@sb_trans G); ins; relsf.
 Qed.
 
 Lemma rs_rfi_Q: rs ⨾ rfi ⨾ ⦗Q⦘ ⊆ sb ∩ same_loc ⨾ ⦗Q⦘ ∪ (obs' ∪ dob ∪ aob ∪ boba')⁺  ⨾ ⦗Q⦘.
-Proof.
+Proof using CON.
 generalize (rs_in_co  WF SC_PER_LOC).
 unfold imm_hb.rs.
 intro X.
@@ -189,7 +189,7 @@ Lemma sw_in_ord :
   sw ⊆    ⦗L⦘ ⨾  sb ∩ same_loc ⨾ ⦗Q⦘
         ∪ ⦗L⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘
         ∪ ⦗L∪₁F^sy⦘ ⨾ (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
-Proof.
+Proof using CON.
 unfold imm_hb.sw, imm_hb.release.
 rewrite (dom_l (wf_rsD WF)), (dom_r (wf_rfeD WF)), !seqA; relsf.
 rewrite !seqA.
@@ -250,7 +250,8 @@ Qed.
 
 Lemma swe_in_ord : 
   sw \ sb ⊆ ⦗L∪₁F^sy⦘ ⨾ (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
-Proof.
+Proof using CON.
+
 rewrite sw_in_ord.
 arewrite_id ⦗L⦘.
 arewrite_id ⦗Q⦘.
@@ -264,7 +265,7 @@ Qed.
 
 Lemma ct_swe_in_ord : 
   (sw \ sb)⁺ ⊆ ⦗L∪₁F^sy⦘ ⨾ (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
-Proof.
+Proof using CON.
 apply inclusion_t_ind_left.
 apply swe_in_ord.
 rewrite swe_in_ord, !seqA.
@@ -276,7 +277,7 @@ Qed.
 
 Lemma sb_ct_swe_in_ord :
   sb ⨾ (sw \ sb)⁺ ⊆  (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
-Proof.
+Proof using CON.
   rewrite ct_swe_in_ord.
   arewrite (sb ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba').
   { unfold Arm.bob', Arm.bob; basic_solver 15. }
@@ -286,7 +287,7 @@ Qed.
 
 Lemma ct_sb_swe_in_ord :
   (sb^? ⨾ (sw \ sb))⁺ ⊆  (obs' ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
-Proof.
+Proof using CON.
 sin_rewrite swe_in_ord.
 arewrite (sb^? ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba'^?).
 unfold Arm.bob', Arm.bob; basic_solver 14.
@@ -297,7 +298,7 @@ relsf.
 Qed.
 
 Lemma hb_in_sb_swe : hb ⊆ (sb ∪ (sw \ sb))⁺.
-Proof.
+Proof using CON.
 unfold imm_hb.hb.
 rewrite (ri_union_re G sw) at 1.
 apply inclusion_t_t.
@@ -305,7 +306,7 @@ basic_solver.
 Qed.
 
 Lemma hb_in_ord : hb ⊆ sb ∪ (obs' ∪ dob ∪ aob ∪ boba')⁺ .
-Proof.
+Proof using CON.
 rewrite hb_in_sb_swe.
 rewrite path_union.
 generalize (@sb_trans G); ins; relsf.
@@ -319,7 +320,7 @@ relsf.
 Qed.
 
 Lemma sbrel_in_ord : sb ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba'.
-Proof.
+Proof using CON.
 unfold Arm.bob', Arm.bob; basic_solver 14.
 Qed.
 
@@ -328,7 +329,7 @@ Qed.
 (******************************************************************************)
 
 Lemma COH: coherence G.
-Proof.
+Proof using CON RMW_COI.
   apply coherence_alt.
   rewrite hb_in_ord; relsf; unionL.
   { by apply (@sb_irr G). }
@@ -351,7 +352,7 @@ Qed.
 (******************************************************************************)
 
 Lemma psc_in_ord : sb^? ⨾ psc ⨾ sb^? ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ .
-Proof.
+Proof using CON G W_EX_ACQ_SB.
 unfold imm.psc.
 arewrite (eco ⊆ (co ∪ fr ∪ rfe)＊⨾ rfi^?).
 { unfold Execution_eco.eco; rewrite crE.
@@ -384,7 +385,7 @@ unfolder; ins; desc; eapply t_trans; eauto.
 Qed.
 
 Lemma hb_f_sy_in_ord : hb ⨾ ⦗F^sy⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON.
   rewrite hb_in_ord.
   rewrite !seq_union_l.
   unionL.
@@ -395,7 +396,7 @@ Proof.
 Qed.
 
 Lemma f_sy_hb_in_ord : ⦗F^sy⦘ ⨾ hb ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON.
   rewrite hb_in_ord.
   rewrite !seq_union_r.
   unionL.
@@ -406,7 +407,7 @@ Proof.
 Qed.
 
 Lemma sb_psc_f_sb_in_ord : sb^? ⨾ psc_f ⨾ sb^? ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON W_EX_ACQ_SB.
   unfold imm.psc_f.
   rewrite crE with (r := eco ⨾ hb).
   repeat (rewrite !seq_union_l, !seq_union_r).
@@ -428,13 +429,13 @@ Proof.
 Qed.
 
 Lemma psc_f_in_ord : psc_f ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON W_EX_ACQ_SB.
   arewrite (psc_f ⊆ sb^? ⨾ psc_f ⨾ sb^?) by basic_solver 10.
   apply sb_psc_f_sb_in_ord.
 Qed.
 
 Lemma sc_sb_sc_in_boba' : ⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ⊆ boba'.
-Proof.
+Proof using CON W_EX_ACQ_SB.
   arewrite (Sc ⊆₁ ((R ∪₁ F) ∪₁ W) ∩₁ Sc) at 1 by type_solver.
   rewrite set_inter_union_l, id_union, !seq_union_l.
   unionL.
@@ -459,7 +460,7 @@ Proof.
 Qed.
 
 Lemma psc_base_in_ord : psc_base ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof.
+Proof using CON W_EX_ACQ_SB.
   unfold imm.psc_base, imm.scb.
   rewrite sb_in_hb.
   arewrite (hb \ same_loc ⊆ hb).
@@ -493,7 +494,7 @@ Proof.
 Qed.
 
 Lemma ppo_in_dob_helper : ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)⁺ ⨾ ⦗W⦘ ⊆ dob⁺ .
-Proof.
+Proof using CON W_EX_ACQ_SB.
 rewrite path_union1.
 assert (transitive rfi).
 by apply transitiveI; rewrite (wf_rfiD WF); type_solver.
@@ -527,7 +528,7 @@ rewrite <- ct_end; basic_solver.
 Qed.
 
 Lemma detour_in_obs : detour ⊆ obs'⁺ .
-Proof.
+Proof using.
 unfold Execution.detour.
 arewrite (coe ⊆ obs').
 arewrite (rfe ⊆ obs').
@@ -536,7 +537,7 @@ basic_solver 12.
 Qed.
 
 Lemma bob_in_boba : bob ⊆ boba' ∪ coi ∪ sb ⨾ ⦗F^ld⦘.
-Proof.
+Proof using CON W_EX_ACQ_SB.
 unfold imm_bob.bob, imm_bob.fwbob, Arm.bob', Arm.bob.
 unionL.
 - basic_solver 15.
@@ -548,7 +549,7 @@ unionL.
 Qed.
 
 Lemma W_ex_acq_sb_in_boba1 : ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (sb ⨾ ⦗F^ld⦘ ∪ boba')⁺.
-Proof.
+Proof using W_EX_ACQ_SB.
 unfold Arm.bob'.
 sin_rewrite W_EX_ACQ_SB.
 case_refl _.
@@ -559,7 +560,7 @@ basic_solver 42.
 Qed.
 
 Lemma C_SC: acyclic (psc_f ∪ psc_base).
-Proof.
+Proof using CON RMW_COI W_EX_ACQ_SB.
   rewrite psc_base_in_ord, psc_f_in_ord.
   rewrite unionK.
   red. rewrite ct_of_ct.

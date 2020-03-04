@@ -93,7 +93,7 @@ Lemma plain_sim_step thread PC T f_to f_from T' smode
       ⟪ SIMREL :
           smode = sim_normal -> simrel G sc PC T f_to f_from ->
           simrel G sc PC' T' f_to' f_from' ⟫.
-Proof.
+Proof using WF CON.
   cdes SIMREL_THREAD. cdes COMMON. cdes LOCAL.
   set (TCSTEP' := TCSTEP).
   destruct TCSTEP'.

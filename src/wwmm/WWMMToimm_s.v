@@ -71,7 +71,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Lemma sw_ww_in_sw : sw_ww ⊆ sw.
-Proof.
+Proof using WF.
   unfold imm_s_hb.sw, WWMM.sw.
   arewrite (Sc ⊆₁ Rel) at 1 by mode_solver.
   arewrite (Sc ⊆₁ Acq) by mode_solver.
@@ -87,21 +87,21 @@ Proof.
 Qed.
 
 Lemma hb_ww_in_hb : hb_ww ⊆ hb.
-Proof. unfold imm_s_hb.hb, WWMM.hb. by rewrite sw_ww_in_sw. Qed.
+Proof using WF. unfold imm_s_hb.hb, WWMM.hb. by rewrite sw_ww_in_sw. Qed.
 
 Lemma hb_wwE : hb_ww ≡ ⦗E⦘ ⨾ hb_ww ⨾ ⦗E⦘.
-Proof.
+Proof using WF.
   apply dom_helper_3. rewrite hb_ww_in_hb.
   apply dom_helper_3. by apply wf_hbE.
 Qed.
 
 Lemma sw_ww_sc : sw_ww ≡ ⦗Sc⦘ ⨾ sw_ww ⨾ ⦗Sc⦘.
-Proof. apply dom_helper_3. unfold WWMM.sw. basic_solver. Qed.
+Proof using. apply dom_helper_3. unfold WWMM.sw. basic_solver. Qed.
 
 Lemma sc_hb_ww_sc_in_sc_ct :
   ⦗Sc⦘ ⨾ hb_ww ⨾ ⦗Sc⦘ ⊆
   (⦗Sc⦘ ⨾ sb ⨾ ⦗Sc⦘ ∪ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘)⁺.
-Proof.
+Proof using.
   unfold WWMM.hb, WWMM.sw.
   rewrite path_tur with (adom:=Sc) (bdom:=Sc).
   3,4: basic_solver.
@@ -147,7 +147,7 @@ Qed.
 
 Lemma hb_ww_co_fr_ac sc (IPC : imm_s.imm_psc_consistent G sc) :
   acyclic (hb_ww ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘).
-Proof.
+Proof using WF.
   cdes IPC. cdes IC.
   assert (acyclic hb_ww) as HBWWAC.
   { rewrite hb_ww_in_hb.
@@ -185,7 +185,7 @@ Qed.
 Theorem s_imm_consistent_implies_wwmm_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   exists mo, wwmm_consistent G mo.
-Proof.
+Proof using WF.
   cdes IPC. cdes IC.
   exists (⦗E⦘ ⨾
             tot_ext (acts G)

@@ -76,55 +76,55 @@ Implicit Type COMP : complete G.
 (******************************************************************************)
 
 Lemma sb_to_w_rel_in_fwbob : sb ⨾ ⦗W∩₁Rel⦘ ⊆ fwbob.
-Proof. unfold fwbob. basic_solver 10. Qed.
+Proof using. unfold fwbob. basic_solver 10. Qed.
 
 Lemma sb_from_w_rel_in_fwbob : ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ⊆ fwbob.
-Proof. unfold fwbob. basic_solver 10. Qed.
+Proof using. unfold fwbob. basic_solver 10. Qed.
 
 Lemma sb_to_f_in_fwbob : sb ⨾ ⦗F∩₁Acq/Rel⦘ ⊆ fwbob.
-Proof. unfold fwbob. basic_solver 10. Qed.
+Proof using. unfold fwbob. basic_solver 10. Qed.
 
 Lemma sb_from_f_in_fwbob : ⦗F∩₁Acq/Rel⦘ ⨾ sb  ⊆ fwbob.
-Proof. unfold fwbob. basic_solver 10. Qed.
+Proof using. unfold fwbob. basic_solver 10. Qed.
 
 Lemma fwbob_in_bob : fwbob ⊆ bob.
-Proof. unfold bob. basic_solver 12. Qed.
+Proof using. unfold bob. basic_solver 12. Qed.
 
 Lemma sb_to_w_rel_in_bob : sb ⨾ ⦗W∩₁Rel⦘ ⊆ bob.
-Proof.
+Proof using.
   etransitivity; [|by apply fwbob_in_bob].
   apply sb_to_w_rel_in_fwbob.
 Qed.
 
 Lemma sb_from_w_rel_in_bob : ⦗W∩₁Rel⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘ ⊆ bob.
-Proof.
+Proof using.
   etransitivity; [|by apply fwbob_in_bob].
   apply sb_from_w_rel_in_fwbob.
 Qed.
 
 Lemma sb_to_f_in_bob : sb ⨾ ⦗F∩₁Acq/Rel⦘ ⊆ bob.
-Proof.
+Proof using.
   etransitivity; [|by apply fwbob_in_bob].
   apply sb_to_f_in_fwbob.
 Qed.
 
 Lemma sb_from_f_in_bob : ⦗F∩₁Acq/Rel⦘ ⨾ sb  ⊆ bob.
-Proof.
+Proof using.
   etransitivity; [|by apply fwbob_in_bob].
   apply sb_from_f_in_fwbob.
 Qed.
 
 Lemma sb_from_r_acq_in_bob : ⦗R∩₁Acq⦘ ⨾ sb  ⊆ bob.
-Proof. unfold bob. basic_solver 10. Qed.
+Proof using. unfold bob. basic_solver 10. Qed.
 
 Lemma fwbob_in_sb : fwbob ⊆ sb.
-Proof.
+Proof using.
   unfold fwbob.
   basic_solver 12.
 Qed.
 
 Lemma sb_fwbob_in_fwbob : sb ⨾ fwbob ⊆ fwbob⁺.
-Proof.
+Proof using.
 unfold fwbob.
 generalize (@sb_trans G); ins.
 relsf; unionL.
@@ -133,7 +133,7 @@ relsf; unionL.
 Qed.
 
 Lemma bob_in_sb : bob ⊆ sb.
-Proof.
+Proof using.
 unfold bob; rewrite fwbob_in_sb; basic_solver.
 Qed.
 
@@ -143,7 +143,7 @@ Qed.
 (******************************************************************************)
 
 Lemma wf_fwbobE WF : fwbob ≡ ⦗E⦘ ⨾ fwbob ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold fwbob.
 rewrite wf_sbE.
@@ -151,7 +151,7 @@ basic_solver 42.
 Qed.
 
 Lemma wf_bobE WF : bob ≡ ⦗E⦘ ⨾ bob ⨾ ⦗E⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold bob.
 rewrite (wf_fwbobE WF), wf_sbE.
@@ -164,14 +164,14 @@ Qed.
 (******************************************************************************)
 
 Lemma fwbob_r_sb: fwbob ⨾ ⦗ R ⦘ ⨾ sb ⊆ fwbob.
-Proof.
+Proof using.
 unfold fwbob; relsf; unionL.
 all: try by type_solver.
 all: generalize (@sb_trans G); basic_solver 21.
 Qed.
 
 Lemma bob_r_sb: bob ⨾ ⦗ R ⦘ ⨾ sb ⊆ bob.
-Proof.
+Proof using.
 unfold bob; relsf; rewrite fwbob_r_sb.
 generalize (@sb_trans G); basic_solver 21.
 Qed.
@@ -179,7 +179,7 @@ Qed.
 Lemma bob_sb :
   (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗W⦘ ⊆ 
   bob^+ ⨾ (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘.
-Proof.
+Proof using.
 apply ct_ind_left with (P:= fun r =>  r ⨾ ⦗W⦘).
 by auto with hahn.
 by arewrite (bob ⊆ bob⁺); basic_solver 12.
@@ -196,7 +196,7 @@ Qed.
 
 Lemma tc_bob :
   bob^+ ⊆ fwbob^+ ∪ ⦗R ∩₁ Acq⦘ ⨾ sb.
-Proof.
+Proof using.
 unfold bob.
 apply ct_ind_left with (P:= fun r =>  r).
 by auto with hahn.
@@ -214,7 +214,7 @@ relsf; unionL.
 Qed.
 
 Lemma fwbob_rfi_rmw_in_fwbob WF : fwbob ⨾ rfi ⨾ rmw ⊆ fwbob⁺.
-Proof.
+Proof using.
   arewrite (rfi ⨾ rmw ⊆ <|W|> ;; sb ∩ same_loc ;; <|W|>).
   { rewrite (dom_l WF.(wf_rfiD)).
     rewrite (dom_r WF.(wf_rmwD)), !seqA.

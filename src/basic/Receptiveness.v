@@ -19,7 +19,7 @@ Lemma ectrl_ctrl_step (tid : thread_id)
          MOD (ECTRL: exists a, (MOD ∩₁ ectrl s') a)
         (NCTRL: MOD ∩₁ dom_rel (s'.(G).(ctrl)) ⊆₁ ∅) :
          s.(G) = s'.(G).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0; try done.
@@ -32,7 +32,7 @@ Qed.
 
 Lemma TWF_helper tid s1 (TWF : thread_wf tid s1): 
 ~ acts_set s1.(G) (ThreadEvent tid (s1.(eindex))).
-Proof.
+Proof using.
 red in TWF.
 intro.
 specialize (TWF (ThreadEvent tid (eindex s1)) H); desf.
@@ -41,7 +41,7 @@ Qed.
 
 Lemma TWF_helper_rmw tid s1 (TWF : thread_wf tid s1): 
 ~ acts_set s1.(G) (ThreadEvent tid (s1.(eindex) + 1)).
-Proof.
+Proof using.
 red in TWF.
 intro.
 specialize (TWF (ThreadEvent tid (eindex s1 +1)) H); desf.
@@ -51,7 +51,7 @@ Qed.
 
 Lemma acts_increasing (tid : thread_id) s s' (STEP : step tid s s') :
   s.(G).(acts_set) ⊆₁ s'.(G).(acts_set).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0.
@@ -62,7 +62,7 @@ Qed.
 
 Lemma is_r_ex_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
   s.(G).(acts_set) ∩₁ R_ex s.(G).(lab) ⊆₁ R_ex s'.(G).(lab).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0.
@@ -76,7 +76,7 @@ Qed.
 
 Lemma is_r_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
   s.(G).(acts_set) ∩₁ is_r s.(G).(lab) ⊆₁ is_r s'.(G).(lab).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0.
@@ -91,7 +91,7 @@ Qed.
 
 Lemma is_w_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
   s.(G).(acts_set) ∩₁ is_w s.(G).(lab) ⊆₁ is_w s'.(G).(lab).
-Proof.
+Proof using.
 destruct STEP; desc.
 red in H; desc.
 destruct ISTEP0.
@@ -112,7 +112,7 @@ Lemma regf_expr_helper regf regf' depf MOD expr
            (exists a, RegFun.find reg depf a /\ MOD a))
   (NDEP: forall a (IN: MOD a), ~ DepsFile.expr_deps depf expr a):
   RegFile.eval_expr regf expr = RegFile.eval_expr regf' expr.
-Proof.
+Proof using.
 unfold DepsFile.expr_deps, DepsFile.val_deps in NDEP.
 unfold RegFile.eval_expr, RegFile.eval_value.
 destruct expr.
@@ -139,7 +139,7 @@ Lemma regf_lexpr_helper regf regf' depf MOD expr
             (exists a, RegFun.find reg depf a /\ MOD a))
   (NDEP: forall a (IN: MOD a), ~ DepsFile.lexpr_deps depf expr a):
   RegFile.eval_lexpr regf expr = RegFile.eval_lexpr regf' expr.
-Proof.
+Proof using.
 unfold DepsFile.lexpr_deps in NDEP.
 unfold RegFile.eval_lexpr.
 desf; exfalso; apply n; erewrite regf_expr_helper; eauto.
@@ -180,21 +180,21 @@ exists a, (RegFun.find reg s.(depf)) a /\ MOD a ⟫ /\
 
 Lemma sim_execution_same_r G G' MOD (EXEC: sim_execution G G' MOD) :
 is_r G'.(lab) ≡₁ is_r G.(lab).
-Proof.
+Proof using.
 red in EXEC; desf.
 eby erewrite same_lab_u2v_is_r.
 Qed.
 
 Lemma sim_execution_same_w G G' MOD (EXEC: sim_execution G G' MOD) :
 is_w G'.(lab) ≡₁ is_w G.(lab).
-Proof.
+Proof using.
 red in EXEC; desf.
 eby erewrite same_lab_u2v_is_w.
 Qed.
 
 Lemma sim_execution_same_acts G G' MOD (EXEC: sim_execution G G' MOD) :
 acts_set G ≡₁ acts_set G'.
-Proof.
+Proof using.
 red in EXEC; desf.
 unfold acts_set; rewrite ACTS; basic_solver.
 Qed.
@@ -215,7 +215,7 @@ Lemma receptiveness_sim_assign (tid : thread_id)
   MOD (new_rfi : relation actid) new_val
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 cut (exists instrs pc G_ eindex regf depf ectrl, 
   step tid s1' {| instrs := instrs; pc := pc; G := G_; eindex := eindex; regf := regf; depf := depf; ectrl := ectrl |} /\ 
@@ -254,7 +254,7 @@ Lemma receptiveness_sim_if_else (tid : thread_id)
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 cut (exists instrs pc G_ eindex regf depf ectrl, 
   step tid s1' {| instrs := instrs; pc := pc; G := G_; eindex := eindex; regf := regf; depf := depf; ectrl := ectrl |} /\ 
@@ -297,7 +297,7 @@ Lemma receptiveness_sim_if_then (tid : thread_id)
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 cut (exists instrs pc G_ eindex regf depf ectrl, 
   step tid s1' {| instrs := instrs; pc := pc; G := G_; eindex := eindex; regf := regf; depf := depf; ectrl := ectrl |} /\ 
@@ -332,7 +332,7 @@ new_rfi ∪ ⦗ set_compl (codom_rel new_rfi) ⦘.
 Lemma new_rfi_unique (new_rfi : relation actid)
       (new_rfif : functional new_rfi⁻¹):
 forall r, exists ! w, (new_rfi_ex new_rfi)⁻¹  r w.
-Proof.
+Proof using.
 ins.
 destruct (classic ((codom_rel new_rfi) r)) as [X|X].
 - unfolder in X; desf.
@@ -358,7 +358,7 @@ Lemma RFI_index_helper tid s new_rfi (TWF : thread_wf tid s)
    w r (RFI: new_rfi w r) 
   (IN: ThreadEvent tid s.(eindex) = r \/ In r s.(G).(acts)) :
    w <> ThreadEvent tid (s.(eindex)).
-Proof.
+Proof using.
 intro; subst; desf.
 apply RFI_INDEX in RFI.
 eby eapply ext_sb_irr.
@@ -388,7 +388,7 @@ Lemma receptiveness_sim_load (tid : thread_id)
   (new_rfif : functional new_rfi⁻¹)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 generalize (@new_write new_rfi new_rfif); intro F; destruct F as [new_w F].
 red in SIM; desc.
 
@@ -505,7 +505,7 @@ Lemma receptiveness_sim_store (tid : thread_id)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 
 assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
@@ -596,7 +596,7 @@ Lemma receptiveness_sim_fence (tid : thread_id)
   MOD (new_rfi : relation actid) new_val
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 
 cut (exists instrs pc G_ eindex regf depf ectrl, 
@@ -688,7 +688,7 @@ Lemma receptiveness_sim_cas_fail (tid : thread_id)
   (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
   exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 assert (rexmod = true); subst.
 { clear -ISTEP CASREX. red in CASREX.
@@ -808,7 +808,7 @@ Lemma receptiveness_sim_cas_suc (tid : thread_id)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
   exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 red in SIM; desc.
 
 assert (rexmod = true); subst.
@@ -966,7 +966,7 @@ Lemma receptiveness_sim_inc (tid : thread_id)
       (new_rfif : functional new_rfi⁻¹)
       s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
   generalize (@new_write new_rfi new_rfif); intro F; destruct F as [new_w F].
   red in SIM; desc.
   assert (SAME_LOC : RegFile.eval_lexpr (regf s1) lexpr =
@@ -1121,7 +1121,7 @@ Lemma receptiveness_sim_step (tid : thread_id)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
 destruct STEP; red in H; desf.
 destruct ISTEP0; desf.
 - eby eapply receptiveness_sim_assign.
@@ -1151,7 +1151,7 @@ Lemma receptiveness_sim (tid : thread_id)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
  exists s2', (step tid)＊ s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
   apply clos_rt_rtn1 in STEPS.
   induction STEPS.
   { by eexists; vauto. }
@@ -1213,7 +1213,7 @@ Lemma receptiveness_helper (tid : thread_id)
       ⟪ NEW_VAL2 : forall r (RR : is_r s'.(G).(lab) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
           val (s'.(G).(lab)) r = Some (new_val r) ⟫ /\
       ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (s'.(G).(lab)) a = val (s.(G).(lab)) a ⟫.
-Proof.
+Proof using.
 apply receptiveness_sim with (s1':= s_init) (MOD:=MOD) (new_rfi:=new_rfi) (new_val:=new_val) in STEPS.
 all: try done.
 - desc.
@@ -1253,7 +1253,7 @@ Lemma receptiveness_ectrl_helper (tid : thread_id)
       (NMODINIT: MOD ∩₁ s_init.(G).(acts_set) ⊆₁ ∅):
       exists s', (step tid)＊ s_init s' /\
                  (MOD ∩₁ ectrl s' ⊆₁ ∅) /\ s'.(G) = s.(G).
-Proof.
+Proof using.
 apply clos_rt_rtn1 in STEPS.
 induction STEPS.
 - exists s_init; splits; vauto.
@@ -1308,7 +1308,7 @@ Lemma receptiveness_full (tid : thread_id)
       ⟪ NEW_VAL2 : forall r (RR : is_r s'.(G).(lab) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
           val (s'.(G).(lab)) r = Some (new_val r) ⟫ /\
       ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (s'.(G).(lab)) a = val (s.(G).(lab)) a ⟫.
-Proof.
+Proof using.
 forward (apply receptiveness_ectrl_helper); try edone.
 
 ins; desc.

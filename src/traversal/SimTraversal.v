@@ -94,7 +94,7 @@ Lemma w_rel_trav_step T (TCCOH : tc_coherent G sc T)
   itrav_step G sc w
              (mkTC (covered T) (issued T ∪₁ eq w))
              (mkTC (covered T ∪₁ eq w) (issued T ∪₁ eq w)).
-Proof.
+Proof using.
   red in TS; unfold itrav_step in *; desf; simpls.
   { exfalso. apply NEXT; apply COVEQ; vauto. }
 
@@ -168,7 +168,7 @@ Lemma exists_sim_trav_step T (TCCOH : tc_coherent G sc T)
       (RMWCOV : forall r w (RMW : rmw r w), covered T r <-> covered T w)
       T' (TS : trav_step G sc T T') :
   exists T'', sim_trav_step T T''.
-Proof.
+Proof using WF IMMCON.
   assert (tc_coherent G sc T') as TCCOH'.
   { eapply trav_step_coherence; eauto. }
 
@@ -307,6 +307,6 @@ Qed.
 Lemma sim_trav_step_to_step T T' thread
       (TS : isim_trav_step thread T T') :
   exists e T'', itrav_step G sc e T T'' /\ tid e = thread.
-Proof. destruct TS; eauto. Qed.
+Proof using. destruct TS; eauto. Qed.
 
 End SimTraversal.

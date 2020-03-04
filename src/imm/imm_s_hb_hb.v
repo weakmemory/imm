@@ -77,7 +77,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 (** relations are contained in the corresponding ones **  *)
 (******************************************************************************)
 Lemma s_rs_in_rs : s_rs ⊆ rs.
-Proof.
+Proof using.
 unfold imm_s_hb.rs, imm_hb.rs.
 hahn_frame.
 rewrite rtE at 1; relsf.
@@ -94,13 +94,13 @@ basic_solver 40.
 Qed.
 
 Lemma s_release_in_release : s_release ⊆ release.
-Proof.
+Proof using.
 unfold imm_s_hb.release, imm_hb.release.
 by rewrite s_rs_in_rs.
 Qed.
 
 Lemma s_sw_in_sw : s_sw ⊆ sw.
-Proof.
+Proof using.
 unfold imm_s_hb.sw, imm_hb.sw.
 rewrite s_release_in_release.
 rewrite (rfi_union_rfe).
@@ -108,7 +108,7 @@ basic_solver 21.
 Qed.
 
 Lemma s_hb_in_hb : s_hb ⊆ hb.
-Proof.
+Proof using.
 unfold imm_s_hb.hb, imm_hb.hb.
 by rewrite s_sw_in_sw.
 Qed.
@@ -119,7 +119,7 @@ Qed.
 
 Lemma coherence_implies_s_coherence (WF: Wf G) (COMP: complete G) :
   imm_hb.coherence G -> imm_s_hb.coherence G.
-Proof.
+Proof using.
 unfold imm_s_hb.coherence.
 unfolder; ins; desf.
 eapply imm_hb.hb_irr; eauto.

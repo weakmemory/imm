@@ -100,7 +100,7 @@ Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 Hypothesis CON: PowerConsistent G.
 
 Lemma WF : Wf G.
-Proof. apply CON. Qed.
+Proof using CON. apply CON. Qed.
 
 (******************************************************************************)
 (** * extension of sw  *)
@@ -109,7 +109,7 @@ Definition rs_big := ⦗W⦘ ⨾ (rf ⨾ rmw ∪ sb ∩ same_loc)＊ ⨾ ⦗W⦘
 
 Lemma rs_big_alt: rs_big ⊆ 
  ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘)＊.
-Proof.
+Proof using CON.
 unfold rs_big.
 hahn_frame.
 rewrite rtE; relsf; unionL; [basic_solver 12|].
@@ -137,14 +137,14 @@ basic_solver.
 Qed.
 
 Lemma wf_rs_bigD : rs_big ≡ ⦗W⦘ ⨾ rs_big ⨾ ⦗W⦘.
-Proof.
+Proof using.
 split; [|basic_solver].
 unfold rs_big.
 basic_solver 42.
 Qed.
 
 Lemma rs_in_rs_big: rs ⊆ rs_big.
-Proof.
+Proof using CON.
 unfold imm_hb.rs, rs_big.
 relsf; unionL.
 rewrite rtE, <- ct_step; basic_solver.
@@ -161,7 +161,7 @@ Definition sw_big := ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ rs_big ⨾ rf ⨾ (sb 
 
 
 Lemma sw_in_sw_big : sw ⊆ sw_big.
-Proof.
+Proof using CON.
 unfold imm_hb.sw, imm_hb.release, sw_big.
 rewrite rs_in_rs_big.
 relsf; unionL.
@@ -180,13 +180,13 @@ Qed.
 
 Lemma no_w_rel : 
   ⦗Rel⦘ ⨾ ⦗W⦘ ⊆ ∅₂.
-Proof.
+Proof using NO_W_REL.
 unfolder; ins; desf; eapply NO_W_REL; basic_solver.
 Qed.
 
 Lemma sw_no_w_rel : 
   sw ⊆ ⦗F ∩₁ Rel⦘ ⨾ sb ⨾ rs_big ⨾ rf ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘).
-Proof.
+Proof using CON NO_W_REL.
 rewrite sw_in_sw_big.
 unfold  sw_big, imm_hb.release.
 rewrite (dom_l (wf_rs_bigD)).
@@ -198,7 +198,7 @@ Qed.
 (* Lemma detour_ppo_w_no_w_rel : 
   (coe ⨾ rfe) ∩ sb ⨾ ppo ⨾ ⦗W⦘ ⊆ 
  (coe ⨾ rfe) ∩ sb ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘ ∪ (coe ⨾ rfe) ∩ sb ⨾ (deps ∪ rfi)⁺ ⨾ ⦗W⦘.
-Proof.
+Proof using.
 rewrite (detour_ppo_w WF).
 arewrite_false (⦗W ∩₁ Rel⦘).
   by generalize no_w_rel; basic_solver.
@@ -207,7 +207,7 @@ Qed.*)
 
 Lemma bob_no_w_rel : 
   bob ⊆ ⦗R ∩₁ Acq⦘ ⨾ sb ∪ sb ⨾ ⦗F^lwsync⦘ ∪ ⦗F^lwsync⦘ ⨾ sb.
-Proof.
+Proof using NO_W_REL.
 unfold imm_bob.bob, imm_bob.fwbob.
 sin_rewrite !NO_W_REL.
 basic_solver 21.
@@ -218,7 +218,7 @@ Qed.
 (******************************************************************************)
 
 Lemma rmw_sb_in_ctrl: rmw ⨾ sb ⊆ ctrl.
-Proof.
+Proof using CON DATA_RMW RMW_DEPS.
   rewrite rmw_W_ex. rewrite seqA.
   rewrite RMW_DEPS. rewrite !seq_union_l.
   unionL; auto.
@@ -226,30 +226,30 @@ Proof.
 Qed.
 
 Lemma rmw_in_deps: rmw ⊆ deps.
-Proof.
+Proof using RMW_DEPS.
 rewrite RMW_DEPS. unfold Execution.deps. eauto with hahn.
 Qed.
 
 Lemma rmw_sb_in_deps: rmw ⨾ sb^? ⊆ deps.
-Proof.
+Proof using CON DATA_RMW RMW_DEPS.
 case_refl _.
 apply rmw_in_deps.
 rewrite rmw_sb_in_ctrl; vauto.
 Qed.
 
 Lemma RMW_CTRL_FAIL' : ⦗R_ex⦘ ⨾ sb ⊆ rmw ∪ ctrl.
-Proof.
+Proof using RMW_CTRL_FAIL.
 rewrite RMW_CTRL_FAIL; basic_solver.
 Qed.
 
 Lemma rmw_sb_W_in_ppo: rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppop.
-Proof.
+Proof using CON DATA_RMW RMW_DEPS.
 sin_rewrite rmw_sb_in_deps.
 by sin_rewrite (deps_in_ppo WF).
 Qed.
 
 Lemma r_acq_sb: ⦗R∩₁Acq⦘ ⨾ sb ⨾ ⦗RW⦘ ⊆ rmw ∪ ctrli ⨾ ⦗RW⦘ ∪ ⦗R⦘ ⨾ sb ⨾ ⦗F^lwsync⦘ ⨾ sb ⨾ ⦗RW⦘.
-Proof.
+Proof using CON NO_W_REL RMW_CTRL_FAIL R_ACQ_SB SC_F.
   arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R⦘ ⨾ ⦗R ∩₁ Acq⦘) by basic_solver.
   sin_rewrite R_ACQ_SB.
   unfold Power_ppo.ctrli.
@@ -261,7 +261,7 @@ Proof.
 Qed.
 
 (*Lemma ppo_alt: ppo ⊆ ⦗R⦘ ⨾ (deps ∪ rfi)⁺ ⨾ ⦗W⦘.
-Proof.
+Proof using.
 rewrite (ppo_alt WF RMW_CTRL_FAIL).
 rewrite path_ut_first; relsf; unionL.
 - hahn_frame.
@@ -299,13 +299,13 @@ Qed.
 Lemma external_helper : 
  ⦗F ∩₁ Rel⦘ ⨾ sb ⨾ (rf ⨾ rmw ⨾ sb^? ⨾ ⦗W⦘)＊ ⨾ rf ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘) \ sb ⊆
  ⦗F ∩₁ Rel⦘ ⨾ sb ⨾  ((rf ⨾ rmw⨾  sb^? ⨾ ⦗W⦘)＊ ⨾ rf \ sb) ⨾ (⦗R ∩₁ Acq⦘ ∪ sb ⨾ ⦗F ∩₁ Acq⦘).
-Proof.
+Proof using.
 generalize (@sb_trans G).
 basic_solver 22.
 Qed.
 
 Lemma sb_sw_in_S: sb^? ⨾ (sw \ sb) ⊆ S.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite sw_no_w_rel.
 unfold Power.S.
 rewrite (rs_big_alt).
@@ -326,7 +326,7 @@ generalize (@sb_trans G); basic_solver 42.
 Qed. 
 
 Lemma sw_sb_in_S: sb^? ⨾ (sw \ sb) ⨾ sb ⨾ ⦗RW⦘ ⊆ S.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
   rewrite sw_no_w_rel.
   unfold Power.S.
   rewrite (rs_big_alt).
@@ -401,7 +401,7 @@ Proof.
 Qed.
 
 Lemma hb_in_S_sb : hb ⊆ sb ∪ S ⨾ sb^?.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite hb_in_sb_swe, path_union.
 rewrite (ct_of_trans (@sb_trans G)), (rt_of_trans (@sb_trans G)).
 rewrite sb_sw_in_S.
@@ -410,7 +410,7 @@ basic_solver.
 Qed.
 
 Lemma hb_rw_in_S : hb ⨾ ⦗RW⦘ ⊆ sb ∪ S.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite hb_in_sb_swe, path_union.
 rewrite (ct_of_trans (@sb_trans G)), (rt_of_trans (@sb_trans G)).
 case_union _ _.
@@ -425,7 +425,7 @@ basic_solver.
 Qed.
 
 Lemma rw_hb_f_in_hbp : ⦗RW⦘ ⨾ hb ⨾  ⦗F^sync⦘  ⊆ sb ⨾  ⦗F^sync⦘ ∪ fence ⨾ hbp＊ ⨾ sb ⨾ ⦗F^sync⦘.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite hb_in_S_sb.
 unfold Power.S.
 relsf; unionL; [basic_solver|].
@@ -454,7 +454,7 @@ Qed.
 (******************************************************************************)
 
 Lemma COH: coherence G.
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 red; rewrite (dom_l (wf_ecoD WF)).
 sin_rewrite hb_rw_in_S.
 case_union _ _; unionL; [by apply CON| apply S_eco_irr; apply CON].
@@ -465,7 +465,7 @@ Qed.
 (******************************************************************************)
 
 Lemma acyc_psc_hbp: acyclic (sb^? ⨾ psc ⨾ sb^? ∪ hbp).
-Proof.
+Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite unionC.
 apply acyclic_union; [by apply CON|].
 rewrite !seqA.
@@ -527,7 +527,7 @@ Qed.
 
 Lemma ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour :
   ((ppo ∪ ctrli ∪ detour) ⨾ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘) ⊆ ppo ∪ ctrli ∪ detour.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
   relsf; unionL.
   * rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL) at 1.
     rewrite !seqA.
@@ -569,7 +569,7 @@ Qed.
 
 Lemma C_EXT_helper0: 
   ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour)⁺.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite path_union2.
 relsf; unionL.
 - done.
@@ -598,7 +598,7 @@ Qed.
 Lemma C_EXT_helper05: 
   ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆
   ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 rewrite path_union2.
 relsf; unionL.
 - done.
@@ -631,13 +631,13 @@ relsf; unionL.
 Qed.
 
 Lemma R_W_ex_rfi_R_Acq_in_R : ⦗R⦘ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)＊ ⊆ ⦗R⦘.
-Proof.
+Proof using CON NO_W_REL RMW_CTRL_FAIL R_ACQ_SB SC_F.
   rewrite (W_ex_in_W WF).
   rewrite rtE, ct_begin; type_solver 16.
 Qed.
 
 Lemma W_ex_rfi_R_Acq_ct_step : (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘.
-Proof.
+Proof using CON NO_W_REL RMW_CTRL_FAIL R_ACQ_SB SC_F.
   rewrite ct_begin. rewrite rtE, seq_union_r, seq_id_r. unionL; [done|].
   rewrite ct_begin. rewrite !seqA.
   arewrite_false (⦗R ∩₁ Acq⦘ ⨾ ⦗W_ex⦘).
@@ -648,7 +648,7 @@ Qed.
 (* Lemma C_EXT_helper07:  *)
 (*   ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆ *)
 (*   ⦗R⦘ ⨾ (ppo ∪ ctrli ∪ detour)⁺. *)
-(* Proof. *)
+(* Proof using. *)
 (* rewrite path_union2. *)
 (* relsf; unionL. *)
 (* - done. *)
@@ -673,11 +673,11 @@ Qed.
 (* Qed. *)
 
 Lemma C_EXT_helper08 : ⦗R⦘ ⨾ (ppop ∪ ctrli ∪ detour)⁺ ⨾ ⦗RW⦘ ⊆ hbp.
-Proof. rewrite (r_ct_ppo_detour_ppo WF); vauto. Qed.
+Proof using CON. rewrite (r_ct_ppo_detour_ppo WF); vauto. Qed.
 
 Lemma C_EXT_helper1 : 
   ⦗R⦘ ⨾ (bob ∪ ppo ∪ detour ∪ ⦗W_ex⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⨾ ⦗W⦘ ⊆ hbp.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 assert (⦗R⦘ ⨾ (ppop ∪ ctrli ∪ detour)⁺ ⨾ ⦗W⦘ ⊆ hbp) as PCDINHB.
 { arewrite (W ⊆₁ RW).
   rewrite (r_ct_ppo_detour_ppo WF); vauto. }
@@ -766,7 +766,7 @@ relsf; unionL.
 Qed.
 
 Lemma C_EXT: acyc_ext G.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
 apply (acyc_ext_helper WF).
 unfold ar_int.
 arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.
@@ -777,7 +777,7 @@ apply acyc_psc_hbp.
 Qed.
 
 Lemma IMM_consistent : imm_consistent G.
-Proof.
+Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
   cdes CON.
   assert (acyc_ext G) as AC by apply C_EXT.
   red; splits; eauto.
