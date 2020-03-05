@@ -11,6 +11,9 @@ build: Makefile.coq
 quick: Makefile.coq
 	$(MAKE) -f Makefile.coq quick
 
+quick-check: Makefile.coq
+	$(MAKE) -f Makefile.coq vio2vo J=6
+
 Makefile.coq: Makefile $(COQTHEORIES)
 	(echo "-R src $(COQMODULE)"; \
 	echo $(COQTHEORIES)) > _CoqProject
