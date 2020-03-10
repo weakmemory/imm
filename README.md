@@ -1,9 +1,20 @@
 # Intermediate Memory Model (IMM) and compilation correctness proofs for it
 
-This repository contains Coq code supplementing the paper *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
-([arXiv](https://arxiv.org/abs/1807.07892)) by Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis.
-
-POPL19 arifact release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1484024.svg)](https://doi.org/10.5281/zenodo.1484024)
+This repository contains Coq code supplementing the following papers:
+- **[POPL19]** *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
+  <br />
+  [[Paper](https://doi.org/10.1145/3290382) | [arXiv](https://arxiv.org/abs/1807.07892) |
+[POPL19 arifact release](https://doi.org/10.5281/zenodo.1484024)]
+  <br />
+  Anton Podkopaev, Ori Lahav, and Viktor Vafeiadis
+- **[PLDI20]** *Repairing and Mechanising the JavaScript Relaxed Memory Model*
+  <br />
+  Conrad Watt, Christopher Pulte, Anton Podkopaev, Guillaume Barbier, Stephen Dolan, Shaked Flur, Jean Pichon-Pharabod, and Shu-yu Guo
+- **[CoRR19]** *Reconciling Event Structures with Modern Multiprocessors*
+  <br />
+  [[arXiv](https://arxiv.org/abs/1911.06567) | [Related project](https://github.com/weakmemory/weakestmoToImm)]
+  <br />
+  Evgenii Moiseenko, Anton Podkopaev, Ori Lahav, Orestis Melkonian, and Viktor Vafeiadis
 
 ## Building the Project
 
@@ -66,7 +77,7 @@ cd /imm
 make clean; make -j4
 ```
 
-## Description of code and its relation to the paper
+## Description of code and its relation to the **[POPL19]** paper
 * **Section 2.** `src/basic`. Definitions and statements about programs and execution graphs.
   - *Prog.v*—a definition of the program language (**Fig. 2**).
   - *Events.v*—definitions related to events (**Section 2.2**).
