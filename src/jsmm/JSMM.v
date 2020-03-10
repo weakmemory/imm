@@ -1,5 +1,5 @@
 (******************************************************************************)
-(** * Definition of the WWMM memory model *)
+(** * Definition of the JSMM memory model *)
 (******************************************************************************)
 From hahn Require Import Hahn.
 Require Import Events.
@@ -9,7 +9,7 @@ Require Import Execution_eco.
 Set Implicit Arguments.
 Remove Hints plus_n_O.
 
-Section WWMM.
+Section JSMM.
 
 Variable G : execution.
 
@@ -43,7 +43,7 @@ Definition hb := (sb ∪ sw)⁺.
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition wwmm_consistent mo :=
+Definition jsmm_consistent mo :=
   ⟪ Cmo   : strict_total_order E mo ⟫ /\
   ⟪ Chbmo : hb ⊆ mo ⟫ /\
   ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
@@ -59,4 +59,4 @@ Definition wwmm_consistent mo :=
       irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
                    (hb ∩ rf)⁻¹ ⨾ (hb ∩ same_loc)) ⟫.
 
-End WWMM.
+End JSMM.
