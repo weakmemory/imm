@@ -1,6 +1,8 @@
 # Intermediate Memory Model (IMM) and compilation correctness proofs for it
 
-This repository contains Coq code supplementing the following papers:
+## Related papers
+<img align="right" width="350" src="https://github.com/anlun/publicFiles/raw/master/pictures/spider.png">
+
 - **[POPL19]** *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
   <br />
   [[Paper](https://doi.org/10.1145/3290382) | [arXiv](https://arxiv.org/abs/1807.07892) |
