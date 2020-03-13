@@ -43,20 +43,20 @@ Definition hb := (sb ∪ sw)⁺.
 (** ** Consistency  *)
 (******************************************************************************)
 
-Definition jsmm_consistent mo :=
-  ⟪ Cmo   : strict_total_order E mo ⟫ /\
-  ⟪ Chbmo : hb ⊆ mo ⟫ /\
+Definition jsmm_consistent tot :=
+  ⟪ Ctot   : strict_total_order E tot ⟫ /\
+  ⟪ Chbtot : hb ⊆ tot ⟫ /\
   ⟪ Chbrf : irreflexive (hb ⨾ rf) ⟫ /\
   ⟪ Chbrfhb :
       irreflexive (hb ⨾ rf⁻¹ ⨾ (hb ∩ same_loc) ⨾ ⦗ W ⦘) ⟫ /\
   ⟪ Cirr1 :
-      irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
-                   rf⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
+      irreflexive (⦗W∩₁Sc⦘ ⨾ tot ⨾ ⦗R∩₁Sc⦘ ⨾
+                   rf⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (tot ∩ same_loc)) ⟫ /\
   ⟪ Cirr2 :
       irreflexive (⦗W∩₁Sc⦘ ⨾ hb ⨾
-                   (hb ∩ rf)⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (mo ∩ same_loc)) ⟫ /\
+                   (hb ∩ rf)⁻¹ ⨾ ⦗W∩₁Sc⦘ ⨾ (tot ∩ same_loc)) ⟫ /\
   ⟪ Cirr3 :
-      irreflexive (⦗W∩₁Sc⦘ ⨾ mo ⨾ ⦗R∩₁Sc⦘ ⨾
+      irreflexive (⦗W∩₁Sc⦘ ⨾ tot ⨾ ⦗R∩₁Sc⦘ ⨾
                    (hb ∩ rf)⁻¹ ⨾ (hb ∩ same_loc)) ⟫.
 
 End JSMM.

@@ -184,7 +184,7 @@ Qed.
 
 Theorem s_imm_consistent_implies_jsmm_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
-  exists mo, jsmm_consistent G mo.
+  exists tot, jsmm_consistent G tot.
 Proof using WF.
   cdes IPC. cdes IC.
   exists (⦗E⦘ ⨾
@@ -238,12 +238,12 @@ Proof using WF.
     right. by apply co_in_eco. }
   { intros w' HH.
     apply seq_eqv_l in HH. destruct HH as [[WW' SCW'] HH].
-    destruct HH as [r [MO HH]].
+    destruct HH as [r [TOT HH]].
     apply seq_eqv_l in HH. destruct HH as [[RR SCR] HH].
     destruct HH as [w [RF HH]].
-    apply seq_eqv_l in HH. destruct HH as [[WW SCW] [MOJS SL]].
-    apply seq_eqv_l in MOJS. destruct MOJS as [EW' MOJS].
-    apply seq_eqv_r in MOJS. destruct MOJS as [MOJS EW].
+    apply seq_eqv_l in HH. destruct HH as [[WW SCW] [TOTJS SL]].
+    apply seq_eqv_l in TOTJS. destruct TOTJS as [EW' TOTJS].
+    apply seq_eqv_r in TOTJS. destruct TOTJS as [TOTJS EW].
     edestruct is_w_loc as [l LL].
     { apply WW. }
     assert (w <> w') as NEQ.
@@ -256,7 +256,7 @@ Proof using WF.
     all: eapply tot_ext_irr;
          [by eapply hb_js_co_fr_ac; eauto|].
     { eapply tot_ext_trans.
-      { generalize MO. basic_solver. }
+      { generalize TOT. basic_solver. }
       apply tot_ext_extends.
       right.
       apply seq_eqv_l. split; [by apply SCR|].
@@ -273,9 +273,9 @@ Proof using WF.
     apply seq_eqv_l in HH. destruct HH as [[WW' SCW'] HH].
     destruct HH as [r [HBWR' HH]].
     destruct HH as [w [[HBWR RF] HH]].
-    apply seq_eqv_l in HH. destruct HH as [[WW SCW] [MOJS SL]].
-    apply seq_eqv_l in MOJS. destruct MOJS as [EW' MOJS].
-    apply seq_eqv_r in MOJS. destruct MOJS as [MOJS EW].
+    apply seq_eqv_l in HH. destruct HH as [[WW SCW] [TOTJS SL]].
+    apply seq_eqv_l in TOTJS. destruct TOTJS as [EW' TOTJS].
+    apply seq_eqv_r in TOTJS. destruct TOTJS as [TOTJS EW].
     edestruct is_w_loc as [l LL].
     { apply WW. }
     assert (w <> w') as NEQ.
@@ -299,9 +299,9 @@ Proof using WF.
       by right. }
   intros w' HH.
   apply seq_eqv_l in HH. destruct HH as [[WW' SCW'] HH].
-  destruct HH as [r [MO HH]].
-  apply seq_eqv_l in MO. destruct MO as [EW' MO].
-  apply seq_eqv_r in MO. destruct MO as [MO ER].
+  destruct HH as [r [TOT HH]].
+  apply seq_eqv_l in TOT. destruct TOT as [EW' TOT].
+  apply seq_eqv_r in TOT. destruct TOT as [TOT ER].
   apply seq_eqv_l in HH. destruct HH as [[RR SCR] HH].
   destruct HH as [w [[HBWR RF] [HBJS SL]]].
   apply (dom_l WF.(wf_rfD)) in RF.
@@ -319,7 +319,7 @@ Proof using WF.
   1,2: by unfolder; splits.
   { eapply tot_ext_irr; [by eapply hb_js_co_fr_ac; eauto|].
     eapply tot_ext_trans.
-    { generalize MO. basic_solver. }
+    { generalize TOT. basic_solver. }
     apply tot_ext_extends.
     right.
     apply seq_eqv_l. split; [by apply SCR|].
