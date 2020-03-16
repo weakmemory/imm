@@ -42,6 +42,10 @@ Definition is_init a :=
     | ThreadEvent _ _ => false
   end.
 
+Lemma tid_set_dec thread :
+  (fun x => tid x = thread) ∪₁ (fun x => tid x <> thread) ≡₁ (fun x => True).
+Proof using. unfolder; split; ins; desf; tauto. Qed.
+
 (******************************************************************************)
 (** ** Same tid restriction *)
 (******************************************************************************)

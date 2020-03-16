@@ -100,6 +100,13 @@ rewrite <- ct_step.
 basic_solver 10.
 Qed.
 
+Lemma rmw_in_ppo_loc WF : rmw ⊆ ppo ∩ same_loc.
+Proof using.
+  apply inclusion_inter_r.
+  { by apply rmw_in_ppo. }
+  apply WF.(wf_rmwl).
+Qed.
+
 (* Lemma rmw_sb_W_in_ppo WF : rmw ⨾ sb ⨾ ⦗W⦘ ⊆ ppo. *)
 (* Proof using. *)
 (* unfold ppo; rewrite (wf_rmwD WF). *)
@@ -116,11 +123,13 @@ unfold ppo; rewrite (wf_dataD WF) at 1.
 hahn_frame; econs; basic_solver 12.
 Qed.
 
-(* Lemma R_ex_sb_in_ppo WF : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo. *)
-(* Proof using. *)
-(*   arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘) by type_solver. *)
-(*   unfold ppo. hahn_frame. rewrite <- ct_step. eauto with hahn. *)
-(* Qed. *)
+Lemma R_ex_sb_W_in_ppo : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
+Proof using.
+  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘).
+  { generalize (@R_ex_in_R _ lab). basic_solver. }
+  unfold ppo. hahn_frame.
+  rewrite <- ct_step. eauto with hahn.
+Qed.
 
 (* Lemma rmw_sb_cr_W_in_ppo WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppo. *)
 (* Proof using. *)
@@ -320,6 +329,117 @@ Proof using.
     generalize (@sb_trans G); ins; relsf. }
   { basic_solver 10. }
   rewrite (wf_ppoD) at 1 2; type_solver.
+Qed.
+
+Lemma ppo_helper WF :
+  ppo ⊆ ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^?)＊ ⨾  
+             (⦗R_ex⦘ ⨾ sb)^? ⨾ ⦗W⦘.
+Proof using.
+  unfold ppo.
+  rewrite path_ut_first.
+  rewrite !seq_union_l, !seq_union_r; unionL.
+  { basic_solver 21. }
+  hahn_frame_l.
+  hahn_frame_l.
+  hahn_frame_r.
+  rewrite WF.(data_in_sb).
+  rewrite WF.(ctrl_in_sb).
+  rewrite WF.(addr_in_sb).
+  rewrite WF.(rmw_dep_in_sb).
+  rewrite WF.(rmw_in_sb).
+  arewrite (rfi ⊆ sb).
+  arewrite_id ⦗R_ex⦘ at 2.
+  generalize (@sb_trans G); ins; relsf.
+Qed.
+
+Lemma rf_rmw_sb_loc_in_rf_ppo_loc WF (RMWREX : dom_rel rmw ⊆₁ R_ex) :
+  rf ;; rmw ;; sb ∩ same_loc ;; <|W|> ⊆ rf ;; ppo ∩ same_loc.
+Proof using.
+  arewrite (rmw ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ (rmw ⨾ sb ⨾ ⦗W⦘) ∩ same_loc).
+  { arewrite (rmw ⊆ rmw ∩ same_loc).
+    { apply inclusion_inter_r; [done|]. apply WF.(wf_rmwl). }
+    generalize (@same_loc_trans _ lab). basic_solver. }
+  rewrite (dom_rel_helper RMWREX). rewrite !seqA.
+  rewrite WF.(rmw_in_sb).
+  arewrite (sb ⨾ sb ⊆ sb).
+  { generalize (@sb_trans G). basic_solver. }
+    by rewrite R_ex_sb_W_in_ppo.
+Qed.
+
+Lemma rmw_in_ar_int WF : rmw ⊆ ar_int.
+Proof using.
+  unfold ar_int.
+  rewrite (rmw_in_ppo WF). eauto with hahn.
+Qed.
+
+Lemma rfe_rmw_in_rfe_ar_int_ct WF : rfe ⨾ rmw ⊆ (rfe ∪ ar_int)⁺.
+Proof using.
+  rewrite rmw_in_ar_int; auto.
+  arewrite (ar_int ⊆ rfe ∪ ar_int) at 1.
+  arewrite (rfe ⊆ rfe ∪ ar_int) at 1.
+  do 2 (rewrite ct_begin; rewrite rtE).
+  rewrite <- ct_step. basic_solver 10.
+Qed.
+
+Lemma ar_int_rfe_rfrmw_in_ar_int_rfe_ct WF : (rfe ∪ ar_int) ;; rf ;; rmw ⊆ (rfe ∪ ar_int)⁺.
+Proof using.
+  remember (rfe ∪ ar_int) as ax.
+  assert (sb ;; sb ⊆ sb) as AA.
+  { apply transitiveI. apply sb_trans. }
+  
+  assert (rfi ;; rmw ⊆ sb) as BB.
+  { arewrite (rfi ⊆ sb). by rewrite rmw_in_sb. }
+
+  rewrite rfi_union_rfe.
+  rewrite seq_union_l, seq_union_r.
+  unionL.
+  2: { rewrite rfe_rmw_in_rfe_ar_int_ct; auto.
+       arewrite (ax ⊆ ax^?) at 1. subst ax. relsf. }
+  subst ax.
+  rewrite !seq_union_l.
+  unionL.
+  { rewrite (dom_l WF.(wf_rfiD)).
+    rewrite (dom_r WF.(wf_rfeD)).
+    type_solver. }
+  unfold ar_int at 1.
+  rewrite !seq_union_l.
+  unionL.
+  5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
+  3: { rewrite WF.(wf_detourD).
+       rewrite WF.(wf_rfiD). type_solver. }
+  { unfold imm_bob.bob at 1.
+    rewrite !seq_union_l, !seqA.
+    unionL.
+    2: { rewrite BB, AA.
+         arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+         rewrite bob_in_ar_int. rewrite <- ct_step. eauto with hahn. }
+    rewrite fwbob_rfi_rmw_in_fwbob; auto.
+    rewrite fwbob_in_bob. rewrite bob_in_ar_int. eauto with hahn. }
+  { rewrite WF.(rmw_in_ppo), ppo_rfi_ppo. rewrite <- ct_step.
+    rewrite ppo_in_ar_int. eauto with hahn. }
+  arewrite_id ⦗W⦘. rewrite seq_id_l.
+  rewrite (dom_r WF.(wf_rmwD)).
+  sin_rewrite BB. sin_rewrite AA.
+  rewrite <- ct_step.
+  rewrite w_ex_acq_sb_w_in_ar_int. eauto with hahn.
+Qed.
+
+Lemma ar_int_rfe_rfrmw_rt_in_ar_int_rfe_ct WF :
+  (rfe ∪ ar_int) ;; (rf ;; rmw)^* ⊆ (rfe ∪ ar_int)⁺.
+Proof using.
+  apply rt_ind_left with (P:=fun r => (rfe ∪ ar_int) ⨾ r).
+  { eauto with hahn. }
+  { by rewrite seq_id_r, <- ct_step. }
+  ins. sin_rewrite ar_int_rfe_rfrmw_in_ar_int_rfe_ct; auto.
+  rewrite ct_end at 1. rewrite !seqA. rewrite H.
+  relsf.
+Qed.
+
+Lemma ar_int_rfe_ct_rfrmw_rt_in_ar_int_rfe_ct WF :
+  (rfe ∪ ar_int)⁺ ;; (rf ;; rmw)^* ⊆ (rfe ∪ ar_int)⁺.
+Proof using.
+  rewrite ct_end at 1. rewrite !seqA. rewrite ar_int_rfe_rfrmw_rt_in_ar_int_rfe_ct; auto.
+  relsf.
 Qed.
 
 End IMM_S_PPO.
