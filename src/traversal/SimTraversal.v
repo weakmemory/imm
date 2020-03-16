@@ -202,7 +202,7 @@ Proof using WF IMMCON.
         hahn_rewrite (sb_immediate_adjacent WF) in RMW.
         unfold adjacent in *; unfolder in *; ins; desf.
         apply LA_ca in H; desf; eauto.
-        generalize (sb_coverable TCCOH); unfolder; ins; desf.
+        generalize (@sb_coverable G sc T). unfolder; ins; desf.
         left; eapply H0; eauto. }
       assert (E w) as EW.
       { apply (dom_r WF.(wf_rmwE)) in RMW.
@@ -258,7 +258,7 @@ Proof using WF IMMCON.
       red. split; [split|]; auto. left. left.
       split; auto. by right. }
     assert (issued T e) as ISS.
-    { eapply w_coverable_issued; eauto. by split. }
+    { eapply w_coverable_issued; eauto. eby split. }
     destruct (classic (Rel e)) as [REL|NREL].
     { exfalso. apply NEXT. apply RELCOV. split; [split|]; auto. }
     destruct (classic (codom_rel rmw e)) as [RMW|NRMW].

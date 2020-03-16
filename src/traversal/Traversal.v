@@ -1,7 +1,6 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
 
-
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -9,7 +8,10 @@ Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_bob imm_s_ppo.
 Require Import CombRelations.
+Require Import AuxDef.
+Require Import AuxRel2.
 Require Import TraversalConfig.
+Require Import imm_s_rfppo.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -17,7 +19,6 @@ Remove Hints plus_n_O.
 Section Traversal.
   Variable G : execution.
   Variable WF : Wf G.
-  Variable COM : complete G.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
@@ -193,64 +194,25 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     induction T; eapply trav_step_coherence; eauto.
   Qed.
   
-  (* TODO: move to imm_s. *)
-  Lemma no_ar_to_init : ar G sc ;; <|is_init|> ≡ ∅₂.
-  Proof using WF IMMCON.
-    split; [|basic_solver].
-    unfold ar.
-    rewrite WF.(ar_int_in_sb). rewrite no_sb_to_init.
-    rewrite wf_scD with (sc:=sc); [|by apply IMMCON].
-    rewrite WF.(wf_rfeD).
-    rewrite seq_union_l. unionL; [|basic_solver].
-    rewrite WF.(init_w). type_solver 10.
-  Qed.
-
   Lemma init_trav_coherent : tc_coherent G sc init_trav.
   Proof using WF IMMCON.
     unfold init_trav.
     red; splits; ins.
-    - unfold coverable; ins.
+    { unfold coverable; ins.
       repeat (splits; try apply set_subset_inter_r).
       basic_solver.
       rewrite no_sb_to_init; unfold dom_cond; basic_solver.
-      generalize (init_w WF); basic_solver 12.
-    - unfold issuable; ins.
-      repeat (splits; try apply set_subset_inter_r).
-      { basic_solver. }
-      { generalize (init_w WF); basic_solver 12. }
-      { rewrite fwbob_in_bob, bob_in_sb, no_sb_to_init; unfold dom_cond; basic_solver. }
-      eapply dom_cond_in with (r' := fun _ _ => False).
-      rewrite id_inter. rewrite ct_end, !seqA.
-      arewrite (ar G sc ⨾ ⦗Init⦘ ⊆ ∅₂).
-      2: basic_solver.
-      apply no_ar_to_init.
-  Qed.
-
-(******************************************************************************)
-(** TODO: move next lemmas to AuxRel**   *)
-(******************************************************************************)
-
-  Lemma forall_not_or_exists {A} (s P : A -> Prop):
-     (exists e, s e /\ P e) \/ (forall e, s e -> ~ P e).
-  Proof using WF IMMCON. apply NNPP. intros X. firstorder. Qed.
-
-  Lemma tot_ext_nat_extends2 (r : relation nat) : r⁺ ⊆ tot_ext_nat r.
-  Proof using.
-    apply inclusion_t_ind; try apply tot_ext_nat_trans.
-    red; ins.
-    by apply tot_ext_nat_extends.
-  Qed.
-
-(******************************************************************************)
-(** TODO: move next lemma to Execution**   *)
-(******************************************************************************)
-
-  Lemma wf_sb : well_founded sb.
-  Proof using.
-    eapply wf_finite; auto.
-    apply sb_acyclic.
-    rewrite (dom_l (@wf_sbE G)).
-    unfold doma; basic_solver.
+      generalize (init_w WF); basic_solver 12. }
+    unfold issuable; ins.
+    repeat (splits; try apply set_subset_inter_r).
+    { basic_solver. }
+    { generalize (init_w WF); basic_solver 12. }
+    { rewrite fwbob_in_bob, bob_in_sb, no_sb_to_init; unfold dom_cond; basic_solver. }
+    eapply dom_cond_in with (r' := fun _ _ => False).
+    rewrite id_inter. rewrite ct_end, !seqA.
+    arewrite ((ar G sc ∪ rf ⨾ ppo ∩ same_loc) ⨾ ⦗Init⦘ ⊆ ∅₂).
+    { by apply no_ar_rf_ppo_loc_to_init. }
+    basic_solver.
   Qed.
 
 (******************************************************************************)
@@ -265,7 +227,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     generalize dependent e.
     set (Q e := E e -> ~ P e ->
                 exists e' : actid, sb^? e' e /\ next G P e').
-    apply (@well_founded_ind _ sb wf_sb Q).
+    apply (@well_founded_ind _ sb (wf_sb G) Q).
     ins; subst Q; simpls.
     destruct (classic (exists e', sb e' x /\ ~ P e')) as
         [[e' [H' COV]]| H']; ins.
@@ -284,12 +246,14 @@ ins; desc; subst.
     destruct (classic (P x0)); auto.
     exfalso; apply H'; vauto.
   Qed.
-
+  
   Lemma exists_trav_step T (TCCOH : tc_coherent G sc T)
         e (N_FIN : next G (covered T) e) :
     exists T', trav_step T T'.
-  Proof using COM IMMCON WF.
+  Proof using WF IMMCON.
     assert (wf_sc G sc) as WFSC by apply IMMCON.
+    assert (complete G) as COM by apply IMMCON.
+
     rename e into e'.
     destruct (forall_not_or_exists (next G (covered T)) W)
       as [WNEXT|NWNEXT].
@@ -315,28 +279,26 @@ ins; desc; subst.
 
     assert ((exists w, W w /\ ~ issued T w /\ E w) ->
             exists w, W w /\ ~ issued T w /\
-                      dom_cond (⦗W⦘ ⨾ (ar G sc)⁺) (issued T) w /\
+                      dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w /\
                       E w) as WMIN.
     { intros P; desf.
-      induction w using (well_founded_ind (wf_ar_tc WF WFSC IMMCON)).
-      destruct (classic (dom_cond (⦗W⦘ ⨾ (ar G sc)⁺) (issued T) w)); eauto.
+      induction w using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON WFSC)).
+      destruct (classic (dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w)); eauto.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
       apply not_all_ex_not in H0; desf.
       apply seq_eqv_r in n0. desf.
       eapply H; eauto. 
       cdes IMMCON.
-      hahn_rewrite (dom_l (wf_arE WF Wf_sc)) in n2.
-      apply ct_begin in n2. apply seqA in n2.
-      apply seq_eqv_l in n2. desf. }
+      apply wf_ar_rf_ppo_loc_ctE in n2; auto. by destruct_seq_l n2 as AA. }
 
     assert ((exists f, (F∩₁Sc) f  /\ ~ covered T f /\ E f) ->
             exists f, (F∩₁Sc) f /\ ~ covered T f /\
-                      doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
+                      doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
                       E f) as FMIN.
     { intros P; desf.
-      induction f using (well_founded_ind (wf_ar_tc WF WFSC IMMCON)).
-      destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc)⁺ ⨾ ⦗eq f⦘) (covered T)))
+      induction f using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON WFSC)).
+      destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T)))
         as [H0 | H0]; eauto.
       rewrite seq_eqv_r, seq_eqv_l in H0.
       unfold doma in H0.
@@ -345,9 +307,7 @@ ins; desc; subst.
       apply imply_to_and in H0; desf.
       eapply H; eauto.
       cdes IMMCON.
-      hahn_rewrite (dom_l (wf_arE WF Wf_sc)) in H2.
-      hahn_rewrite inclusion_ct_seq_eqv_l in H2.
-      apply seq_eqv_l in H2; desf. }
+      apply wf_ar_rf_ppo_loc_ctE in H2; auto. by destruct_seq_l H2 as AA. }
 
     assert (forall n, next G (covered T) n ->
                       R n \/ (F∩₁Sc) n) as RorF.
@@ -457,10 +417,12 @@ ins; desc; subst.
             apply seq_eqv_l in RFE; desf. }
         eapply ct_ct. exists y'.
         split.
-        { apply t_step. by apply rfe_in_ar. }
+        { apply t_step. left. by apply rfe_in_ar. }
         hahn_rewrite fwbob_in_bob in BOB.
         hahn_rewrite bob_in_ar in BOB.
-        apply BOB. }
+        eapply clos_trans_mori.
+        2: by apply BOB.
+        basic_solver. }
       assert (exists f, (F∩₁Sc) f /\ ~ covered T f /\ E f) as FF.
       { exists n; splits; auto; apply NSB0. }
       specialize (FMIN FF); clear FF; desf.
@@ -477,7 +439,7 @@ ins; desc; subst.
         apply seq_eqv_l; split.
         { cdes IMMCON. apply Wf_sc.(wf_scD) in X. apply seq_eqv_l in X; desf. }
         apply seq_eqv_r; split; auto.
-        apply t_step. red. by apply sc_in_ar. }
+        apply t_step. red. left. by apply sc_in_ar. }
       assert (R m) as RM.
       { specialize (RorF m MSB0).
         desf; auto.
@@ -488,7 +450,7 @@ ins; desc; subst.
         hahn_rewrite seq_eqv_r.
         hahn_rewrite seq_eqv_l.
         splits; eauto.
-        apply t_step. apply bob_in_ar.
+        apply t_step. left. apply bob_in_ar.
         apply sb_to_f_in_bob.
         apply seq_eqv_r. split; auto.
         mode_solver. }
@@ -499,7 +461,7 @@ ins; desc; subst.
       eexists. apply seq_eqv_r. splits; eauto.
       hahn_rewrite seq_eqv_l; splits; auto.
 
-      assert ((ar G sc)⁺ w' f) as wfWF.
+      assert ((ar G sc)⁺ w' f) as wfWF'.
       { apply rfi_union_rfe in WRF; destruct WRF as [[RFI SB]|RFE].
         { assert (sb w' f) as SB'.
           { eapply sb_trans; eauto. }
@@ -514,14 +476,18 @@ ins; desc; subst.
         apply sb_to_f_in_bob.
         apply seq_eqv_r. split; auto.
         mode_solver. }
+      assert ((ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ w' f) as wfWF.
+      { eapply clos_trans_mori.
+        2: by apply wfWF'.
+        basic_solver. }
       eapply t_trans; [apply wfWF|].
       apply rt_ct; exists n.
       split.
       2: eapply clos_trans_mori; [|by apply BOB].
-      2: by rewrite fwbob_in_bob; apply bob_in_ar.
+      2: rewrite fwbob_in_bob; rewrite bob_in_ar; basic_solver.
       destruct (classic (f = n)) as [|FNEQ]; subst.
       { apply rt_refl. }
-      apply rt_step. apply sc_in_ar.
+      apply rt_step. left. apply sc_in_ar.
       cdes IMMCON.
       edestruct wf_sc_total as [J|J]; eauto.
       { split; [split|].
@@ -537,7 +503,7 @@ ins; desc; subst.
       eapply FMIN1.
       apply seq_eqv_l; split; auto.
       apply seq_eqv_r; split; eauto.
-      apply t_step. by apply sc_in_ar. }
+      apply t_step. left. by apply sc_in_ar. }
 
   assert (forall e, next G (covered T) e -> (F∩₁Sc) e) as FSC.
     { intros e H.
@@ -573,13 +539,13 @@ ins; desc; subst.
         2: by apply IMMCON.
         apply seq_eqv_l in H; desf. }
       apply seq_eqv_r; split; auto.
-      apply t_step. by apply sc_in_ar. }
+      apply t_step. left. by apply sc_in_ar. }
     specialize (FSC _ H0).
     apply (NCOV _ H0). destruct TCCOH; desf. apply CC.
     rewrite seq_eqv_r, seq_eqv_l in X1.
     eapply X1.
     splits; eauto.
-    apply t_step. apply bob_in_ar.
+    apply t_step. left. apply bob_in_ar.
     apply sb_to_f_in_bob.
     apply seq_eqv_r. split; auto.
     mode_solver.

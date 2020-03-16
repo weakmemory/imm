@@ -248,7 +248,6 @@ Section TraversalCounting.
     eapply trav_steps_left_nnull_ncov in HH; auto.
     desc. eapply exists_next in HH0; eauto. desc.
     eapply exists_trav_step in HH1; eauto.
-    2: by apply IMMCON.
     desc.
     apply exists_sim_trav_step in HH1; eauto. desc.
     clear T'. subst.

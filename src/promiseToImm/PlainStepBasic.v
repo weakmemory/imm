@@ -236,9 +236,9 @@ Proof using WF.
          apply (dom_l WF.(wf_rfeD)) in RFE.
          apply seq_eqv_l in RFE. destruct RFE as [WY RFE].
          apply seq_eqv_l. split; auto.
-         apply ct_ct. exists oo. split; apply ct_step.
-         { by apply rfe_in_ar. }
-         apply ppo_in_ar. by apply rmw_in_ppo. }
+         apply ct_step. right.
+         exists oo. split; [by apply RFE|].
+           by apply rmw_in_ppo_loc. }
     hahn_rewrite rfi_union_rfe in HH. hahn_rewrite seq_union_l in HH.
     destruct HH as [HH|]; [exfalso|done].
     assert (W y) as WY.

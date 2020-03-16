@@ -7,7 +7,6 @@ Require Import Execution_eco.
 Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
-
 Require Import TraversalConfig.
 
 Set Implicit Arguments.
@@ -87,8 +86,21 @@ Record tc_coherent_alt T :=
     tc_I_in_E : issued T ⊆₁ E ;
     tc_I_in_W : issued T ⊆₁ W ;
     tc_fwbob_I : dom_rel ( fwbob ⨾ ⦗issued T⦘) ⊆₁ covered T ;
-    tc_I_ar_I : dom_rel (<|W|> ;; ar⁺ ;; <|issued T|>) ⊆₁ issued T;
+    tc_I_ar_rf_ppo_loc_I : dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗issued T⦘) ⊆₁ issued T;
   }.
+
+Lemma tc_I_ar_rfrmw_I WF T (TCCOH : tc_coherent_alt T) :
+  dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗issued T⦘) ⊆₁ issued T.
+Proof using.
+  rewrite WF.(rmw_in_ppo_loc). apply TCCOH.
+Qed.
+
+Lemma tc_I_ar_I WF T (TCCOH : tc_coherent_alt T) :
+  dom_rel (⦗W⦘ ⨾ ar⁺ ⨾ ⦗issued T⦘) ⊆₁ issued T.
+Proof using.
+  arewrite (ar ⊆ ar ∪ rf ⨾ ppo ∩ same_loc).
+  apply TCCOH.
+Qed.
 
 Lemma tc_dr_pb_I WF T (TCCOH : tc_coherent_alt T) :
   dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗issued T⦘) ⊆₁ issued T.
@@ -100,39 +112,39 @@ Proof using.
   rewrite ppo_in_ar, bob_in_ar.
   rewrite !unionK, !seqA.
   sin_rewrite ar_ar_in_ar_ct.
-  apply TCCOH.
+    by apply tc_I_ar_I.
 Qed.
  
 Lemma tc_coherent_alt_implies_tc_coherent T: 
   tc_coherent_alt T  -> tc_coherent G sc T.
 Proof using.
-intro H; destruct H.
-red; splits; eauto.
-- unfold coverable.
+  intro H; destruct H.
+  red; splits; eauto.
+  2: { unfold issuable.
+       repeat (splits; try apply set_subset_inter_r); ins.
+       { by eapply dom_rel_to_cond. }
+         by eapply dom_rel_to_cond; rewrite !seqA. }
+  unfold coverable.
   repeat (splits; try apply set_subset_inter_r); ins.
-  by eapply dom_rel_to_cond.
+  { by eapply dom_rel_to_cond. }
   arewrite (covered T ⊆₁ covered T ∩₁ E).
   revert tc_C_in_E0; basic_solver.
   arewrite (E ⊆₁ R ∪₁ W ∪₁ F).
   unfolder; intro a; forward (apply (lab_rwf lab a)); tauto.
   rewrite !set_inter_union_r; unionL.
-  * unionR left -> right.
+  { unionR left -> right.
     repeat (splits; try apply set_subset_inter_r); ins.
     basic_solver.
     eapply dom_rel_to_cond.
-    revert tc_rf_C0; basic_solver 21.
-  * unionR left -> left.
+    revert tc_rf_C0; basic_solver 21. }
+  { unionR left -> left.
     repeat (splits; try apply set_subset_inter_r); ins.
-    basic_solver.
-  * unionR right.
-    repeat (splits; try apply set_subset_inter_r); ins.
-    basic_solver.
-    eapply dom_rel_to_cond.
-    revert tc_sc_C0; basic_solver 21.
-- unfold issuable.
+    basic_solver. }
+  unionR right.
   repeat (splits; try apply set_subset_inter_r); ins.
-  by eapply dom_rel_to_cond.
-  by eapply dom_rel_to_cond; rewrite !seqA.
+  basic_solver.
+  eapply dom_rel_to_cond.
+  revert tc_sc_C0; basic_solver 21.
 Qed.
 
 Lemma tc_coherent_implies_tc_coherent_alt WF WF_SC T: 
@@ -165,9 +177,9 @@ Lemma tc_W_ex_sb_I WF T (TCCOH : tc_coherent_alt T) :
 Proof using.
   assert (tc_coherent G sc T) as TCCOH'.
   { by apply tc_coherent_alt_implies_tc_coherent. }
-  arewrite (⦗issued T⦘ ⊆ ⦗W⦘ ;; ⦗issued T⦘).
+  arewrite (⦗issued T⦘ ⊆ ⦗W⦘ ⨾ ⦗issued T⦘).
   { rewrite <- seq_eqvK at 1. rewrite issuedW at 1; edone. }
-  arewrite (⦗W_ex_acq⦘ ⊆ ⦗W⦘ ;; ⦗W_ex_acq⦘).
+  arewrite (⦗W_ex_acq⦘ ⊆ ⦗W⦘ ⨾ ⦗W_ex_acq⦘).
   { rewrite <- seq_eqvK at 1. rewrite W_ex_acq_in_W at 1; done. }
   arewrite (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar).
   apply ar_I_in_I; auto.

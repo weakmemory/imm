@@ -720,7 +720,7 @@ Proof using WF.
         apply seq_eqv_r in H; destruct H as [H]; subst.
         apply NINRMW. exists x. apply seq_eqv_l; split.
         { eapply wex_rfi_rfe_rmw_issuable_is_issued; eauto.
-          exists y. hahn_rewrite <- seqA. apply seq_eqv_r; split; auto. }
+          exists y. hahn_rewrite <- seqA. apply seq_eqv_r; split; eauto. }
         generalize H; unfold Execution.rfi, Execution.rfe.
         basic_solver. }
       assert ((if Rel w
@@ -1492,7 +1492,7 @@ Proof using WF.
         apply ISSNEXT. eexists. apply seq_eqv_r; split; eauto.
         apply seq_eqv_l; split; auto.
         destruct H1 as [z [RF RMW]].
-        apply ct_step. apply w_ex_acq_sb_w_in_ar.
+        apply ct_step. left. apply w_ex_acq_sb_w_in_ar.
         apply seq_eqv_l. split.
         { apply ACQEX. eexists; eauto. }
         apply seq_eqv_r. split; auto. }
@@ -2503,10 +2503,10 @@ Proof using WF.
           apply WNISS. apply TCCOH in ISSB. apply ISSB.
           eexists. apply seq_eqv_r. split; eauto.
           apply seq_eqv_l. split; auto.
+          apply ct_step. right.
           destruct RFRMW as [oo [AA BB]].
-          apply ct_ct. exists oo. split; apply ct_step.
-          { red. basic_solver. }
-          apply ppo_in_ar. by apply WF.(rmw_in_ppo). }
+          exists oo. split; [by apply AA|].
+            by apply rmw_in_ppo_loc. }
         assert ((sb ∩ same_loc lab) w b) as SBWB.
         { destruct RFIRMW as [z [RFI RMW]].
           eapply sb_same_loc_trans.
@@ -2529,7 +2529,7 @@ Proof using WF.
           apply ISSB.
           exists b; apply seq_eqv_r; split; auto.
           apply seq_eqv_l; split; auto.
-          apply ct_step. apply w_ex_acq_sb_w_in_ar.
+          apply ct_step. left. apply w_ex_acq_sb_w_in_ar.
           apply seq_eqv_lr. splits; auto.
           { apply SBWB. }
           apply ISSB. }
@@ -2975,24 +2975,20 @@ Proof using WF.
     destruct RFRMW as [RFRMW|RFRMW]; exfalso.
     all: apply WNISS; apply TCCOH in ISSB; destruct ISSB as [A1 A2]. 
     2: { apply A2. eexists. apply seqA. apply seq_eqv_lr. splits; eauto.
+         apply ct_step. right.
          destruct RFRMW as [oo [AA BB]].
-         apply ct_ct. exists oo. split; apply ct_step.
-         { red. basic_solver. }
-         apply ppo_in_ar. by apply WF.(rmw_in_ppo). }
+         exists oo. split; [by apply AA|].
+           by apply rmw_in_ppo_loc. }
     apply A2.
     assert (W_ex_acq w) as WEX.
     { apply ACQEX. destruct P_REL_CH1 as [z [RF RFMW]].
       eexists; eauto. }
     exists b; apply seq_eqv_r; split; auto.
     apply seq_eqv_l; split; auto.
+    apply ct_step. right.
     destruct RFRMW as [z [RF RMW]].
-    apply ct_step. apply w_ex_acq_sb_w_in_ar.
-    apply seq_eqv_l. split.
-    { apply ACQEX. apply WEX. }
-    apply seq_eqv_r. split; auto.
-    { eapply sb_trans. by apply WF.(rfi_in_sbloc'); eauto.
-        by apply WF.(wf_rmwi). }
-    apply (dom_r WF.(wf_rmwD)) in RMW. apply seq_eqv_r in RMW. apply RMW. }
+    exists z. split; [by apply RF|].
+      by apply rmw_in_ppo_loc. }
   assert (l = locw); subst.
   { rewrite LOC in LOC0; inv LOC0. }
   assert (v = valw); subst.

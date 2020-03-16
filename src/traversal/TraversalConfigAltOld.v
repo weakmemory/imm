@@ -3,11 +3,13 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import imm_bob imm_s_ppo.
+Require Import imm_bob.
 Require Import imm_s_hb.
 Require Import imm_s.
-
+Require Import imm_s_ppo.
+Require Import AuxDef.
 Require Import TraversalConfig TraversalConfigAlt.
+Require Import imm_s_rfppo.
 
 Set Implicit Arguments.
 Remove Hints plus_n_O.
@@ -77,8 +79,8 @@ Notation "'Acqrel'" := (fun x => is_true (is_acqrel lab x)).
 Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 
-Implicit Type WF : Wf G.
-Implicit Type WF_SC : wf_sc G sc.
+Variable WF : Wf G.
+Variable IMMCON : imm_consistent G sc.
 
 Record tc_coherent_alt_old :=
   { otc_init : Init ∩₁ E ⊆₁ C ;
@@ -91,81 +93,83 @@ Record tc_coherent_alt_old :=
     otc_I_in_W : I ⊆₁ W ;
     otc_fwbob_I : dom_rel ( fwbob ⨾ ⦗I⦘) ⊆₁ C ;
     otc_dr_pb_I : dom_rel ( (detour ∪ rfe ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) ⨾ (ppo ∪ bob) ⨾ ⦗I⦘) ⊆₁ I ;
-    otc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗I⦘) ⊆₁ I
+    otc_W_ex_sb_I : dom_rel (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗I⦘) ⊆₁ I ;
+    otc_rfi_ppo_loc_I  : dom_rel (rfi ⨾ ppo ∩ same_loc ⨾ ⦗I⦘) ⊆₁ I;
   }.
 
 Section Props.
 
 Hypothesis tc_old : tc_coherent_alt_old.
 
+Lemma otc_rfirmw_I : dom_rel (rfi ⨾ rmw ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  rewrite WF.(rmw_in_ppo_loc).
+  apply tc_old.
+Qed.
+
+Lemma otc_rf_ppo_loc_I :
+  dom_rel (rf ⨾ ppo ∩ same_loc ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  rewrite rfi_union_rfe. rewrite !seq_union_l, dom_union.
+  unionL.
+  { apply tc_old. }
+  arewrite (ppo ∩ same_loc ⊆ ppo).
+  etransitivity.
+  2: by apply otc_dr_pb_I. 
+  basic_solver 10.
+Qed.
+
+Lemma otc_rfrmw_I :
+  dom_rel (rf ⨾ rmw ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  rewrite rfi_union_rfe. rewrite !seq_union_l, dom_union.
+  unionL.
+  { apply otc_rfirmw_I. }
+  rewrite WF.(rmw_in_ppo).
+  etransitivity.
+  2: by apply otc_dr_pb_I. 
+  basic_solver 10.
+Qed.
+
 Lemma otc_tc_fwbob_I : dom_rel (fwbob⁺ ⨾ ⦗I⦘) ⊆₁ C.
 Proof using tc_old.
-rewrite ct_end, !seqA.
-rewrite (dom_rel_helper (otc_fwbob_I tc_old)).
-rewrite fwbob_in_sb.
-generalize (@sb_trans G); ins; relsf.
-generalize (otc_sb_C tc_old).
-basic_solver 12.
+  rewrite ct_end, !seqA.
+  rewrite (dom_rel_helper (otc_fwbob_I tc_old)).
+  rewrite fwbob_in_sb.
+  generalize (@sb_trans G); ins; relsf.
+  generalize (otc_sb_C tc_old).
+  basic_solver 12.
 Qed.
 
-Lemma otc_W_bob_I :
-  dom_rel (⦗W⦘ ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Lemma otc_W_bob_I : dom_rel (⦗W⦘ ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
 Proof using tc_old.
-rewrite tc_bob; relsf; splits; [| type_solver].
-rewrite (dom_rel_helper (otc_tc_fwbob_I)).
-generalize (otc_W_C_in_I tc_old).
-basic_solver 12.
-Qed.
-
-Lemma otc_dr_bob_I : dom_rel ((rfe ∪ detour) ⨾ bob ⨾ ⦗I⦘) ⊆₁ I.
-Proof using tc_old.
-  etransitivity.
-  2: by apply otc_dr_pb_I; auto.
-  basic_solver 20.
-Qed.
-
-Lemma otc_dr_ppo_I : dom_rel ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘) ⊆₁ I.
-Proof using tc_old.
-  etransitivity.
-  2: by apply otc_dr_pb_I; auto.
-  basic_solver 20.
-Qed.
-
-Lemma otc_dr_bob_ct_I WF : dom_rel ((rfe ∪ detour) ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
-Proof using tc_old.
-  remember (rfe ∪ detour) as rd.
-  rewrite tc_bob. rewrite !seq_union_l, !seq_union_r, !dom_union. unionL.
-  2: { arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
-       subst rd. by apply otc_dr_bob_I. }
+  rewrite tc_bob; relsf; splits; [| type_solver].
   rewrite (dom_rel_helper otc_tc_fwbob_I).
-  subst rd; relsf. split.
-  { generalize (otc_rf_C tc_old); unfold Execution.rfe. basic_solver 21. }
-  rewrite (dom_l WF.(wf_detourD)).
-  rewrite detour_in_sb.
-  generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
+  generalize (otc_W_C_in_I tc_old).
+  basic_solver 12.
 Qed.
 
-Lemma otc_I_ar_I_implied_helper_0 WF :
-  dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
-Proof using tc_old.
+Lemma otc_I_ar_I_implied_helper_0 :
+  dom_rel (⦗W⦘ ⨾  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
   rewrite (bob_ppo_W_sb WF).
   rewrite crE.
   rewrite wf_ppoD at 1 2.
   relsf; splits; try type_solver.
-  arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
-  { generalize (otc_I_in_W tc_old); basic_solver. }
+  arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
+  { generalize (otc_I_in_W tc_old). basic_solver. }
   sin_rewrite bob_sb; relsf; splits.
   { rewrite !seqA.
     arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ sb^?).
     { generalize (otc_W_ex_sb_I tc_old). basic_solver 12. }
     generalize otc_W_bob_I. basic_solver 12. }
-  generalize (otc_W_ex_sb_I tc_old).
+  generalize otc_W_ex_sb_I.
   basic_solver 12.
 Qed.
 
 Lemma bob_W_ex_sb_W_ex_rfi_ct_alt :
-  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ;; <|W|> ⊆
-  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^* ;; (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ;; bob)^?.
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⨾ ⦗W⦘ ⊆
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⨾ (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ bob)^?.
 Proof using.
   rewrite unionC.
   rewrite path_union1.
@@ -174,7 +178,7 @@ Proof using.
   hahn_frame_l.
   arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ∪
             ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆
-            ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*).
+            ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊).
   { rewrite rtE. basic_solver 20. }
   arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb).
   { rewrite bob_in_sb. basic_solver. }
@@ -188,7 +192,7 @@ Proof using.
   rewrite crE. rewrite !seq_union_l, !seq_union_r, seq_id_l.
   unionL.
   { type_solver. }
-  arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1.
+  arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ⨾ ⦗R ∩₁ Acq⦘) at 1.
   { basic_solver. }
   arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
   basic_solver 10.
@@ -210,14 +214,14 @@ Proof using tc_old.
   rewrite !seqA. by apply dom_W_ex_rfi_Acq_bob_I_in_I.
 Qed.
 
-Lemma otc_I_ar_I_implied_helper_1 WF :
-  dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+ ⨾ ⦗I⦘) ⊆₁ I.
-Proof using tc_old.
+Lemma otc_I_ar_I_implied_helper_1 :
+  dom_rel (⦗W⦘ ⨾ (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
   rewrite (bob_ppo_W_ex_rfi_W_sb WF).
   rewrite crE.
   rewrite wf_ppoD at 1 2.
   relsf; splits; try type_solver.
-  arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+  arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
   { generalize (otc_I_in_W tc_old); basic_solver. }
   sin_rewrite bob_W_ex_sb_W_ex_rfi_ct_alt. rewrite !seqA.
   rewrite (dom_rel_helper dom_W_ex_rfi_Acq_bob_cr_I_in_I).
@@ -227,9 +231,38 @@ Proof using tc_old.
   arewrite (bob ⊆ bob ∪ ppo). by apply otc_I_ar_I_implied_helper_0.
 Qed.
 
-Lemma otc_I_ar_I_implied_helper_2  WF WF_SC :
-   dom_rel (<|W|> ;; ar⁺ ;; <|I|>) ⊆₁ I.
+Lemma otc_dr_ppo_I : dom_rel ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘) ⊆₁ I.
 Proof using tc_old.
+  etransitivity.
+  2: by apply tc_old.(otc_dr_pb_I). 
+  basic_solver 10.
+Qed.
+
+Lemma otc_dr_bob_I : dom_rel ((rfe ∪ detour) ⨾ bob ⨾ ⦗I⦘) ⊆₁ I.
+Proof using tc_old.
+  etransitivity.
+  2: by apply otc_dr_pb_I; auto.
+  basic_solver 20.
+Qed.
+
+Lemma otc_dr_bob_ct_I : dom_rel ((rfe ∪ detour) ⨾ bob⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  remember (rfe ∪ detour) as rd.
+  rewrite tc_bob. rewrite !seq_union_l, !seq_union_r, !dom_union. unionL.
+  2: { arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+       subst rd. by apply otc_dr_bob_I. }
+  rewrite (dom_rel_helper otc_tc_fwbob_I).
+  subst rd; relsf. split.
+  { generalize (otc_rf_C tc_old); unfold Execution.rfe. basic_solver 21. }
+  rewrite (dom_l WF.(wf_detourD)).
+  rewrite detour_in_sb.
+  generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
+Qed.
+
+Lemma otc_I_ar_I_implied_helper_2 :
+   dom_rel (⦗W⦘ ⨾ ar⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF IMMCON tc_old.
+  assert (wf_sc G sc) as WFS by apply IMMCON.
   assert (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) as AA.
   { rewrite (ppo_in_sb WF), bob_in_sb.
     arewrite (rfi ⊆ sb). basic_solver 10. }
@@ -246,10 +279,10 @@ Proof using tc_old.
   remember (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘) as bps.
   rewrite unionC.
   rewrite path_union1.
-  arewrite (srd ∪ srd ⨾ bps⁺ ⊆ srd ⨾ bps^*).
+  arewrite (srd ∪ srd ⨾ bps⁺ ⊆ srd ⨾ bps＊).
   { rewrite rtE. basic_solver 12. }
   relsf; splits.
-  { generalize (otc_I_ar_I_implied_helper_1 WF).
+  { generalize otc_I_ar_I_implied_helper_1.
     rewrite <- Heqbps. basic_solver 21. }
   rewrite !seqA, <- dom_eqv1.
   arewrite (⦗W⦘ ⨾ bps＊ ⨾ (srd ⨾ bps＊)⁺ ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (fun _ _ => True)); cycle 1.
@@ -261,7 +294,7 @@ Proof using tc_old.
   { rels. rewrite rtE; relsf. subst. unionL.
     { type_solver. }
     rewrite id_union; relsf; unionL.
-    { rewrite (dom_rel_helper (otc_I_ar_I_implied_helper_1 WF)). subst.
+    { rewrite (dom_rel_helper otc_I_ar_I_implied_helper_1). subst.
       basic_solver 12. }
     rewrite AA. rewrite ct_of_trans; [|by apply sb_trans].
     arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘) by basic_solver.
@@ -269,7 +302,7 @@ Proof using tc_old.
     generalize (otc_W_C_in_I tc_old); basic_solver. }
   intros k H; rewrite !seqA.
   rewrite rtE at 2; relsf; unionL; subst srd.
-  { rewrite (wf_scD WF_SC).
+  { rewrite (wf_scD WFS).
     rewrite (otc_I_in_W tc_old) at 1.
     rewrite (dom_r (wf_rfeD WF)).
     rewrite (dom_r (wf_detourD WF)).
@@ -281,12 +314,12 @@ Proof using tc_old.
   rewrite !unionA.
   remember (rfe ∪ detour) as rd.
   relsf; unionL.
-  { cut (sc ⨾ bps^+ ⨾ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗C ∩₁ F ∩₁ Sc⦘ ;; (fun _ _ : actid => True)).
+  { cut (sc ⨾ bps⁺ ⨾ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗C ∩₁ F ∩₁ Sc⦘ ⨾ (fun _ _ : actid => True)).
     { intro A. sin_rewrite A. arewrite (C ∩₁ F ∩₁ Sc ⊆₁ I ∪₁ C ∩₁ F ∩₁ Sc) at 1.
       sin_rewrite H. basic_solver. }
     subst bps.
     rewrite AA. rewrite ct_of_trans; [|by apply sb_trans].
-    rewrite (wf_scD WF_SC), !seqA.
+    rewrite (wf_scD WFS), !seqA.
     rewrite id_union; relsf; unionL.
     { arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⊆ fwbob).
       { unfold imm_bob.fwbob. mode_solver. }
@@ -294,7 +327,7 @@ Proof using tc_old.
       basic_solver 21. }
     generalize (otc_sc_C tc_old) (otc_sb_C tc_old).
     basic_solver 21. }
-  cut (rd ⨾ bps^+ ⨾ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗I⦘ ;; (fun _ _ : actid => True)).
+  cut (rd ⨾ bps⁺ ⨾ ⦗I ∪₁ C ∩₁ F ∩₁ Sc⦘ ⊆ ⦗I⦘ ⨾ (fun _ _ : actid => True)).
   { intro A. sin_rewrite A. arewrite (I ⊆₁ I ∪₁ C ∩₁ F ∩₁ Sc) at 1.
     sin_rewrite H. basic_solver. }
   subst bps.
@@ -303,12 +336,12 @@ Proof using tc_old.
     { generalize (otc_dr_pb_I tc_old). subst rd. basic_solver 12. }
     rewrite wf_ppoD. type_solver. }
   rewrite id_union; relsf; unionL.
-  { arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+  { arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
     { generalize (otc_I_in_W tc_old). basic_solver. }
     sin_rewrite bob_W_ex_sb_W_ex_rfi_ct_alt. rewrite !seqA.
     rewrite (dom_rel_helper (dom_W_ex_rfi_Acq_bob_cr_I_in_I)).
     arewrite (rd ⨾ ppo^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⨾ ⦗I⦘ ⊆
-              ⦗I⦘ ;; rd ⨾ ppo^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⨾ ⦗I⦘).
+              ⦗I⦘ ⨾ rd ⨾ ppo^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊ ⨾ ⦗I⦘).
     2: basic_solver.
     apply dom_rel_helper.
     rewrite rtE. rewrite !seq_union_l, !seq_union_r, dom_union, seq_id_l.
@@ -323,12 +356,12 @@ Proof using tc_old.
     unionL.
     2: { rewrite (dom_r G.(wf_ppoD)), !seqA.
          arewrite (bob ⊆ bob ∪ ppo).
-         rewrite (dom_rel_helper WF.(otc_I_ar_I_implied_helper_0)).
+         rewrite (dom_rel_helper otc_I_ar_I_implied_helper_0).
          subst rd.
-         arewrite ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘ ⊆ ⦗I⦘ ;; (rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘).
+         arewrite ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘ ⊆ ⦗I⦘ ⨾ (rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘).
          { apply dom_rel_helper. apply otc_dr_ppo_I. }
          basic_solver. }
-    arewrite (⦗I⦘ ⊆ ⦗W⦘ ;; ⦗I⦘).
+    arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
     { generalize (otc_I_in_W tc_old). basic_solver. }
     sin_rewrite bob_sb. rewrite !seq_union_l, !seq_union_r, dom_union. unionL.
     2: { subst rd. rewrite WF.(W_ex_acq_in_W).
@@ -336,7 +369,7 @@ Proof using tc_old.
          mode_solver. }
     rewrite !seqA.
     arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆
-              ⦗I⦘ ;; (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘).
+              ⦗I⦘ ⨾ (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘).
     { apply dom_rel_helper. 
       rewrite crE. rewrite !seq_union_l, seq_id_l, dom_union. unionL.
       { basic_solver. }
@@ -359,6 +392,51 @@ Proof using tc_old.
   generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
 Qed.
 
-End Props.
+Lemma otc_rf_ppo_loc_ct_I :
+  dom_rel ((rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  intros x [y HH]. destruct_seq_r HH as IY.
+  induction HH as [x y AA|x y z AA BB].
+  2: by intuition.
+  apply otc_rf_ppo_loc_I; auto. eexists. apply seqA.
+  apply seq_eqv_r. split; eauto.
+Qed.
 
+Lemma otc_rfrmw_ct_I :
+  dom_rel ((rf ⨾ rmw)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF tc_old.
+  rewrite WF.(rmw_in_ppo_loc). apply otc_rf_ppo_loc_ct_I.
+Qed.
+
+Lemma otc_I_ar_rf_ppo_loc_I_implied_helper_2 :
+   dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF IMMCON tc_old.
+  assert (wf_sc G sc) as WFS by apply IMMCON.
+  rewrite ct_step with (r:=ar) at 1.
+  rewrite unionC.
+  rewrite path_absorb1.
+  2: { apply ar_ct_rf_ppo_loc_in_ar_ct; auto. }
+  rewrite !seq_union_l, !seq_union_r, !dom_union.
+  unionL.
+  { arewrite_id ⦗W⦘. rewrite seq_id_l. by apply otc_rf_ppo_loc_ct_I. }
+  { rewrite ct_of_ct. apply otc_I_ar_I_implied_helper_2; auto. }
+  rewrite ct_of_ct; rewrite seqA.
+  arewrite ((rf ⨾ ppo ∩ same_loc)⁺ ⊆ (rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗W⦘).
+  { rewrite (dom_r (wf_ppoD G)) at 1.
+    rewrite seq_eqv_inter_lr.
+    rewrite <- !seqA. by rewrite inclusion_ct_seq_eqv_r. }
+  rewrite (dom_rel_helper otc_I_ar_I_implied_helper_2).
+  arewrite_id ⦗W⦘. rewrite !seq_id_l.
+  rewrite <- !seqA.
+  rewrite (dom_rel_helper otc_rf_ppo_loc_ct_I).
+  basic_solver.
+Qed.
+
+Lemma otc_I_ar_rfrmw_I_implied_helper_2 :
+   dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗I⦘) ⊆₁ I.
+Proof using WF IMMCON tc_old.
+  rewrite WF.(rmw_in_ppo_loc). apply otc_I_ar_rf_ppo_loc_I_implied_helper_2.
+Qed.
+
+End Props.
 End TCCOH_ALT_OLD.

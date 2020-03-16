@@ -393,7 +393,7 @@ eapply dom_rel_helper_in.
 rewrite crE; relsf; unionL; splits; [basic_solver 12|].
 rewrite (issued_in_issuable TCCOH) at 1.
 rewrite ACQEX at 1.
-generalize (wex_rfi_rfe_rmw_issuable_is_issued WF TCCOH).
+generalize (wex_rfi_rfe_rmw_issuable_is_issued WF).
 basic_solver 21.
 
 
@@ -419,14 +419,14 @@ rewrite E_E0; unfold E0.
 rewrite !set_inter_union_r.
 rewrite !id_union; relsf; unionL; splits.
 - generalize dom_sb_covered; ie_unfolder; basic_solver 21.
-- generalize (dom_sb_loc_issued TCCOH); basic_solver 21.
+- generalize (dom_W_Rel_sb_loc_I_in_C TCCOH); basic_solver 21.
 - generalize (@sb_trans Gf); basic_solver 21.
 - rewrite (dom_l (wf_rmwD WF)) at 1; type_solver.
 Qed.
 *)
 Lemma W_Rel_sb_loc_I : dom_rel (⦗FW ∩₁ FRel⦘ ⨾  (Fsb ∩  Fsame_loc) ⨾ ⦗FW ∩₁ I⦘) ⊆₁ I.
 Proof using TCCOH.
-generalize (dom_sb_loc_issued TCCOH), (w_covered_issued TCCOH); basic_solver 21.
+generalize (dom_W_Rel_sb_loc_I_in_C TCCOH), (w_covered_issued TCCOH); basic_solver 21.
 Qed.
 (*
 Lemma F_sb_E :  dom_rel (⦗FF ∩₁ FAcq/Rel⦘ ⨾  Fsb ⨾ ⦗E⦘) ⊆₁ E.
@@ -453,7 +453,7 @@ Proof using All. etransitivity; [|apply F_sb_E]; mode_solver 12. Qed.
 
 Lemma F_sb_I :  dom_rel (⦗FF ∩₁ FAcq/Rel⦘ ⨾  Fsb ⨾ ⦗I⦘) ⊆₁ C.
 Proof using TCCOH.
-generalize (dom_F_sb_issued TCCOH); basic_solver 21.
+generalize (dom_F_sb_I_in_C TCCOH); basic_solver 21.
 Qed. 
 
 Lemma F_Rel_sb_I :  dom_rel (⦗FF ∩₁ FRel⦘ ⨾  Fsb ⨾ ⦗I⦘) ⊆₁ C.
@@ -1030,7 +1030,7 @@ rewrite E_to_I.
 rewrite (sub_sb_in SUB).
 unfolder; ins; desf.
 apply (issuedW TCCOH) in H2; type_solver.
-generalize (dom_F_sb_issued TCCOH); basic_solver 21.
+generalize (dom_F_sb_I_in_C TCCOH); basic_solver 21.
 Qed.
 
 Lemma E_F_Sc_in_C: E ∩₁ F ∩₁ Sc ⊆₁ C.
@@ -1380,7 +1380,7 @@ Proof using All.
   rewrite (dom_l WF.(wf_detourD)), !seqA.
   rewrite detour_in_ar, bob_in_ar.
   sin_rewrite ar_ar_in_ar_ct.
-  apply ar_ct_I_in_I. eauto.
+  apply ar_ct_I_in_I; eauto.
 Qed.
 
 Lemma detour_Acq_E : dom_rel (Gdetour ⨾ ⦗E ∩₁ R ∩₁ Acq⦘) ⊆₁ I.
@@ -1417,7 +1417,9 @@ red; splits.
   * rewrite (sub_W SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_fwbob_in SUB); rewrite II at 1; basic_solver 12.
   * rewrite (sub_ar_in SUB).
-    rewrite II at 1; basic_solver 12.
+    rewrite (sub_rf_in SUB).
+    rewrite (sub_ppo_in SUB).
+    rewrite II at 1. basic_solver 12.
 Qed.
 
 Lemma C_E_NTid : C ∪₁ (E ∩₁ NTid_ thread) ≡₁
@@ -1545,6 +1547,8 @@ basic_solver.
 - apply I_in_E.
 - rewrite (sub_fwbob_in SUB), tc_fwbob_I; basic_solver.
 - rewrite (sub_ar_in SUB); auto. 
+  rewrite (sub_rf_in SUB); auto. 
+  rewrite (sub_ppo_in SUB); auto. 
 Qed.
 
 End RestExec.
