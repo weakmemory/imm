@@ -241,4 +241,44 @@ Proof using.
   all: unfold fwbob; eauto with hahn.
 Qed.
 
+Lemma fwbob_sb_same_loc_W_in_fwbob : fwbob ;; sb ∩ same_loc ;; <|W|> ⊆ fwbob⁺.
+Proof using.
+  unfold fwbob at 1.
+  rewrite !seq_union_l, !seqA.
+  unionL.
+  { arewrite (⦗W ∩₁ Rel⦘ ⊆ ⦗W ∩₁ Rel⦘ ;; ⦗W ∩₁ Rel⦘) by basic_solver.
+    rewrite <- ct_ct, <- !ct_step. rewrite <- seqA.
+    apply seq_mori.
+    all: unfold fwbob; eauto with hahn. }
+  { rewrite <- ct_step.
+    arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb ∩ same_loc ⨾ ⦗W⦘).
+    { hahn_frame_r. arewrite_id ⦗W⦘. rewrite seq_id_l.
+      apply transitiveI. apply sb_same_loc_trans. }
+    unfold fwbob; eauto with hahn. }
+  { arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver.
+    arewrite (⦗F ∩₁ Acq/Rel⦘ ⊆ ⦗F ∩₁ Acq/Rel⦘ ;; ⦗F ∩₁ Acq/Rel⦘) by basic_solver.
+    rewrite <- ct_ct, <- !ct_step. rewrite <- seqA.
+    apply seq_mori.
+    all: unfold fwbob; eauto with hahn. }
+  rewrite <- ct_step.
+  arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver.
+  arewrite (sb ⨾ sb ⊆ sb).
+  { apply transitiveI. apply sb_trans. }
+  unfold fwbob; eauto with hahn.
+Qed.
+
+Lemma bob_sb_same_loc_W_in_bob : bob ;; sb ∩ same_loc ;; <|W|> ⊆ bob⁺.
+Proof using.
+  unfold bob at 1.
+  rewrite !seq_union_l, !seqA.
+  unionL.
+  2: { arewrite (sb ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb).
+       { generalize (@sb_trans G). basic_solver. }
+       arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
+       apply ct_step. }
+  rewrite fwbob_sb_same_loc_W_in_fwbob.
+  unfold bob.
+  apply clos_trans_mori. eauto with hahn.
+Qed.
+
 End IMM.
