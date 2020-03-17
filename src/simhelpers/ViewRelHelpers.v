@@ -48,6 +48,17 @@ Notation "'Acq'" := (fun a => is_true (is_acq lab a)).
 Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
+Lemma msg_rel_co_irr l (IMMCON : imm_consistent G sc) :
+  irreflexive (msg_rel G sc l ⨾ co).
+Proof.
+  unfold msg_rel.
+  intros x AA.
+  destruct AA as [y [[z [AA BB]] CC]].
+  eapply release_co_urr_irr; eauto.
+  1-4: by apply IMMCON.
+  eexists; split; [|eexists]; eauto.
+Qed.
+
 Lemma next_helper C a 
   (IC : is_init ∩₁ E ⊆₁ C)
   (CE : C ⊆₁ E)
