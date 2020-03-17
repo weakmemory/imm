@@ -1,7 +1,13 @@
 # Intermediate Memory Model (IMM) and compilation correctness proofs for it
 
-## Related papers
+## Related projects
 <img align="right" width="350" src="https://github.com/anlun/publicFiles/raw/master/pictures/spider.png">
+
+- A **Promising 1.0** [Kang-al:POPL17] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/promising1ToImm)]
+- A **Promising 2.0** [Hwan-al:PLDI20] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/promising2ToImm)]
+- A **Weakestmo** [Chakraborty-Vafeiadis:POPL19] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/weakestmoToImm)]
+
+## Related papers
 
 - **[POPL19]** *Bridging the Gap Between Programming Languages and Hardware Weak Memory Models*
   <br />
@@ -23,11 +29,11 @@
 ### Requirements
 * [Coq 8.9.1](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
-* [The Coq development of A Promising Semantics for Relaxed-Memory Concurrency](https://github.com/snu-sf/promising-coq/tree/imm) (`coq-promising`)
+* [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib) (`coq-promising-lib`)
 
 ### Building Manually
 
-To build the project, one needs to install some libraries (`sflib`, `paco`, `promising-lib`, `promising-coq`, and `hahn`), which the project
+To build the project, one needs to install some libraries (`promising-lib` and `hahn`), which the project
 depends on. This might be done by running `./configure`.
 The command installs `Coq` as well. After that, one needs to run `make` (or `make -j4` for a faster build).
 
@@ -38,45 +44,6 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
 opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
 opam install coq-imm
-```
-
-### Building in a virtual machine
-Download the VirtualBox image from [here](http://plv.mpi-sws.org/imm/popl19-imm-artifact.ova) (or [here](http://podkopaev.net/popl19-imm-artifact)),
-import it into VirtualBox, and boot the machine.
-The image has been tested with VirtualBox 5.2.18 with Oracle VM VirtualBox Extension pack.
-
-The login is `popl` and the password is `popl`.
-
-All necessary software is installed, and the project is checked out to `/home/popl/imm`.
-Additionally, Emacs and Proof General are installed so that you can browse the sources.
-
-The proofs might be checked by opening a terminal and running
-```bash
-cd /home/popl/imm
-make clean; make -j2
-```
-There might be some warnings about notations. The build terminating without printing "error" is successful.
-
-### Building in a Docker container
-First, one needs to build a Docker image with the project and its dependencies
-```bash
-sudo docker build -t weakmemory/imm .
-```
-or to pull it from Docker Hub
-```bash
-docker pull weakmemory/imm
-```
-After that, one has to connect to the container
-
-```bash
-docker run -it weakmemory/imm /bin/bash
-```
-and execute the following to update container's environment variables
-and rebuild the project
-```bash
-eval `opam config env`
-cd /imm
-make clean; make -j4
 ```
 
 ## Description of code and its relation to the **[POPL19]** paper
@@ -123,34 +90,8 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB) (**
   - *SimTraversal.v*—traversal of IMMs-consistent execution graphs (**Prop. 6.5**).
   - *SimTraversalProperties.v*—properties of the normal traversal.
 
-* **Sections 6 and 7.** `src/promiseToImm`. The compilation correctness from Promise to IMMs.
-  - *Promise.v*—a definition of a Promise outcome (**Def. 6.1**).
-  - *PromiseFuture.v*— a proof that it is enough to show certification
-    only for a restricted set of future memories (**Remark 3**).
-  - *SimulationRel.v*—a simulation relation (**Section 7.3**).
-  - *SimulationPlainStep.v*— a proof of simulation step (**Prop. 7.8**).
-  - *PlainStepBasic.v*,
-    *WritePlainStep.v*,
-    *FencePlainStep.v*,
-    *RMWPlainStep.v*,
-    *ReadPlainStep.v*,
-    *ReadPlainStepHelper.v*—auxiliary lemmas for the simulation step proof.
-  - *SubExecution.v*,
-    *CertCOhelper.v*,
-    *CertExecution1.v*,
-    *CertExecution2.v*,
-    *Receptiveness.v*, *CertGraphInit.v*—construction of the certification graph and proofs of its properties (**Section 7.4**).
-  - *PromiseToIMMs.v*—a proof of the compilation correctness from Promise to IMMs (**Prop. 6.8 and 6.9, Thm. 7.1**).
-
 Auxiliary files:
 - *IfThen.v*,
-*MaxValue.v*,
-*Event\_imm\_promise.v*,
-*SimStateHelper.v*,
-*SimulationPlainStepAux.v*,
-*SimulationRelAux.v*,
 *TraversalConfigAlt.v*,
 *TraversalCounting.v*,
-*ViewRelHelpers.v*,
-*ViewRel.v*,
-*MemoryAux.v*.
+*ViewRelHelpers.v*.
