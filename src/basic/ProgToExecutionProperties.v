@@ -306,40 +306,39 @@ Proof using.
       basic_solver.
     all: unfold add_rmw; simpls; rewrite WF.(wft_rmwE) at 1;
       basic_solver. }
-  { destruct ISTEP0.
-    all: rewrite UG.
-    1,2: by apply WF.
-    1-4: by unfold add; simpls; apply WF.
-    { unfold add_rmw. simpls. ins.
+  { assert (RMW_HELPER: forall ldlab stlab dps ldps edps r w,
+               rmw (add_rmw (G s) thread (eindex s) ldlab stlab
+                            dps ldps (ectrl s) edps) r w
+               -> exists index : nat,
+                 r = ThreadEvent thread index
+                 /\ w = ThreadEvent thread (S index)).
+    { unfold add_rmw. simpls. intros lblab stlab dps ldps edps r w RMW. 
       destruct RMW as [RMW|RMW].
       2: by apply WF.
       red in RMW. desf.
       rewrite Const.add_comm.
       eexists. splits; eauto. }
-    unfold add_rmw. simpls. ins.
-    destruct RMW as [RMW|RMW].
-    2: by apply WF.
-    red in RMW. desf.
-    rewrite Const.add_comm.
-    eexists. splits; eauto. }
+    destruct ISTEP0.
+    all: rewrite UG.
+    1,2: by apply WF.
+    1-4: by unfold add; simpls; apply WF.
+    all: apply RMW_HELPER. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1,3,4: unfold add; simpls; rewrite WF.(wft_dataE) at 1;
-      basic_solver 10.
-    { unfold add; simpls; rewrite WF.(wft_dataE) at 1.
-      seq_rewrite <- (set_inter_absorb_r
+
+    all: unfold add, add_rmw; simpls; rewrite WF.(wft_dataE) at 1.
+    1,3,4: basic_solver 10.
+    1: seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr)).
-      basic_solver. }
-    { unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
-      seq_rewrite <- (set_inter_absorb_r
+    2: seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
-      basic_solver 10. }
-    unfold add_rmw; simpls. rewrite WF.(wft_dataE) at 1.
-      seq_rewrite <- (set_inter_absorb_r
+    3: seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
-    basic_solver 12. }
+    4: seq_rewrite <- (set_inter_absorb_r
+                        (depf_preserves_set_expr _ WF.(wft_depfE) new_expr)).
+    all: basic_solver 12. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
@@ -348,38 +347,28 @@ Proof using.
       seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
       basic_solver.
-    { unfold add; simpls; rewrite WF.(wft_addrE) at 1.
-      basic_solver. }
-    all: unfold add_rmw; simpls; rewrite WF.(wft_addrE) at 1;
-      seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
+
+    all: unfold add, add_rmw; simpls; rewrite WF.(wft_addrE) at 1.
+    { basic_solver. }
+    3: rename loc_expr into lexpr.
+    all: seq_rewrite <- (set_inter_absorb_r
+                          (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
       basic_solver 10. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1-4: unfold add; simpls; rewrite WF.(wft_ctrlE) at 1;
-      seq_rewrite <- (set_inter_absorb_r WF.(wft_ectrlE));
-      basic_solver.
-    all: unfold add_rmw; simpls; rewrite WF.(wft_ctrlE) at 1;
+    all: unfold add, add_rmw; simpls; rewrite WF.(wft_ctrlE) at 1;
       seq_rewrite <- (set_inter_absorb_r WF.(wft_ectrlE));
       basic_solver 10. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1-3: unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1;
-      basic_solver.
-    { unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1.
-      seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
-      basic_solver. }
-    { unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1.
-      seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
-      basic_solver. }
-    unfold add_rmw; simpls; rewrite WF.(wft_rmw_depE) at 1.
-    basic_solver. }
+    all: unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1.
+    4-5: seq_rewrite <- (set_inter_absorb_r
+                          (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
+    all: basic_solver. }
   { destruct ISTEP0.
     all: rewrite UG, UECTRL.
     { by apply WF. }
@@ -523,6 +512,15 @@ Proof using.
     exfalso.
     edestruct GPC.(acts_rep); eauto.
     desf. lia. }
+  { unfold add_rmw. simpls.
+    rewrite seq_union_r.
+    apply inclusion_union_l; [|basic_solver].
+    intros x y HH.
+    apply seq_eqv_l in HH. destruct HH as [EE HH].
+    red in HH. desf.
+    exfalso.
+    edestruct GPC.(acts_rep); eauto.
+    desf. lia. }
   unfold add_rmw. simpls.
   rewrite seq_union_r.
   apply inclusion_union_l; [|basic_solver].
@@ -577,7 +575,7 @@ Proof using.
   destruct ISTEP0.
   all: rewrite UG; auto.
   1-4: unfold add; simpls; rewrite updo; auto.
-  5,6: unfold add_rmw; simpls; rewrite updo; auto;
+  5-7: unfold add_rmw; simpls; rewrite updo; auto;
     [unfold add_rmw; simpls; rewrite updo; auto|].
   all: intros HH; rewrite REP in HH; inv HH; lia.
 Qed.
@@ -753,9 +751,8 @@ Proof using.
   destruct ISTEP0; simpls.
   all: rewrite UG.
   1,2: by splits; apply GPC.
-  1-4: unfold add; simpls.
-  5-6: unfold add_rmw; simpls.
-  all: splits; relsf; try apply GPC.
+  all: unfold add, add_rmw; simpls; splits.
+  all: try apply GPC.
   all: try by (rewrite GPC.(wft_rmwE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_dataE) at 1; basic_solver).
   all: try by (rewrite GPC.(wft_addrE) at 1; basic_solver).
@@ -817,27 +814,36 @@ Proof using.
   red in STEP. desc.
   unfold set_subset in NINO. apply not_all_ex_not in NINO.
   desc.
-  destruct ISTEP0.
-  all: rewrite UG in *; auto.
-  1-4: unfold add, acts_set in *; simpls.
-  1-4: intros y [AA|BB]; [|by apply OIN].
-  1-4: destruct (classic (C y)) as [|NC]; auto.
-  1-4: by exfalso; apply NINO; ins;
-    set (YY := H); apply INN in YY; desf.
-  { unfold add_rmw, acts_set in *; simpls.
+  assert (G'1: (exists new_lbl add_dep1 add_ldep add_ctrl add_dep2,
+                   G state' = add (G state) thread (eindex state)
+                                  new_lbl add_dep1 add_ldep add_ctrl add_dep2)
+               -> acts_set (G state') ⊆₁ C).
+  { ins. desf.
+    rewrite H in *; auto.
+    unfold add, acts_set in *; simpls.
+    intros y [AA|BB]; [|by apply OIN].
+    destruct (classic (C y)) as [|NC]; auto.
+    by exfalso; apply NINO; ins;
+      set (YY := H0); apply INN in YY; desf. }
+  assert (G'2: (exists new_lbl1 new_lbl2 add_dep1 add_ldep add_ctrl add_dep2,
+                   G state' = add_rmw (G state) thread (eindex state)
+                                      new_lbl1 new_lbl2
+                                      add_dep1 add_ldep add_ctrl add_dep2)
+               -> acts_set (G state') ⊆₁ C).
+  { ins. desf.
+    rewrite H in *; auto.
+    unfold add_rmw, acts_set in *; simpls.
     destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
-    2: { exfalso. apply NINO. ins. set (YY := H); apply INN in YY; desf.
-         exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
+    2: { exfalso. apply NINO. ins. set (YY := H0); apply INN in YY; desf.
+         exfalso. apply NC. eapply RMWC; [|by apply H0]. by left. }
     intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
     eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. }
-  unfold add_rmw, acts_set in *; simpls.
-  destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
-  2: { exfalso. apply NINO. ins. set (YY := H); apply INN in YY; desf.
-       exfalso. apply NC. eapply RMWC; [|by apply H]. by left. }
-  intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
-  eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left.
-Qed.
-
+  destruct ISTEP0.
+  all: rewrite UG in *; auto.
+  1-4: eapply G'1; repeat eexists.
+  all: eapply G'2; repeat eexists.
+Qed. 
+  
 Lemma steps_middle_set thread state state' C cindex
       (GPC : wf_thread_state thread state)
       (OIN : state.(G).(acts_set) ⊆₁ C)

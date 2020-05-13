@@ -99,6 +99,7 @@ Module Instr.
   Inductive rmw :=
   | fetch_add (addendum:expr)
   | cas (old new:expr)
+  | exchange (new:expr)
   .
 
   Inductive t :=

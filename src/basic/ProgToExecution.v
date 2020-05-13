@@ -234,7 +234,28 @@ Section State.
       (UINDEX : s2.(eindex) = s1.(eindex) + 2)
       (UREGS : s2.(regf) = RegFun.add reg val s1.(regf))
       (UDEPS : s2.(depf) = RegFun.add reg (eq (ThreadEvent tid s1.(eindex))) s1.(depf))
-      (UECTRL : s2.(ectrl) = s1.(ectrl)).
+      (UECTRL : s2.(ectrl) = s1.(ectrl))
+  | exchange new_expr rexmod xmod ordr ordw reg loc_expr old_value loc new_value
+      (L: loc = RegFile.eval_lexpr s1.(regf) loc_expr)
+      (NVAL: new_value = RegFile.eval_expr s1.(regf) new_expr)
+      (LABELS : labels = [Astore xmod ordw loc new_value;
+                          Aload true ordr loc old_value])
+      (II : instr = Instr.update (Instr.exchange new_expr)
+                                 rexmod xmod ordr ordw reg loc_expr)
+      (UPC   : s2.(pc) = s1.(pc) + 1)
+      (UG    : s2.(G) =
+                 add_rmw s1.(G) tid s1.(eindex)
+                     (Aload true ordr loc old_value)
+                     (Astore xmod ordw loc new_value)
+                     (DepsFile.expr_deps s1.(depf) new_expr)
+                     (DepsFile.lexpr_deps s1.(depf) loc_expr)
+                     s1.(ectrl)
+                     ∅)
+      (UINDEX : s2.(eindex) = s1.(eindex) + 2)
+      (UREGS : s2.(regf) = RegFun.add reg old_value s1.(regf))
+      (UDEPS : s2.(depf) = RegFun.add reg (eq (ThreadEvent tid s1.(eindex))) s1.(depf))
+      (UECTRL : s2.(ectrl) = s1.(ectrl)).      
+    
 
   Definition istep (tid : thread_id) (labels : list label) s1 s2 :=
     ⟪ INSTRS : s1.(instrs) = s2.(instrs) ⟫ /\
