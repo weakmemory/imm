@@ -527,6 +527,63 @@ unfold Arm.dob; basic_solver 12.
 rewrite <- ct_end; basic_solver.
 Qed.
 
+Lemma ppo_in_dob_rmw_helper1 (RMW_SB : rmw ;; sb ⊆ ctrl) :
+  ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rmw)⁺ ⨾ ⦗W⦘ ⊆ dob^* ;; rmw^?.
+Proof using.
+  rewrite path_ut_first. rewrite !seq_union_l, !seq_union_r.
+  unionL. 
+  { rewrite crE with (r:=rmw). rewrite seq_union_r, seq_id_r. unionR left.
+    rewrite <- inclusion_t_rt.
+    rewrite <- ppo_in_dob_helper. hahn_frame. apply clos_trans_mori.
+    unionL; eauto with hahn. }
+  arewrite ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rmw)＊ ⊆ sb^?).
+  { rewrite (data_in_sb WF), (ctrl_in_sb WF), (addr_in_sb WF), (rmw_in_sb WF).
+    arewrite (sb ⨾ sb^? ⊆ sb).
+    { generalize (@sb_trans G). basic_solver. }
+    rewrite !unionK.
+    apply rt_of_trans. apply sb_trans. }
+  arewrite (rmw ⨾ sb^? ⊆ rmw ∪ ctrl).
+  { rewrite crE, seq_union_r. rewrite RMW_SB. by rewrite seq_id_r. }
+  arewrite (addr ⨾ sb^? ⊆ addr ⨾ sb^? ⊆ ) 
+
+
+
+Lemma ppo_in_dob_rmw_helper (RMW_SB : rmw ;; sb ⊆ ctrl) :
+  ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rmw ∪ rfi)⁺ ⨾ ⦗W⦘ ⊆
+      (dob ∪ rmw)⁺ .
+Proof using CON W_EX_ACQ_SB.
+  rewrite path_union1.
+  assert (transitive rfi).
+    by apply transitiveI; rewrite (wf_rfiD WF); type_solver.
+    relsf; unionL.
+      by rewrite (wf_rfiD WF); type_solver.
+      rewrite !seqA.
+      arewrite_id (⦗R⦘ ⨾ rfi^?).
+        by rewrite (wf_rfiD WF); type_solver.
+        rels.
+        arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ (data ⨾ rfi ∪ ctrl ⨾ rfi ∪ addr ⨾ sb^? ⨾ rfi) 
+                       ⊆ (data ∪ ctrl ∪ addr ⨾ sb^?) ⨾ rfi^?) by basic_solver 12.
+        relsf.
+        rewrite unionA.
+        rewrite path_ut_first.
+        arewrite (data ⨾ rfi^? ⊆ dob).
+        rewrite (dob_in_sb WF) at 3.
+        rewrite (ctrl_in_sb WF) at 2.
+        rewrite (addr_in_sb WF) at 2.
+        arewrite (rfi ⊆ sb).
+        generalize (@sb_trans G); ins; relsf.
+        rewrite !seqA; relsf.
+        arewrite (ctrl ⨾ sb^? ⊆ ctrl).
+        generalize (ctrl_sb WF); basic_solver 12.
+        arewrite (ctrl ⨾ ⦗W⦘⊆ dob).
+        unfold Arm.dob; basic_solver 12.
+
+        arewrite ( addr ⨾ sb^? ⨾ ⦗W⦘⊆ dob).
+        unfold Arm.dob; basic_solver 12.
+
+        rewrite <- ct_end; basic_solver.
+Qed.
+
 Lemma detour_in_obs : detour ⊆ obs'⁺ .
 Proof using.
 unfold Execution.detour.
