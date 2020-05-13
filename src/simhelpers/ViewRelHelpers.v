@@ -50,7 +50,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Lemma msg_rel_co_irr l (IMMCON : imm_consistent G sc) :
   irreflexive (msg_rel G sc l ⨾ co).
-Proof.
+Proof using WF.
   unfold msg_rel.
   intros x AA.
   destruct AA as [y [[z [AA BB]] CC]].

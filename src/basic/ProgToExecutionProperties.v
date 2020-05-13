@@ -332,12 +332,10 @@ Proof using.
     1,3,4: basic_solver 10.
     1: seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr)).
-    2: seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
     3: seq_rewrite <- (set_inter_absorb_r
                         (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
-    4: seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) new_expr)).
+    2,4: seq_rewrite <- (set_inter_absorb_r
+                           (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
     all: basic_solver 12. }
   { split; [|basic_solver].
     destruct ISTEP0.
@@ -350,9 +348,8 @@ Proof using.
 
     all: unfold add, add_rmw; simpls; rewrite WF.(wft_addrE) at 1.
     { basic_solver. }
-    3: rename loc_expr into lexpr.
     all: seq_rewrite <- (set_inter_absorb_r
-                          (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
+                           (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
       basic_solver 10. }
   { split; [|basic_solver].
     destruct ISTEP0.

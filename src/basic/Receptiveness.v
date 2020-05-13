@@ -1093,13 +1093,7 @@ Proof using.
   { by unfold is_r in READ; rewrite upds in READ; desf. }
   unfold val; rewrite updo; [|done].
   destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
-  { rewrite upds.
-    destruct (excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))) as [MN|NMN].
-    2: eby exfalso.
-    destruct (excluded_middle_informative
-                (codom_rel new_rfi (ThreadEvent tid (eindex s1')))) as [XX|];
-      auto.
-    exfalso; eauto. }
+  { rewrite upds. desf. }
   unfold val; rewrite updo; try done.
   apply NEW_VAL2; try done.
   unfold is_r in *; rewrite !updo in READ; try done.
@@ -1117,18 +1111,18 @@ Lemma receptiveness_sim_exchange
       (ISTEP : Some (Instr.update
                        (Instr.exchange new_expr)
                        rexmod xmod ordr ordw reg lexpr) = nth_error (instrs s1) (pc s1))
-      (old_value_orig : nat)
+      (val_ : nat)
       (UPC : pc s2 = pc s1 + 1)
       (UG : G s2 = add_rmw (G s1) tid (eindex s1)
-                           (Aload true ordr (RegFile.eval_lexpr (regf s1) lexpr)
-                                  old_value_orig)
+                           (Aload rexmod ordr (RegFile.eval_lexpr (regf s1) lexpr)
+                                  val_)
                            (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
                                    (RegFile.eval_expr (regf s1) new_expr))
                            (DepsFile.expr_deps s1.(depf) new_expr)
                            (DepsFile.lexpr_deps (depf s1) lexpr)
                            (ectrl s1) ∅)
       (UINDEX : eindex s2 = eindex s1 + 2)
-      (UREGS : regf s2 = RegFun.add reg old_value_orig (regf s1))
+      (UREGS : regf s2 = RegFun.add reg val_ (regf s1))
       (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1)))
                                     (depf s1))
       (UECTRL : ectrl s2 = ectrl s1)
@@ -1137,44 +1131,55 @@ Lemma receptiveness_sim_exchange
       (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
       (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
       (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
-      (RFI_INDEX : new_rfi ⊆ ext_sb)
       (TWF : thread_wf tid s1)
+      (RFI_INDEX : new_rfi ⊆ ext_sb)
+      (new_rfif : functional new_rfi⁻¹)
       s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
   exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
-Proof.
+Proof using.
+  generalize (@new_write new_rfi new_rfif); intro F; destruct F as [new_w F].
   red in SIM; desc.
-
-  assert (SAME_LOC: RegFile.eval_lexpr (regf s1) lexpr = RegFile.eval_lexpr (regf s1') lexpr).
+  assert (SAME_LOC : RegFile.eval_lexpr (regf s1) lexpr =
+                     RegFile.eval_lexpr (regf s1') lexpr).
   { ins; eapply regf_lexpr_helper; eauto.
     ins; intro; eapply NADDR; unfolder; splits; eauto.
     exists (ThreadEvent tid (eindex s1)).
     rewrite UG; unfold add_rmw; basic_solver. } 
-  
-  cut (exists instrs pc G_ eindex regf depf ectrl, 
-          step tid s1' {| instrs := instrs; pc := pc; G := G_; eindex := eindex; regf := regf; depf := depf; ectrl := ectrl |} /\ 
-          (sim_state s2 {| instrs := instrs; pc := pc; G := G_; eindex := eindex; regf := regf; depf := depf; ectrl := ectrl |}
-                     MOD new_rfi new_val)).
-  { by ins; desc; eauto. } 
 
+  cut (exists instrs pc G_ eindex regf depf ectrl, 
+          step tid s1' (Build_state instrs pc G_ eindex regf depf ectrl) /\ 
+          (sim_state s2 (Build_state instrs pc G_ eindex regf depf ectrl)
+                     MOD new_rfi new_val)).
+  { ins; desc; eauto. }
   do 7 eexists; splits; red; splits.
-  { eexists. red. splits; [ins |]. 
-    eexists. splits; [ rewrite <- INSTRS, <- PC; edone| eapply exchange; reflexivity]. }
-  all: try (ins; congruence). 
+  { eexists; red; splits; [by ins; eauto|].
+    eexists; splits; [eby rewrite <- INSTRS, <- PC |].
+    eapply exchange with (val :=
+      if excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))
+      then if excluded_middle_informative ((codom_rel new_rfi) (ThreadEvent tid (eindex s1')))
+           then (get_val (val s1'.(G).(lab) (new_w (ThreadEvent tid (eindex s1')))))
+           else (new_val (ThreadEvent tid (eindex s1')))
+      else val_);
+    reflexivity. }
+  1,2,4,7: ins; congruence.
   { ins.
     destruct (G s2) as [acts2 lab2 rmw2 data2 addr2 ctrl2 rf2 co2].
-    inversion UG; subst; clear UG; ins.
-    unfold acts_set, R_ex in NREX; ins.
+    inversion UG; subst; clear UG.
     red in EXEC; desc.
     red; splits; ins.
-    { by rewrite EINDEX, ACTS. } 
+    { by rewrite EINDEX, ACTS. }
     { rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
-      destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
-      by subst; rewrite !upds; rewrite SAME_LOC.
-      rewrite updo; try done.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
-      by subst; rewrite !upds; rewrite updo; [| by desf]; rewrite upds; rewrite SAME_LOC.
-      rewrite !updo; auto. } 
+      { subst.
+        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite !upds. unfold same_label_u2v.
+        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite upds; auto. }
+      destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
+      { subst.
+        rewrite !upds. unfold same_label_u2v; auto. }
+      ins. rewrite !updo; auto. }
     { rewrite EINDEX.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1' + 1))).
       { subst; rewrite SAME_LOC.
@@ -1188,63 +1193,73 @@ Proof.
       { subst; rewrite SAME_LOC.
          rewrite !upds.
          rewrite updo; [|intro; desf; omega].
-         by rewrite !upds. } 
+         rewrite !upds. desf. }
       rewrite !updo; try done.
-      by apply OLD_VAL in NIN; unfold val in NIN; rewrite NIN. } 
-    { by rewrite RMW, EINDEX. } 
-    { by rewrite DATA, EINDEX, DEPF. } 
+      by apply OLD_VAL in NIN; unfold val in NIN; rewrite NIN. }
+    { by rewrite RMW, EINDEX. }
+    { by rewrite DATA, EINDEX, DEPF. }
     { by rewrite ADDR, EINDEX, DEPF. }
     { by rewrite CTRL, EINDEX, ECTRL. }
-    by rewrite FRMW, EINDEX. }
+      by rewrite FRMW, EINDEX. }
   { ins; rewrite UREGS, UDEPS.
     unfold RegFun.add, RegFun.find in *; desf; eauto. }
+  { eby ins; rewrite <- DEPF, <- EINDEX. }
   { ins; unfold acts_set, is_r, is_w in INr, INw, READ, WRITE; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
-    by rewrite upds in READ; desf.
+    { by rewrite upds in READ; desf. }
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'))); subst.
     rewrite updo in WRITE; [| intro; desf; omega].
-    by rewrite upds in WRITE; desf.
-    destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
-    { exfalso.
-      eapply NREX; split; [eauto|].
-      rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
-      rewrite UG; unfold add; unfold R_ex; ins.
-      by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds. }
-    unfold val; rewrite updo; [|done].
-    rewrite updo; [|done].
-    destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'+1))); subst.
+    { by rewrite upds in WRITE; desf. }
+
+    destruct (eq_dec_actid w (ThreadEvent tid (eindex s1' + 1))); subst.
     { exfalso.
       apply RFI_INDEX in RF; unfold ext_sb in RF.
+      destruct INr as [INr|[INr|INr]]; subst.
+      1,2: clear -RF; omega.
       destruct r; [eauto|]; desc.
-      destruct INr as [X|[X|INr]]; try by desf.
       apply sim_execution_same_acts in EXEC.
       apply EXEC in INr.
       apply TWF in INr; desc.
       rewrite <- EINDEX in RF0.
-      desf; omega. }
-    rewrite !updo; try done.
+      inv EE. clear -RF0 LT. omega. }
+
+    assert (is_w (lab (G s1')) w) as WW'.
+    { rewrite !updo in WRITE; edone. }
+
+    unfold val.
+    rewrite updo; auto.
+    destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
+    { rewrite !upds.
+      destruct (excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))) as [MN|NMN].
+      2: eby exfalso.
+      rewrite !updo; auto.
+      destruct (excluded_middle_informative
+                  (codom_rel new_rfi (ThreadEvent tid (eindex s1')))) as [|XX].
+      2: { exfalso. apply XX. generalize RF. clear. basic_solver. }
+      assert (w = new_w (ThreadEvent tid (eindex s1'))); subst.
+      { edestruct new_rfi_unique with
+            (r:=ThreadEvent tid (eindex s1')) as [wu [_ HH]]; eauto.
+        transitivity wu.
+        2: by apply HH.
+        symmetry. apply HH. do 2 red. generalize RF. clear. basic_solver. }
+      unfold get_val.
+      clear -WW'. unfold is_w in WW'. desf. }
+    rewrite !updo; auto.
     eapply NEW_VAL1; try edone.
-    by rewrite <- EINDEX in n0; desf.
-    by rewrite <- EINDEX in n; desf.
-    by rewrite !updo in READ; try edone.
-    by rewrite !updo in WRITE; try edone. }
+    { by rewrite <- EINDEX in n0; desf. }
+    { by rewrite <- EINDEX in n; desf. }
+      by rewrite !updo in READ; try edone. }
   simpl; ins.
   destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
-  by unfold is_r in READ; rewrite upds in READ; desf.
+  { by unfold is_r in READ; rewrite upds in READ; desf. }
   unfold val; rewrite updo; [|done].
   destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
-  { exfalso.
-    eapply NREX; split; [eauto|].
-    rewrite UG; unfold add; unfold acts_set; ins.
-    split; [eauto| rewrite EINDEX; eauto].
-    rewrite UG; unfold add; unfold R_ex; ins.
-    by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds. } 
+  { rewrite upds. desf. }
   unfold val; rewrite updo; try done.
   apply NEW_VAL2; try done.
-  unfold is_r in *; rewrite !updo in READ; try done.
-  by unfold add, acts_set in IN; ins; desf.
-Qed. 
+  { unfold is_r in *; rewrite !updo in READ; done. }
+    by unfold add, acts_set in IN; ins; desf.
+Qed.
 
 Lemma receptiveness_sim_step (tid : thread_id)
   s1 s2

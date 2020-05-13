@@ -76,7 +76,7 @@ Qed.
 
 Lemma seq_codom_dom_inter  {A} (r r' : relation A) :
   codom_rel r ∩₁ dom_rel r' ≡₁ ∅ -> r ⨾ r' ≡ ∅₂.
-Proof.
+Proof using.
   unfold set_equiv, set_subset; ins; desf. 
   unfold same_relation; splits; [|basic_solver].
   unfold seq, inclusion. 
