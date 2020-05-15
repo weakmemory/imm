@@ -727,4 +727,10 @@ Proof using.
   apply COH.
 Qed.
 
+Lemma rs_sb_loc WF SC_PER_LOC : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
+Proof using.
+  rewrite rs_in_co; auto. rewrite !seqA.
+  apply co_sb_loc; auto. 
+Qed.
+
 End IMM_hb.

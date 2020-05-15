@@ -536,5 +536,13 @@ desf; eapply SC_PER_LOC; unfold eco; basic_solver 12.
 - eapply H2; eapply (@sb_trans G); edone. 
 Qed.
 
+Lemma co_sb_loc WF SC_PER_LOC : ⦗W⦘ ⨾ co^? ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
+Proof using.
+  case_refl (sb ∩ same_loc); [basic_solver|].
+  rewrite (dom_r (wf_coD WF)).
+  arewrite (⦗W⦘ ⨾ (co ⨾ ⦗W⦘)^? ⊆ co^? ⨾ ⦗W⦘) by basic_solver.
+  rewrite (w_sb_loc_w_in_coi WF SC_PER_LOC), (dom_r (wf_coiD WF)).
+  generalize (co_trans WF); ie_unfolder; basic_solver 12.
+Qed.
 
 End ECO.

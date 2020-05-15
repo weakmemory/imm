@@ -173,6 +173,16 @@ Qed.
 (** ** Domains and codomains  *)
 (******************************************************************************)
 
+Lemma wf_obsD WF: obs ≡ ⦗RW⦘ ⨾ obs ⨾ ⦗RW⦘.
+Proof using.
+split; [|basic_solver].
+unfold obs.
+rewrite (wf_rfeD WF) at 1.
+rewrite (wf_coeD WF) at 1.
+rewrite (wf_freD WF) at 1.
+basic_solver 42.
+Qed.
+
 Lemma wf_obs'D WF: obs' ≡ ⦗RW⦘ ⨾ obs' ⨾ ⦗RW⦘.
 Proof using.
 split; [|basic_solver].
@@ -398,6 +408,40 @@ Proof using.
   rewrite unionC; apply acyclic_absorb; eauto.
   right; transitivity bob; relsf; rewrite ?seqA; unionL.
   rewrite (dom_r (wf_obs'D WF)); type_solver.
+  rewrite (wf_dobD WF); type_solver.
+  rewrite (wf_aobD WF); type_solver.
+  2-4: arewrite_id ⦗F^ld ∪₁ F^sy⦘; rels; eauto 6 with hahn.
+  unfold bob; relsf; rewrite ?seqA.
+  arewrite_false (⦗L⦘ ⨾ coi^? ⨾ ⦗F^ld ∪₁ F^sy⦘).
+  rewrite (dom_r (wf_coiD WF)); type_solver.
+  arewrite_false (⦗A⦘ ⨾ ⦗F^ld ∪₁ F^sy⦘).
+  { type_solver. }
+  arewrite_id ⦗F^ld ∪₁ F^sy⦘.
+  rels.
+  rewrite (@sb_sb G).
+  basic_solver 21.
+Qed.
+
+Lemma external_alt3 WF CON : acyclic (obs ∪ dob ∪ aob ∪ bob').
+Proof using.
+  unfold bob'; rewrite <- !unionA in *.
+  assert (APO: acyclic sb).
+  { apply trans_irr_acyclic; eauto using sb_trans, sb_irr. }
+  assert (X: acyclic (obs ∪ dob ∪ aob ∪ bob ∪ (⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘ ∪ sb ⨾ ⦗F^sy⦘))).
+  { apply acyclic_absorb; eauto.
+    left; relsf; rewrite !seqA. 
+    transitivity (⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘⨾ sb ∪ sb ⨾ ⦗F^sy⦘ ⨾ sb).
+    2: by transitivity bob; eauto with hahn; unionL; eauto with hahn.
+    rewrite (dob_in_sb WF), (aob_in_sb WF), (bob_in_sb WF).
+    unionL; eauto with hahn.
+    1-2: rewrite (dom_l (wf_obsD WF)); type_solver.
+    split; auto.
+    { apply CON. }
+    apply inclusion_acyclic with (r':=sb); basic_solver. }
+  rewrite <- unionA in X.
+  rewrite unionC; apply acyclic_absorb; eauto.
+  right; transitivity bob; relsf; rewrite ?seqA; unionL.
+  rewrite (dom_r (wf_obsD WF)); type_solver.
   rewrite (wf_dobD WF); type_solver.
   rewrite (wf_aobD WF); type_solver.
   2-4: arewrite_id ⦗F^ld ∪₁ F^sy⦘; rels; eauto 6 with hahn.
