@@ -261,6 +261,43 @@ Proof using.
   unfold bob. eauto with hahn.
 Qed.
 
+Lemma bob_fri WF : bob ⨾ fri ⊆ bob ;; bob^?.
+Proof using.
+  unfold bob at 1; relsf; rewrite ?seqA.
+  arewrite (fri ⊆ sb) at 1.
+  arewrite (fri ⊆ sb) at 1.
+  arewrite (fri ⊆ sb) at 1.
+  rewrite (@sb_sb G).
+  assert (bob ⊆ bob ⨾ bob^?) as AA by basic_solver.
+  unionL.
+  1-3: by rewrite <- AA; unfold bob; eauto with hahn.
+  { rewrite (wf_coiD WF), (wf_friD WF). type_solver. }
+  arewrite (⦗A⦘ ⊆ ⦗A⦘ ;; ⦗Q⦘) by mode_solver.
+  arewrite (fri ⊆ sb).
+  arewrite (⦗Q⦘ ⨾ sb ⊆ bob).
+  arewrite (⦗L⦘ ⨾ sb ⨾ ⦗A⦘ ⊆ bob).
+  basic_solver.
+Qed.
+
+Lemma bob'_fri WF : bob' ⨾ fri ⊆ bob' ;; bob^?.
+Proof using.
+  unfold bob' at 1.
+  rewrite !seq_union_l, !seqA.
+  rewrite (bob_fri WF).
+  arewrite (fri ⊆ sb) at 1.
+  arewrite (fri ⊆ sb) at 1.
+  arewrite (fri ⊆ sb) at 1.
+  rewrite (@sb_sb G).
+  assert (bob ⊆ bob' ⨾ bob^?) as AA.
+  { unfold bob'. basic_solver 10. }
+  unionL; eauto with hahn.
+  4: { rewrite (wf_coiD WF), (wf_friD WF). type_solver. }
+  1-2: by rewrite <- AA; unfold bob; eauto with hahn.
+  transitivity bob'.
+  2: basic_solver.
+  unfold bob'. eauto with hahn.
+Qed.
+
 Lemma dob_alt WF :
  dob ≡
    addr
@@ -474,59 +511,12 @@ Proof using.
   { arewrite (fri ⊆ fr); arewrite (fre ⊆ fr); rewrite (fr_fr WF). basic_solver 12. }
   { rewrite (dob_fri WF). eauto with hahn. }
   { rewrite (aob_fri WF). eauto 10 with hahn. }
-  transitivity bob⁺; eauto with hahn.
-  rewrite ct_end, seqA; unfold bob at 2; relsf.
-  ie_unfolder.
-  rewrite inclusion_inter_l1 at 4.
-  rewrite inclusion_inter_l2 with (r:=fr), ?seqA.
-  rewrite (@sb_sb G).
-  arewrite_false (⦗L⦘ ⨾ (co ∩ sb)^? ⨾ fr).
-  rewrite (dom_r (wf_coD WF)) at 1.
-  rewrite (dom_l (wf_frD WF)) at 1.
-  type_solver.
-  arewrite (⦗A⦘ ⊆ ⦗A⦘ ⨾ ⦗A⦘) by basic_solver.
-  arewrite (⦗L⦘ ⨾ sb ⨾ ⦗A⦘ ⊆ bob).
-  arewrite (A ⊆₁ Q) by mode_solver.
-  arewrite (⦗Q⦘ ⨾ sb ⊆ bob).
-  rels; unionL; try solve [rewrite ct_end; hahn_frame_l; eauto with hahn].
-  apply ct_unit.
-Qed.
-
-Lemma external_alt2 WF CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
-  acyclic (obs' ∪ dob ∪ aob ∪ bob').
-Proof using.
-  forward eapply external_alt as AA; ins.
-  unfold bob'; rewrite <- !unionA in *.
-  assert (APO: acyclic sb).
-    by apply trans_irr_acyclic; eauto using sb_trans, sb_irr.
-  assert (X1 : acyclic (obs' ∪ dob ∪ aob ∪ bob ∪ (⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘ ∪ sb ⨾ ⦗F^sy⦘))).
-  { apply acyclic_absorb; eauto.
-    left; relsf; rewrite !seqA. 
-    transitivity (⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘⨾ sb ∪ sb ⨾ ⦗F^sy⦘ ⨾ sb).
-    2: by transitivity bob; eauto with hahn; unionL; eauto with hahn.
-    rewrite (dob_in_sb WF), (aob_in_sb WF), (bob_in_sb WF).
-    unionL; eauto with hahn.
-    1-2: rewrite (dom_l (wf_obs'D WF)); type_solver.
-    split; auto.
-    apply inclusion_acyclic with (r':=sb); basic_solver. }
-  assert (X2 : acyclic (obs' ∪ dob ∪ aob ∪ bob ∪
-                        ⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘ ∪ sb ⨾ ⦗F^sy⦘ ∪ ⦗F^ld ∪₁ F^sy⦘ ⨾ sb)).
-  { rewrite <- unionA in X1.
-    rewrite unionC; apply acyclic_absorb; eauto.
-    right; transitivity bob; relsf; rewrite ?seqA; unionL.
-    rewrite (dom_r (wf_obs'D WF)); type_solver.
-    rewrite (wf_dobD WF); type_solver.
-    rewrite (wf_aobD WF); type_solver.
-    2-4: arewrite_id ⦗F^ld ∪₁ F^sy⦘; rels; eauto 6 with hahn.
-    unfold bob; relsf; rewrite ?seqA.
-    arewrite_false (⦗L⦘ ⨾ coi^? ⨾ ⦗F^ld ∪₁ F^sy⦘).
-    rewrite (dom_r (wf_coiD WF)); type_solver.
-    arewrite_false (⦗A⦘ ⨾ ⦗F^ld ∪₁ F^sy⦘).
-    { type_solver. }
-    arewrite_id ⦗F^ld ∪₁ F^sy⦘.
-    rels.
-    rewrite (@sb_sb G).
-    basic_solver 21. }
+  unionR right.
+  rewrite ct_end at 1. rewrite seqA.
+  rewrite (bob'_fri WF).
+  seq_rewrite <- ct_end.
+  arewrite (bob ⊆ bob').
+  apply ct_cr.
 Qed.
 
 End Arm.
