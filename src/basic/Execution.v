@@ -692,6 +692,15 @@ Proof using.
   apply ninit_sb_same_tid.
 Qed.
 
+Lemma coi_trans WF : transitive coi.
+Proof using.
+  apply transitiveI.
+  generalize sb_trans (co_trans WF). intros SB CO.
+  unfold coi.
+  unfolder. ins. desf.
+  split; [eapply CO|eapply SB]; eauto.
+Qed.
+
 (******************************************************************************)
 (** ** properties of external/internal relations *)
 (******************************************************************************)
