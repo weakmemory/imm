@@ -220,7 +220,7 @@ Proof using CON.
     arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1.
     arewrite (Q ⊆₁ Q ∪₁ F^ld ∪₁ F^sy) at 1 by basic_solver.
     hahn_frame. apply cr_ct. }
-  sin_rewrite rs_rfi; relsf; rewrite !seqA.
+  sin_rewrite (rs_rfi WF SC_PER_LOC). relsf. rewrite !seqA.
   generalize (@sb_trans G); ins; relsf; unionL.
   { case_refl _.
     arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12.
@@ -288,18 +288,13 @@ Qed.
 
 Lemma COH: coherence G.
 Proof using CON.
-  apply coherence_alt.
-  assert (hb ⨾ co ⊆ hb ;; coe^? /\ hb ⨾ fr ⊆ hb ;; fre^?) as [AA BB].
-  { split; [rewrite coi_union_coe, coi_in_sb|rewrite fri_union_fre, fri_in_sb].
-    all: rewrite sb_in_hb, seq_union_r.
-    all: rewrite rewrite_trans; [|by apply hb_trans].
-    all: basic_solver. }
-  sin_rewrite AA. sin_rewrite BB.
-  arewrite (rfe ⊆ obs).
-  arewrite (coe ⊆ obs).
-  arewrite (fre ⊆ obs).
-  arewrite (hb ∪ hb ⨾ obs ∪ hb ⨾ obs^? ⨾ obs^? ∪ hb ⨾ obs^? ⨾ obs^? ⊆ hb ⨾ obs^? ⨾ obs^?).
-  { unionL; try done. all: basic_solver 10. }
+  red. rewrite (eco_in_sb_obs_sb WF).
+  rewrite <- !seqA, irreflexive_seqC, !seqA.
+  arewrite (sb^? ⨾ hb ⨾ sb^? ⊆ hb).
+  { rewrite sb_in_hb.
+    rewrite rewrite_trans_seq_cr_r; [|by apply hb_trans].
+    rewrite rewrite_trans_seq_cr_l; [|by apply hb_trans].
+    done. }
   arewrite (obs^? ⨾ obs^? ⊆ obs^*).
   { rewrite <- rt_cr. hahn_frame. by apply inclusion_r_rt. }
   rewrite hb_in_ord.
@@ -319,10 +314,10 @@ Qed.
 (******************************************************************************)
 
 Lemma psc_in_ord : sb^? ⨾ psc ⨾ sb^? ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺ .
-Proof using CON G W_EX_ACQ_SB.
+Proof using CON W_EX_ACQ_SB.
   unfold imm.psc.
-  arewrite (eco ⊆ sb^? ;; obs^? ;; sb^?).
-  { admit. }
+  rewrite (eco_in_sb_obs_sb WF). rewrite !seqA.
+  (* TODO: continue from here. *)
 Admitted.
 (*   arewrite (eco ⊆ (co ∪ fr ∪ rfe)＊⨾ rfi^?). *)
 (*   { unfold Execution_eco.eco; rewrite crE. *)

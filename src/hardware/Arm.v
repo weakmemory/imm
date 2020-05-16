@@ -221,6 +221,19 @@ Qed.
 Lemma obs_in_eco : obs ⊆ eco.
 Proof using. unfold Arm.obs. rewrite rfe_in_eco, fre_in_eco, coe_in_eco. eauto with hahn. Qed.
 
+Lemma eco_in_sb_obs_sb WF :  eco ⊆ sb^? ;; obs^? ;; obs^? ;; sb^?.
+Proof using.
+  rewrite (eco_alt WF).
+  rewrite cr_union_r, seq_union_l.
+  rewrite coi_union_coe, fri_union_fre, rfi_union_rfe.
+  rewrite coi_in_sb, fri_in_sb, rfi_in_sb.
+  arewrite (coe ⊆ obs).
+  arewrite (fre ⊆ obs).
+  arewrite (rfe ⊆ obs).
+  rewrite !seq_union_l, !seq_union_r.
+  basic_solver 20.
+Qed.
+
 Lemma obs_coi WF SC_PER_LOC : obs ⨾ coi ⊆ obs.
 Proof using.
   unfold obs at 1.
