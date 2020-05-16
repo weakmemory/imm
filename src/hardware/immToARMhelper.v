@@ -108,24 +108,24 @@ Proof using CON. apply CON. Qed.
 (** * imm.hb in terms of Arm relations *)
 (******************************************************************************)
 
-Lemma rs_sb_loc_W_in_coe_sb :
-  rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ (coe ∪ ⦗W⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?.
-Proof using CON.
-  transitivity ((rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘) ∩ co^?).
-  { apply inclusion_inter_r; [done|]. apply (rs_sb_loc WF SC_PER_LOC). }
-  rewrite crE with (r:=co). rewrite inter_union_r.
-  rewrite crE with (r:=coe ∪ ⦗W⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘). apply union_mori.
-  { clear. basic_solver. }
-  rewrite coi_union_coe. rewrite inter_union_r.
-  unionL. 
-  2: { clear. basic_solver. }
-  unionR right. rewrite (coi_in_sbloc' WF), (wf_rsD WF).
-  clear. basic_solver.
-Qed.
+(* Lemma rs_sb_loc_W_in_coe_sb : *)
+(*   rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ (coe ∪ ⦗W⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘)^?. *)
+(* Proof using CON. *)
+(*   transitivity ((rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘) ∩ co^?). *)
+(*   { apply inclusion_inter_r; [done|]. apply (rs_sb_loc WF SC_PER_LOC). } *)
+(*   rewrite crE with (r:=co). rewrite inter_union_r. *)
+(*   rewrite crE with (r:=coe ∪ ⦗W⦘ ⨾ (sb ∩ same_loc) ⨾ ⦗W⦘). apply union_mori. *)
+(*   { clear. basic_solver. } *)
+(*   rewrite coi_union_coe. rewrite inter_union_r. *)
+(*   unionL.  *)
+(*   2: { clear. basic_solver. } *)
+(*   unionR right. rewrite (coi_in_sbloc' WF), (wf_rsD WF). *)
+(*   clear. basic_solver. *)
+(* Qed. *)
 
+(* TODO: move to imm_hb.v *)
 Lemma rs_rfi :
-  rs ⨾ rfi ⊆ sb ∩ same_loc ⨾ ⦗R⦘ ∪
-             (coe ∪ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? ⨾ rfe ⨾ ⦗R⦘ ⨾ sb.
+  rs ⨾ rfi ⊆ sb ∩ same_loc ⨾ ⦗R⦘ ∪ co^? ⨾ rfe ⨾ ⦗R⦘ ⨾ sb.
 Proof using CON.
   generalize (@sb_same_loc_trans G); ins.
   assert (SB: (sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ⊆ sb ∩ same_loc).
@@ -145,14 +145,14 @@ Proof using CON.
   arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ∪ (sb ∩ same_loc)^? ⨾ rfe ⨾ rmw)＊ ⊆ rs).
   { unfold imm_hb.rs. rewrite rfi_union_rfe. relsf. }
   rewrite (dom_l (wf_rfeD WF)) at 1. rewrite !seqA.
-  sin_rewrite rs_sb_loc_W_in_coe_sb.
+  sin_rewrite (rs_sb_loc WF SC_PER_LOC).
   rewrite (dom_l (wf_rmwD WF)).
   arewrite (rfi ⊆ sb); rewrite (rmw_in_sb WF).
   arewrite ((sb ∩ same_loc)^? ⊆ sb^?).
   arewrite_id ⦗R⦘ at 2. rewrite seq_id_l.
   arewrite (sb ⨾ (sb^? ⨾ sb ⨾ sb)＊ ⨾ sb ⊆ sb).
-  2: by unionR right.
-  generalize (@sb_trans G). ins. relsf.
+  { generalize (@sb_trans G). ins. relsf. }
+  eauto with hahn.
 Qed.
 
 Lemma rs_rfi_Q: rs ⨾ rfi ⨾ ⦗Q⦘ ⊆ sb ∩ same_loc ⨾ ⦗Q⦘ ∪ (obs ∪ dob ∪ aob ∪ boba')⁺  ⨾ ⦗Q⦘.
@@ -163,7 +163,8 @@ Proof using CON.
   rewrite rtE; relsf; unionL.
   { rewrite (rfi_in_sbloc' WF); generalize (@sb_same_loc_trans G).
     basic_solver 12. }
-  { ie_unfolder. rewrite (rfi_in_sbloc WF). basic_solver 12. }
+  { ie_unfolder. rewrite (rfi_in_sbloc WF).
+    unionR left. basic_solver 12. }
   rewrite !seqA, ct_end, !seqA.
   arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)＊ ⊆ ⦗W⦘ ⨾ co^?).
   revert X.
@@ -186,150 +187,116 @@ Proof using CON.
   basic_solver 42.
 Qed.
 
+Lemma rs_prefix_co_in_ord :
+  ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ co^? ⊆ ⦗L ∪₁ F^sy⦘ ⨾ (obs ∪ dob ∪ aob ∪ boba')＊.
+Proof using.
+  arewrite (co^? ⊆ coi^? ;; obs^?).
+  { rewrite coi_union_coe.
+    rewrite cr_union_l.
+    arewrite (coe ⊆ obs).
+    basic_solver 10. }
+  arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ coi^?  ⊆ ⦗L ∪₁ F^sy⦘ ⨾ boba'^?).
+  { case_refl _.
+    2: rewrite coi_in_sb; generalize (@sb_trans G).
+    all: unfold Arm.bob', Arm.bob; basic_solver 21. }
+  hahn_frame.
+  arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1.
+  arewrite (obs   ⊆ obs ∪ dob ∪ aob ∪ boba') at 2.
+  rewrite <- rt_cr.
+  hahn_frame. by apply inclusion_r_rt.
+Qed.
+
+Lemma rfe_sb_Acq_in_ord :
+  rfe ⨾ ⦗R⦘ ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
+Proof using.
+  arewrite (⦗R⦘ ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ boba'^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘).
+  { unfold Arm.bob'. basic_solver 21. }
+  hahn_frame_r.
+  arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1.
+  arewrite (rfe ⊆ obs).
+  arewrite (obs ⊆ obs ∪ dob ∪ aob ∪ boba') at 1.
+  rewrite <- ct_cr. hahn_frame_r. apply ct_step.
+Qed.
+
 Lemma sw_in_ord :
-  sw ⊆ ⦗L⦘ ⨾  sb ∩ same_loc ⨾ ⦗Q⦘ ∪
-       ⦗L∪₁F^sy⦘ ⨾ (⦗L⦘ ⨾ coi)^? ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
+  sw ⊆ ⦗L⦘ ⨾ sb ∩ same_loc ⨾ ⦗Q⦘ ∪
+       ⦗L⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗F^ld⦘ ∪ 
+       ⦗L∪₁F^sy⦘ ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
 Proof using CON.
-Admitted.
-(*   unfold imm_hb.sw, imm_hb.release. *)
-(*   rewrite (dom_l (wf_rsD WF)), (dom_r (wf_rfeD WF)), !seqA; relsf. *)
-(*   rewrite !seqA. *)
-(*   unionL. *)
-(*   { case_refl (sb ⨾ ⦗F⦘). *)
-(*     rewrite (dom_r (wf_rfiD WF)) at 1; rewrite !seqA. *)
-(*     arewrite (⦗R⦘ ⨾ ⦗Acq⦘ ⊆ ⦗Q⦘) by basic_solver. *)
-(*     rewrite rs_rfi_Q; relsf; unionL. *)
-(*     { case_refl _.  *)
-(*       { basic_solver 12. } *)
-(*       unionR right. *)
-(*       arewrite (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗Q⦘ ⊆ sb^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘). *)
-(*       { basic_solver 12. } *)
-(*       generalize (@sb_trans G); ins; relsf. *)
-(*       rewrite <- ct_step; unfold Arm.bob'. basic_solver 12. } *)
-(*     { case_refl _.  *)
-(*       { basic_solver 12. } *)
-(*       unionR right. *)
-(*       arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb) ⨾ ⦗W⦘ ⊆ ⦗L ∪₁ F^sy⦘ ⨾ boba'^?). *)
-(*       { unfold Arm.bob'. by basic_solver 21. } *)
-(*       arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1. *)
-(*       relsf; basic_solver. } *)
-(*     sin_rewrite rs_rfi; relsf; rewrite !seqA. *)
-(*     generalize (@sb_trans G); ins; relsf; unionL. *)
-(*     { case_refl _. *)
-(*       arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12. *)
-(*       { basic_solver 12. } *)
-(*       unionR right. *)
-(*       arewrite (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗F⦘ ⨾ ⦗Acq⦘ ⊆ sb^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘). *)
-(*       { arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12. *)
-(*         generalize (@sb_trans G); basic_solver 12. } *)
-(*       rewrite <- ct_step; unfold Arm.bob'. basic_solver 12. } *)
-(*     rewrite cr_union_l with (r:=coe). *)
-(*     rewrite !seq_union_l, !seq_union_r. unionL. *)
-(*     { unionR right. *)
-(*       arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⊆ ⦗L ∪₁ F^sy⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘). *)
-(*       { clear. basic_solver 21. } *)
-(*       arewrite (⦗R⦘ ⨾ sb ⨾ ⦗F⦘ ⨾ ⦗Acq⦘ ⊆ boba' ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘). *)
-(*       { arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12. *)
-(*         unfold Arm.bob'. basic_solver 21. } *)
-(*       arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1. *)
-(*       rewrite ct_end, !seqA. *)
-(*       hahn_frame. *)
-(*       rewrite <- inclusion_t_rt. rewrite ct_end. *)
-(*       arewrite (rfe ⊆ obs). arewrite (obs ⊆ obs ∪ dob ∪ aob ∪ boba') at 1. hahn_frame. *)
-(*       rewrite <- rt_cr. *)
-(*       arewrite (coe ⊆ obs). arewrite (obs ⊆ obs ∪ dob ∪ aob ∪ boba') at 1. hahn_frame. *)
-(*       rewrite <- inclusion_r_rt; [|reflexivity]. *)
-(*       arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⊆ boba'^?). *)
-(*       { unfold Arm.bob'. basic_solver 21. } *)
-(*       apply clos_refl_mori. eauto with hahn. } *)
-(*     arewrite ((⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ *)
-(*               ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ∪ ⦗F⦘ ⨾ sb ⨾ ⦗W⦘) by basic_solver 10. *)
-(*     rewrite !seq_union_l, !seq_union_r.  *)
-
-
-(*     transitivity boba'＊. *)
-(*     2: { apply clos_refl_trans_mori. eauto with hahn. } *)
-(*     transitivity boba'. *)
-(*     2: { unfolder. apply rt_step. } *)
-(*     rewrite !seq_union_r. *)
-(*     unfold Arm.bob'. apply union_mori; [|basic_solver]. *)
-(*     unfold Arm.bob. basic_solver 10. *)
-(*     2: { basic_solver. } *)
-
-(*     { *)
-
-(*     arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (coe ∪ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ *)
-(* ). *)
-
-
-(*     arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⊆ ⦗L ∪₁ F^sy⦘ ⨾ boba'^?). *)
-(*     { unfold Arm.bob'. basic_solver 21. } *)
-(*     arewrite (⦗R⦘ ⨾ sb ⨾ ⦗F⦘ ⨾ ⦗Acq⦘ ⊆ boba'^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘). *)
-(*     { arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12. *)
-(*       unfold Arm.bob'. basic_solver 21. } *)
-(*     arewrite (⦗L ∪₁ F^sy⦘ ⨾ boba'^? ⨾ (coe ∪ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ *)
-(*               ⦗L ∪₁ F^sy⦘ ⨾ boba'^? ⨾ (coe ∪ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘)^? *)
-(*              ) *)
-
-
-(*     arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1. *)
-(*     arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 2. *)
-(*     arewrite (obs' ⊆ obs ∪ dob ∪ aob ∪ boba') at 2. *)
-(*     relsf. *)
-(* - rewrite (dom_l (wf_rsD WF)). *)
-(*   rewrite !seqA. *)
-(*   sin_rewrite rs_sb_loc_rfe. *)
-(*   arewrite (⦗R⦘ ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘ ⊆ boba'^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘). *)
-(*   { case_refl _. *)
-(*     by unfold Arm.bob'; by basic_solver 21. *)
-(*     rewrite !seqA; arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12. *)
-(*     by unfold Arm.bob'; by basic_solver 21. } *)
-(*   arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⊆ ⦗L ∪₁ F^sy⦘ ⨾ boba'^?). *)
-(*   by unfold Arm.bob'; by basic_solver 21. *)
-(*   arewrite (boba' ⊆ obs' ∪ dob ∪ aob ∪ boba') at 1. *)
-(*   arewrite (boba' ⊆ obs' ∪ dob ∪ aob ∪ boba') at 2. *)
-(*   arewrite (obs' ⊆ obs' ∪ dob ∪ aob ∪ boba') at 2. *)
-(*   arewrite_id ⦗W⦘. *)
-(*   relsf. *)
-(* Qed. *)
+  unfold imm_hb.sw, imm_hb.release.
+  rewrite (dom_l (wf_rsD WF)), (dom_r (wf_rfeD WF)), !seqA; relsf.
+  rewrite !seqA.
+  unionL.
+  2: { unionR right.
+       rewrite (dom_l (wf_rfeD WF)), !seqA.
+       sin_rewrite (rs_sb_loc WF SC_PER_LOC).
+       sin_rewrite rs_prefix_co_in_ord. rewrite <- rt_ct. rewrite !seqA.
+       do 2 hahn_frame_l.
+       apply rfe_sb_Acq_in_ord. }
+  case_refl (sb ⨾ ⦗F⦘).
+  { rewrite (dom_r (wf_rfiD WF)) at 1; rewrite !seqA.
+    arewrite (⦗R⦘ ⨾ ⦗Acq⦘ ⊆ ⦗Q⦘) by basic_solver.
+    rewrite rs_rfi_Q; relsf; unionL.
+    { case_refl _. 
+      { basic_solver 12. }
+      unionR right.
+      arewrite (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗Q⦘ ⊆ sb^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘).
+      { basic_solver 12. }
+      generalize (@sb_trans G); ins; relsf.
+      rewrite <- ct_step; unfold Arm.bob'; basic_solver 12. }
+    case_refl _. 
+    { basic_solver 12. }
+    unionR right.
+    arewrite (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb) ⨾ ⦗W⦘ ⊆ ⦗L ∪₁ F^sy⦘ ⨾ boba'^?).
+    { unfold Arm.bob'. basic_solver 21. }
+    arewrite (boba' ⊆ obs ∪ dob ∪ aob ∪ boba') at 1.
+    arewrite (Q ⊆₁ Q ∪₁ F^ld ∪₁ F^sy) at 1 by basic_solver.
+    hahn_frame. apply cr_ct. }
+  sin_rewrite rs_rfi; relsf; rewrite !seqA.
+  generalize (@sb_trans G); ins; relsf; unionL.
+  { case_refl _.
+    arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12.
+    basic_solver 12.
+    unionR right.
+    arewrite (⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⨾ ⦗F⦘ ⨾ ⦗Acq⦘ ⊆ sb^? ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘).
+    arewrite (⦗F⦘ ⨾ ⦗Acq⦘ ⊆ ⦗F^ld⦘) by mode_solver 12.
+    { generalize (@sb_trans G). basic_solver 12. }
+    rewrite <- ct_step; unfold Arm.bob'; basic_solver 12. }
+  unionR right.
+  sin_rewrite rs_prefix_co_in_ord. rewrite <- rt_ct. rewrite !seqA.
+  do 2 hahn_frame_l.
+  arewrite (sb ⨾ ⦗F⦘ ⊆ (sb ⨾ ⦗F⦘)^?).
+  apply rfe_sb_Acq_in_ord.
+Qed.
 
 Lemma swe_in_ord :
-  sw \ sb ⊆ ⦗L∪₁F^sy⦘ ⨾ (⦗L⦘ ⨾ coi)^? ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
+  sw \ sb ⊆ ⦗L∪₁F^sy⦘ ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
 Proof using CON.
   rewrite sw_in_ord.
-  rewrite minus_union_l. unionL.
-  2: by eauto with hahn.
+  arewrite (sb ∩ same_loc ⨾ ⦗R⦘ ⨾ sb ⊆ sb).
+  { generalize (@sb_trans G). basic_solver. }
+  rewrite !minus_union_l. unionL.
+  3: by eauto with hahn.
   transitivity (fun x y : actid => False).
   all: basic_solver.
 Qed.
 
 Lemma ct_sb_swe_in_ord :
-  (sb^? ⨾ (sw \ sb))⁺ ⊆ (⦗L⦘ ⨾ coi)^? ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
+  (sb^? ⨾ (sw \ sb))⁺ ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺ ⨾ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘.
 Proof using CON.
   clear W_EX_ACQ_SB.
   sin_rewrite swe_in_ord.
-  arewrite (sb^? ⨾ ⦗L ∪₁ F^sy⦘ ⨾ (⦗L⦘ ⨾ coi)^? ⊆ (⦗L⦘ ⨾ coi)^? ;; boba'^?).
-  { rewrite crE at 1. rewrite seq_union_l, seq_id_l. unionL.
-    { arewrite_id ⦗L ∪₁ F^sy⦘. rewrite seq_id_l.
-      rewrite crE with (r:=boba'). rewrite seq_union_r, seq_id_r.
-      eauto with hahn. }
-    transitivity (boba').
-    2: basic_solver 10.
+  rewrite <- !seqA. rewrite inclusion_ct_seq_eqv_r.
+  hahn_frame_r.
+  arewrite (sb^? ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba'^?).
+  { rewrite !crE. rewrite seq_union_l, seq_id_l.
     unfold Arm.bob', Arm.bob. basic_solver 20. }
   arewrite (boba'^? ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺ ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺).
   { arewrite (boba'^? ⊆ (obs ∪ dob ∪ aob ∪ boba')＊) at 1. apply rt_ct. }
-  arewrite (⦗Q ∪₁ F^ld ∪₁ F^sy⦘ ⊆ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘ ;; ⦗Q ∪₁ F^ld ∪₁ F^sy⦘) at 1.
-  { basic_solver. }
-  rewrite <- !seqA. rewrite inclusion_ct_seq_eqv_r.
-  hahn_frame_r.
-  rewrite clos_trans_rotl. rewrite !seqA.
-  arewrite (⦗Q ∪₁ F^ld ∪₁ F^sy⦘ ⨾ (⦗L⦘ ⨾ coi)^? ⊆ ⦗Q ∪₁ F^ld ∪₁ F^sy⦘).
-  { type_solver 10. }
-  arewrite_id ⦗Q ∪₁ F^ld ∪₁ F^sy⦘. rewrite !seq_id_r.
-    by rewrite rt_of_ct, rt_ct.
+  apply ct_of_ct.
 Qed.
 
-Lemma hb_in_ord : hb ⊆ sb ∪ (⦗L⦘ ⨾ coi)^? ⨾ (obs ∪ dob ∪ aob ∪ boba')⁺.
+Lemma hb_in_ord : hb ⊆ sb ∪ (obs ∪ dob ∪ aob ∪ boba')⁺.
 Proof using CON.
   rewrite hb_in_sb_swe.
   rewrite path_union.
@@ -344,7 +311,7 @@ Qed.
 
 Lemma sbrel_in_ord : sb ⨾ ⦗L ∪₁ F^sy⦘ ⊆ boba'.
 Proof using CON.
-unfold Arm.bob', Arm.bob; basic_solver 14.
+  unfold Arm.bob', Arm.bob; basic_solver 14.
 Qed.
 
 (******************************************************************************)
@@ -354,22 +321,30 @@ Qed.
 Lemma COH: coherence G.
 Proof using CON.
   apply coherence_alt.
-  rewrite hb_in_ord; relsf; unionL.
-  { by apply (@sb_irr G). }
-  all:
-    try by (try arewrite (rfe ⊆ rf)); rewrite ?rf_in_eco;
-    rewrite ?co_in_eco, ?fr_in_eco; generalize (eco_trans WF); ins; relsf; 
-      try (rewrite irreflexive_seqC; apply SC_PER_LOC); apply SC_PER_LOC.
-Admitted.
-(*   all: try arewrite (rfe ⊆ obs'). *)
-(*   all: try arewrite (co ⊆ obs'). *)
-(*   all: try arewrite (fr ⊆ obs'). *)
-(*   all: set (X := (obs' ∪ dob ∪ aob ∪ boba')⁺). *)
-(*   all: try arewrite (obs' ⊆ (obs' ∪ dob ∪ aob ∪ boba')＊). *)
-(*   all: try unfold X. *)
-(*   all: relsf. *)
-(*   all: apply (external_alt2 WF CON RMW_COI). *)
-(* Qed. *)
+  assert (hb ⨾ co ⊆ hb ;; coe^? /\ hb ⨾ fr ⊆ hb ;; fre^?) as [AA BB].
+  { split; [rewrite coi_union_coe, coi_in_sb|rewrite fri_union_fre, fri_in_sb].
+    all: rewrite sb_in_hb, seq_union_r.
+    all: rewrite rewrite_trans; [|by apply hb_trans].
+    all: basic_solver. }
+  sin_rewrite AA. sin_rewrite BB.
+  arewrite (rfe ⊆ obs).
+  arewrite (coe ⊆ obs).
+  arewrite (fre ⊆ obs).
+  arewrite (hb ∪ hb ⨾ obs ∪ hb ⨾ obs^? ⨾ obs^? ∪ hb ⨾ obs^? ⨾ obs^? ⊆ hb ⨾ obs^? ⨾ obs^?).
+  { unionL; try done. all: basic_solver 10. }
+  arewrite (obs^? ⨾ obs^? ⊆ obs^*).
+  { rewrite <- rt_cr. hahn_frame. by apply inclusion_r_rt. }
+  rewrite hb_in_ord.
+  rewrite seq_union_l.
+  apply irreflexive_union. split.
+  2: { arewrite (obs ⊆ obs ∪ dob ∪ aob ∪ boba') at 2.
+       rewrite ct_rt. apply (external_alt_bob' WF); auto. }
+  rewrite obs_in_eco. rewrite rt_of_trans; [|by apply (eco_trans WF)].
+  rewrite crE, seq_union_r, seq_id_r.
+  apply irreflexive_union. split.
+  { apply sb_irr. }
+  apply CON.
+Qed.
 
 (******************************************************************************)
 (** * C_ext *)

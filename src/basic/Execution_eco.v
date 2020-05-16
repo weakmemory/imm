@@ -82,6 +82,15 @@ Proof using. unfold eco; basic_solver 6. Qed.
 Lemma fr_rf_in_eco: fr ;; rf ⊆ eco.
 Proof using. unfold eco; basic_solver 6. Qed.
 
+Lemma rfe_in_eco : rfe ⊆ eco.
+Proof using. rewrite rfe_in_rf. apply rf_in_eco. Qed.
+
+Lemma coe_in_eco : coe ⊆ eco.
+Proof using. rewrite coe_in_co. apply co_in_eco. Qed.
+
+Lemma fre_in_eco : fre ⊆ eco.
+Proof using. rewrite fre_in_fr. apply fr_in_eco. Qed.
+
 Lemma loceq_eco WF : funeq loc eco.
 Proof using. destruct WF; desf. eauto 10 with hahn. Qed.
 

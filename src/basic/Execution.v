@@ -701,6 +701,15 @@ Proof using.
   split; [eapply CO|eapply SB]; eauto.
 Qed.
 
+Lemma fri_in_sb : fri ⊆ sb.
+Proof using. unfold fri; basic_solver. Qed.
+
+Lemma fri_in_fr : fri ⊆ fr.
+Proof using. unfold fri; basic_solver. Qed.
+
+Lemma fre_in_fr : fre ⊆ fr.
+Proof using. unfold fre; basic_solver. Qed.
+
 (******************************************************************************)
 (** ** properties of external/internal relations *)
 (******************************************************************************)

@@ -218,6 +218,9 @@ Qed.
 (** ** Properties of consistent executions  *)
 (******************************************************************************)
 
+Lemma obs_in_eco : obs ⊆ eco.
+Proof using. unfold Arm.obs. rewrite rfe_in_eco, fre_in_eco, coe_in_eco. eauto with hahn. Qed.
+
 Lemma obs_coi WF SC_PER_LOC : obs ⨾ coi ⊆ obs.
 Proof using.
   unfold obs at 1.
