@@ -319,7 +319,45 @@ Qed.
 
 Lemma rs_in_eco WF SC_PER_LOC : rs ⊆ eco^?.
 Proof using.
-rewrite rs_in_co, co_in_eco; try done; basic_solver.
+  rewrite rs_in_co, co_in_eco; try done; basic_solver.
+Qed.
+
+Lemma rs_sb_loc WF SC_PER_LOC : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
+Proof using.
+  rewrite rs_in_co; auto. rewrite !seqA.
+  apply co_sb_loc; auto. 
+Qed.
+
+
+Lemma rs_rfi WF SC_PER_LOC :
+  rs ⨾ rfi ⊆ sb ∩ same_loc ⨾ ⦗R⦘ ∪ co^? ⨾ rfe ⨾ ⦗R⦘ ⨾ sb.
+Proof using.
+  generalize (@sb_same_loc_trans G); ins.
+  assert (SB: (sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ⊆ sb ∩ same_loc).
+  { rewrite (rfi_in_sbloc' WF).
+    arewrite (rmw ⊆ rmw ∩ rmw).
+    rewrite (rmw_in_sb WF) at 1; rewrite (wf_rmwl WF).
+    relsf. }
+  unfold rs.
+  rewrite rtE; relsf; unionL.
+  { rewrite (dom_r (wf_rfiD WF)), (rfi_in_sbloc' WF).
+    generalize (@sb_same_loc_trans G). basic_solver 12. }
+  { rewrite (dom_r (wf_rfiD WF)); rewrite (rfi_in_sbloc' WF). basic_solver 12. }
+  rewrite rfi_union_rfe; relsf.
+  rewrite path_ut_last; relsf; unionL.
+  { rewrite (dom_r (wf_rfiD WF)) at 2; rewrite (rfi_in_sbloc' WF) at 2.
+    sin_rewrite SB. rewrite !seqA. relsf. basic_solver. }
+  arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rfi ⨾ rmw ∪ (sb ∩ same_loc)^? ⨾ rfe ⨾ rmw)＊ ⊆ rs).
+  { unfold rs. rewrite rfi_union_rfe. relsf. }
+  rewrite (dom_l (wf_rfeD WF)) at 1. rewrite !seqA.
+  sin_rewrite (rs_sb_loc WF SC_PER_LOC).
+  rewrite (dom_l (wf_rmwD WF)).
+  arewrite (rfi ⊆ sb); rewrite (rmw_in_sb WF).
+  arewrite ((sb ∩ same_loc)^? ⊆ sb^?).
+  arewrite_id ⦗R⦘ at 2. rewrite seq_id_l.
+  arewrite (sb ⨾ (sb^? ⨾ sb ⨾ sb)＊ ⨾ sb ⊆ sb).
+  { generalize (@sb_trans G). ins. relsf. }
+  eauto with hahn.
 Qed.
 
 Lemma release_in_co WF SC_PER_LOC : ⦗W⦘ ⨾ release ⊆ co^?.
@@ -725,12 +763,6 @@ Proof using.
   { by apply hb_irr. }
   arewrite (rfe ⊆ rf). rewrite rf_in_eco.
   apply COH.
-Qed.
-
-Lemma rs_sb_loc WF SC_PER_LOC : rs ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⊆ co^?.
-Proof using.
-  rewrite rs_in_co; auto. rewrite !seqA.
-  apply co_sb_loc; auto. 
 Qed.
 
 End IMM_hb.
