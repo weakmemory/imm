@@ -676,6 +676,16 @@ Proof using. unfold rfi; basic_solver. Qed.
 Lemma rfe_in_rf : rfe ⊆ rf.
 Proof using. unfold rfe; basic_solver. Qed.
 
+
+Lemma coi_in_sb : coi ⊆ sb.
+Proof using. unfold coi; basic_solver. Qed.
+
+Lemma coi_in_co : coi ⊆ co.
+Proof using. unfold coi; basic_solver. Qed.
+
+Lemma coe_in_co : coe ⊆ co.
+Proof using. unfold coe; basic_solver. Qed.
+
 Lemma ninit_rfi_same_tid : ⦗ set_compl is_init ⦘ ⨾ rfi ⊆ same_tid.
 Proof using.
   arewrite (rfi ⊆ sb).

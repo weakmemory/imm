@@ -460,7 +460,7 @@ Qed.
 (** ** properties of external/internal relations *)
 (******************************************************************************)
 
-Lemma coe_coi WF SC_PER_LOC: (co \ sb) ⨾ (co ∩ sb) ⊆ co \ sb.
+Lemma coe_coi WF SC_PER_LOC: coe ⨾ coi ⊆ coe.
 Proof using.
 cut ((co \ sb) ⨾ co ∩ sb ⊆ co ⨾ co \ sb).
 by rewrite (co_co WF).
@@ -470,7 +470,7 @@ rotate 1.
 by rewrite co_in_eco.
 Qed.
 
-Lemma fre_coi WF SC_PER_LOC : (fr \ sb) ⨾ (co ∩ sb) ⊆ fr \ sb.
+Lemma fre_coi WF SC_PER_LOC : fre ⨾ coi ⊆ fre.
 Proof using.
 cut ((fr \ sb) ⨾ co ∩ sb ⊆ fr ⨾ co \ sb).
 by rewrite (fr_co WF).
@@ -481,7 +481,7 @@ by rewrite fr_in_eco.
 Qed.
 
 Lemma coi_coe WF SC_PER_LOC: 
- ⦗fun x => ~ is_init x⦘ ⨾ (co ∩ sb) ⨾ (co \ sb) ⊆ co \ sb.
+ ⦗fun x => ~ is_init x⦘ ⨾ coi ⨾ coe ⊆ coe.
 Proof using.
 cut (⦗fun x => ~ is_init x⦘ ⨾ (co ∩ sb) ⨾ (co \ sb) ⊆ co ⨾ co \ sb).
 by rewrite (co_co WF).
