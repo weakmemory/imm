@@ -29,6 +29,7 @@ Notation "'deps'" := G.(deps).
 Notation "'fre'" := G.(fre).
 Notation "'rfe'" := G.(rfe).
 Notation "'coe'" := G.(coe).
+Notation "'detour'" := G.(detour).
 Notation "'coi'" := G.(coi).
 Notation "'rfi'" := G.(rfi).
 Notation "'fri'" := G.(fri).
@@ -232,6 +233,15 @@ Proof using.
   arewrite (rfe ⊆ obs).
   rewrite !seq_union_l, !seq_union_r.
   basic_solver 20.
+Qed.
+
+Lemma detour_in_obs : detour ⊆ obs⁺ .
+Proof using.
+  unfold Execution.detour.
+  arewrite (coe ⊆ obs).
+  arewrite (rfe ⊆ obs).
+  rewrite ct_end.
+  basic_solver 12.
 Qed.
 
 Lemma obs_coi WF SC_PER_LOC : obs ⨾ coi ⊆ obs.
