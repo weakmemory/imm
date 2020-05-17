@@ -498,12 +498,12 @@ Proof using CON W_EX_ACQ_SB.
   rewrite <- ct_end; basic_solver.
 Qed.
 
-Lemma bob_in_boba : bob ⊆ boba' ∪ coi ∪ sb ⨾ ⦗F^ld⦘.
+Lemma bob_in_boba : bob ⊆ boba' ∪ sb ⨾ ⦗F^ld⦘.
 Proof using CON W_EX_ACQ_SB.
   unfold imm_bob.bob, imm_bob.fwbob, Arm.bob', Arm.bob.
   unionL.
   { basic_solver 20. }
-  { arewrite (⦗L⦘ ⊆ ⦗W⦘) at 1 by basic_solver.
+  { arewrite (⦗L⦘ ⊆ ⦗L⦘ ⨾ ⦗W⦘) at 1 by basic_solver.
     rewrite (w_sb_loc_w_in_coi WF SC_PER_LOC); rels. }
   { mode_solver 22. }
   { mode_solver 22. }

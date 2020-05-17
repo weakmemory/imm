@@ -107,11 +107,10 @@ Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
-(* Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data. *)
+Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis DEPS_RMW_SB : rmw_dep ⨾ sb ⊆ ctrl.
 Hypothesis REX_IN_RMW_CTRL : <|R_ex|> ;; sb ⊆ ctrl.
-Hypothesis RMW_SB : rmw ;; sb ⊆ ctrl.
 
 Hypothesis CON: ArmConsistent G.
 
@@ -122,7 +121,6 @@ Proof using CON. apply CON. Qed.
 Lemma SC_PER_LOC : sc_per_loc G.
 Proof using CON. apply CON. Qed.
 
-Hypothesis rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi.
 (* Lemma rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi. *)
 (* Proof using CON RMW_DEPS. *)
 (*   rewrite RMW_DEPS, seq_union_l. *)
@@ -130,13 +128,21 @@ Hypothesis rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi.
 (*   arewrite (coi ⊆ sb) at 1. by sin_rewrite WF.(ctrl_sb). *)
 (* Qed. *)
 
-Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba.
-Proof using CON rmw_coi_helper.
-  transitivity dob; [|by eauto with hahn].
-  rewrite rmw_coi_helper.
-  rewrite (dom_r WF.(wf_dataD)).
-  unfold Arm.dob. basic_solver 10.
-Qed.
+(* Lemma rmw_coi_helper1 : rmw ⨾ coi^? ⊆ ctrl ∪ data ;; coi^?. *)
+(* Proof using CON RMW_DEPS. *)
+(*   rewrite crE at 1. rewrite seq_union_r, seq_id_r. *)
+(*   unionL. *)
+(*   2: { rewrite rmw_coi_helper. basic_solver 10. } *)
+(*   rewrite RMW_DEPS. basic_solver 10. *)
+(* Qed. *)
+
+(* Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba. *)
+(* Proof using CON RMW_DEPS. *)
+(*   transitivity dob; [|by eauto with hahn]. *)
+(*   rewrite rmw_coi_helper. *)
+(*   rewrite (dom_r WF.(wf_dataD)). *)
+(*   unfold Arm.dob. basic_solver 10. *)
+(* Qed. *)
 
 Lemma R_ex_fail_sb_in_ctrl : ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb ⊆ ctrl.
 Proof using REX_IN_RMW_CTRL.
@@ -144,9 +150,13 @@ Proof using REX_IN_RMW_CTRL.
   basic_solver.
 Qed.
 
-Lemma s_ppo_in_dob_helper :
-  ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw_dep ⨾ sb^?)⁺ ⨾ ⦗W⦘ ⊆ dob⁺.
-Proof using CON DEPS_RMW_SB G REX_IN_RMW_CTRL W_EX_ACQ_SB rmw_coi_helper.
+Lemma s_ppo_in_dob : s_ppo ⊆ dob⁺.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
+  unfold imm_s_ppo.ppo.
+  rewrite REX_IN_RMW_CTRL.
+  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^? ∪ ctrl ⊆
+            data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw_dep ⨾ sb^?).
+  { rewrite RMW_DEPS. unionL; eauto with hahn. }
   rewrite path_union, !seq_union_l, !seq_union_r. unionL.
   { apply ppo_in_dob_helper; auto. }
   assert ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)＊ ⊆ sb^?) as AA.
@@ -166,42 +176,20 @@ Proof using CON DEPS_RMW_SB G REX_IN_RMW_CTRL W_EX_ACQ_SB rmw_coi_helper.
   apply ppo_in_dob_helper; auto.
 Qed.
 
-Lemma s_ppo_in_dob_rmw : s_ppo ⊆ dob⁺ ;; rmw^?.
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL rmw_coi_helper W_EX_ACQ_SB.
-  unfold imm_s_ppo.ppo.
-  rewrite REX_IN_RMW_CTRL.
-  arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ∪ rmw_dep ⨾ sb^? ∪ ctrl ⊆
-            data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw_dep ⨾ sb^? ∪ rmw).
-  { unionL; eauto with hahn. }
-  rewrite path_ut_first. rewrite !seq_union_l, !seq_union_r.
-  unionL. 
-  { rewrite s_ppo_in_dob_helper. basic_solver. }
-  arewrite ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw_dep ⨾ sb^? ∪ rmw)＊ ⊆ sb^?).
-  { rewrite (data_in_sb WF), (ctrl_in_sb WF), (addr_in_sb WF),
-    rfi_in_sb, (rmw_dep_in_sb WF), (rmw_in_sb WF).
-    arewrite (sb ⨾ sb^? ⊆ sb).
-    { generalize (@sb_trans G). basic_solver. }
-    rewrite !unionK.
-    apply rt_of_trans. apply sb_trans. }
-  arewrite (rmw ⨾ sb^? ⊆ rmw ∪ ctrl).
-  { rewrite crE, seq_union_r. rewrite RMW_SB. by rewrite seq_id_r. }
-
-Qed.
-
-Lemma s_ppo_in_ord : s_ppo ⊆ (obs'⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
+Lemma s_ppo_in_ord : s_ppo ⊆ (obs⁺ ∩ sb ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   rewrite s_ppo_in_dob. apply clos_trans_mori. eauto with hahn. 
 Qed.
 
-Lemma s_ar_int_in_ord : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺.
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
+Lemma s_ar_int_in_ord : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   unfold imm_s_ppo.ar_int.
-  transitivity (⦗R⦘ ⨾  ((obs'⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘).
+  transitivity (⦗R⦘ ⨾  ((obs⁺∩ sb) ∪ dob ∪ aob ∪ boba' ∪ sb ⨾ ⦗F^ld⦘)⁺ ⨾ ⦗W⦘).
   2: { rewrite path_union.
        relsf; unionL.
        { arewrite_id ⦗R⦘; arewrite_id ⦗W⦘.
          rels.
-         arewrite (obs'⁺ ∩ sb ⊆ obs'⁺).
+         arewrite (obs⁺ ∩ sb ⊆ obs⁺).
          apply inclusion_t_t2.
          apply_unionL_once.
          apply_unionL_once.
@@ -211,7 +199,7 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
        rewrite (dob_in_sb WF) at 1 2.
        rewrite (aob_in_sb WF) at 1 2.
        rewrite (bob'_in_sb WF) at 1 2.
-       arewrite (obs'⁺ ∩ sb ⊆ sb).
+       arewrite (obs⁺ ∩ sb ⊆ sb).
        rewrite ct_begin.
        arewrite_id ⦗F^ld⦘ at 2.
        generalize (@sb_trans G); ins; relsf.
@@ -219,7 +207,9 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
        unfold Arm.bob', Arm.bob.
        rewrite <- ct_step. basic_solver 21. }
   arewrite (detour ⊆ detour ∩ sb).
-  rewrite W_ex_acq_sb_in_boba1, bob_in_boba, detour_in_obs; auto.
+  rewrite W_ex_acq_sb_in_boba1; auto.
+  rewrite bob_in_boba; auto.
+  rewrite detour_in_obs; auto.
   hahn_frame.
   apply inclusion_t_t2.
   apply_unionL_once.
@@ -229,32 +219,32 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
   apply_unionL_once.
   2: by unfolder; ins; econs; eauto.
   apply_unionL_once.
-  { rewrite <- ct_step; rewrite <- ct_step; unfold Arm.obs'; ie_unfolder; basic_solver 12. }
+  { rewrite <- ct_step; rewrite <- ct_step; unfold Arm.obs; ie_unfolder; basic_solver 12. }
   apply s_ppo_in_ord.
 Qed.
 
 Lemma C_EXT_helper: imm_s.acyc_ext G (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   apply (s_acyc_ext_psc_helper WF).
   rewrite s_ar_int_in_ord.
-  arewrite (rfe ⊆ (obs' ∪ dob ∪ aob ∪ boba')⁺ ).
-  { unfold Arm.obs'; rewrite <- ct_step; basic_solver 12. }
+  arewrite (rfe ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺ ).
+  { unfold Arm.obs; rewrite <- ct_step; basic_solver 12. }
   arewrite (imm_s.psc G ⊆ imm.psc G).
   { unfold imm_s.psc, imm.psc. by rewrite s_hb_in_hb. }
   rewrite psc_in_ord; auto.
   relsf; red; relsf.
-  apply (external_alt2 WF CON RMW_COI).
+  apply (external_alt_bob' WF CON).
 Qed.
 
 Lemma C_SC : acyclic (imm_s.psc_f G ∪ imm_s.psc_base G).
-Proof using CON W_EX_ACQ_SB.
+Proof using CON RMW_DEPS W_EX_ACQ_SB.
   unfold imm_s.psc_f, imm_s.psc_base, imm_s.scb.
   rewrite s_hb_in_hb. 
-  apply immToARMhelper.C_SC; auto. apply RMW_COI.
+  apply immToARMhelper.C_SC; auto.
 Qed.
 
 Lemma IMM_s_psc_consistent : exists sc, imm_psc_consistent G sc.
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   edestruct (imm_s.s_acyc_ext_helper WF C_EXT_helper) as [sc HH]. desc.
   exists sc. red. splits; eauto.
   2: by apply C_SC.
@@ -263,11 +253,11 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL W_EX_ACQ_SB.
   rewrite crE, seq_union_r, seq_id_r.
   rewrite s_hb_in_hb. 
   apply irreflexive_union. split.
-  2: { apply COH; auto. apply RMW_COI. }
+  2: { apply COH; auto. } 
   rewrite hb_in_ord; auto. 
   apply irreflexive_union. split.
   { by apply (@sb_irr G). }
-  apply (external_alt2 WF CON RMW_COI).
+  apply (external_alt_bob' WF CON).
 Qed.
 
 End immToARM.
