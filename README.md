@@ -4,7 +4,7 @@
 <img align="right" width="350" src="https://github.com/anlun/publicFiles/raw/master/pictures/spider.png">
 
 - A **Promising 1.0** [Kang-al:POPL17] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/promising1ToImm)]
-- A **Promising 2.0** [Hwan-al:PLDI20] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/promising2ToImm)]
+- A **Promising 2.0** [Lee-al:PLDI20] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/promising2ToImm)]
 - A **Weakestmo** [Chakraborty-Vafeiadis:POPL19] to IMM compilation correctness proof [[Github](https://github.com/weakmemory/weakestmoToImm)]
 
 ## Related papers
