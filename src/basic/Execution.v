@@ -710,6 +710,15 @@ Proof using. unfold fri; basic_solver. Qed.
 Lemma fre_in_fr : fre ⊆ fr.
 Proof using. unfold fre; basic_solver. Qed.
 
+Lemma fri_coi WF : fri ⨾ coi ⊆ fri.
+Proof using.
+  unfold fri, coi.
+  unfolder. ins. desf.
+  split.
+  { apply fr_co; auto. basic_solver. }
+  eapply sb_trans; eauto.
+Qed.
+
 (******************************************************************************)
 (** ** properties of external/internal relations *)
 (******************************************************************************)

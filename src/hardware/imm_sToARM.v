@@ -121,28 +121,12 @@ Proof using CON. apply CON. Qed.
 Lemma SC_PER_LOC : sc_per_loc G.
 Proof using CON. apply CON. Qed.
 
-(* Lemma rmw_coi_helper : rmw ⨾ coi ⊆ ctrl ;; <|W|> ∪ data ;; coi. *)
-(* Proof using CON RMW_DEPS. *)
-(*   rewrite RMW_DEPS, seq_union_l. *)
-(*   rewrite (dom_r WF.(wf_coiD)). *)
-(*   arewrite (coi ⊆ sb) at 1. by sin_rewrite WF.(ctrl_sb). *)
-(* Qed. *)
-
-(* Lemma rmw_coi_helper1 : rmw ⨾ coi^? ⊆ ctrl ∪ data ;; coi^?. *)
-(* Proof using CON RMW_DEPS. *)
-(*   rewrite crE at 1. rewrite seq_union_r, seq_id_r. *)
-(*   unionL. *)
-(*   2: { rewrite rmw_coi_helper. basic_solver 10. } *)
-(*   rewrite RMW_DEPS. basic_solver 10. *)
-(* Qed. *)
-
-(* Lemma RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ boba. *)
-(* Proof using CON RMW_DEPS. *)
-(*   transitivity dob; [|by eauto with hahn]. *)
-(*   rewrite rmw_coi_helper. *)
-(*   rewrite (dom_r WF.(wf_dataD)). *)
-(*   unfold Arm.dob. basic_solver 10. *)
-(* Qed. *)
+Lemma RMW_COI : rmw ⨾ coi ⊆ obs' ∪ dob ∪ aob ∪ boba.
+Proof using CON.
+  cdes CON. rewrite rmw_in_fri; auto.
+  rewrite fri_coi; auto. rewrite fri_in_fr. 
+  unfold Arm.obs'. eauto with hahn.
+Qed.
 
 Lemma R_ex_fail_sb_in_ctrl : ⦗R_ex \₁ dom_rel rmw⦘ ⨾ sb ⊆ ctrl.
 Proof using REX_IN_RMW_CTRL.

@@ -412,11 +412,16 @@ Proof using.
 apply (r_r_loc_r_in_fr_rf WF (@wf_sbE G) SC_PER_LOC COMP).
 Qed.
 
-Lemma rmw_in_fr WF SC_PER_LOC COMP : rmw ⊆ fr.
+Lemma rmw_in_fri WF SC_PER_LOC COMP : rmw ⊆ fri.
 Proof using.
 rewrite (wf_rmwD WF), (rmw_in_sb_loc WF).
 rewrite (r_sb_loc_w_in_fri WF SC_PER_LOC COMP).
 ie_unfolder; basic_solver.
+Qed.
+
+Lemma rmw_in_fr WF SC_PER_LOC COMP : rmw ⊆ fr.
+Proof using.
+  rewrite rmw_in_fri; auto. apply fri_in_fr.
 Qed.
 
 Lemma rf_rmw_in_co_helper WF SC_PER_LOC: rf ⨾ rmw ⊆ co ∪ co^{-1}.
@@ -498,6 +503,15 @@ apply ri_re; try done; try by apply no_co_to_init.
 by apply co_irr.
 rotate 1.
 by rewrite co_in_eco.
+Qed.
+
+Lemma rfe_fri WF SC_PER_LOC : rfe ;; fri ⊆ coe.
+Proof using.
+  cut ((rf \ sb) ⨾ fr ∩ sb ⊆ rf ⨾ fr \ sb).
+  { by rewrite (rf_fr WF). }
+  apply re_ri; try done; try by apply no_rf_to_init.
+  { by apply rf_irr. }
+  rotate 1. by rewrite rf_in_eco.
 Qed.
 
 Lemma eco_refl : 

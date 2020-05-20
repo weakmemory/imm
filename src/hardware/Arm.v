@@ -255,6 +255,17 @@ Proof using.
   unfold obs. type_solver 10.
 Qed.
 
+Lemma obs_fri WF SC_PER_LOC : obs ⨾ fri ⊆ obs.
+Proof using.
+  unfold obs at 1.
+  rewrite !seq_union_l.
+  rewrite (dom_r (wf_coeD WF)).
+  rewrite (dom_r (wf_freD WF)).
+  rewrite rfe_fri; auto.
+  rewrite (dom_l (wf_friD WF)).
+  unfold obs. type_solver 10.
+Qed.
+
 Lemma bob_coi WF : bob ⨾ coi ⊆ bob.
 Proof using.
   unfold bob; relsf; rewrite ?seqA.
@@ -378,16 +389,16 @@ Proof using.
     type_solver.
 Qed.
 
-Lemma aob_fri WF : aob ⨾ fri ⊆ aob ∪ co.
+Lemma aob_fri WF : aob ⨾ fri ⊆ aob ⨾ bob^?.
 Proof using.
   unfold aob; relsf; rewrite ?seqA; unionL.
-  + rewrite (dom_l (wf_friD WF)) at 1.
+  { rewrite (dom_l (wf_friD WF)) at 1.
     rewrite (dom_r (wf_rmwD WF)) at 1.
-    type_solver.
-  + arewrite_id ⦗W_ex⦘; arewrite_id ⦗Q⦘; rels.
-    ie_unfolder.
-    rewrite (seq_ii (rf_fr WF)).
-    basic_solver 42.
+    type_solver. }
+  unionR right.
+  rewrite fri_in_sb.
+  unfold bob.
+  basic_solver 20.
 Qed.
 
 Lemma deps_in_ctrl_or_dob WF:
@@ -493,56 +504,63 @@ Proof using.
   apply obs_coi; auto.
 Qed.
 
-Lemma external_alt_coi CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
-    acyclic (coi ∪ obs ∪ dob ∪ aob ∪ bob').
+Lemma external_alt_fri CON :
+    acyclic (fri ∪ obs ∪ dob ∪ aob ∪ bob').
 Proof using.
-  assert (RMW_COI' : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob').
-  { etransitivity; eauto. by arewrite (bob ⊆ bob'). }
   cdes CON.
   assert (AC' : acyclic (obs ∪ dob ∪ aob ∪ bob')) by (by apply external_alt_bob').
+  rewrite !(unionA fri).
+  rewrite ct_step with (r := obs ∪ dob ∪ aob ∪ bob').
+  apply acyclic_absorb; ins.
+  2: { unfold acyclic. rewrite ct_of_ct.
+       split; auto.
+       apply acyclic_disj.
+       rewrite (wf_friD WF).
+       type_solver 10. }
+  right. rewrite ct_end at 1. rewrite !seqA.
+  rewrite !seq_union_l.
+  rewrite obs_fri; auto. 
+  rewrite dob_fri; auto. 
+  rewrite aob_fri; auto. 
+  rewrite bob'_fri; auto. 
+  arewrite (obs ∪ dob ∪ aob ⨾ bob^? ∪ bob' ⨾ bob^? ⊆
+            (obs ∪ dob ∪ aob ∪ bob')⁺).
+  2: by apply rt_ct.
+  rewrite unionA. rewrite <- seq_union_l.
+  apply inclusion_union_l.
+  { rewrite <- ct_step. eauto with hahn. }
+  rewrite ct_begin.
+  arewrite (aob ∪ bob' ⊆ obs ∪ dob ∪ aob ∪ bob').
+  hahn_frame.
+  apply inclusion_r_rt.
+  unfold bob'. eauto with hahn.
+Qed.
+
+Lemma external_alt CON :
+    acyclic (obs' ∪ dob ∪ aob ∪ bob').
+Proof using.
+  cdes CON.
+  assert (RMW_COI : rmw ⨾ coi ⊆ fri).
+  { rewrite rmw_in_fri; auto. apply fri_coi; auto. }
+  assert (AC' : acyclic (fri ∪ obs ∪ dob ∪ aob ∪ bob')) by (by apply external_alt_fri).
+  arewrite (obs' ⊆ coi ∪ fri ∪ obs).
+  { unfold obs', obs. rewrite coi_union_coe, fri_union_fre.
+    unionL; eauto with hahn. }
   rewrite !(unionA coi). 
   apply acyclic_absorb; ins.
   2: { arewrite (coi ⊆ co). split; auto.
        apply (co_acyclic WF). }
-  right; relsf; hahn_rel.
-  { rewrite obs_coi; auto. eauto with hahn. }
-  { rewrite dob_coi; auto. eauto with hahn. }
-  2: { rewrite bob'_coi; auto. eauto with hahn. }
-  unfold aob at 1; relsf; unionL.
-  { apply RMW_COI'. }
-  rewrite (dom_l (wf_coiD WF)) at 1.
-  type_solver 42.
-Qed.
-
-Lemma external_alt WF CON (RMW_COI : rmw ⨾ coi ⊆ obs ∪ dob ∪ aob ∪ bob) :
-  acyclic (obs' ∪ dob ∪ aob ∪ bob').
-Proof using.
-  forward eapply external_alt_coi as AA; ins.
-  unfold obs'.
-  unfold acyclic in *; rewrite <- ct_of_union_ct_r in *.
-  unfold obs in AA.
-  rewrite !unionA, (unionAC (rfe)), <- !unionA in AA.
-  rewrite <- coi_union_coe in AA.
-  rewrite fri_union_fre.
-  rewrite !unionA, (unionAC rfe), !(unionAC _ fri), <- !unionA.
-  rewrite !(unionA fri).
-  apply acyclic_absorb; ins; cycle 1.
-  { arewrite (fri ⊆ fr).
-    rewrite (wf_frD WF).
-    split; auto.
-    apply trans_irr_acyclic; [type_solver 12|apply transitiveI; type_solver 12]. }
-  right; relsf; hahn_rel.
-  { arewrite (fri ⊆ fr); rewrite (co_fr WF). basic_solver. }
-  { arewrite (fri ⊆ fr); arewrite (rfe ⊆ rf); rewrite (rf_fr WF). basic_solver 12. }
-  { arewrite (fri ⊆ fr); arewrite (fre ⊆ fr); rewrite (fr_fr WF). basic_solver 12. }
-  { rewrite (dob_fri WF). eauto with hahn. }
-  { rewrite (aob_fri WF). eauto 10 with hahn. }
-  unionR right.
-  rewrite ct_end at 1. rewrite seqA.
-  rewrite (bob'_fri WF).
-  seq_rewrite <- ct_end.
-  arewrite (bob ⊆ bob').
-  apply ct_cr.
+  right. rewrite !seq_union_l.
+  rewrite fri_coi; auto. 
+  rewrite obs_coi; auto. 
+  rewrite dob_coi; auto. 
+  rewrite bob'_coi; auto. 
+  arewrite (aob ⨾ coi ⊆ fri).
+  { unfold aob at 1. rewrite seq_union_l. unionL; auto.
+    rewrite (dom_l (wf_coiD WF)) at 1.
+    type_solver 42. }
+  do 4 (apply inclusion_union_l; [|by eauto with hahn]).
+  eauto with hahn.
 Qed.
 
 End Arm.
