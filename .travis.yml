@@ -1,4 +1,11 @@
-image: anlun/opam-ci
+language: c
+
+services:
+  - docker
+    
+before_install:
+  - docker pull anlun/opam-ci
+  - docker run -it -d --name build -v $(pwd):/usr/share/imm anlun/opam-ci
 
 cache:
   apt: true
@@ -17,16 +24,16 @@ os:
     - linux
 
 install:
-- "[ -e .opam ] || travis_wait opam init -j ${NJOBS} --compiler=${OCAMLC} -n -y"
-- eval $(opam config env)
-- opam config var root
-- opam update
-- opam install coq.${COQC} 
-- coqc -v
-- opam remote add coq-released https://coq.inria.fr/opam/released
-- opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
-- opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
-- opam install coq-hahn coq-promising-lib
+- docker exec build opam init
+- docker exec build eval $(opam config env)
+- docker exec build opam config var root
+- docker exec build opam update
+- docker exec build opam install coq.${COQC} 
+- docker exec build coqc -v
+- docker exec build opam remote add coq-released https://coq.inria.fr/opam/released
+- docker exec build opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
+- docker exec build opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
+- docker exec build opam install coq-hahn coq-promising-lib
 
 script:
 - set -e
