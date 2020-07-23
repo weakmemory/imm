@@ -1,0 +1,45 @@
+dist: trusty
+language: ocaml
+cache:
+  apt: true
+  directories:
+  - $HOME/.opam
+addons:
+  apt:
+    sources:
+    - avsm
+    packages:
+    - opam
+    - aspcud
+env:
+  global:
+  - NJOBS=5
+  - OPAMYES=true
+  - OCAMLC="4.10.0"
+  matrix:
+  - COQC="8.9.1"
+matrix:
+  fast_finish: true
+os:
+    - linux
+
+install:
+- "[ -e .opam ] || travis_wait opam init -j ${NJOBS} --compiler=${OCAMLC} -n -y"
+- eval $(opam config env)
+- opam config var root
+- opam update
+- opam install coq ${COQC} 
+- opam list
+- ocamlc -v
+- coqc -v
+- opam repo add coq-released https://coq.inria.fr/opam/released
+- opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
+- opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
+- opam install coq-hahn coq-promising-lib
+
+script:
+- set -e
+- echo 'Building IMM...';
+  echo -en 'travis_fold:start:IMM.build';
+  make -j -k;
+  echo -en 'travis_fold:end:IMM.build'
