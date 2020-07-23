@@ -1,16 +1,9 @@
-dist: trusty
-language: ocaml
+image: anlun/opam-ci
+
 cache:
   apt: true
   directories:
   - $HOME/.opam
-addons:
-  apt:
-    sources:
-    - avsm
-    packages:
-    - opam
-    - aspcud
 env:
   global:
   - NJOBS=5
@@ -28,11 +21,9 @@ install:
 - eval $(opam config env)
 - opam config var root
 - opam update
-- opam install coq ${COQC} 
-- opam list
-- ocamlc -v
+- opam install coq.${COQC} 
 - coqc -v
-- opam repo add coq-released https://coq.inria.fr/opam/released
+- opam remote add coq-released https://coq.inria.fr/opam/released
 - opam remote add coq-promising-local -k git https://github.com/snu-sf/promising-opam-coq-archive
 - opam remote add coq-weakmemory-local -k git https://github.com/weakmemory/local-coq-opam-archive
 - opam install coq-hahn coq-promising-lib
