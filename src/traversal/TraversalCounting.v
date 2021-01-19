@@ -1,6 +1,6 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
-Require Import Omega.
+Require Import Lia.
 
 Require Import Events.
 Require Import Execution.
@@ -23,7 +23,7 @@ Proof using.
   induction y0.
   { simpls. }
   ins. desf; simpls.
-  1,3: omega.
+  1,3: lia.
   exfalso. apply n. by apply H.
 Qed.
 
@@ -59,7 +59,7 @@ Section TraversalCounting.
       rewrite ISSEQ.
       assert (countP (set_compl (covered T)) (acts G) >
               countP (set_compl (covered T')) (acts G)) as HH.
-      2: omega.
+      2: lia.
       rewrite COVEQ.
       unfold countP.
       assert (List.In e (acts G)) as LL.
@@ -73,7 +73,7 @@ Section TraversalCounting.
         exfalso. apply s0. by right. }
       destruct LL as [|H]; subst.
       2: { apply IHl in H. clear IHl.
-           simpls. desf; simpls; try omega.
+           simpls. desf; simpls; try lia.
            all: try by (exfalso; apply s0; left; apply NNPP).
              by exfalso; apply s; left; apply NNPP. }
       clear IHl.
@@ -83,14 +83,14 @@ Section TraversalCounting.
       { exfalso. apply s0. by right. }
       assert (length (filterP (set_compl (covered T ∪₁ eq e)) l') <=
               length (filterP (set_compl (covered T)) l')).
-      2: omega.
+      2: lia.
       eapply countP_mori; auto.
       basic_solver. }
     unfold trav_steps_left.
     rewrite COVEQ.
     assert (countP (W ∩₁ set_compl (issued T )) (acts G) >
             countP (W ∩₁ set_compl (issued T')) (acts G)) as HH.
-    2: omega.
+    2: lia.
     rewrite ISSEQ.
     unfold countP.
     assert (List.In e (acts G)) as LL.
@@ -107,7 +107,7 @@ Section TraversalCounting.
       all: by exfalso; apply n; split. }
     destruct LL as [|H]; subst.
     2: { apply IHl in H. clear IHl.
-         simpls. desf; simpls; try omega.
+         simpls. desf; simpls; try lia.
          1-2: by exfalso; apply n; destruct s0 as [H1 H2];
            split; auto; intros HH; apply H2; left.
          all: by exfalso; apply n; destruct s as [H1 H2];
@@ -121,7 +121,7 @@ Section TraversalCounting.
     2: { exfalso. apply n. by split. }
     assert (length (filterP (W ∩₁ set_compl (issued T ∪₁ eq e)) l') <=
             length (filterP (W ∩₁ set_compl (issued T)) l')).
-    2: omega.
+    2: lia.
     eapply countP_mori; auto.
     basic_solver.
   Qed.
@@ -147,7 +147,7 @@ Section TraversalCounting.
     E ⊆₁ covered T.
   Proof using.
     unfold trav_steps_left in *.
-    assert (countP (set_compl (covered T)) (acts G) = 0) as HH by omega.
+    assert (countP (set_compl (covered T)) (acts G) = 0) as HH by lia.
     clear NULL.
     unfold countP in *.
     apply length_zero_iff_nil in HH.
@@ -173,12 +173,12 @@ Section TraversalCounting.
   Proof using.
     unfold trav_steps_left in *.
     assert (countP (set_compl (covered T)) (acts G) > 0 \/
-            countP (W ∩₁ set_compl (issued T)) (acts G) > 0) as YY by omega.
+            countP (W ∩₁ set_compl (issued T)) (acts G) > 0) as YY by lia.
     assert (countP (set_compl (covered T)) (acts G) > 0) as HH.
     { destruct YY as [|YY]; auto.
       assert (countP (set_compl (covered T)) (acts G) >=
               countP (W ∩₁ set_compl (issued T)) (acts G)).
-      2: omega.
+      2: lia.
       apply countP_mori; auto.
       intros x [WX NN] COV.
       apply NN. eapply w_covered_issued; eauto. by split. }
@@ -208,7 +208,7 @@ Section TraversalCounting.
   Proof using.
     set (Q n := forall m, m <= n -> P m).
     assert (forall n, Q n) as HH.
-    2: { ins. apply (HH n). omega. }
+    2: { ins. apply (HH n). lia. }
     ins. induction n.
     { unfold Q. ins. inv H. apply HPi. ins. inv H0. }
     unfold Q in *. ins.
@@ -244,7 +244,7 @@ Section TraversalCounting.
     ins.
     destruct (classic (trav_steps_left T = 0)) as [EQ|NEQ].
     { eexists. splits; eauto. apply rt_refl. }
-    assert (trav_steps_left T > 0) as HH by omega.
+    assert (trav_steps_left T > 0) as HH by lia.
     eapply trav_steps_left_nnull_ncov in HH; auto.
     desc. eapply exists_next in HH0; eauto. desc.
     eapply exists_trav_step in HH1; eauto.

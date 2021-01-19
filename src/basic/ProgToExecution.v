@@ -1,4 +1,4 @@
-Require Import RelationClasses List Omega.
+Require Import RelationClasses List Lia.
 From hahn Require Import Hahn.
 From PromisingLib Require Import Loc.
 Require Import Events.
@@ -305,9 +305,9 @@ Section State.
     destruct ISTEP, ISTEP0; desf; rewrite UG, UINDEX in *; auto.
     all: unfold add, add_rmw, acts_set in *; simpls; vauto.
     all: try (destruct INY as [EIN|INX]; [|apply WF in INX; desf];
-      eexists; split; eauto; omega).
+      eexists; split; eauto; lia).
     all: destruct INY as [EIN|[EIN|INX]]; [ | | apply WF in INX; desf];
-      eexists; split; eauto; omega.
+      eexists; split; eauto; lia.
   Qed.
 
   Lemma same_lab (tid : thread_id) s s'
@@ -329,12 +329,12 @@ Section State.
     { red in WF; unnw.
       destruct (WF e); desf.
       intros H; inv H.
-      omega. }
+      lia. }
     assert (e <> (ThreadEvent tid (eindex x + 1))) as NEIN2.
     { red in WF; unnw.
       destruct (WF e); desf.
       intros H; inv H.
-      omega. }
+      lia. }
     red in STEP; desf.
     destruct ISTEP, ISTEP0; desf; rewrite UG; auto.
     all: unfold add, add_rmw in *; simpls; vauto.

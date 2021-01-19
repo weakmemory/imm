@@ -1,4 +1,4 @@
-Require Import ClassicalDescription Omega.
+Require Import ClassicalDescription Lia.
 
 From hahn Require Import Hahn.
 Require Import Events.
@@ -36,7 +36,7 @@ Proof using.
 red in TWF.
 intro.
 specialize (TWF (ThreadEvent tid (eindex s1)) H); desf.
-omega.
+lia.
 Qed.
 
 Lemma TWF_helper_rmw tid s1 (TWF : thread_wf tid s1): 
@@ -45,7 +45,7 @@ Proof using.
 red in TWF.
 intro.
 specialize (TWF (ThreadEvent tid (eindex s1 +1)) H); desf.
-omega.
+lia.
 Qed.
 
 
@@ -364,7 +364,7 @@ apply RFI_INDEX in RFI.
 eby eapply ext_sb_irr.
 specialize (TWF r IN); desf.
 apply RFI_INDEX in RFI.
-unfold sb, ext_sb in RFI; unfolder in RFI; desf; omega.
+unfold sb, ext_sb in RFI; unfolder in RFI; desf; lia.
 Qed.
 
 Lemma receptiveness_sim_load (tid : thread_id)
@@ -862,7 +862,7 @@ do 7 eexists; splits; red; splits.
          destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
          ** subst; rewrite SAME_LOC.
             rewrite !upds.
-            rewrite updo; [|intro; desf; omega].
+            rewrite updo; [|intro; desf; lia].
             rewrite !upds.
             erewrite regf_expr_helper; try edone.
             intro reg0; specialize (REGF reg0); desf; eauto.
@@ -886,7 +886,7 @@ do 7 eexists; splits; red; splits.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
     by rewrite upds in READ; desf.
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'))); subst.
-    rewrite updo in WRITE; [| intro; desf; omega].
+    rewrite updo in WRITE; [| intro; desf; lia].
     by rewrite upds in WRITE; desf.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
@@ -894,7 +894,7 @@ do 7 eexists; splits; red; splits.
       rewrite UG; unfold add; unfold acts_set; ins.
       split; [eauto| rewrite EINDEX; eauto].
       rewrite UG; unfold add; unfold R_ex; ins.
-      by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
+      by rewrite updo; [| intro; desf; lia]; rewrite EINDEX, upds.
     + unfold val; rewrite updo; [|done].
       rewrite updo; [|done].
       destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'+1))); subst.
@@ -906,7 +906,7 @@ do 7 eexists; splits; red; splits.
          apply EXEC in INr.
          apply TWF in INr; desc.
          rewrite <- EINDEX in RF0.
-         desf; omega.
+         desf; lia.
       -- rewrite !updo; try done.
          eapply NEW_VAL1; try edone.
          by rewrite <- EINDEX in n0; desf.
@@ -923,7 +923,7 @@ do 7 eexists; splits; red; splits.
       rewrite UG; unfold add; unfold acts_set; ins.
       split; [eauto| rewrite EINDEX; eauto].
       rewrite UG; unfold add; unfold R_ex; ins.
-      by rewrite updo; [| intro; desf; omega]; rewrite EINDEX, upds.
+      by rewrite updo; [| intro; desf; lia]; rewrite EINDEX, upds.
     + unfold val; rewrite updo; try done.
       apply NEW_VAL2; try done.
       unfold is_r in *; rewrite !updo in READ; try done.
@@ -1002,9 +1002,9 @@ Proof using.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { subst.
-        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite updo; [|intros HH; clear -HH; inv HH; lia]. 
         rewrite !upds. unfold same_label_u2v.
-        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite updo; [|intros HH; clear -HH; inv HH; lia]. 
         rewrite upds; auto. }
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
       { subst.
@@ -1031,7 +1031,7 @@ Proof using.
         rewrite !upds.
         destruct (excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))) as [MN|NMN].
         { exfalso. eauto. }
-        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite updo; [|intros HH; clear -HH; inv HH; lia]. 
           by rewrite upds. }
       rewrite !updo; auto.
       by apply OLD_VAL in NIN; unfold val in NIN; rewrite NIN. }
@@ -1047,20 +1047,20 @@ Proof using.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
     { by rewrite upds in READ; desf. }
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'))); subst.
-    rewrite updo in WRITE; [| intro; desf; omega].
+    rewrite updo in WRITE; [| intro; desf; lia].
     { by rewrite upds in WRITE; desf. }
 
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1' + 1))); subst.
     { exfalso.
       apply RFI_INDEX in RF; unfold ext_sb in RF.
       destruct INr as [INr|[INr|INr]]; subst.
-      1,2: clear -RF; omega.
+      1,2: clear -RF; lia.
       destruct r; [eauto|]; desc.
       apply sim_execution_same_acts in EXEC.
       apply EXEC in INr.
       apply TWF in INr; desc.
       rewrite <- EINDEX in RF0.
-      inv EE. clear -RF0 LT. omega. }
+      inv EE. clear -RF0 LT. lia. }
 
     assert (is_w (lab (G s1')) w) as WW'.
     { rewrite !updo in WRITE; edone. }
@@ -1172,9 +1172,9 @@ Proof using.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
       { subst.
-        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite updo; [|intros HH; clear -HH; inv HH; lia]. 
         rewrite !upds. unfold same_label_u2v.
-        rewrite updo; [|intros HH; clear -HH; inv HH; omega]. 
+        rewrite updo; [|intros HH; clear -HH; inv HH; lia]. 
         rewrite upds; auto. }
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
       { subst.
@@ -1192,7 +1192,7 @@ Proof using.
       destruct (eq_dec_actid a (ThreadEvent tid (eindex s1'))).
       { subst; rewrite SAME_LOC.
          rewrite !upds.
-         rewrite updo; [|intro; desf; omega].
+         rewrite updo; [|intro; desf; lia].
          rewrite !upds. desf. }
       rewrite !updo; try done.
       by apply OLD_VAL in NIN; unfold val in NIN; rewrite NIN. }
@@ -1208,20 +1208,20 @@ Proof using.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
     { by rewrite upds in READ; desf. }
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1'))); subst.
-    rewrite updo in WRITE; [| intro; desf; omega].
+    rewrite updo in WRITE; [| intro; desf; lia].
     { by rewrite upds in WRITE; desf. }
 
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1' + 1))); subst.
     { exfalso.
       apply RFI_INDEX in RF; unfold ext_sb in RF.
       destruct INr as [INr|[INr|INr]]; subst.
-      1,2: clear -RF; omega.
+      1,2: clear -RF; lia.
       destruct r; [eauto|]; desc.
       apply sim_execution_same_acts in EXEC.
       apply EXEC in INr.
       apply TWF in INr; desc.
       rewrite <- EINDEX in RF0.
-      inv EE. clear -RF0 LT. omega. }
+      inv EE. clear -RF0 LT. lia. }
 
     assert (is_w (lab (G s1')) w) as WW'.
     { rewrite !updo in WRITE; edone. }

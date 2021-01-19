@@ -560,7 +560,7 @@ End SameFuns2.
 (** ** Sequenced-Before *)
 (******************************************************************************)
 
-Require Import Omega.
+Require Import Lia.
 
 Definition ext_sb a b := 
   match a, b with 
@@ -595,7 +595,7 @@ unfold ext_sb in *.
 destruct x,y,z; ins; desf.
 cut(index1 < index2 \/ index2 < index1).
 tauto.
-omega.
+lia.
 Qed.
 
 Lemma ext_sb_semi_total_r x y z 
@@ -606,7 +606,7 @@ unfold ext_sb in *.
 destruct x,y,z; ins; desf; eauto.
 cut(index1 < index2 \/ index2 < index1).
 tauto.
-omega.
+lia.
 Qed.
 
 Lemma ext_sb_tid_init x y (SB : ext_sb x y): tid x = tid y \/ is_init x.
@@ -625,7 +625,7 @@ unfold ext_sb, same_tid, tid, is_init, cross_rel; unfolder.
 ins; destruct x, y; desf; eauto.
 cut(index0 < index1 \/ index1 < index0 \/ index0 = index1).
 by ins; desf; eauto.
-omega.
+lia.
 Qed.
 
 Lemma tid_n_init_ext_sb: same_tid ⨾ ⦗set_compl is_init⦘ ⊆ ext_sb^? ∪ ext_sb^{-1}.

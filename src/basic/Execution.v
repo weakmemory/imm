@@ -2,7 +2,7 @@
 (** * Definition of executions (common basis for all types of executions) *)
 (******************************************************************************)
 
-Require Import Omega.
+Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxDef.
@@ -1111,7 +1111,7 @@ Proof using.
   assert (exists n, forall m (IN : In (ThreadEvent thread m) acts0),
                m < n) as [n AA].
   2: { desf. exists n. induction acts0; simpls.
-       intros HH. apply AA in HH. omega. }
+       intros HH. apply AA in HH. lia. }
   induction acts0; simpls.
   { exists 1. ins. }
   desf.
@@ -1119,10 +1119,10 @@ Proof using.
   { exists n. ins. desf. intuition. }
   exists (1 + max n index).
   ins. desf.
-  { apply Max.max_case_strong; omega. }
+  { apply Max.max_case_strong; lia. }
   apply IHacts0 in IN.
   etransitivity; eauto.
-  apply Max.max_case_strong; omega.
+  apply Max.max_case_strong; lia.
 Qed.
 
 Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
