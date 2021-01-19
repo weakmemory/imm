@@ -17,8 +17,8 @@ Set Implicit Arguments.
 Lemma ectrl_ctrl_step (tid : thread_id) 
          s s' (STEP : step tid s s')
          MOD (ECTRL: exists a, (MOD ∩₁ ectrl s') a)
-        (NCTRL: MOD ∩₁ dom_rel (s'.(G).(ctrl)) ⊆₁ ∅) :
-         s.(G) = s'.(G).
+        (NCTRL: MOD ∩₁ dom_rel ((ctrl (G s'))) ⊆₁ ∅) :
+         (G s) = (G s').
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -31,7 +31,7 @@ Qed.
 
 
 Lemma TWF_helper tid s1 (TWF : thread_wf tid s1): 
-~ acts_set s1.(G) (ThreadEvent tid (s1.(eindex))).
+~ acts_set (G s1) (ThreadEvent tid ((eindex s1))).
 Proof using.
 red in TWF.
 intro.
@@ -40,7 +40,7 @@ lia.
 Qed.
 
 Lemma TWF_helper_rmw tid s1 (TWF : thread_wf tid s1): 
-~ acts_set s1.(G) (ThreadEvent tid (s1.(eindex) + 1)).
+~ acts_set (G s1) (ThreadEvent tid ((eindex s1) + 1)).
 Proof using.
 red in TWF.
 intro.
@@ -50,7 +50,7 @@ Qed.
 
 
 Lemma acts_increasing (tid : thread_id) s s' (STEP : step tid s s') :
-  s.(G).(acts_set) ⊆₁ s'.(G).(acts_set).
+  (acts_set (G s)) ⊆₁ (acts_set (G s')).
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -61,7 +61,7 @@ all: unfolder; ins; desc; eauto.
 Qed.
 
 Lemma is_r_ex_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
-  s.(G).(acts_set) ∩₁ R_ex s.(G).(lab) ⊆₁ R_ex s'.(G).(lab).
+  (acts_set (G s)) ∩₁ R_ex (lab (G s)) ⊆₁ R_ex (lab (G s')).
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -75,7 +75,7 @@ all: try by (intro; subst; eapply TWF_helper_rmw; edone).
 Qed.
 
 Lemma is_r_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
-  s.(G).(acts_set) ∩₁ is_r s.(G).(lab) ⊆₁ is_r s'.(G).(lab).
+  (acts_set (G s)) ∩₁ is_r (lab (G s)) ⊆₁ is_r (lab (G s')).
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -90,7 +90,7 @@ Qed.
 
 
 Lemma is_w_increasing (tid : thread_id) s s' (STEP : step tid s s') (TWF : thread_wf tid s):
-  s.(G).(acts_set) ∩₁ is_w s.(G).(lab) ⊆₁ is_w s'.(G).(lab).
+  (acts_set (G s)) ∩₁ is_w (lab (G s)) ⊆₁ is_w (lab (G s')).
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -151,42 +151,42 @@ Qed.
 (******************************************************************************)
 
 Definition sim_execution G G' MOD :=
-      ⟪ ACTS : G.(acts) = G'.(acts) ⟫ /\
-      ⟪ SAME : same_lab_u2v G'.(lab) G.(lab) ⟫ /\
-      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (G'.(lab)) a = val (G.(lab)) a ⟫ /\
-      ⟪ RMW  : G.(rmw)  ≡ G'.(rmw)  ⟫ /\
-      ⟪ DATA : G.(data) ≡ G'.(data) ⟫ /\
-      ⟪ ADDR : G.(addr) ≡ G'.(addr) ⟫ /\
-      ⟪ CTRL : G.(ctrl) ≡ G'.(ctrl) ⟫ /\
-      ⟪ FRMW : G.(rmw_dep) ≡ G'.(rmw_dep) ⟫ /\
-      ⟪ RRF : G.(rf) ≡ G'.(rf) ⟫ /\
-      ⟪ RCO : G.(co) ≡ G'.(co) ⟫.
+      ⟪ ACTS : (acts G) = (acts G') ⟫ /\
+      ⟪ SAME : same_lab_u2v (lab G') (lab G) ⟫ /\
+      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val ((lab G')) a = val ((lab G)) a ⟫ /\
+      ⟪ RMW  : (rmw G)  ≡ (rmw G')  ⟫ /\
+      ⟪ DATA : (data G) ≡ (data G') ⟫ /\
+      ⟪ ADDR : (addr G) ≡ (addr G') ⟫ /\
+      ⟪ CTRL : (ctrl G) ≡ (ctrl G') ⟫ /\
+      ⟪ FRMW : (rmw_dep G) ≡ (rmw_dep G') ⟫ /\
+      ⟪ RRF : (rf G) ≡ (rf G') ⟫ /\
+      ⟪ RCO : (co G) ≡ (co G') ⟫.
 
 Definition sim_state s s' MOD (new_rfi : relation actid) new_val := 
-      ⟪ INSTRS  : s.(instrs) = s'.(instrs) ⟫ /\
-      ⟪ PC  : s.(pc) = s'.(pc) ⟫ /\
-      ⟪ EXEC : sim_execution s.(G) s'.(G) MOD ⟫ /\
-      ⟪ EINDEX  : s.(eindex) = s'.(eindex) ⟫ /\
-      ⟪ REGF  : forall reg, RegFun.find reg s.(regf) = RegFun.find reg s'.(regf) \/ 
-exists a, (RegFun.find reg s.(depf)) a /\ MOD a ⟫ /\
-      ⟪ DEPF  : s.(depf) = s'.(depf) ⟫ /\
-      ⟪ ECTRL  : s.(ectrl) = s'.(ectrl) ⟫ /\
-      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r) (INr: s'.(G).(acts_set) r) 
-(INw: s'.(G).(acts_set) w) (READ: is_r s'.(G).(lab) r) (WRITE: is_w s'.(G).(lab) w) (IN_MOD: MOD r), 
-                     val (s'.(G).(lab)) r = val (s'.(G).(lab)) w ⟫ /\
-      ⟪ NEW_VAL2 : forall r (READ: is_r s'.(G).(lab) r) (IN_MOD: MOD r) 
-                     (IN: s'.(G).(acts_set) r) (NIN_NEW_RF: ~ (codom_rel new_rfi) r), 
-                     val (s'.(G).(lab)) r = Some (new_val r) ⟫.
+      ⟪ INSTRS  : (instrs s) = (instrs s') ⟫ /\
+      ⟪ PC  : (pc s) = (pc s') ⟫ /\
+      ⟪ EXEC : sim_execution (G s) (G s') MOD ⟫ /\
+      ⟪ EINDEX  : (eindex s) = (eindex s') ⟫ /\
+      ⟪ REGF  : forall reg, RegFun.find reg (regf s) = RegFun.find reg (regf s') \/ 
+exists a, (RegFun.find reg (depf s)) a /\ MOD a ⟫ /\
+      ⟪ DEPF  : (depf s) = (depf s') ⟫ /\
+      ⟪ ECTRL  : (ectrl s) = (ectrl s') ⟫ /\
+      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r) (INr: (acts_set (G s')) r) 
+(INw: (acts_set (G s')) w) (READ: is_r (lab (G s')) r) (WRITE: is_w (lab (G s')) w) (IN_MOD: MOD r), 
+                     val ((lab (G s'))) r = val ((lab (G s'))) w ⟫ /\
+      ⟪ NEW_VAL2 : forall r (READ: is_r (lab (G s')) r) (IN_MOD: MOD r) 
+                     (IN: (acts_set (G s')) r) (NIN_NEW_RF: ~ (codom_rel new_rfi) r), 
+                     val ((lab (G s'))) r = Some (new_val r) ⟫.
 
 Lemma sim_execution_same_r G G' MOD (EXEC: sim_execution G G' MOD) :
-is_r G'.(lab) ≡₁ is_r G.(lab).
+is_r (lab G') ≡₁ is_r (lab G).
 Proof using.
 red in EXEC; desf.
 eby erewrite same_lab_u2v_is_r.
 Qed.
 
 Lemma sim_execution_same_w G G' MOD (EXEC: sim_execution G G' MOD) :
-is_w G'.(lab) ≡₁ is_w G.(lab).
+is_w (lab G') ≡₁ is_w (lab G).
 Proof using.
 red in EXEC; desf.
 eby erewrite same_lab_u2v_is_w.
@@ -356,8 +356,8 @@ Definition get_val (v: option value) :=
 Lemma RFI_index_helper tid s new_rfi (TWF : thread_wf tid s)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
    w r (RFI: new_rfi w r) 
-  (IN: ThreadEvent tid s.(eindex) = r \/ In r s.(G).(acts)) :
-   w <> ThreadEvent tid (s.(eindex)).
+  (IN: ThreadEvent tid (eindex s) = r \/ In r (acts (G s))) :
+   w <> ThreadEvent tid ((eindex s)).
 Proof using.
 intro; subst; desf.
 apply RFI_INDEX in RFI.
@@ -382,7 +382,7 @@ Lemma receptiveness_sim_load (tid : thread_id)
   (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
   (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
   (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
   (new_rfif : functional new_rfi⁻¹)
@@ -410,7 +410,7 @@ do 7 eexists; splits; red; splits.
     eapply load with (val := 
       if excluded_middle_informative (MOD (ThreadEvent tid (eindex s1'))) 
       then if excluded_middle_informative ((codom_rel new_rfi) (ThreadEvent tid (eindex s1'))) 
-           then (get_val (val s1'.(G).(lab) (new_w (ThreadEvent tid (eindex s1')))))
+           then (get_val (val (lab (G s1')) (new_w (ThreadEvent tid (eindex s1')))))
            else (new_val (ThreadEvent tid (eindex s1')))
       else val_);
     reflexivity.
@@ -499,8 +499,8 @@ Lemma receptiveness_sim_store (tid : thread_id)
   (UDEPS : depf s2 = depf s1)
   (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+  (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
@@ -683,9 +683,9 @@ Lemma receptiveness_sim_cas_fail (tid : thread_id)
   (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
   (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
-  (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
+  (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+  (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
   exists s2', (step tid) s1' s2' /\ sim_state s2 s2' MOD new_rfi new_val.
 Proof using.
@@ -800,10 +800,10 @@ Lemma receptiveness_sim_cas_suc (tid : thread_id)
   (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
   (UECTRL : ectrl s2 = ectrl s1)
   MOD (new_rfi : relation actid) new_val
-  (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-  (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+  (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+  (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
+  (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
   s1' (SIM: sim_state s1 s1' MOD new_rfi new_val) :
@@ -948,8 +948,8 @@ Lemma receptiveness_sim_inc (tid : thread_id)
                            (RegFile.eval_lexpr (regf s1) lexpr) val_)
                     (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
                             (val_ + RegFile.eval_expr (regf s1) expr_add))
-                    ((eq (ThreadEvent tid s1.(eindex))) ∪₁
-                     (DepsFile.expr_deps s1.(depf) expr_add))
+                    ((eq (ThreadEvent tid (eindex s1))) ∪₁
+                     (DepsFile.expr_deps (depf s1) expr_add))
                     (DepsFile.lexpr_deps (depf s1) lexpr)
                     (ectrl s1) ∅)
       (UINDEX : eindex s2 = eindex s1 + 2)
@@ -957,10 +957,10 @@ Lemma receptiveness_sim_inc (tid : thread_id)
       (UDEPS : depf s2 = RegFun.add reg (eq (ThreadEvent tid (eindex s1))) (depf s1))
       (UECTRL : ectrl s2 = ectrl s1)
       MOD (new_rfi : relation actid) new_val
-      (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-      (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-      (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-      (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+      (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+      (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+      (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
+      (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
       (TWF : thread_wf tid s1)
       (RFI_INDEX : new_rfi ⊆ ext_sb)
       (new_rfif : functional new_rfi⁻¹)
@@ -987,7 +987,7 @@ Proof using.
     eapply inc with (val := 
       if excluded_middle_informative (MOD (ThreadEvent tid (eindex s1'))) 
       then if excluded_middle_informative ((codom_rel new_rfi) (ThreadEvent tid (eindex s1'))) 
-           then (get_val (val s1'.(G).(lab) (new_w (ThreadEvent tid (eindex s1')))))
+           then (get_val (val (lab (G s1')) (new_w (ThreadEvent tid (eindex s1')))))
            else (new_val (ThreadEvent tid (eindex s1')))
       else val_);
     reflexivity. }
@@ -1118,7 +1118,7 @@ Lemma receptiveness_sim_exchange
                                   val_)
                            (Astore xmod ordw (RegFile.eval_lexpr (regf s1) lexpr)
                                    (RegFile.eval_expr (regf s1) new_expr))
-                           (DepsFile.expr_deps s1.(depf) new_expr)
+                           (DepsFile.expr_deps (depf s1) new_expr)
                            (DepsFile.lexpr_deps (depf s1) lexpr)
                            (ectrl s1) ∅)
       (UINDEX : eindex s2 = eindex s1 + 2)
@@ -1127,10 +1127,10 @@ Lemma receptiveness_sim_exchange
                                     (depf s1))
       (UECTRL : ectrl s2 = ectrl s1)
       MOD (new_rfi : relation actid) new_val
-      (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-      (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-      (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-      (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+      (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+      (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+      (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
+      (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
       (TWF : thread_wf tid s1)
       (RFI_INDEX : new_rfi ⊆ ext_sb)
       (new_rfif : functional new_rfi⁻¹)
@@ -1157,7 +1157,7 @@ Proof using.
     eapply exchange with (val :=
       if excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))
       then if excluded_middle_informative ((codom_rel new_rfi) (ThreadEvent tid (eindex s1')))
-           then (get_val (val s1'.(G).(lab) (new_w (ThreadEvent tid (eindex s1')))))
+           then (get_val (val (lab (G s1')) (new_w (ThreadEvent tid (eindex s1')))))
            else (new_val (ThreadEvent tid (eindex s1')))
       else val_);
     reflexivity. }
@@ -1267,10 +1267,10 @@ Lemma receptiveness_sim_step (tid : thread_id)
   (CASREX : cas_produces_R_ex_instrs (instrs s1))
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
-  (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-  (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+  (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+  (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
+  (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (new_rfif : functional new_rfi⁻¹)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
@@ -1297,10 +1297,10 @@ Lemma receptiveness_sim (tid : thread_id)
   (CASREX : cas_produces_R_ex_instrs (instrs s1))
   MOD (new_rfi : relation actid) new_val
   (NCTRL : MOD ∩₁ ectrl s2 ⊆₁ ∅)
-  (NFRMW: MOD ∩₁ dom_rel (s2.(G).(rmw_dep)) ⊆₁ ∅)
-  (NADDR : MOD ∩₁ dom_rel (s2.(G).(addr)) ⊆₁ ∅)
-  (NREX:  MOD ∩₁ s2.(G).(acts_set) ∩₁ (R_ex s2.(G).(lab)) ⊆₁ ∅) 
-  (NDATA: ⦗MOD⦘ ⨾ s2.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
+  (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s2))) ⊆₁ ∅)
+  (NADDR : MOD ∩₁ dom_rel ((addr (G s2))) ⊆₁ ∅)
+  (NREX:  MOD ∩₁ (acts_set (G s2)) ∩₁ (R_ex (lab (G s2))) ⊆₁ ∅) 
+  (NDATA: ⦗MOD⦘ ⨾ (data (G s2)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂)
   (new_rfif : functional new_rfi⁻¹)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
   (TWF : thread_wf tid s1)
@@ -1349,25 +1349,25 @@ Lemma receptiveness_helper (tid : thread_id)
       (new_rfi : relation actid)
       (MOD: actid -> Prop)
       (STEPS : (step tid)＊ s_init s)
-      (new_rfiE : new_rfi ≡ ⦗s.(G).(acts_set)⦘ ⨾ new_rfi ⨾ ⦗s.(G).(acts_set)⦘)
-      (new_rfiD : new_rfi ≡ ⦗is_w s.(G).(lab)⦘ ⨾ new_rfi ⨾ ⦗is_r s.(G).(lab)⦘)
+      (new_rfiE : new_rfi ≡ ⦗(acts_set (G s))⦘ ⨾ new_rfi ⨾ ⦗(acts_set (G s))⦘)
+      (new_rfiD : new_rfi ≡ ⦗is_w (lab (G s))⦘ ⨾ new_rfi ⨾ ⦗is_r (lab (G s))⦘)
       (new_rfif : functional new_rfi⁻¹)
       (RFI_INDEX : new_rfi ⊆ ext_sb)
       (NCTRL : MOD ∩₁ ectrl s ⊆₁ ∅) 
-      (NFRMW: MOD ∩₁ dom_rel (s.(G).(rmw_dep)) ⊆₁ ∅)
-      (NADDR : MOD ∩₁ dom_rel (s.(G).(addr)) ⊆₁ ∅)
-      (NREX:  MOD ∩₁ s.(G).(acts_set) ∩₁ (R_ex s.(G).(lab)) ⊆₁ ∅) 
-      (NDATA: ⦗MOD⦘ ⨾ s.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) 
+      (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s))) ⊆₁ ∅)
+      (NADDR : MOD ∩₁ dom_rel ((addr (G s))) ⊆₁ ∅)
+      (NREX:  MOD ∩₁ (acts_set (G s)) ∩₁ (R_ex (lab (G s))) ⊆₁ ∅) 
+      (NDATA: ⦗MOD⦘ ⨾ (data (G s)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) 
       (new_rfiMOD : codom_rel new_rfi ⊆₁ MOD)
-      (NMODINIT: MOD ∩₁ s_init.(ProgToExecution.G).(acts_set) ⊆₁ ∅)
-      (EMOD : MOD ⊆₁ (ProgToExecution.G s).(acts_set)) :
+      (NMODINIT: MOD ∩₁ (acts_set (ProgToExecution.G s_init)) ⊆₁ ∅)
+      (EMOD : MOD ⊆₁ (acts_set (ProgToExecution.G s))) :
     exists s',
       ⟪ STEPS' : (step tid)＊ s_init s' ⟫ /\
-      ⟪ EXEC : sim_execution s.(G) s'.(G) MOD ⟫ /\
-      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r), val (s'.(G).(lab)) r = val (s'.(G).(lab)) w ⟫ /\
-      ⟪ NEW_VAL2 : forall r (RR : is_r s'.(G).(lab) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
-          val (s'.(G).(lab)) r = Some (new_val r) ⟫ /\
-      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (s'.(G).(lab)) a = val (s.(G).(lab)) a ⟫.
+      ⟪ EXEC : sim_execution (G s) (G s') MOD ⟫ /\
+      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r), val ((lab (G s'))) r = val ((lab (G s'))) w ⟫ /\
+      ⟪ NEW_VAL2 : forall r (RR : is_r (lab (G s')) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
+          val ((lab (G s'))) r = Some (new_val r) ⟫ /\
+      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val ((lab (G s'))) a = val ((lab (G s))) a ⟫.
 Proof using.
 apply receptiveness_sim with (s1':= s_init) (MOD:=MOD) (new_rfi:=new_rfi) (new_val:=new_val) in STEPS.
 all: try done.
@@ -1404,10 +1404,10 @@ Lemma receptiveness_ectrl_helper (tid : thread_id)
       s_init s 
       (GPC : wf_thread_state tid s_init)
       (STEPS : (step tid)＊ s_init s)
-      MOD (NCTRL: MOD ∩₁ dom_rel (s.(G).(ctrl)) ⊆₁ ∅) 
-      (NMODINIT: MOD ∩₁ s_init.(G).(acts_set) ⊆₁ ∅):
+      MOD (NCTRL: MOD ∩₁ dom_rel ((ctrl (G s))) ⊆₁ ∅) 
+      (NMODINIT: MOD ∩₁ (acts_set (G s_init)) ⊆₁ ∅):
       exists s', (step tid)＊ s_init s' /\
-                 (MOD ∩₁ ectrl s' ⊆₁ ∅) /\ s'.(G) = s.(G).
+                 (MOD ∩₁ ectrl s' ⊆₁ ∅) /\ (G s') = (G s).
 Proof using.
 apply clos_rt_rtn1 in STEPS.
 induction STEPS.
@@ -1438,31 +1438,31 @@ Lemma receptiveness_full (tid : thread_id)
       (GPC : wf_thread_state tid s_init)
       (CASREX : cas_produces_R_ex_instrs (instrs s_init))
       (STEPS : (step tid)＊ s_init s)
-      (new_rfiE : new_rfi ≡ ⦗s.(G).(acts_set)⦘ ⨾ new_rfi ⨾ ⦗s.(G).(acts_set)⦘)
-      (new_rfiD : new_rfi ≡ ⦗is_w s.(G).(lab)⦘ ⨾ new_rfi ⨾ ⦗is_r s.(G).(lab)⦘)
+      (new_rfiE : new_rfi ≡ ⦗(acts_set (G s))⦘ ⨾ new_rfi ⨾ ⦗(acts_set (G s))⦘)
+      (new_rfiD : new_rfi ≡ ⦗is_w (lab (G s))⦘ ⨾ new_rfi ⨾ ⦗is_r (lab (G s))⦘)
       (new_rfif : functional new_rfi⁻¹)
       (RFI_INDEX : new_rfi ⊆ ext_sb)
       (new_rfiMOD : codom_rel new_rfi ⊆₁ MOD)
-      (EMOD : MOD ⊆₁ (ProgToExecution.G s).(acts_set))
-      (NMODINIT: MOD ∩₁ s_init.(ProgToExecution.G).(acts_set) ⊆₁ ∅)
-      (NFRMW: MOD ∩₁ dom_rel (s.(G).(rmw_dep)) ⊆₁ ∅)
-      (NADDR : MOD ∩₁ dom_rel (s.(G).(addr)) ⊆₁ ∅)
-      (NREX:  MOD ∩₁ s.(G).(acts_set) ∩₁(R_ex s.(G).(lab)) ⊆₁ ∅) 
-      (NCTRL: MOD ∩₁ dom_rel (s.(G).(ctrl)) ⊆₁ ∅)
-      (NDATA: ⦗MOD⦘ ⨾ s.(G).(data) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) :
+      (EMOD : MOD ⊆₁ (acts_set (ProgToExecution.G s)))
+      (NMODINIT: MOD ∩₁ (acts_set (ProgToExecution.G s_init)) ⊆₁ ∅)
+      (NFRMW: MOD ∩₁ dom_rel ((rmw_dep (G s))) ⊆₁ ∅)
+      (NADDR : MOD ∩₁ dom_rel ((addr (G s))) ⊆₁ ∅)
+      (NREX:  MOD ∩₁ (acts_set (G s)) ∩₁(R_ex (lab (G s))) ⊆₁ ∅) 
+      (NCTRL: MOD ∩₁ dom_rel ((ctrl (G s))) ⊆₁ ∅)
+      (NDATA: ⦗MOD⦘ ⨾ (data (G s)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) :
     exists s',
       ⟪ STEPS' : (step tid)＊ s_init s' ⟫ /\
-      ⟪ RACTS : s.(G).(acts) = s'.(G).(acts) ⟫ /\
-      ⟪ RRMW  : s.(G).(rmw)  ≡ s'.(G).(rmw)  ⟫ /\
-      ⟪ RDATA : s.(G).(data) ≡ s'.(G).(data) ⟫ /\
-      ⟪ RADDR : s.(G).(addr) ≡ s'.(G).(addr) ⟫ /\
-      ⟪ RCTRL : s.(G).(ctrl) ≡ s'.(G).(ctrl) ⟫  /\
-      ⟪ RFAILRMW : s.(G).(rmw_dep) ≡ s'.(G).(rmw_dep) ⟫  /\
-      ⟪ SAME : same_lab_u2v (s'.(G).(lab)) (s.(G).(lab))⟫ /\
-      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r), val (s'.(G).(lab)) r = val (s'.(G).(lab)) w ⟫ /\
-      ⟪ NEW_VAL2 : forall r (RR : is_r s'.(G).(lab) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
-          val (s'.(G).(lab)) r = Some (new_val r) ⟫ /\
-      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val (s'.(G).(lab)) a = val (s.(G).(lab)) a ⟫.
+      ⟪ RACTS : (acts (G s)) = (acts (G s')) ⟫ /\
+      ⟪ RRMW  : (rmw (G s))  ≡ (rmw (G s'))  ⟫ /\
+      ⟪ RDATA : (data (G s)) ≡ (data (G s')) ⟫ /\
+      ⟪ RADDR : (addr (G s)) ≡ (addr (G s')) ⟫ /\
+      ⟪ RCTRL : (ctrl (G s)) ≡ (ctrl (G s')) ⟫  /\
+      ⟪ RFAILRMW : (rmw_dep (G s)) ≡ (rmw_dep (G s')) ⟫  /\
+      ⟪ SAME : same_lab_u2v ((lab (G s'))) ((lab (G s)))⟫ /\
+      ⟪ NEW_VAL1 : forall r w (RF: new_rfi w r), val ((lab (G s'))) r = val ((lab (G s'))) w ⟫ /\
+      ⟪ NEW_VAL2 : forall r (RR : is_r (lab (G s')) r) (IN: MOD r) (NIN: ~ (codom_rel new_rfi) r),
+          val ((lab (G s'))) r = Some (new_val r) ⟫ /\
+      ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val ((lab (G s'))) a = val ((lab (G s))) a ⟫.
 Proof using.
 forward (apply receptiveness_ectrl_helper); try edone.
 

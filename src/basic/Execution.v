@@ -40,20 +40,20 @@ Section Execution.
 
 Variable G : execution.
 
-Definition acts_set := fun x => In x G.(acts).
+Definition acts_set := fun x => In x (acts G).
 
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Notation "'E'" := acts_set.
-Notation "'lab'" := G.(lab).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'lab'" := (lab G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
@@ -418,7 +418,7 @@ rewrite (wf_init_lab WF l), (wf_init_lab WF l0) in LOC; desf.
 Qed.
 
 Lemma Rel_not_init WF : Rel ⊆₁ set_compl is_init.
-Proof using. rewrite WF.(init_pln). mode_solver. Qed.
+Proof using. rewrite (init_pln WF). mode_solver. Qed.
 
 (******************************************************************************)
 (** ** More properties *)
@@ -886,7 +886,7 @@ Proof using.
   | H : W_ex _ |- _ => rename H into WEX
   end.
   destruct WEX as [z WEX].
-  apply WF.(rmw_in_sb) in WEX.
+  apply (rmw_in_sb WF) in WEX.
   apply no_sb_to_init in WEX. unfolder in WEX. desf.
 Qed.
 
@@ -926,7 +926,7 @@ Proof using.
   | H : W_ex _ |- _ => rename H into WEX
   end.
   destruct WEX as [z WEX].
-  apply WF.(rmw_in_sb) in WEX.
+  apply (rmw_in_sb WF) in WEX.
   apply no_sb_to_init in WEX. unfolder in WEX. desf.
 Qed.
 
@@ -937,22 +937,22 @@ Qed.
 Lemma wf_rfrmwE WF: rf ⨾ rmw ≡ ⦗ E ⦘ ⨾ (rf ⨾ rmw) ⨾ ⦗ E ⦘.
 Proof using.
 split; [|basic_solver].
-rewrite WF.(wf_rfE) at 1. 
-rewrite WF.(wf_rmwE) at 1.
+rewrite (wf_rfE WF) at 1. 
+rewrite (wf_rmwE WF) at 1.
 basic_solver.
 Qed.
 
 Lemma wf_rfrmwD WF: rf ⨾ rmw ≡ ⦗ W ⦘ ⨾ (rf ⨾ rmw) ⨾ ⦗ W ⦘.
 Proof using.
 split; [|basic_solver].
-rewrite WF.(wf_rfD) at 1. 
-rewrite WF.(wf_rmwD) at 1.
+rewrite (wf_rfD WF) at 1. 
+rewrite (wf_rmwD WF) at 1.
 basic_solver.
 Qed.
 
 Lemma wf_rfrmwl WF: rf ⨾ rmw ⊆ same_loc. 
 Proof using.
-rewrite WF.(wf_rfl), WF.(wf_rmwl).
+rewrite (wf_rfl WF), (wf_rmwl WF).
 generalize same_loc_trans; basic_solver.
 Qed.
 
@@ -1022,7 +1022,7 @@ Proof using.
   rewrite (rmw_in_sb_loc WF) at 1 3.
   generalize sb_same_loc_trans; intros HH; relsf.
   unionR right.
-  rewrite (dom_l WF.(wf_rfeD)), !seqA.
+  rewrite (dom_l (wf_rfeD WF)), !seqA.
   rewrite <- seqA with (r2:= ⦗W⦘).
   rewrite ct_rotl, !seqA.
   arewrite ((sb ∩ same_loc)^? ⨾ (sb ∩ same_loc)^? ⊆ (sb ∩ same_loc)^?).
@@ -1034,7 +1034,7 @@ Proof using.
     generalize sb_same_loc_trans.
     basic_solver 10. }
   arewrite (rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)＊ ⊆ rmw ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘).
-  2: { rewrite (dom_l WF.(wf_rfeD)) at 1 2; rewrite !seqA.
+  2: { rewrite (dom_l (wf_rfeD WF)) at 1 2; rewrite !seqA.
        arewrite_id ⦗W⦘ at 1. rewrite seq_id_l.
        apply ct_end. }
   rewrite rtE, seq_union_r.
@@ -1050,27 +1050,27 @@ Lemma s_sw_in_ar_helper WF:
 Proof using.
   arewrite (rf ⨾ rmw ⊆ (sb ∩ same_loc)^? ⨾ rf ⨾ rmw).
   { basic_solver 10. }
-  apply WF.(sw_in_ar_helper).
+  apply (sw_in_ar_helper WF).
 Qed.
 
 Lemma sb_co_trans WF :
   transitive ((⦗F⦘ ⨾ sb)^? ⨾ co).
 Proof using.
   apply transitiveI. rewrite !seqA.
-  rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
+  rewrite (dom_r (wf_coD WF)). rewrite !seqA.
   arewrite_id (⦗W⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
   { type_solver. }
-  rewrite seq_id_l. by sin_rewrite WF.(co_co).
+  rewrite seq_id_l. by sin_rewrite (co_co WF).
 Qed.
 
 Lemma rel_sb_co_trans WF :
   transitive (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ co).
 Proof using.
   apply transitiveI. rewrite !seqA.
-  rewrite (dom_r WF.(wf_coD)). rewrite !seqA.
+  rewrite (dom_r (wf_coD WF)). rewrite !seqA.
   arewrite_id (⦗W⦘ ⨾ ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^?).
   { type_solver. }
-  rewrite seq_id_l. by sin_rewrite WF.(co_co).
+  rewrite seq_id_l. by sin_rewrite (co_co WF).
 Qed.
 
 Lemma sb_co_irr WF :
@@ -1079,7 +1079,7 @@ Proof using.
   rewrite crE. rewrite seq_union_l, !seq_id_l.
   apply irreflexive_union. split.
   { by apply co_irr. }
-  rewrite WF.(wf_coD).
+  rewrite (wf_coD WF).
   type_solver.
 Qed.
 
@@ -1091,13 +1091,13 @@ Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
 
 Lemma co_E_W_Loc WF l x y (CO : co x y): (E ∩₁ W ∩₁ Loc_ l) x <-> (E ∩₁ W ∩₁ Loc_ l) y.
 Proof using.
-  apply WF.(wf_coE) in CO.
+  apply (wf_coE WF) in CO.
   apply seq_eqv_l in CO. destruct CO as [EX CO].
   apply seq_eqv_r in CO. destruct CO as [CO EY].
-  apply WF.(wf_coD) in CO.
+  apply (wf_coD WF) in CO.
   apply seq_eqv_l in CO. destruct CO as [WX CO].
   apply seq_eqv_r in CO. destruct CO as [CO WY].
-  apply WF.(wf_col) in CO.
+  apply (wf_col WF) in CO.
   split; intros [_ LL].
   all: by split; [split|rewrite <- LL].
 Qed.
@@ -1127,7 +1127,7 @@ Qed.
 
 Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
 Proof using.
-  rewrite (dom_r WF.(wf_rmwD)).
+  rewrite (dom_r (wf_rmwD WF)).
   rewrite rfi_in_sbloc', rmw_in_sb_loc; auto.
   sin_rewrite rewrite_trans; [done|].
   apply sb_same_loc_trans.
@@ -1135,7 +1135,7 @@ Qed.
 
 Lemma rfi_rmw_in_sb_loc WF : rfi ⨾ rmw ⊆ sb ∩ same_loc.
 Proof using.
-  rewrite WF.(rfi_rmw_in_sb_same_loc_W). basic_solver.
+  rewrite (rfi_rmw_in_sb_same_loc_W WF). basic_solver.
 Qed.
 
 (******************************************************************************)
@@ -1146,15 +1146,15 @@ Proof using.
   intros x y z ICOXY ICOXZ.
   assert (co x y) as COXY by apply ICOXY.
   assert (co x z) as COXZ by apply ICOXZ.
-  apply WF.(wf_coD) in COXY. destruct_seq COXY as [BB1 BB2].
-  apply WF.(wf_coE) in COXY. destruct_seq COXY as [BB3 BB4].
-  apply WF.(wf_coD) in COXZ. destruct_seq COXZ as [AA1 AA2].
-  apply WF.(wf_coE) in COXZ. destruct_seq COXZ as [AA3 AA4].
+  apply (wf_coD WF) in COXY. destruct_seq COXY as [BB1 BB2].
+  apply (wf_coE WF) in COXY. destruct_seq COXY as [BB3 BB4].
+  apply (wf_coD WF) in COXZ. destruct_seq COXZ as [AA1 AA2].
+  apply (wf_coE WF) in COXZ. destruct_seq COXZ as [AA3 AA4].
   apply is_w_loc in AA1. desf.
-  set (CC:=COXY). apply WF.(wf_col) in CC. red in CC.
-  set (DD:=COXZ). apply WF.(wf_col) in DD. red in DD.
+  set (CC:=COXY). apply (wf_col WF) in CC. red in CC.
+  set (DD:=COXZ). apply (wf_col WF) in DD. red in DD.
   destruct (classic (y = z)); auto.
-  edestruct WF.(wf_co_total); eauto.
+  edestruct (wf_co_total WF); eauto.
   1,2: split; [split|]; eauto.
   { by etransitivity; [|by eauto]. }
   { exfalso. by apply ICOXZ with (c:=y). }
@@ -1166,15 +1166,15 @@ Proof using.
   intros x y z ICOXY ICOXZ. red in ICOXY. red in ICOXZ.
   assert (co y x) as COXY by apply ICOXY.
   assert (co z x) as COXZ by apply ICOXZ.
-  apply WF.(wf_coD) in COXY. destruct_seq COXY as [BB1 BB2].
-  apply WF.(wf_coE) in COXY. destruct_seq COXY as [BB3 BB4].
-  apply WF.(wf_coD) in COXZ. destruct_seq COXZ as [AA1 AA2].
-  apply WF.(wf_coE) in COXZ. destruct_seq COXZ as [AA3 AA4].
+  apply (wf_coD WF) in COXY. destruct_seq COXY as [BB1 BB2].
+  apply (wf_coE WF) in COXY. destruct_seq COXY as [BB3 BB4].
+  apply (wf_coD WF) in COXZ. destruct_seq COXZ as [AA1 AA2].
+  apply (wf_coE WF) in COXZ. destruct_seq COXZ as [AA3 AA4].
   apply is_w_loc in AA2. desf.
-  set (CC:=COXY). apply WF.(wf_col) in CC. red in CC.
-  set (DD:=COXZ). apply WF.(wf_col) in DD. red in DD.
+  set (CC:=COXY). apply (wf_col WF) in CC. red in CC.
+  set (DD:=COXZ). apply (wf_col WF) in DD. red in DD.
   destruct (classic (y = z)); auto.
-  edestruct WF.(wf_co_total); eauto.
+  edestruct (wf_co_total WF); eauto.
   1,2: split; [split|]; eauto.
   { exfalso. by apply ICOXY with (c:=z). }
   exfalso. by apply ICOXZ with (c:=y).
@@ -1187,15 +1187,15 @@ Proof using.
   { destruct ICOXY as [AA BB]. generalize AA. basic_solver. }
   assert (co z x /\ P z) as [COXZ PZ].
   { destruct ICOXZ as [AA BB]. generalize AA. basic_solver. }
-  apply WF.(wf_coD) in COXY. destruct_seq COXY as [BB1 BB2].
-  apply WF.(wf_coE) in COXY. destruct_seq COXY as [BB3 BB4].
-  apply WF.(wf_coD) in COXZ. destruct_seq COXZ as [AA1 AA2].
-  apply WF.(wf_coE) in COXZ. destruct_seq COXZ as [AA3 AA4].
+  apply (wf_coD WF) in COXY. destruct_seq COXY as [BB1 BB2].
+  apply (wf_coE WF) in COXY. destruct_seq COXY as [BB3 BB4].
+  apply (wf_coD WF) in COXZ. destruct_seq COXZ as [AA1 AA2].
+  apply (wf_coE WF) in COXZ. destruct_seq COXZ as [AA3 AA4].
   apply is_w_loc in AA2. desf.
-  set (CC:=COXY). apply WF.(wf_col) in CC. red in CC.
-  set (DD:=COXZ). apply WF.(wf_col) in DD. red in DD.
+  set (CC:=COXY). apply (wf_col WF) in CC. red in CC.
+  set (DD:=COXZ). apply (wf_col WF) in DD. red in DD.
   destruct (classic (y = z)); auto.
-  edestruct WF.(wf_co_total); eauto.
+  edestruct (wf_co_total WF); eauto.
   1,2: split; [split|]; eauto.
   { exfalso. apply ICOXY with (c:=z).
     all: apply seq_eqv_l; split; auto. }
@@ -1214,14 +1214,14 @@ Proof using.
   set (DD := AA). destruct DD as [DD _]. destruct_seq_l DD as PX.
   set (EE := BB). destruct EE as [EE _]. destruct_seq_r EE as PY.
   assert (co x y) as CO.
-  { eapply WF.(co_trans); eauto. }
-  apply WF.(wf_coD) in CO. destruct_seq CO as [WX WY].
-  apply WF.(wf_coE) in CO. destruct_seq CO as [EX EY].
-  apply WF.(wf_coD) in DD. destruct_seq DD as [XLOC WZ].
-  apply WF.(wf_coE) in DD. destruct_seq DD as [EX' EZ].
+  { eapply (co_trans WF); eauto. }
+  apply (wf_coD WF) in CO. destruct_seq CO as [WX WY].
+  apply (wf_coE WF) in CO. destruct_seq CO as [EX EY].
+  apply (wf_coD WF) in DD. destruct_seq DD as [XLOC WZ].
+  apply (wf_coE WF) in DD. destruct_seq DD as [EX' EZ].
   apply is_w_loc in XLOC. desf.
   assert (loc y = Some l /\ loc z = Some l) as [YLOC ZLOC].
-  { split; rewrite <- XLOC; symmetry; by apply WF.(wf_col). }
+  { split; rewrite <- XLOC; symmetry; by apply (wf_col WF). }
 
   split.
   { apply seq_eqv_lr. by splits. }
@@ -1230,17 +1230,17 @@ Proof using.
   destruct_seq R2 as [A2 B2].
   destruct (classic (c = z)) as [|CNEQ]; desf.
   assert (loc c = Some l) as LOCC.
-  { rewrite <- YLOC. by apply WF.(wf_col). }
+  { rewrite <- YLOC. by apply (wf_col WF). }
   assert (E c) as EC.
   { by apply P_in_E. }
   assert (W c) as WC.
   { by apply P_in_W. }
   
   assert (c <> x /\ c <> y) as [CNNEXT CNPREV].
-  { split; intros HH; subst; eapply WF.(co_irr); eauto. }
+  { split; intros HH; subst; eapply (co_irr WF); eauto. }
 
   assert (co c z \/ co z c) as [QQ|QQ].
-  { eapply WF.(wf_co_total); eauto; unfolder; eauto. }
+  { eapply (wf_co_total WF); eauto; unfolder; eauto. }
   { eapply AA with (c:=c); apply seq_eqv_l; eauto. }
   eapply BB with (c:=c); apply seq_eqv_r; eauto.
 Qed.
@@ -1254,14 +1254,14 @@ Proof using.
   destruct_seq_l AA as PZ.
   destruct_seq_l BB as DD.
   destruct (classic (x = y)) as [|NEQ]; subst; [by left|right].
-  apply WF.(wf_coD) in AA. destruct_seq AA as [WX WZ].
-  apply WF.(wf_coE) in AA. destruct_seq AA as [EX EZ].
-  apply WF.(wf_coD) in BB. destruct_seq BB as [WY ZLOC].
-  apply WF.(wf_coE) in BB. destruct_seq BB as [EY FF].
+  apply (wf_coD WF) in AA. destruct_seq AA as [WX WZ].
+  apply (wf_coE WF) in AA. destruct_seq AA as [EX EZ].
+  apply (wf_coD WF) in BB. destruct_seq BB as [WY ZLOC].
+  apply (wf_coE WF) in BB. destruct_seq BB as [EY FF].
   apply is_w_loc in ZLOC. desf.
   assert (loc x = Some l /\ loc y = Some l) as [XLOC YLOC].
-  { rewrite <- !ZLOC. split; by apply WF.(wf_col). }
-  edestruct WF.(wf_co_total); eauto.
+  { rewrite <- !ZLOC. split; by apply (wf_col WF). }
+  edestruct (wf_co_total WF); eauto.
   1,2: by split; [split|]; eauto.
   exfalso.
   apply CC with (c:=x).
@@ -1272,7 +1272,7 @@ Lemma co_immediate_co_in_co_cr WF : co ⨾ (immediate co)⁻¹ ⊆ co^?.
 Proof using.
   assert (co ≡ ⦗E∩₁W⦘ ⨾ co) as AA.
   { split; [|basic_solver].
-    rewrite WF.(wf_coE) at 1. rewrite WF.(wf_coD) at 1.
+    rewrite (wf_coE WF) at 1. rewrite (wf_coD WF) at 1.
     basic_solver. }
   rewrite AA at 1 2.
   apply P_co_immediate_P_co_transp_in_co_cr.
@@ -1288,14 +1288,14 @@ Proof using.
   destruct_seq_r AA as PZ.
   destruct_seq_r BB as DD.
   destruct (classic (x = y)) as [|NEQ]; subst; [by left|right].
-  apply WF.(wf_coD) in AA. destruct_seq AA as [WZ WY].
-  apply WF.(wf_coE) in AA. destruct_seq AA as [EZ EY].
-  apply WF.(wf_coD) in BB. destruct_seq BB as [ZLOC WX].
-  apply WF.(wf_coE) in BB. destruct_seq BB as [FF EX].
+  apply (wf_coD WF) in AA. destruct_seq AA as [WZ WY].
+  apply (wf_coE WF) in AA. destruct_seq AA as [EZ EY].
+  apply (wf_coD WF) in BB. destruct_seq BB as [ZLOC WX].
+  apply (wf_coE WF) in BB. destruct_seq BB as [FF EX].
   apply is_w_loc in ZLOC. desf.
   assert (loc x = Some l /\ loc y = Some l) as [XLOC YLOC].
-  { rewrite <- !ZLOC. split; symmetry; by apply WF.(wf_col). }
-  edestruct WF.(wf_co_total); eauto.
+  { rewrite <- !ZLOC. split; symmetry; by apply (wf_col WF). }
+  edestruct (wf_co_total WF); eauto.
   1,2: by split; [split|]; eauto.
   exfalso.
   apply CC with (c:=y).
@@ -1324,9 +1324,9 @@ Proof using.
   apply clos_trans_of_transitiveD; [apply sb_trans|].
   apply (inclusion_t_t FOR_SPLIT).
   eapply ct_imm1 in CONEXT.
-  2: by apply WF.(co_irr).
-  2: by apply WF.(co_trans).
-  2: by intros x [y H']; apply WF.(wf_coE) in H'; apply seq_eqv_l in H'; desf; eauto.
+  2: by apply (co_irr WF).
+  2: by apply (co_trans WF).
+  2: by intros x [y H']; apply (wf_coE WF) in H'; apply seq_eqv_l in H'; desf; eauto.
   apply t_rt_step in CONEXT. destruct CONEXT as [z [IMMS IMM]].
   apply t_rt_step. exists z; split; [|apply seq_eqv_l; split; [|done]].
   { apply rtE in IMMS. destruct IMMS as [IMMS|IMMS].
@@ -1334,24 +1334,24 @@ Proof using.
     assert (immediate (co ⨾ ⦗S⦘) z wnext) as IMM'.
     { red; split; [apply seq_eqv_r; split; auto|].
       { apply clos_trans_immediate1; auto.
-        eapply WF.(co_trans). }
+        eapply (co_trans WF). }
       ins. eapply NCOIMM; [|by apply R2].
       apply seq_eqv_r in R1; destruct R1 as [R1 R3].
       apply seq_eqv_r; split; auto.
-      eapply WF.(co_trans); [|by apply R1].
+      eapply (co_trans WF); [|by apply R1].
       apply clos_trans_immediate1; auto.
-      eapply WF.(co_trans). }
+      eapply (co_trans WF). }
     clear IMM.
     induction IMMS.
     { apply rt_step. apply seq_eqv_l; split; auto. }
     assert (co y wnext) as YNEXT.
     { apply clos_trans_immediate1; auto.
-      eapply WF.(co_trans).
+      eapply (co_trans WF).
       eapply transitive_ct; [by apply IMMS2|].
       eapply clos_trans_immediate2.
-      { apply WF.(co_trans). }
-      { apply WF.(co_irr). }
-      { red; ins. apply WF.(wf_coE) in REL.
+      { apply (co_trans WF). }
+      { apply (co_irr WF). }
+      { red; ins. apply (wf_coE WF) in REL.
         apply seq_eqv_l in REL; destruct REL as [_ REL].
         apply seq_eqv_r in REL. apply REL. }
       destruct IMM' as [II _].
@@ -1361,25 +1361,25 @@ Proof using.
       ins. eapply NCOIMM; [|by apply R2].
       apply seq_eqv_r in R1; destruct R1 as [R1 R3].
       apply seq_eqv_r; split; auto.
-      eapply WF.(co_trans); [|by apply R1].
+      eapply (co_trans WF); [|by apply R1].
       apply clos_trans_immediate1; auto.
-      eapply WF.(co_trans). }
+      eapply (co_trans WF). }
     eapply rt_trans.
     { by apply IHIMMS1. }
     apply IHIMMS2; auto.
-    { apply WF.(wf_coD) in YNEXT.
+    { apply (wf_coD WF) in YNEXT.
       apply seq_eqv_l in YNEXT; desf. }
     intros NISS. eapply NCOIMM; apply seq_eqv_r; split; auto.
     2: by apply NISS.
     2: done.
     apply clos_trans_immediate1; auto.
-      by apply WF.(co_trans). }
+      by apply (co_trans WF). }
   intros HH. apply rtE in IMMS; destruct IMMS as [IMSS|IMMS].
   { red in IMSS; desf. }
   eapply NCOIMM; apply seq_eqv_r; split; auto.
   2: by apply HH.
   all: apply clos_trans_immediate1; auto.
-  all: apply WF.(co_trans).
+  all: apply (co_trans WF).
 Qed.
 
 End Execution.

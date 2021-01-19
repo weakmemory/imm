@@ -20,30 +20,30 @@ Section TraversalProperties.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
   Notation "'urr'" := (urr G sc).
   Notation "'c_acq'" := (c_acq G sc).
@@ -52,17 +52,17 @@ Section TraversalProperties.
   Notation "'t_acq'" := (t_acq G sc).
   Notation "'t_cur'" := (t_cur G sc).
   Notation "'t_rel'" := (t_rel G sc).
-  Notation "'S_tm'" := G.(S_tm).
-  Notation "'S_tmr'" := G.(S_tmr).
+  Notation "'S_tm'" := (S_tm G).
+  Notation "'S_tmr'" := (S_tmr G).
   Notation "'msg_rel'" := (msg_rel G sc).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).

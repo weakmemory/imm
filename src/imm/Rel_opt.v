@@ -27,39 +27,39 @@ Definition relax_release_labels (l: label) : label :=
   end.
 
 Definition G' : execution :=
-  {|  acts   := G.(acts);
-      lab    := (fun a => relax_release_labels (G.(lab) a));
-      rmw    := G.(rmw);
-      data   := G.(data);
-      addr   := G.(addr);
-      ctrl   := G.(ctrl);
-      rmw_dep := G.(rmw_dep);
-      rf     := G.(rf);
-      co     := G.(co)
+  {|  acts   := (acts G);
+      lab    := (fun a => relax_release_labels ((lab G) a));
+      rmw    := (rmw G);
+      data   := (data G);
+      addr   := (addr G);
+      ctrl   := (ctrl G);
+      rmw_dep := (rmw_dep G);
+      rf     := (rf G);
+      co     := (co G)
   |}.
 
-Notation "'E''" := G'.(acts_set).
-Notation "'acts''" := G'.(acts).
-Notation "'lab''" := G'.(lab).
-Notation "'sb''" := G'.(sb).
-Notation "'rf''" := G'.(rf).
-Notation "'co''" := G'.(co).
-Notation "'rmw''" := G'.(rmw).
-Notation "'data''" := G'.(data).
-Notation "'addr''" := G'.(addr).
-Notation "'ctrl''" := G'.(ctrl).
-Notation "'deps''" := G'.(deps).
-Notation "'rmw_dep''" := G'.(rmw_dep).
+Notation "'E''" := (acts_set G').
+Notation "'acts''" := (acts G').
+Notation "'lab''" := (lab G').
+Notation "'sb''" := (sb G').
+Notation "'rf''" := (rf G').
+Notation "'co''" := (co G').
+Notation "'rmw''" := (rmw G').
+Notation "'data''" := (data G').
+Notation "'addr''" := (addr G').
+Notation "'ctrl''" := (ctrl G').
+Notation "'deps''" := (deps G').
+Notation "'rmw_dep''" := (rmw_dep G').
 
-Notation "'fre''" := G'.(fre).
-Notation "'rfe''" := G'.(rfe).
-Notation "'coe''" := G'.(coe).
-Notation "'rfi''" := G'.(rfi).
-Notation "'fri''" := G'.(fri).
-Notation "'coi''" := G'.(coi).
-Notation "'fr''" := G'.(fr).
-Notation "'eco''" := G'.(eco).
-Notation "'detour''" := G'.(detour).
+Notation "'fre''" := (fre G').
+Notation "'rfe''" := (rfe G').
+Notation "'coe''" := (coe G').
+Notation "'rfi''" := (rfi G').
+Notation "'fri''" := (fri G').
+Notation "'coi''" := (coi G').
+Notation "'fr''" := (fr G').
+Notation "'eco''" := (eco G').
+Notation "'detour''" := (detour G').
 
 Notation "'R''" := (fun a => is_true (is_r lab' a)).
 Notation "'W''" := (fun a => is_true (is_w lab' a)).
@@ -76,16 +76,16 @@ Notation "'val''" := (val lab').
 Notation "'mod''" := (mod lab').
 Notation "'same_loc''" := (same_loc lab').
 
-Notation "'sw''" := G'.(sw).
-Notation "'release''" := G'.(release).
-Notation "'rs''" := G'.(rs).
-Notation "'hb''" := G'.(hb).
-Notation "'sprop''" := G'.(sprop).
-Notation "'ppo''" := G'.(ppo).
-Notation "'psc''" := G'.(psc).
-Notation "'psc_f''" := G'.(psc_f).
-Notation "'psc_base''" := G'.(psc_base).
-Notation "'bob''" := G'.(bob).
+Notation "'sw''" := (sw G').
+Notation "'release''" := (release G').
+Notation "'rs''" := (rs G').
+Notation "'hb''" := (hb G').
+Notation "'sprop''" := (sprop G').
+Notation "'ppo''" := (ppo G').
+Notation "'psc''" := (psc G').
+Notation "'psc_f''" := (psc_f G').
+Notation "'psc_base''" := (psc_base G').
+Notation "'bob''" := (bob G').
 
 Notation "'Pln''" := (fun a => is_true (is_only_pln lab' a)).
 Notation "'Rlx''" := (fun a => is_true (is_rlx lab' a)).
@@ -100,28 +100,28 @@ Implicit Type COMPp : complete G'.
 Implicit Type COHp : coherence G'.
 Implicit Type SC_PER_LOCp : sc_per_loc G'.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'detour'" := G.(detour).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'detour'" := (detour G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -138,16 +138,16 @@ Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'sw'" := G.(sw).
-Notation "'release'" := G.(release).
-Notation "'rs'" := G.(rs).
-Notation "'hb'" := G.(hb).
-Notation "'sprop'" := G.(sprop).
-Notation "'ppo'" := G.(ppo).
-Notation "'psc'" := G.(psc).
-Notation "'psc_f'" := G.(psc_f).
-Notation "'psc_base'" := G.(psc_base).
-Notation "'bob'" := G.(bob).
+Notation "'sw'" := (sw G).
+Notation "'release'" := (release G).
+Notation "'rs'" := (rs G).
+Notation "'hb'" := (hb G).
+Notation "'sprop'" := (sprop G).
+Notation "'ppo'" := (ppo G).
+Notation "'psc'" := (psc G).
+Notation "'psc_f'" := (psc_f G).
+Notation "'psc_base'" := (psc_base G).
+Notation "'bob'" := (bob G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).

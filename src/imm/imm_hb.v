@@ -16,25 +16,25 @@ Section IMM_hb.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'detour'" := G.(detour).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'detour'" := (detour G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -115,7 +115,7 @@ Proof using.
     arewrite (⦗Rel⦘ ⨾ ⦗W⦘ ⊆ release).
     { unfold release, rs. 
       rewrite rtE. basic_solver 40. }
-    rewrite (dom_r WF.(wf_rfeD)) at 1. rewrite !seqA.
+    rewrite (dom_r (wf_rfeD WF)) at 1. rewrite !seqA.
     arewrite (⦗R⦘ ⨾ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq ∪₁ W⦘ ⊆ (sb ⨾ ⦗F⦘)^? ⨾ ⦗Acq⦘).
     { unfolder. ins. desf; eauto 10.
       all: type_solver. }

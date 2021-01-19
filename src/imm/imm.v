@@ -19,30 +19,30 @@ Section IMM.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'detour'" := G.(detour).
-Notation "'hb'" := G.(hb).
-Notation "'sw'" := G.(sw).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'detour'" := (detour G).
+Notation "'hb'" := (hb G).
+Notation "'sw'" := (sw G).
 
-Notation "'ar_int'" := G.(ar_int).
+Notation "'ar_int'" := (ar_int G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -130,8 +130,8 @@ Lemma wf_scbE WF : scb ≡ ⦗E⦘ ⨾ scb ⨾ ⦗E⦘.
 Proof using.
 split; [|basic_solver].
 unfold scb.
-rewrite wf_sbE at 1 2 3. rewrite WF.(wf_hbE) at 1 2.
-rewrite WF.(wf_coE) at 1. rewrite WF.(wf_frE) at 1.
+rewrite wf_sbE at 1 2 3. rewrite (wf_hbE WF) at 1 2.
+rewrite (wf_coE WF) at 1. rewrite (wf_frE WF) at 1.
 basic_solver 42.
 Qed.
 
@@ -139,8 +139,8 @@ Lemma wf_psc_baseE WF : psc_base ≡ ⦗E⦘ ⨾ psc_base ⨾ ⦗E⦘.
 Proof using.
 split; [|basic_solver].
 unfold psc_base.
-rewrite WF.(wf_hbE) at 1 2.
-rewrite WF.(wf_scbE) at 1.
+rewrite (wf_hbE WF) at 1 2.
+rewrite (wf_scbE WF) at 1.
 basic_solver 42.
 Qed.
 
@@ -229,7 +229,7 @@ Proof using.
   generalize (@sb_same_loc_trans G); intros HH; relsf.
   arewrite ((sb ∩ same_loc) ⊆ sb) at 3.
   unionR right.
-  rewrite (dom_l WF.(wf_rfeD)), !seqA.
+  rewrite (dom_l (wf_rfeD WF)), !seqA.
   rewrite <- seqA with (r2:= ⦗W⦘).
   rewrite ct_rotl, !seqA.
   arewrite ((sb ∩ same_loc)^? ⨾ (sb ∩ same_loc)^? ⊆ (sb ∩ same_loc)^?).
@@ -241,7 +241,7 @@ Proof using.
     generalize sb_trans.
     basic_solver 10. }
   arewrite (rmw ⨾ (sb ⨾ ⦗W⦘)＊ ⊆ rmw ⨾ sb^? ⨾ ⦗W⦘).
-  2: { rewrite (dom_l WF.(wf_rfeD)) at 1 2; rewrite !seqA.
+  2: { rewrite (dom_l (wf_rfeD WF)) at 1 2; rewrite !seqA.
        arewrite_id ⦗W⦘ at 1. rewrite seq_id_l.
        apply ct_end. }
   rewrite rtE, seq_union_r.
@@ -457,7 +457,7 @@ Proof using.
   { generalize (@hb_trans G). basic_solver 10. }
   unionL.
   { unfold psc_f. basic_solver 10. }
-  rewrite WF.(wf_ecoD), !seqA.
+  rewrite (wf_ecoD WF), !seqA.
   arewrite (⦗F ∩₁ Sc⦘ ⨾ (⦗F⦘ ⨾ hb)^? ⨾ ⦗RW⦘ ⊆ ⦗F ∩₁ Sc⦘ ⨾ hb)
     by type_solver 10.
   arewrite (⦗RW⦘ ⨾ (hb ⨾ ⦗F⦘)^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ hb ⨾ ⦗F ∩₁ Sc⦘)

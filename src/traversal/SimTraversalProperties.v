@@ -16,24 +16,24 @@ Section SimTraversalProperties.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -153,7 +153,7 @@ Lemma sim_trav_step_rmw_covered (C C' : trav_config) (T : sim_trav_step G sc C C
 Proof using WF.
   ins.
   red in T. destruct T as [thread T].
-  apply WF.(wf_rmwD) in RMW.
+  apply (wf_rmwD WF) in RMW.
   apply seq_eqv_l in RMW. destruct RMW as [RR RMW].
   apply seq_eqv_r in RMW. destruct RMW as [RMW WW].
   destruct T; simpls.
@@ -175,20 +175,20 @@ Proof using WF.
     exfalso. apply NRMW. eexists; eauto. }
   { split; intros [[HH|HH]|HH]; subst. 
     { left. left. by apply (RMWCOV r w RMW). }
-    { right. eapply WF.(wf_rmwf); eauto. }
-    { apply (dom_r WF.(wf_rmwD)) in RMW0. apply seq_eqv_r in RMW0.
+    { right. eapply (wf_rmwf WF); eauto. }
+    { apply (dom_r (wf_rmwD WF)) in RMW0. apply seq_eqv_r in RMW0.
       type_solver. }
     { left. left. by apply (RMWCOV r w RMW). }
-    { apply (dom_l WF.(wf_rmwD)) in RMW0. apply seq_eqv_l in RMW0.
+    { apply (dom_l (wf_rmwD WF)) in RMW0. apply seq_eqv_l in RMW0.
       type_solver. }
     left. right. eapply wf_rmw_invf; eauto. }
   split; intros [[HH|HH]|HH]; subst. 
   { left. left. by apply (RMWCOV r w RMW). }
-  { right. eapply WF.(wf_rmwf); eauto. }
-  { apply (dom_r WF.(wf_rmwD)) in RMW0. apply seq_eqv_r in RMW0.
+  { right. eapply (wf_rmwf WF); eauto. }
+  { apply (dom_r (wf_rmwD WF)) in RMW0. apply seq_eqv_r in RMW0.
     type_solver. }
   { left. left. by apply (RMWCOV r w RMW). }
-  { apply (dom_l WF.(wf_rmwD)) in RMW0. apply seq_eqv_l in RMW0.
+  { apply (dom_l (wf_rmwD WF)) in RMW0. apply seq_eqv_l in RMW0.
     type_solver. }
   left. right. eapply wf_rmw_invf; eauto.
 Qed. 
@@ -262,7 +262,7 @@ Proof using WF.
   inv ITV; simpls; unionL.
   all: try (rewrite BB at 1; basic_solver 10).
   all: try basic_solver 10.
-  all: try (apply WF.(wf_rmwt) in RMW; rewrite RMW).
+  all: try (apply (wf_rmwt WF) in RMW; rewrite RMW).
   all: basic_solver 10.
 Qed.
 
@@ -280,7 +280,7 @@ Proof using WF.
   inv ITV; simpls; unionL.
   all: try (rewrite BB at 1; basic_solver 10).
   1,2: basic_solver 10.
-  apply WF.(wf_rmwt) in RMW. rewrite RMW.
+  apply (wf_rmwt WF) in RMW. rewrite RMW.
   basic_solver 10.
 Qed.
 

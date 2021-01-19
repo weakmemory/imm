@@ -17,26 +17,26 @@ Section IMM_PPO.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'detour'" := G.(detour).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'detour'" := (detour G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -118,8 +118,8 @@ Qed.
 Lemma rmw_sb_cr_W_in_ppo WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppo.
 Proof using.
   rewrite crE. rewrite seq_union_l, seq_union_r, seq_id_l.
-  rewrite WF.(rmw_sb_W_in_ppo).
-  rewrite WF.(rmw_in_ppo). eauto with hahn hahn_full.
+  rewrite (rmw_sb_W_in_ppo WF).
+  rewrite (rmw_in_ppo WF). eauto with hahn hahn_full.
 Qed.
 
 
@@ -148,7 +148,7 @@ Proof using.
 split; [|basic_solver].
 unfold ar_int.
 rewrite (wf_bobE WF), (wf_ppoE WF) at 1.
-rewrite (wf_detourE WF), (@wf_sbE G), WF.(wf_rfiE).
+rewrite (wf_detourE WF), (@wf_sbE G), (wf_rfiE WF).
 basic_solver 42.
 Qed.
 
@@ -222,7 +222,7 @@ Proof using.
   { rewrite rmw_W_ex, !seqA.
     rewrite RMW_DEPS.
     rewrite seq_union_l. unionL.
-    { generalize WF.(ctrl_sb). clear. basic_solver 10. }
+    { generalize (ctrl_sb WF). clear. basic_solver 10. }
     generalize DATA_RMW. clear. basic_solver 10. }
   arewrite (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ (ctrl ∪ data)
                  ∪ rmw ∪ ctrl ∪ rmw_dep ⊆

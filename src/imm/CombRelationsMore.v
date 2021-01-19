@@ -17,23 +17,23 @@ Variable WF : Wf G.
 Variable sc : relation actid.
 Variable Wf_sc : wf_sc G sc.
 
-Notation "'acts'" := G.(acts).
-Notation "'co'" := G.(co).
-Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(hb).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'rmw'" := G.(rmw).
-Notation "'lab'" := G.(lab).
-Notation "'release'" := G.(release).
+Notation "'acts'" := (acts G).
+Notation "'co'" := (co G).
+Notation "'sw'" := (sw G).
+Notation "'hb'" := (hb G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'rmw'" := (rmw G).
+Notation "'lab'" := (lab G).
+Notation "'release'" := (release G).
 
 Notation "'Init'" := (fun a => is_true (is_init a)).
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
-Notation "'W_ex'" := G.(W_ex).
+Notation "'W_ex'" := (W_ex G).
 Notation "'F'" := (fun a => is_true (is_f lab a)).
 Notation "'Loc_' l" := (fun x => loc lab x = Some l) (at level 1).
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
@@ -214,7 +214,7 @@ Proof using WF Wf_sc.
   arewrite_id ⦗ Acq ⦘; rewrite seq_id_l.
   arewrite (rf ⨾ ⦗ eq w ⦘ ⊆ ∅₂).
   2: basic_solver 10.
-  rewrite (dom_r WF.(wf_rfD)).
+  rewrite (dom_r (wf_rfD WF)).
   type_solver.
 Qed.
 

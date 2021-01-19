@@ -15,26 +15,26 @@ Section Arm.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'detour'" := G.(detour).
-Notation "'coi'" := G.(coi).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'detour'" := (detour G).
+Notation "'coi'" := (coi G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -274,7 +274,7 @@ Proof using.
   arewrite (coi ⊆ sb) at 1.
   rewrite (@sb_sb G).
   arewrite_false (⦗A⦘ ⨾ coi).
-  { rewrite WF.(wf_coiD). type_solver. }
+  { rewrite (wf_coiD WF). type_solver. }
   unionL; eauto with hahn.
   2: basic_solver.
   arewrite (coi^? ⨾ coi ⊆ coi^?); eauto with hahn.

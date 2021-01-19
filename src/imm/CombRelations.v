@@ -19,23 +19,23 @@ Section Relations.
 Variable G : execution.
 Variable sc : relation actid.
 
-Notation "'E'" := G.(acts_set).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
+Notation "'E'" := (acts_set G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
 
-Notation "'sb'" := G.(sb).
-Notation "'eco'" := G.(eco).
-Notation "'fr'" := G.(fr).
+Notation "'sb'" := (sb G).
+Notation "'eco'" := (eco G).
+Notation "'fr'" := (fr G).
 
-Notation "'hb'" := G.(hb).
-Notation "'release'" := G.(release).
-Notation "'sw'" := G.(sw).
+Notation "'hb'" := (hb G).
+Notation "'release'" := (release G).
+Notation "'sw'" := (sw G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -575,7 +575,7 @@ Qed.
 Lemma rf_in_furr WF : rf ⊆ furr.
 Proof using.
   unfold furr, urr.
-  do 2 rewrite (dom_l WF.(wf_rfD)).
+  do 2 rewrite (dom_l (wf_rfD WF)).
   unfolder; ins; desc.
   apply is_w_loc in H1; desf.
   basic_solver 21.

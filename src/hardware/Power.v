@@ -15,30 +15,30 @@ Section Power.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'ctrli'" := G.(ctrli).
-Notation "'deps'" := G.(deps).
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'ctrli'" := (ctrli G).
+Notation "'deps'" := (deps G).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
 
-Notation "'sync'" := G.(sync).
-Notation "'lwsync'" := G.(lwsync).
-Notation "'fence'" := G.(fence).
-Notation "'ppo'" := G.(ppo).
+Notation "'sync'" := (sync G).
+Notation "'lwsync'" := (lwsync G).
+Notation "'fence'" := (fence G).
+Notation "'ppo'" := (ppo G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).

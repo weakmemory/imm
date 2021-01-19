@@ -24,27 +24,27 @@ Section immToARM.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -60,29 +60,29 @@ Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
-Notation "'detour'" := G.(detour).
-Notation "'bob'" := G.(bob).
+Notation "'detour'" := (detour G).
+Notation "'bob'" := (bob G).
 
 (* imm_s *)
-Notation "'s_sw'" := G.(imm_s_hb.sw).
-Notation "'s_release'" := G.(imm_s_hb.release).
-Notation "'s_rs'" := G.(imm_s_hb.rs).
-Notation "'s_hb'" := G.(imm_s_hb.hb).
-Notation "'s_ppo'" := G.(imm_s_ppo.ppo).
-Notation "'s_psc_f'" := G.(imm_s.psc_f).
-Notation "'s_psc_base'" := G.(imm_s.psc_base).
-Notation "'s_ar_int'" := G.(imm_s_ppo.ar_int).
+Notation "'s_sw'" := (imm_s_hb.sw G).
+Notation "'s_release'" := (imm_s_hb.release G).
+Notation "'s_rs'" := (imm_s_hb.rs G).
+Notation "'s_hb'" := (imm_s_hb.hb G).
+Notation "'s_ppo'" := (imm_s_ppo.ppo G).
+Notation "'s_psc_f'" := (imm_s.psc_f G).
+Notation "'s_psc_base'" := (imm_s.psc_base G).
+Notation "'s_ar_int'" := (imm_s_ppo.ar_int G).
 
 (* imm *)
-Notation "'sw'" := G.(imm_hb.sw).
-Notation "'release'" := G.(imm_hb.release).
-Notation "'rs'" := G.(imm_hb.rs).
-Notation "'hb'" := G.(imm_hb.hb).
-Notation "'ppo'" := G.(imm_ppo.ppo).
-Notation "'psc'" := G.(imm.psc).
-Notation "'psc_f'" := G.(imm.psc_f).
-Notation "'psc_base'" := G.(imm.psc_base).
-Notation "'ar_int'" := G.(imm_ppo.ar_int).
+Notation "'sw'" := (imm_hb.sw G).
+Notation "'release'" := (imm_hb.release G).
+Notation "'rs'" := (imm_hb.rs G).
+Notation "'hb'" := (imm_hb.hb G).
+Notation "'ppo'" := (imm_ppo.ppo G).
+Notation "'psc'" := (imm.psc G).
+Notation "'psc_f'" := (imm.psc_f G).
+Notation "'psc_base'" := (imm.psc_base G).
+Notation "'ar_int'" := (imm_ppo.ar_int G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
@@ -93,12 +93,12 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 (* arm *)
-Notation "'obs'" := G.(obs).
-Notation "'obs''" := G.(obs').
-Notation "'aob'" := G.(aob).
-Notation "'boba'" := G.(Arm.bob).
-Notation "'boba''" := G.(bob').
-Notation "'dob'" := G.(dob).
+Notation "'obs'" := (obs G).
+Notation "'obs''" := (obs' G).
+Notation "'aob'" := (aob G).
+Notation "'boba'" := (Arm.bob G).
+Notation "'boba''" := (bob' G).
+Notation "'dob'" := (dob G).
 
 Notation "'L'" := (W ∩₁ (fun a => is_true (is_rel lab a))).
 Notation "'Q'" := (R ∩₁ (fun a => is_true (is_acq lab a))).
@@ -144,16 +144,16 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   rewrite path_union, !seq_union_l, !seq_union_r. unionL.
   { apply ppo_in_dob_helper; auto. }
   assert ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi)＊ ⊆ sb^?) as AA.
-  { rewrite WF.(data_in_sb), WF.(ctrl_in_sb), WF.(addr_in_sb).
+  { rewrite (data_in_sb WF), (ctrl_in_sb WF), (addr_in_sb WF).
     arewrite (rfi ⊆ sb).
     generalize (@sb_trans G). ins. relsf. }
   rewrite AA at 2.
   rewrite ct_begin, !seqA.
   rewrite AA at 2.
   arewrite (sb^? ⨾ (sb^? ⨾ rmw_dep ⨾ sb^?)＊ ⨾ sb^? ⊆ sb^?).
-  { rewrite WF.(rmw_dep_in_sb). generalize (@sb_trans G). ins. relsf. }
+  { rewrite (rmw_dep_in_sb WF). generalize (@sb_trans G). ins. relsf. }
   arewrite (rmw_dep ⨾ sb^? ⨾ ⦗W⦘ ⊆ rmw_dep ⨾ sb ⨾ ⦗W⦘).
-  { rewrite (dom_r WF.(wf_rmw_depD)) at 1. rewrite R_ex_in_R. type_solver. }
+  { rewrite (dom_r (wf_rmw_depD WF)) at 1. rewrite R_ex_in_R. type_solver. }
   sin_rewrite DEPS_RMW_SB.
   arewrite (ctrl ⊆ data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi) at 2.
   seq_rewrite <- ct_end.

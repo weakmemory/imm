@@ -22,47 +22,47 @@ Section S_IMM_TO_IMM.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'rs'" := G.(imm_hb.rs).
-Notation "'release'" := G.(imm_hb.release).
-Notation "'sw'" := G.(imm_hb.sw).
-Notation "'hb'" := G.(imm_hb.hb).
-Notation "'psc'" := G.(imm.psc).
+Notation "'rs'" := (imm_hb.rs G).
+Notation "'release'" := (imm_hb.release G).
+Notation "'sw'" := (imm_hb.sw G).
+Notation "'hb'" := (imm_hb.hb G).
+Notation "'psc'" := (imm.psc G).
 
-Notation "'s_rs'" := G.(imm_s_hb.rs).
-Notation "'s_release'" := G.(imm_s_hb.release).
-Notation "'s_sw'" := G.(imm_s_hb.sw).
-Notation "'s_hb'" := G.(imm_s_hb.hb).
+Notation "'s_rs'" := (imm_s_hb.rs G).
+Notation "'s_release'" := (imm_s_hb.release G).
+Notation "'s_sw'" := (imm_s_hb.sw G).
+Notation "'s_hb'" := (imm_s_hb.hb G).
 
-Notation "'ar_int'" := G.(ar_int).
-Notation "'s_ar_int'" := G.(imm_s_ppo.ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'s_ppo'" := G.(imm_s_ppo.ppo).
-Notation "'bob'" := G.(bob).
+Notation "'ar_int'" := (ar_int G).
+Notation "'s_ar_int'" := (imm_s_ppo.ar_int G).
+Notation "'ppo'" := (ppo G).
+Notation "'s_ppo'" := (imm_s_ppo.ppo G).
+Notation "'bob'" := (bob G).
 
-Notation "'ar'" := G.(imm.ar).
-Notation "'s_ar'" := G.(imm_s.ar).
+Notation "'ar'" := (imm.ar G).
+Notation "'s_ar'" := (imm_s.ar G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -100,12 +100,12 @@ Proof using.
   2: { rewrite crE, seq_union_r, seq_id_r. unionL.
        { rewrite <- ct_step. basic_solver. }
        rewrite <- ct_unit. rewrite <- ct_step.
-       rewrite (dom_r WF.(wf_rmw_depD)) at 1. basic_solver 10. }
+       rewrite (dom_r (wf_rmw_depD WF)) at 1. basic_solver 10. }
   all: rewrite <- ct_step; unionR left; basic_solver 10.
 Qed.
 
 Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
-Proof using. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite WF.(s_ppo_in_ppo). Qed.
+Proof using. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite (s_ppo_in_ppo WF). Qed.
 
 Lemma acyc_ext_implies_s_acyc_ext_helper (WF: Wf G)
       (AC : imm.acyc_ext G) :
@@ -116,7 +116,7 @@ Proof using.
   apply s_acyc_ext_psc_helper; auto.
   unfold imm_s.psc.
   rewrite s_psc_in_psc.
-  rewrite WF.(s_ar_int_in_ar_int).
+  rewrite (s_ar_int_in_ar_int WF).
   arewrite (sb^? ⨾ psc ⨾ sb^? ⊆ ar⁺).
   { rewrite imm.wf_pscD. rewrite !seqA.
     arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ bob^?).
@@ -137,7 +137,7 @@ Qed.
 Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G) (AC : imm.acyc_ext G) :
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
 Proof using.
-  apply WF.(imm_s.s_acyc_ext_helper).
+  apply (imm_s.s_acyc_ext_helper WF).
     by apply acyc_ext_implies_s_acyc_ext_helper.
 Qed.
 

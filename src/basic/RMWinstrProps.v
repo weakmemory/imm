@@ -36,7 +36,7 @@ Proof using.
   apply set_subset_inter_r. split; [done|].
   unfold W_ex in *.
   unfold add in UG. rewrite UG at 1. simpls.
-  rewrite SS. rewrite (dom_r WF.(wft_rmwE)).
+  rewrite SS. rewrite (dom_r (wft_rmwE WF)).
   rewrite codom_eqv1. rewrite set_interA.
   unfolder. ins. desc.
   unfold is_xacq, xmod. erewrite add_preserves_lab; eauto.
@@ -55,7 +55,7 @@ Proof using.
   unfold W_ex in *.
   unfold add_rmw in UG. rewrite UG at 1. simpls.
   rewrite codom_union. unionL.
-  2: { rewrite SS. rewrite (dom_r WF.(wft_rmwE)).
+  2: { rewrite SS. rewrite (dom_r (wft_rmwE WF)).
        rewrite codom_eqv1. rewrite set_interA.
        unfolder. ins. desc.
        unfold is_xacq, xmod. erewrite add_rmw_preserves_lab; eauto. }
@@ -64,7 +64,7 @@ Proof using.
 Qed.
 
 Lemma rmw_is_xacq_instr_xmod rmw rexmod xmod ordr ordw reg lexpr s
-      (XACQIN : rmw_is_xacq_instrs s.(instrs))
+      (XACQIN : rmw_is_xacq_instrs (instrs s))
       (ISTEP :
          Some
            (Instr.update rmw rexmod xmod ordr ordw reg
@@ -76,7 +76,7 @@ Proof using.
 Qed.
 
 Lemma w_ex_is_xacq_thread_step thread s s'
-      (XACQIN : rmw_is_xacq_instrs s.(instrs))
+      (XACQIN : rmw_is_xacq_instrs (instrs s))
       (WF : wf_thread_state thread s)
       (STEP : step thread s s')
       (SS : w_ex_is_xacq s) :
@@ -121,7 +121,7 @@ Proof using.
   rewrite SS.
   unfold R_ex. unfolder. ins. desc.
   rewrite updo; auto.
-  intros HH; subst. apply WF.(acts_rep) in H. desf. lia.
+  intros HH; subst. apply (acts_rep WF) in H. desf. lia.
 Qed.
 
 Lemma dom_rmw_in_rex_add_rmw_preserves thread s s'
@@ -141,7 +141,7 @@ Proof using.
        rewrite !updo; auto.
        { apply SS. red. eauto. }
        all: intros HH; subst.
-       all: apply WF.(acts_rep) in H; desf; lia. }
+       all: apply (acts_rep WF) in H; desf; lia. }
   unfolder. ins. desc; subst.
   rewrite updo.
   { by rewrite upds. }
@@ -149,7 +149,7 @@ Proof using.
 Qed.
 
 Lemma rmw_is_rex_instr_rexmod rmw rexmod xmod ordr ordw reg lexpr s
-      (RMWREX : rmw_is_rex_instrs s.(instrs))
+      (RMWREX : rmw_is_rex_instrs (instrs s))
       (ISTEP :
          Some
            (Instr.update rmw rexmod xmod ordr ordw reg
@@ -161,7 +161,7 @@ Proof using.
 Qed.
 
 Lemma dom_rmw_in_rex_thread_step thread s s'
-      (RMWREX : rmw_is_rex_instrs s.(instrs))
+      (RMWREX : rmw_is_rex_instrs (instrs s))
       (WF : wf_thread_state thread s)
       (STEP : step thread s s')
       (SS : dom_rmw_in_rex s) :
@@ -191,7 +191,7 @@ Definition cas_produces_R_ex_instrs (il : list Instr.t) :=
   forall (i : Instr.t) (IN : In i il), cas_produces_R_ex_instr i.
 
 Lemma cas_produces_R_ex_instr_rexmod old new rexmod xmod ordr ordw reg lexpr s
-      (RMWREX : cas_produces_R_ex_instrs s.(instrs))
+      (RMWREX : cas_produces_R_ex_instrs (instrs s))
       (ISTEP :
          Some
            (Instr.update (Instr.cas old new) rexmod xmod ordr ordw reg

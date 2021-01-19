@@ -15,15 +15,15 @@ Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Record thread_restricted_execution (G : execution) t (G' : execution) :=
-  { tr_acts_set : G'.(acts_set) ≡₁ G.(acts_set) ∩₁ Tid_ t;
-    tr_lab  : forall x (EE : G'.(acts_set) x), G'.(lab) x = G.(lab) x;
-    tr_rmw  : G'.(rmw)  ≡ ⦗ Tid_ t ⦘ ⨾ G.(rmw) ⨾ ⦗ Tid_ t ⦘;
-    tr_data : G'.(data) ≡ ⦗ Tid_ t ⦘ ⨾ G.(data) ⨾ ⦗ Tid_ t ⦘;
-    tr_addr : G'.(addr) ≡ ⦗ Tid_ t ⦘ ⨾ G.(addr) ⨾ ⦗ Tid_ t ⦘;
-    tr_ctrl : G'.(ctrl) ≡ ⦗ Tid_ t ⦘ ⨾ G.(ctrl) ⨾ ⦗ Tid_ t ⦘;
+  { tr_acts_set : (acts_set G') ≡₁ (acts_set G) ∩₁ Tid_ t;
+    tr_lab  : forall x (EE : (acts_set G') x), (lab G') x = (lab G) x;
+    tr_rmw  : (rmw G')  ≡ ⦗ Tid_ t ⦘ ⨾ (rmw G) ⨾ ⦗ Tid_ t ⦘;
+    tr_data : (data G') ≡ ⦗ Tid_ t ⦘ ⨾ (data G) ⨾ ⦗ Tid_ t ⦘;
+    tr_addr : (addr G') ≡ ⦗ Tid_ t ⦘ ⨾ (addr G) ⨾ ⦗ Tid_ t ⦘;
+    tr_ctrl : (ctrl G') ≡ ⦗ Tid_ t ⦘ ⨾ (ctrl G) ⨾ ⦗ Tid_ t ⦘;
     tr_rmw_dep :
-      G'.(rmw_dep) ≡
-      ⦗ Tid_ t ⦘ ⨾ G.(rmw_dep) ⨾ ⦗ Tid_ t ⦘;
+      (rmw_dep G') ≡
+      ⦗ Tid_ t ⦘ ⨾ (rmw_dep G) ⨾ ⦗ Tid_ t ⦘;
   }.
 
 Lemma depf_preserves_set_expr s (depfs : DepsFile.t) (AA : forall r, depfs r ⊆₁ s) :
@@ -50,16 +50,16 @@ Section StateWF.
 Variable thread : thread_id.
 Variable s : state.
 
-Notation "'E'" := (fun x => In x s.(G).(acts)).
-Notation "'lab'" := s.(G).(lab).
-Notation "'rf'" := s.(G).(rf).
-Notation "'co'" := s.(G).(co).
-Notation "'sb'" := s.(G).(sb).
-Notation "'rmw'" := s.(G).(rmw).
-Notation "'data'" := s.(G).(data).
-Notation "'addr'" := s.(G).(addr).
-Notation "'ctrl'" := s.(G).(ctrl).
-Notation "'rmw_dep'" := s.(G).(rmw_dep).
+Notation "'E'" := (fun x => In x (acts (G s))).
+Notation "'lab'" := (lab (G s)).
+Notation "'rf'" := (rf (G s)).
+Notation "'co'" := (co (G s)).
+Notation "'sb'" := (sb (G s)).
+Notation "'rmw'" := (rmw (G s)).
+Notation "'data'" := (data (G s)).
+Notation "'addr'" := (addr (G s)).
+Notation "'ctrl'" := (ctrl (G s)).
+Notation "'rmw_dep'" := (rmw_dep (G s)).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
@@ -85,9 +85,9 @@ Record wf_thread_state := {
     forall e (EE : E e),
       exists index,
         ⟪ REP : e = ThreadEvent thread index ⟫ /\
-        ⟪ LE : index < s.(eindex) ⟫ ;
+        ⟪ LE : index < (eindex s) ⟫ ;
   acts_clos :
-    forall n (LT : n < s.(eindex)),
+    forall n (LT : n < (eindex s)),
       E (ThreadEvent thread n) ;
   wft_rmwE : rmw ≡ ⦗E⦘ ⨾ rmw ⨾ ⦗E⦘ ;
   wft_rmwIndex :
@@ -161,7 +161,7 @@ Proof using.
   apply Lt.le_lt_n_Sm in H.
   apply Const.le_lteq in H.
   destruct H as [LT|LT]; [right|left].
-  { apply WF.(acts_clos). lia. }
+  { apply (acts_clos WF). lia. }
   rewrite Const.add_comm in LT. inv LT.
 Qed.
 
@@ -182,7 +182,7 @@ Proof using.
   destruct H as [LT|LT].
   { apply Const.le_lteq in LT.
     destruct LT as [LT|LT].
-    { right. right. apply WF.(acts_clos). lia. }
+    { right. right. apply (acts_clos WF). lia. }
     rewrite Const.add_comm in LT. inv LT.
     right. by left. }
   rewrite Const.add_comm in LT. inv LT.
@@ -192,8 +192,8 @@ Qed.
 Lemma step_preserves_E thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
-  acts_set state.(ProgToExecution.G) ⊆₁
-  acts_set state'.(ProgToExecution.G).
+  acts_set (ProgToExecution.G state) ⊆₁
+  acts_set (ProgToExecution.G state').
 Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
@@ -217,7 +217,7 @@ Proof using.
 Qed.
 
 Lemma ectrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(ectrl) ⊆₁ s'.(ectrl).
+  (ectrl s) ⊆₁ (ectrl s').
 Proof using.
 destruct STEP; desc.
 red in H; desc.
@@ -226,7 +226,7 @@ basic_solver.
 Qed.
 
 Lemma ectrl_increasing_steps (tid : thread_id) s s' (STEP : (step tid)＊ s s'):
-  s.(ectrl) ⊆₁ s'.(ectrl).
+  (ectrl s) ⊆₁ (ectrl s').
 Proof using.
   induction STEP.
   { eby eapply ectrl_increasing. }
@@ -235,7 +235,7 @@ Proof using.
 Qed.
 
 Lemma ctrl_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(ctrl) ⊆ s'.(G).(ctrl).
+  (ctrl (G s)) ⊆ (ctrl (G s')).
 Proof using.
   destruct STEP; desc.
   red in H; desc.
@@ -245,7 +245,7 @@ Proof using.
 Qed.
 
 Lemma rmw_dep_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(rmw_dep) ⊆ s'.(G).(rmw_dep).
+  (rmw_dep (G s)) ⊆ (rmw_dep (G s')).
 Proof using.
   destruct STEP; desc.
   red in H; desc.
@@ -255,7 +255,7 @@ Proof using.
 Qed.
 
 Lemma addr_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(addr) ⊆ s'.(G).(addr).
+  (addr (G s)) ⊆ (addr (G s')).
 Proof using.
   destruct STEP; desc.
   red in H; desc.
@@ -265,7 +265,7 @@ Proof using.
 Qed.
 
 Lemma data_increasing (tid : thread_id) s s' (STEP : step tid s s'):
-  s.(G).(data) ⊆ s'.(G).(data).
+  (data (G s)) ⊆ (data (G s')).
 Proof using.
   destruct STEP; desc.
   red in H; desc.
@@ -286,11 +286,11 @@ Proof using.
     all: try rewrite UINDEX.
     all: try apply WF.
     all: try (intros e [HH|IN]; [eexists; splits; eauto; lia|];
-        edestruct WF.(acts_rep); eauto; desc;
+        edestruct (acts_rep WF); eauto; desc;
         eexists; splits; eauto; lia).
     all: intros e [HH|[IN|IN]].
     all: try (eexists; splits; eauto; lia).
-    all: edestruct WF.(acts_rep); eauto; desc.
+    all: edestruct (acts_rep WF); eauto; desc.
     all: eexists; splits; eauto; lia. }
   { destruct ISTEP0.
     all: rewrite UG.
@@ -302,9 +302,9 @@ Proof using.
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1-4: unfold add; simpls; rewrite WF.(wft_rmwE) at 1;
+    1-4: unfold add; simpls; rewrite (wft_rmwE WF) at 1;
       basic_solver.
-    all: unfold add_rmw; simpls; rewrite WF.(wft_rmwE) at 1;
+    all: unfold add_rmw; simpls; rewrite (wft_rmwE WF) at 1;
       basic_solver. }
   { assert (RMW_HELPER: forall ldlab stlab dps ldps edps r w,
                rmw (add_rmw (G s) thread (eindex s) ldlab stlab
@@ -328,63 +328,63 @@ Proof using.
     all: rewrite UG.
     1,2: by apply WF.
 
-    all: unfold add, add_rmw; simpls; rewrite WF.(wft_dataE) at 1.
+    all: unfold add, add_rmw; simpls; rewrite (wft_dataE WF) at 1.
     1,3,4: basic_solver 10.
     1: seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr)).
+                        (depf_preserves_set_expr _ (wft_depfE WF) expr)).
     3: seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_expr _ WF.(wft_depfE) expr_add)).
+                        (depf_preserves_set_expr _ (wft_depfE WF) expr_add)).
     2,4: seq_rewrite <- (set_inter_absorb_r
-                           (depf_preserves_set_expr _ WF.(wft_depfE) expr_new)).
+                           (depf_preserves_set_expr _ (wft_depfE WF) expr_new)).
     all: basic_solver 12. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    1,2,4: unfold add; simpls; rewrite WF.(wft_addrE) at 1;
+    1,2,4: unfold add; simpls; rewrite (wft_addrE WF) at 1;
       seq_rewrite <- (set_inter_absorb_r
-                        (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
+                        (depf_preserves_set_lexpr _ (wft_depfE WF) lexpr));
       basic_solver.
 
-    all: unfold add, add_rmw; simpls; rewrite WF.(wft_addrE) at 1.
+    all: unfold add, add_rmw; simpls; rewrite (wft_addrE WF) at 1.
     { basic_solver. }
     all: seq_rewrite <- (set_inter_absorb_r
-                           (depf_preserves_set_lexpr _ WF.(wft_depfE) lexpr));
+                           (depf_preserves_set_lexpr _ (wft_depfE WF) lexpr));
       basic_solver 10. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    all: unfold add, add_rmw; simpls; rewrite WF.(wft_ctrlE) at 1;
-      seq_rewrite <- (set_inter_absorb_r WF.(wft_ectrlE));
+    all: unfold add, add_rmw; simpls; rewrite (wft_ctrlE WF) at 1;
+      seq_rewrite <- (set_inter_absorb_r (wft_ectrlE WF));
       basic_solver 10. }
   { split; [|basic_solver].
     destruct ISTEP0.
     all: rewrite UG.
     1,2: by apply WF.
-    all: unfold add; simpls; rewrite WF.(wft_rmw_depE) at 1.
+    all: unfold add; simpls; rewrite (wft_rmw_depE WF) at 1.
     4-5: seq_rewrite <- (set_inter_absorb_r
-                          (depf_preserves_set_expr _ WF.(wft_depfE) expr_old)).
+                          (depf_preserves_set_expr _ (wft_depfE WF) expr_old)).
     all: basic_solver. }
   { destruct ISTEP0.
     all: rewrite UG, UECTRL.
     { by apply WF. }
-    { rewrite WF.(wft_ectrlE).
+    { rewrite (wft_ectrlE WF).
       erewrite depf_preserves_set_expr.
       2: by apply WF.
       basic_solver. }
-    1-4: etransitivity; [by apply WF.(wft_ectrlE)|];
+    1-4: etransitivity; [by apply (wft_ectrlE WF)|];
       unfold add, acts_set; basic_solver.
-    all: etransitivity; [by apply WF.(wft_ectrlE)|];
+    all: etransitivity; [by apply (wft_ectrlE WF)|];
       unfold add_rmw, acts_set; basic_solver. }
   assert (acts_set (G s) ⊆₁ acts_set (G s')) as EE.
   { eapply step_preserves_E; eauto. red. eauto. }
   destruct ISTEP0.
   all: rewrite UDEPS; ins.
   all: try unfold RegFun.add, RegFun.find.
-  all: try by rewrite WF.(wft_depfE).
+  all: try by rewrite (wft_depfE WF).
   all: destruct (Reg.eq_dec r reg).
-  all: try by rewrite WF.(wft_depfE).
+  all: try by rewrite (wft_depfE WF).
   { by rewrite depf_preserves_set_expr; [|by apply WF]. }
   all: rewrite UG; unfold add, add_rmw, acts_set; simpls; basic_solver.
 Qed.
@@ -403,8 +403,8 @@ Qed.
 Lemma steps_preserve_E thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  acts_set state.(ProgToExecution.G) ⊆₁
-  acts_set state'.(ProgToExecution.G).
+  acts_set (ProgToExecution.G state) ⊆₁
+  acts_set (ProgToExecution.G state').
 Proof using.
   intros e EE.
   induction STEP.
@@ -420,15 +420,15 @@ Section StepProperties.
   Variable WF : Wf G.
   Variable sc : relation actid.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'co'" := G.(co).
-Notation "'coi'" := G.(coi).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'rfe'" := G.(rfe).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'co'" := (co G).
+Notation "'coi'" := (coi G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
 Notation "'F'" := (fun a => is_true (is_f lab a)).
@@ -445,13 +445,13 @@ Notation "'Acq'" := (is_acq lab).
 Notation "'Acqrel'" := (is_acqrel lab).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
-Notation "'W_ex'" := G.(W_ex).
+Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
 (* Lemma E_thread_in_thread_restricted_E thread pe *)
 (*       (TEH : thread_restricted_execution G thread pe) : *)
 (*   E ∩₁ Tid_ thread ⊆₁ acts_set pe. *)
-(* Proof using. by rewrite TEH.(tr_acts). Qed. *)
+(* Proof using. by rewrite (tr_acts TEH). Qed. *)
 
 (* Lemma thread_restricted_E_in_E thread : *)
 (*   acts_set (thread_restricted_execution G thread) ⊆₁ E. *)
@@ -463,12 +463,12 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 Lemma rmw_in_thread_restricted_rmw thread G'
       (TEH : thread_restricted_execution G thread G') :
   rmw G' ⊆ rmw G.
-Proof using. rewrite TEH.(tr_rmw). basic_solver. Qed.
+Proof using. rewrite (tr_rmw TEH). basic_solver. Qed.
 
 Lemma step_preserves_rmw thread state state'
       (STEP : step thread state state') :
-  rmw state.(ProgToExecution.G) ⊆
-  rmw state'.(ProgToExecution.G).
+  rmw (ProgToExecution.G state) ⊆
+  rmw (ProgToExecution.G state').
 Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
@@ -480,8 +480,8 @@ Qed.
 
 Lemma steps_preserve_rmw thread state state'
       (STEP : (step thread)＊ state state') :
-  rmw state.(ProgToExecution.G) ⊆
-  rmw state'.(ProgToExecution.G).
+  rmw (ProgToExecution.G state) ⊆
+  rmw (ProgToExecution.G state').
 Proof using.
   induction STEP.
   2: done.
@@ -492,8 +492,8 @@ Qed.
 Lemma step_dont_add_rmw thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
-  ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
-  rmw state.(ProgToExecution.G).
+  ⦗ acts_set (ProgToExecution.G state) ⦘ ⨾ rmw (ProgToExecution.G state') ⊆
+  rmw (ProgToExecution.G state).
 Proof using.
   red in STEP. desc. cdes STEP.
   destruct ISTEP0.
@@ -507,7 +507,7 @@ Proof using.
     apply seq_eqv_l in HH. destruct HH as [EE HH].
     red in HH. desf.
     exfalso.
-    edestruct GPC.(acts_rep); eauto.
+    edestruct (acts_rep GPC); eauto.
     desf. lia. }
   { unfold add_rmw. simpls.
     rewrite seq_union_r.
@@ -516,7 +516,7 @@ Proof using.
     apply seq_eqv_l in HH. destruct HH as [EE HH].
     red in HH. desf.
     exfalso.
-    edestruct GPC.(acts_rep); eauto.
+    edestruct (acts_rep GPC); eauto.
     desf. lia. }
   unfold add_rmw. simpls.
   rewrite seq_union_r.
@@ -525,15 +525,15 @@ Proof using.
   apply seq_eqv_l in HH. destruct HH as [EE HH].
   red in HH. desf.
   exfalso.
-  edestruct GPC.(acts_rep); eauto.
+  edestruct (acts_rep GPC); eauto.
   desf. lia.
 Qed.
 
 Lemma steps_dont_add_rmw thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  ⦗ acts_set state.(ProgToExecution.G) ⦘ ⨾ rmw state'.(ProgToExecution.G) ⊆
-  rmw state.(ProgToExecution.G).
+  ⦗ acts_set (ProgToExecution.G state) ⦘ ⨾ rmw (ProgToExecution.G state') ⊆
+  rmw (ProgToExecution.G state).
 Proof using.
   induction STEP.
   2: basic_solver.
@@ -550,25 +550,25 @@ Proof using.
 Qed.
 
 Lemma lab_thread_eq_thread_restricted_lab thread e G'
-      (EE : G'.(acts_set) e)
+      (EE : (acts_set G') e)
       (TEH : thread_restricted_execution G thread G') :
   lab G e = lab G' e.
-Proof using. rewrite TEH.(tr_lab); auto. Qed.
+Proof using. rewrite (tr_lab TEH); auto. Qed.
 
 Lemma same_lab_u2v_dom_restricted thread G'
   (TEH : thread_restricted_execution G thread G') :
-  same_lab_u2v_dom G'.(acts_set) G.(lab) G'.(lab).
-Proof using. red. ins. red. rewrite TEH.(tr_lab); auto. desf. Qed.
+  same_lab_u2v_dom (acts_set G') (lab G) (lab G').
+Proof using. red. ins. red. rewrite (tr_lab TEH); auto. desf. Qed.
 
 Lemma step_preserves_lab e state state'
       (GPC : wf_thread_state (tid e) state)
       (STEP : step (tid e) state state')
-      (EE : acts_set state.(ProgToExecution.G) e) :
-  lab state'.(ProgToExecution.G) e =
-  lab state.(ProgToExecution.G) e.
+      (EE : acts_set (ProgToExecution.G state) e) :
+  lab (ProgToExecution.G state') e =
+  lab (ProgToExecution.G state) e.
 Proof using.
   red in STEP. desc. cdes STEP.
-  edestruct GPC.(acts_rep) as [ii]; eauto. desc.
+  edestruct (acts_rep GPC) as [ii]; eauto. desc.
   destruct ISTEP0.
   all: rewrite UG; auto.
   1-4: unfold add; simpls; rewrite updo; auto.
@@ -580,9 +580,9 @@ Qed.
 Lemma steps_preserve_lab e state state'
       (GPC : wf_thread_state (tid e) state)
       (STEP : (step (tid e))＊ state state')
-      (EE : acts_set state.(ProgToExecution.G) e) :
-  lab state'.(ProgToExecution.G) e =
-  lab state.(ProgToExecution.G) e.
+      (EE : acts_set (ProgToExecution.G state) e) :
+  lab (ProgToExecution.G state') e =
+  lab (ProgToExecution.G state) e.
 Proof using.
   induction STEP.
   2: done.
@@ -595,8 +595,8 @@ Qed.
 
 Lemma step_empty_same_E thread state state'
       (STEP : istep thread nil state state') :
-  acts_set state'.(ProgToExecution.G) ≡₁
-  acts_set state.(ProgToExecution.G).
+  acts_set (ProgToExecution.G state') ≡₁
+  acts_set (ProgToExecution.G state).
 Proof using.
   cdes STEP. inv ISTEP0.
   all: by rewrite UG.
@@ -604,8 +604,8 @@ Qed.
 
 Lemma steps_empty_same_E thread state state'
       (STEPS : (istep thread nil)＊ state state') :
-  acts_set state'.(ProgToExecution.G) ≡₁
-  acts_set state.(ProgToExecution.G).
+  acts_set (ProgToExecution.G state') ≡₁
+  acts_set (ProgToExecution.G state).
 Proof using.
   induction STEPS.
   2: done.
@@ -616,14 +616,14 @@ Qed.
 Lemma step_same_E_empty_in thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
-  acts_set state'.(ProgToExecution.G) ⊆₁
-    acts_set state.(ProgToExecution.G)
+  acts_set (ProgToExecution.G state') ⊆₁
+    acts_set (ProgToExecution.G state)
   <->
   istep thread nil state state'.
 Proof using.
   assert (~ In (ThreadEvent thread (eindex state))
             (Execution.acts (ProgToExecution.G state))) as XX.
-  { intros HH. apply GPC.(acts_rep) in HH.
+  { intros HH. apply (acts_rep GPC) in HH.
     desc. inv REP. lia. }
   red in STEP. desc.
   red in STEP. desc.
@@ -643,8 +643,8 @@ Qed.
 Lemma step_same_E_empty thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : step thread state state') :
-  acts_set state'.(ProgToExecution.G) ≡₁
-    acts_set state.(ProgToExecution.G)
+  acts_set (ProgToExecution.G state') ≡₁
+    acts_set (ProgToExecution.G state)
   <->
   istep thread nil state state'.
 Proof using.
@@ -659,8 +659,8 @@ Qed.
 Lemma steps_same_E_empty_in thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  acts_set state'.(ProgToExecution.G) ⊆₁
-    acts_set state.(ProgToExecution.G)
+  acts_set (ProgToExecution.G state') ⊆₁
+    acts_set (ProgToExecution.G state)
   <->
   (istep thread nil)＊ state state'.
 Proof using.
@@ -697,8 +697,8 @@ Qed.
 Lemma steps_same_E_empty thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  acts_set state'.(ProgToExecution.G) ≡₁
-    acts_set state.(ProgToExecution.G)
+  acts_set (ProgToExecution.G state') ≡₁
+    acts_set (ProgToExecution.G state)
   <->
   (istep thread nil)＊ state state'.
 Proof using.
@@ -712,7 +712,7 @@ Qed.
 Lemma steps_same_eindex thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (istep thread nil)＊ state state') :
-  state'.(eindex) = state.(eindex).
+  (eindex state') = (eindex state).
 Proof using.
   induction STEP.
   2: done.
@@ -727,52 +727,52 @@ Qed.
 Lemma step_old_restrict thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread) state state') :
-  let GO := state.(ProgToExecution.G) in
-  let GN := state'.(ProgToExecution.G) in
-  ⟪ ORMW  : GO.(rmw) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ⨾ ⦗ GO.(acts_set) ⦘ ⟫ /\
-  ⟪ ODATA : GO.(data) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OADDR : GO.(addr) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OCTRL : GO.(ctrl) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OFAILDEP : GO.(rmw_dep) ≡
-                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
+  let GO := (ProgToExecution.G state) in
+  let GN := (ProgToExecution.G state') in
+  ⟪ ORMW  : (rmw GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (rmw GN) ⨾ ⦗ (acts_set GO) ⦘ ⟫ /\
+  ⟪ ODATA : (data GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (data GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OADDR : (addr GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (addr GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OCTRL : (ctrl GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (ctrl GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OFAILDEP : (rmw_dep GO) ≡
+                ⦗ (acts_set GO) ⦘ ⨾ (rmw_dep GN) ⨾ ⦗ (acts_set GO)⦘ ⟫.
 Proof using.
   red in STEP. desc. red in STEP. desc.
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state))) as XX.
-  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. lia. }
+  { intros HH. apply (acts_rep GPC) in HH. desc. inv REP. lia. }
   assert (~ acts_set (ProgToExecution.G state) (ThreadEvent thread (eindex state + 1))) as YY.
-  { intros HH. apply GPC.(acts_rep) in HH. desc. inv REP. lia. }
+  { intros HH. apply (acts_rep GPC) in HH. desc. inv REP. lia. }
   destruct ISTEP0; simpls.
   all: rewrite UG.
   1,2: by splits; apply GPC.
   all: unfold add, add_rmw; simpls; splits.
   all: try apply GPC.
-  all: try by (rewrite GPC.(wft_rmwE) at 1; basic_solver).
-  all: try by (rewrite GPC.(wft_dataE) at 1; basic_solver).
-  all: try by (rewrite GPC.(wft_addrE) at 1; basic_solver).
-  all: try by (rewrite GPC.(wft_ctrlE) at 1; basic_solver).
-  all: try by (rewrite GPC.(wft_rmw_depE) at 1; basic_solver).
-  all: rewrite GPC.(wft_ctrlE) at 1; basic_solver 10.
+  all: try by (rewrite (wft_rmwE GPC) at 1; basic_solver).
+  all: try by (rewrite (wft_dataE GPC) at 1; basic_solver).
+  all: try by (rewrite (wft_addrE GPC) at 1; basic_solver).
+  all: try by (rewrite (wft_ctrlE GPC) at 1; basic_solver).
+  all: try by (rewrite (wft_rmw_depE GPC) at 1; basic_solver).
+  all: rewrite (wft_ctrlE GPC) at 1; basic_solver 10.
 Qed.
 
 Lemma steps_old_restrict thread state state'
       (GPC : wf_thread_state thread state)
       (STEP : (step thread)＊ state state') :
-  let GO := state.(ProgToExecution.G) in
-  let GN := state'.(ProgToExecution.G) in
-  ⟪ ORMW  : GO.(rmw) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw) ⨾ ⦗ GO.(acts_set) ⦘ ⟫ /\
-  ⟪ ODATA : GO.(data) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(data) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OADDR : GO.(addr) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(addr) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OCTRL : GO.(ctrl) ≡
-             ⦗ GO.(acts_set) ⦘ ⨾ GN.(ctrl) ⨾ ⦗ GO.(acts_set)⦘ ⟫ /\
-  ⟪ OFAILDEP : GO.(rmw_dep) ≡
-                ⦗ GO.(acts_set) ⦘ ⨾ GN.(rmw_dep) ⨾ ⦗ GO.(acts_set)⦘ ⟫.
+  let GO := (ProgToExecution.G state) in
+  let GN := (ProgToExecution.G state') in
+  ⟪ ORMW  : (rmw GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (rmw GN) ⨾ ⦗ (acts_set GO) ⦘ ⟫ /\
+  ⟪ ODATA : (data GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (data GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OADDR : (addr GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (addr GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OCTRL : (ctrl GO) ≡
+             ⦗ (acts_set GO) ⦘ ⨾ (ctrl GN) ⨾ ⦗ (acts_set GO)⦘ ⟫ /\
+  ⟪ OFAILDEP : (rmw_dep GO) ≡
+                ⦗ (acts_set GO) ⦘ ⨾ (rmw_dep GN) ⨾ ⦗ (acts_set GO)⦘ ⟫.
 Proof using.
   induction STEP.
   2: { simpls. splits; apply GPC. }
@@ -796,15 +796,15 @@ Qed.
 End StepProperties.
 
 Lemma step_middle_set thread state state' C
-      (OIN : state.(G).(acts_set) ⊆₁ C)
-      (INN : C ⊆₁ state'.(G).(acts_set))
+      (OIN : (acts_set (G state)) ⊆₁ C)
+      (INN : C ⊆₁ (acts_set (G state')))
       (STEP : (step thread) state state')
-      (RMWC : forall r w (RMW : state'.(G).(rmw) r w),
+      (RMWC : forall r w (RMW : (rmw (G state')) r w),
                        C r <-> C w) :
-        C ≡₁ state.(G).(acts_set) \/
-        C ≡₁ state'.(G).(acts_set).
+        C ≡₁ (acts_set (G state)) \/
+        C ≡₁ (acts_set (G state')).
 Proof using.
-  destruct (classic (C ⊆₁ state.(G).(acts_set))) as [INO|NINO].
+  destruct (classic (C ⊆₁ (acts_set (G state)))) as [INO|NINO].
   { left. by split. }
   right. split; auto.
   red in STEP. desc.
@@ -843,8 +843,8 @@ Qed.
   
 Lemma steps_middle_set thread state state' C cindex
       (GPC : wf_thread_state thread state)
-      (OIN : state.(G).(acts_set) ⊆₁ C)
-      (INN : C ⊆₁ state'.(G).(acts_set))
+      (OIN : (acts_set (G state)) ⊆₁ C)
+      (INN : C ⊆₁ (acts_set (G state')))
       (STEP : (step thread)＊ state state')
       (CCLOS : forall index (LT : index < cindex), 
           C (ThreadEvent thread index))
@@ -853,12 +853,12 @@ Lemma steps_middle_set thread state state' C cindex
            exists index,
              ⟪ EREP : e = ThreadEvent thread index ⟫ /\
              ⟪ IIND : index < cindex ⟫)
-      (RMWC : forall r w (RMW : state'.(G).(rmw) r w),
+      (RMWC : forall r w (RMW : (rmw (G state')) r w),
                        C r <-> C w) :
   exists state'',
     ⟪ STEP1 : (step thread)＊ state state'' ⟫ /\
     ⟪ STEP2 : (step thread)＊ state'' state' ⟫ /\
-    ⟪ CACTS : state''.(G).(acts_set) ≡₁ C ⟫.
+    ⟪ CACTS : (acts_set (G state'')) ≡₁ C ⟫.
 Proof using.
   apply clos_rt_rt1n in STEP.
   induction STEP.
@@ -870,7 +870,7 @@ Proof using.
   destruct (Compare_dec.le_ge_dec cindex (eindex y)) as [LL|LL].
   { assert (C ⊆₁ acts_set (G y)) as UU.
     { intros a HH. apply CREP in HH. desc. subst.
-      apply GPC'.(acts_clos). lia. }
+      apply (acts_clos GPC'). lia. }
     edestruct step_middle_set with (state0:=x) (state':=y) as [YY|YY]; eauto.
     { ins. apply RMWC. eapply steps_preserve_rmw; eauto. }
     { exists x. splits.
@@ -882,7 +882,7 @@ Proof using.
     { by apply clos_rt1n_rt. }
       by rewrite YY. }
   assert (acts_set (G y) ⊆₁ C) as UU.
-  { intros a HH. apply GPC'.(acts_rep) in HH. desc. subst.
+  { intros a HH. apply (acts_rep GPC') in HH. desc. subst.
     apply CCLOS. lia. }
   specialize (IHSTEP GPC' UU INN RMWC). desc.
   exists state''. splits; auto.
@@ -890,7 +890,7 @@ Proof using.
 Qed.
 
 Definition program_execution (prog : Prog.t) (G : execution) :=
-  (forall e (IN: G.(acts_set) e),
+  (forall e (IN: (acts_set G) e),
       is_init e \/ IdentMap.In (tid e) prog) /\
   forall thread linstr (INTHREAD: Some linstr = IdentMap.find thread prog),
   exists pe, 

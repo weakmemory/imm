@@ -39,15 +39,15 @@ Section TraversalCounting.
   Variable sc : relation actid.
   Variable WF : Wf G.
   
-  Notation "'E'" := G.(acts_set).
-  Notation "'lab'" := G.(lab).
+  Notation "'E'" := (acts_set G).
+  Notation "'lab'" := (lab G).
   Notation "'W'" := (fun x => is_true (is_w lab x)).
   Notation "'Rel'" := (fun x => is_true (is_rel lab x)).
-  Notation "'rmw'" := G.(rmw).
+  Notation "'rmw'" := (rmw G).
 
   Definition trav_steps_left (T : trav_config) :=
-    countP (set_compl (covered T)) G.(acts) +
-    countP (W ∩₁ set_compl (issued T)) G.(acts).
+    countP (set_compl (covered T)) (acts G) +
+    countP (W ∩₁ set_compl (issued T)) (acts G).
   
   Lemma trav_steps_left_decrease (T T' : trav_config)
         (STEP : trav_step G sc T T') :
@@ -224,7 +224,7 @@ Section TraversalCounting.
         (TCCOH : tc_coherent G sc T)
         (RELCOV :  W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w (RMW : rmw r w), covered T r <-> covered T w) :
-    exists T', (sim_trav_step G sc)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
+    exists T', (sim_trav_step G sc)＊ T T' /\ ((acts_set G) ⊆₁ covered T').
   Proof using WF.
     assert
       (exists T' : trav_config, (sim_trav_step G sc)＊ T T' /\ trav_steps_left T' = 0).
@@ -263,16 +263,16 @@ Section TraversalCounting.
   Qed.
 
   Lemma sim_traversal (IMMCON : imm_consistent G sc) :
-    exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
+    exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ ((acts_set G) ⊆₁ covered T).
   Proof using WF.
     apply sim_traversal_helper; auto.
     { by apply init_trav_coherent. }
     { unfold init_trav. simpls. basic_solver. }
     ins. split; intros [HH AA].
-    { apply WF.(init_w) in HH.
-      apply (dom_l WF.(wf_rmwD)) in RMW. apply seq_eqv_l in RMW.
+    { apply (init_w WF) in HH.
+      apply (dom_l (wf_rmwD WF)) in RMW. apply seq_eqv_l in RMW.
       type_solver. }
-    apply WF.(rmw_in_sb) in RMW. apply no_sb_to_init in RMW.
+    apply (rmw_in_sb WF) in RMW. apply no_sb_to_init in RMW.
     apply seq_eqv_r in RMW. desf.
   Qed.
 
@@ -282,7 +282,7 @@ Section TraversalCounting.
   Lemma sim_step_cov_full_thread T T' thread thread'
         (TCCOH : tc_coherent G sc T)
         (TS : isim_trav_step G sc thread' T T')
-        (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T) :
+        (NCOV : NTid_ thread ∩₁ (acts_set G) ⊆₁ covered T) :
     thread' = thread.
   Proof using.
     destruct (classic (thread' = thread)) as [|NEQ]; [by subst|].
@@ -298,10 +298,10 @@ Section TraversalCounting.
 
   Lemma sim_step_cov_full_traversal T thread
         (IMMCON : imm_consistent G sc)
-        (TCCOH : tc_coherent G sc T) (NCOV : NTid_ thread ∩₁ G.(acts_set) ⊆₁ covered T)
+        (TCCOH : tc_coherent G sc T) (NCOV : NTid_ thread ∩₁ (acts_set G) ⊆₁ covered T)
         (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w : actid, rmw r w -> covered T r <-> covered T w) : 
-    exists T', (isim_trav_step G sc thread)＊ T T' /\ (G.(acts_set) ⊆₁ covered T').
+    exists T', (isim_trav_step G sc thread)＊ T T' /\ ((acts_set G) ⊆₁ covered T').
   Proof using WF.
     edestruct sim_traversal_helper as [T']; eauto.
     desc. exists T'. splits; auto.

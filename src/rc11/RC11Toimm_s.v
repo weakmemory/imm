@@ -20,38 +20,38 @@ Section RC11_TO_IMM_S.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'rs'" := G.(rs).
-Notation "'release'" := G.(release).
-Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(hb).
+Notation "'rs'" := (rs G).
+Notation "'release'" := (release G).
+Notation "'sw'" := (sw G).
+Notation "'hb'" := (hb G).
 
-Notation "'ar_int'" := G.(ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
+Notation "'ar_int'" := (ar_int G).
+Notation "'ppo'" := (ppo G).
+Notation "'bob'" := (bob G).
 
-Notation "'ar'" := G.(ar).
+Notation "'ar'" := (ar G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).

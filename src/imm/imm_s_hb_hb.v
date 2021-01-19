@@ -17,39 +17,39 @@ Section S_HB_HB.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'rs'" := G.(imm_hb.rs).
-Notation "'release'" := G.(imm_hb.release).
-Notation "'sw'" := G.(imm_hb.sw).
-Notation "'hb'" := G.(imm_hb.hb).
-
-
-Notation "'s_rs'" := G.(imm_s_hb.rs).
-Notation "'s_release'" := G.(imm_s_hb.release).
-Notation "'s_sw'" := G.(imm_s_hb.sw).
-Notation "'s_hb'" := G.(imm_s_hb.hb).
+Notation "'rs'" := (imm_hb.rs G).
+Notation "'release'" := (imm_hb.release G).
+Notation "'sw'" := (imm_hb.sw G).
+Notation "'hb'" := (imm_hb.hb G).
 
 
-Notation "'lab'" := G.(lab).
+Notation "'s_rs'" := (imm_s_hb.rs G).
+Notation "'s_release'" := (imm_s_hb.release G).
+Notation "'s_sw'" := (imm_s_hb.sw G).
+Notation "'s_hb'" := (imm_s_hb.hb G).
+
+
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).

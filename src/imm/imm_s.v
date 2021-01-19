@@ -23,32 +23,32 @@ Section IMM.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'detour'" := G.(detour).
-Notation "'hb'" := G.(imm_s_hb.hb).
-Notation "'sw'" := G.(imm_s_hb.sw).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'detour'" := (detour G).
+Notation "'hb'" := (imm_s_hb.hb G).
+Notation "'sw'" := (imm_s_hb.sw G).
 
-Notation "'bob'" := G.(bob).
-Notation "'ppo'" := G.(imm_s_ppo.ppo).
-Notation "'ar_int'" := G.(imm_s_ppo.ar_int).
+Notation "'bob'" := (bob G).
+Notation "'ppo'" := (imm_s_ppo.ppo G).
+Notation "'ar_int'" := (imm_s_ppo.ar_int G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -243,7 +243,7 @@ Proof using WF.
   unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
   rewrite rt_rf_rmw.
   arewrite ((sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rfi ⨾ rmw)＊ ⊆ (sb ∩ same_loc)^? ⨾ ⦗W⦘).
-  { rewrite (dom_r WF.(wf_rmwD)). sin_rewrite WF.(rfi_rmw_in_sb_loc).
+  { rewrite (dom_r (wf_rmwD WF)). sin_rewrite (rfi_rmw_in_sb_loc WF).
     rewrite rtE. rewrite inclusion_ct_seq_eqv_r.
     generalize (@sb_same_loc_trans G); intros HH.
     rewrite ct_of_trans; auto. generalize HH; basic_solver 10. }
@@ -283,7 +283,7 @@ Proof using WF.
   { arewrite (rfi ⊆ sb). generalize (@sb_trans G). basic_solver. }
   rewrite seqA. rewrite crE at 1. rewrite !seq_union_l, !seq_union_r, !seq_id_l.
   arewrite (⦗W_ex⦘ ⨾ rfi ⨾ ⦗Acq⦘ ⊆ ax).
-  { subst ax. unfold imm_s_ppo.ar_int. rewrite (dom_r WF.(wf_rfiD)) at 1.
+  { subst ax. unfold imm_s_ppo.ar_int. rewrite (dom_r (wf_rfiD WF)) at 1.
     basic_solver 10. }
   rewrite ct_unit.
   arewrite_id ⦗W_ex⦘. rewrite seq_id_l.
@@ -431,9 +431,9 @@ Proof using WF.
   { rewrite rfi_union_rfe, !seq_union_l, !seq_union_r.
     unionL.
     2: { rewrite rfe_in_ar. basic_solver. }
-    rewrite (dom_r WF.(wf_rfiD)), !seqA. rewrite <- id_inter.
+    rewrite (dom_r (wf_rfiD WF)), !seqA. rewrite <- id_inter.
     unfold ar, imm_s_ppo.ar_int. eauto with hahn. }
-  rewrite WF.(rmw_in_ar_int) at 1. rewrite ar_int_in_ar.
+  rewrite (rmw_in_ar_int WF) at 1. rewrite ar_int_in_ar.
   arewrite (⦗W_ex⦘ ⨾ rf ⨾ rmw ⊆ ar sc ∪ rf ⨾ rmw).
   arewrite (ar sc ⊆ ar sc ∪ rf ⨾ rmw) at 1.
   arewrite (ar sc ⊆ ar sc ∪ rf ⨾ rmw) at 3.
@@ -488,12 +488,12 @@ Proof using WF IMMCON.
   red in SL. rewrite LOC in SL.
   unfold is_init in INIT. unfold Events.loc in SL.
   destruct e; [|done].
-  rewrite WF.(wf_init_lab) in SL. inv SL.
+  rewrite (wf_init_lab WF) in SL. inv SL.
   assert (E (InitEvent l)) as EL.
-  { apply WF.(wf_init). eexists. eauto. }
-  edestruct WF.(wf_co_total) as [CO|CO]; eauto; desf.
+  { apply (wf_init WF). eexists. eauto. }
+  edestruct (wf_co_total WF) as [CO|CO]; eauto; desf.
   { split; [split|]; auto. by apply init_w.
-    unfold Events.loc at 1. by rewrite WF.(wf_init_lab). }
+    unfold Events.loc at 1. by rewrite (wf_init_lab WF). }
   { intros H. subst. desf. }
   exfalso. cdes IMMCON.
   eapply Cint. eexists. split.
@@ -504,7 +504,7 @@ Qed.
 Lemma wf_rfrmw_irr : irreflexive (rf ⨾ rmw).
 Proof using WF IMMCON.
   arewrite (rmw ⊆ sb).
-  { rewrite WF.(wf_rmwi). basic_solver. }
+  { rewrite (wf_rmwi WF). basic_solver. }
   rewrite Execution_eco.rf_in_eco.
   rewrite sb_in_hb. cdes IMMCON.
   red in Cint. generalize Cint. basic_solver 10.
@@ -532,8 +532,8 @@ Proof using WF IMMCON.
   enough (exists z, rf z y) as [z RF].
   { exists z. eexists. eauto. }
   apply IMMCON.
-  apply (dom_l WF.(wf_rmwE)) in RMW. destruct_seq_l RMW as AA. split; auto.
-  apply (dom_l WF.(wf_rmwD)) in RMW. destruct_seq_l RMW as BB. type_solver.
+  apply (dom_l (wf_rmwE WF)) in RMW. destruct_seq_l RMW as AA. split; auto.
+  apply (dom_l (wf_rmwD WF)) in RMW. destruct_seq_l RMW as BB. type_solver.
 Qed.
 
 Lemma rfrmwP_in_immPco P P'
@@ -575,7 +575,7 @@ Qed.
 Lemma rfe_rmw_in_ar_ct : rfe ;; rmw ⊆ (ar sc)⁺.
 Proof using WF.
   rewrite <- ct_ct.
-  rewrite rfe_in_ar, WF.(rmw_in_ppo), ppo_in_ar.
+  rewrite rfe_in_ar, (rmw_in_ppo WF), ppo_in_ar.
   eby rewrite <- ct_step.
 Qed.
 
@@ -600,7 +600,7 @@ Qed.
 (*
 Lemma rfe_rmw_sb_in_ar_ct WF : rfe ;; rmw ;; sb ;; <|W|> ⊆ ar⁺.
 Proof using.
-  rewrite (dom_l WF.(wf_rmwD)), WF.(rmw_in_sb), !seqA.
+  rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF), !seqA.
   (* TODO: introduce a lemma *)
   arewrite (sb ;; sb ⊆ sb).
   { apply transitiveI. apply sb_trans. }
@@ -613,11 +613,11 @@ Lemma sb_release_rmw_in_fwbob
       (SPL   : Execution_eco.sc_per_loc G) :
   sb^? ∩ release G ⨾ sb ∩ Events.same_loc lab ⨾ rmw ⊆ fwbob G.
 Proof using WF.
-  rewrite (dom_r WF.(wf_rmwD)).
-  rewrite WF.(rmw_in_sb_loc).
+  rewrite (dom_r (wf_rmwD WF)).
+  rewrite (rmw_in_sb_loc WF).
   sin_rewrite rewrite_trans.
   2: by apply sb_same_loc_trans.
-  rewrite (dom_l WF.(wf_releaseD)).
+  rewrite (dom_l (wf_releaseD WF)).
   arewrite (sb^? ∩ (⦗(F ∪₁ W) ∩₁ Rel⦘ ⨾ release G) ⊆
             ⦗(F ∪₁ W) ∩₁ Rel⦘ ⨾ (sb^? ∩ release G)).
   { basic_solver. }
@@ -634,7 +634,7 @@ Proof using WF.
             ⦗W ∩₁ Rel⦘ ⨾ sb^? ∩ (⦗Rel⦘ ⨾ rs G)).
   { type_solver 10. }
   rewrite rs_in_co; auto.
-  rewrite WF.(wf_col).
+  rewrite (wf_col WF).
   arewrite (sb^? ∩ (⦗Rel⦘ ⨾ ⦗W⦘ ⨾ (Events.same_loc lab)^?) ⊆
                (sb ∩ Events.same_loc lab)^?).
   { basic_solver. }
@@ -647,18 +647,18 @@ Lemma no_ar_to_init : ar sc ;; <|is_init|> ≡ ∅₂.
 Proof using WF IMMCON.
   split; [|basic_solver].
   unfold ar.
-  rewrite WF.(ar_int_in_sb). rewrite no_sb_to_init.
+  rewrite (ar_int_in_sb WF). rewrite no_sb_to_init.
   rewrite wf_scD with (sc:=sc); [|by apply IMMCON].
-  rewrite WF.(wf_rfeD).
+  rewrite (wf_rfeD WF).
   rewrite seq_union_l. unionL; [|basic_solver].
-  rewrite WF.(init_w). type_solver 10.
+  rewrite (init_w WF). type_solver 10.
 Qed.
 
 Lemma no_ar_rfrmw_to_init : (ar sc ∪ rf ⨾ rmw) ;; <|is_init|> ≡ ∅₂.
 Proof using WF IMMCON.
   split; [|basic_solver].
   rewrite seq_union_l, seqA, no_ar_to_init; auto.
-  rewrite WF.(rmw_in_sb). rewrite no_sb_to_init.
+  rewrite (rmw_in_sb WF). rewrite no_sb_to_init.
   basic_solver.
 Qed.
 
@@ -666,8 +666,8 @@ Lemma wf_ar_rfrmwE :
   ar sc ∪ rf ;; rmw ≡ <|E|> ;; (ar sc ∪ rf ;; rmw) ;; <|E|>.
 Proof using WF WF_SC IMMCON.
   rewrite wf_arE at 1; auto.
-  rewrite (dom_l WF.(wf_rfE)) at 1.
-  rewrite (dom_r WF.(wf_rmwE)) at 1.
+  rewrite (dom_l (wf_rfE WF)) at 1.
+  rewrite (dom_r (wf_rmwE WF)) at 1.
   basic_solver 10.
 Qed.
 
@@ -690,7 +690,7 @@ Proof using WF IMMCON.
   split; [|basic_solver].
   rewrite seq_union_l, seqA, no_ar_to_init; auto.
   arewrite (ppo ∩ same_loc ⊆ ppo).
-  rewrite WF.(ppo_in_sb). rewrite no_sb_to_init.
+  rewrite (ppo_in_sb WF). rewrite no_sb_to_init.
   basic_solver.
 Qed.
 
@@ -698,8 +698,8 @@ Lemma wf_ar_rf_ppo_locE :
   ar sc ∪ rf ;; ppo ∩ same_loc ≡ <|E|> ;; (ar sc ∪ rf ;; ppo ∩ same_loc) ;; <|E|>.
 Proof using WF IMMCON WF_SC.
   rewrite wf_arE at 1; auto.
-  rewrite (dom_l WF.(wf_rfE)) at 1.
-  rewrite (dom_r WF.(wf_ppoE)) at 1.
+  rewrite (dom_l (wf_rfE WF)) at 1.
+  rewrite (dom_r (wf_ppoE WF)) at 1.
   basic_solver 10.
 Qed.
 
@@ -715,12 +715,12 @@ Qed.
 Lemma rfe_n_same_tid : rfe ∩ same_tid ⊆ ∅₂.
 Proof using WF COH.
   arewrite (rfe ∩ same_tid ⊆ rfe ∩ (<|E|> ;; same_tid ;; <|E|>)).
-  { rewrite WF.(wf_rfeE) at 1. basic_solver. }
+  { rewrite (wf_rfeE WF) at 1. basic_solver. }
   arewrite (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘ ⊆ same_tid ∩ (⦗E⦘ ⨾ same_tid ⨾ ⦗E⦘)) by basic_solver.
   rewrite tid_sb.
   rewrite !inter_union_r.
   unionL.
-  3: { rewrite WF.(wf_rfeD). rewrite init_w; eauto. type_solver. }
+  3: { rewrite (wf_rfeD WF). rewrite init_w; eauto. type_solver. }
   2: { unfolder. ins. desf.
        eapply COH. eexists. split.
        { eby apply sb_in_hb. }
@@ -740,7 +740,7 @@ Qed.
 Lemma ar_W_in_ar_int : ar sc ;; <|W|> ⊆ ar_int.
 Proof using WF IMMCON.
   unfold ar. erewrite wf_scD with (sc:=sc); [|by apply IMMCON].
-  rewrite WF.(wf_rfeD). type_solver.
+  rewrite (wf_rfeD WF). type_solver.
 Qed.
 
 Lemma C_EXT_helper2 : (psc ∪ rfe)⁺ ⊆ psc⁺ ∪ rfe.
@@ -809,7 +809,7 @@ Lemma s_acyc_ext_helper
 Proof using WF.
   set (ar' := psc ∪ rfe ∪ ar_int).
   unfold acyc_ext.
-  exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext G.(acts) ar' ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
+  exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext (acts G) ar' ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
   splits.
   { constructor.
     1,2: apply dom_helper_3; basic_solver.

@@ -17,26 +17,26 @@ Section IMM_S_PPO.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'detour'" := G.(detour).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'detour'" := (detour G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -83,7 +83,7 @@ arewrite_id ⦗R_ex⦘.
 rewrite (addr_in_sb WF), (data_in_sb WF), (ctrl_in_sb WF).
 rewrite (rmw_dep_in_sb WF).
 arewrite (rfi ⊆ sb).
-rewrite WF.(rmw_in_sb) at 1.
+rewrite (rmw_in_sb WF) at 1.
 rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r.
 assert (sb⁺ ⊆ sb) as AA.
 { generalize (@sb_trans G). ins. relsf. }
@@ -104,7 +104,7 @@ Lemma rmw_in_ppo_loc WF : rmw ⊆ ppo ∩ same_loc.
 Proof using.
   apply inclusion_inter_r.
   { by apply rmw_in_ppo. }
-  apply WF.(wf_rmwl).
+  apply (wf_rmwl WF).
 Qed.
 
 (* Lemma rmw_sb_W_in_ppo WF : rmw ⨾ sb ⨾ ⦗W⦘ ⊆ ppo. *)
@@ -134,8 +134,8 @@ Qed.
 (* Lemma rmw_sb_cr_W_in_ppo WF : rmw ⨾ sb^? ⨾ ⦗W⦘ ⊆ ppo. *)
 (* Proof using. *)
 (*   rewrite crE. rewrite seq_union_l, seq_union_r, seq_id_l. *)
-(*   rewrite WF.(rmw_sb_W_in_ppo). *)
-(*   rewrite WF.(rmw_in_ppo). eauto with hahn hahn_full. *)
+(*   rewrite (rmw_sb_W_in_ppo WF). *)
+(*   rewrite (rmw_in_ppo WF). eauto with hahn hahn_full. *)
 (* Qed. *)
 
 Lemma wf_ppoE WF : ppo ≡ ⦗E⦘ ⨾ ppo ⨾ ⦗E⦘.
@@ -220,8 +220,8 @@ Lemma rmw_sb_loc_in_rmw_coi WF (SPL : sc_per_loc G) :
 Proof using.
   rewrite !crE, !seq_union_r, !seq_id_r.
   apply union_mori; [done|].
-  rewrite (dom_r WF.(wf_rmwD)) at 1. rewrite !seqA.
-    by rewrite WF.(w_sb_loc_w_in_coi).
+  rewrite (dom_r (wf_rmwD WF)) at 1. rewrite !seqA.
+    by rewrite (w_sb_loc_w_in_coi WF).
 Qed.
 
 (* Lemma ppo_alt WF  *)
@@ -316,7 +316,7 @@ Proof using.
   { rewrite (bob_ppo WF). 
     unionR right -> left. rewrite <- ct_step. basic_solver. }
   { rewrite (wf_ppoD) at 1. type_solver. }
-  { rewrite WF.(ppo_in_sb) at 1.
+  { rewrite (ppo_in_sb WF) at 1.
     rewrite !seqA. apply AA. }
   { rewrite (wf_ppoD) at 1 2. type_solver. }
   2: sin_rewrite (bob_ppo WF). 
@@ -325,7 +325,7 @@ Proof using.
   { rewrite (wf_ppoD) at 1. type_solver. }
   { arewrite (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⊆ sb) at 1.
     { rewrite bob_in_sb. arewrite (rfi ⊆ sb). basic_solver. }
-    rewrite WF.(ppo_in_sb) at 1.
+    rewrite (ppo_in_sb WF) at 1.
     generalize (@sb_trans G); ins; relsf. }
   { basic_solver 10. }
   rewrite (wf_ppoD) at 1 2; type_solver.
@@ -342,11 +342,11 @@ Proof using.
   hahn_frame_l.
   hahn_frame_l.
   hahn_frame_r.
-  rewrite WF.(data_in_sb).
-  rewrite WF.(ctrl_in_sb).
-  rewrite WF.(addr_in_sb).
-  rewrite WF.(rmw_dep_in_sb).
-  rewrite WF.(rmw_in_sb).
+  rewrite (data_in_sb WF).
+  rewrite (ctrl_in_sb WF).
+  rewrite (addr_in_sb WF).
+  rewrite (rmw_dep_in_sb WF).
+  rewrite (rmw_in_sb WF).
   arewrite (rfi ⊆ sb).
   arewrite_id ⦗R_ex⦘ at 2.
   generalize (@sb_trans G); ins; relsf.
@@ -357,10 +357,10 @@ Lemma rf_rmw_sb_loc_in_rf_ppo_loc WF (RMWREX : dom_rel rmw ⊆₁ R_ex) :
 Proof using.
   arewrite (rmw ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ (rmw ⨾ sb ⨾ ⦗W⦘) ∩ same_loc).
   { arewrite (rmw ⊆ rmw ∩ same_loc).
-    { apply inclusion_inter_r; [done|]. apply WF.(wf_rmwl). }
+    { apply inclusion_inter_r; [done|]. apply (wf_rmwl WF). }
     generalize (@same_loc_trans _ lab). basic_solver. }
   rewrite (dom_rel_helper RMWREX). rewrite !seqA.
-  rewrite WF.(rmw_in_sb).
+  rewrite (rmw_in_sb WF).
   arewrite (sb ⨾ sb ⊆ sb).
   { generalize (@sb_trans G). basic_solver. }
     by rewrite R_ex_sb_W_in_ppo.
@@ -398,15 +398,15 @@ Proof using.
   subst ax.
   rewrite !seq_union_l.
   unionL.
-  { rewrite (dom_l WF.(wf_rfiD)).
-    rewrite (dom_r WF.(wf_rfeD)).
+  { rewrite (dom_l (wf_rfiD WF)).
+    rewrite (dom_r (wf_rfeD WF)).
     type_solver. }
   unfold ar_int at 1.
   rewrite !seq_union_l.
   unionL.
   5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
-  3: { rewrite WF.(wf_detourD).
-       rewrite WF.(wf_rfiD). type_solver. }
+  3: { rewrite (wf_detourD WF).
+       rewrite (wf_rfiD WF). type_solver. }
   { unfold imm_bob.bob at 1.
     rewrite !seq_union_l, !seqA.
     unionL.
@@ -415,10 +415,10 @@ Proof using.
          rewrite bob_in_ar_int. rewrite <- ct_step. eauto with hahn. }
     rewrite fwbob_rfi_rmw_in_fwbob; auto.
     rewrite fwbob_in_bob. rewrite bob_in_ar_int. eauto with hahn. }
-  { rewrite WF.(rmw_in_ppo), ppo_rfi_ppo. rewrite <- ct_step.
+  { rewrite (rmw_in_ppo WF), ppo_rfi_ppo. rewrite <- ct_step.
     rewrite ppo_in_ar_int. eauto with hahn. }
   arewrite_id ⦗W⦘. rewrite seq_id_l.
-  rewrite (dom_r WF.(wf_rmwD)).
+  rewrite (dom_r (wf_rmwD WF)).
   sin_rewrite BB. sin_rewrite AA.
   rewrite <- ct_step.
   rewrite w_ex_acq_sb_w_in_ar_int. eauto with hahn.

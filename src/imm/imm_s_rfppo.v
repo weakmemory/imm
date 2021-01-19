@@ -15,41 +15,41 @@ Section ImmRFRMWPPO.
   Variable IMMCON : imm_consistent G sc.
   Variable WFSC : wf_sc G sc.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
   Notation "'ar'" := (ar G sc).
   Notation "'ar_int'" := (ar_int G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -81,7 +81,7 @@ Proof using WF.
   { apply transitiveI. apply sb_trans. }
   
   assert (rfi ⨾ sb ∩ same_loc ⊆ sb ∩ same_loc) as DD.
-  { rewrite WF.(rfi_in_sbloc'). apply transitiveI. apply sb_same_loc_trans. }
+  { rewrite (rfi_in_sbloc' WF). apply transitiveI. apply sb_same_loc_trans. }
 
   rewrite rfi_union_rfe.
   rewrite seq_union_l, seq_union_r.
@@ -95,15 +95,15 @@ Proof using WF.
   subst ax.
   rewrite !seq_union_l.
   unionL.
-  { rewrite (dom_l WF.(wf_rfiD)).
-    rewrite (dom_r WF.(wf_rfeD)).
+  { rewrite (dom_l (wf_rfiD WF)).
+    rewrite (dom_r (wf_rfeD WF)).
     type_solver. }
   unfold imm_s_ppo.ar_int at 1.
   rewrite !seq_union_l.
   unionL.
   5: by rewrite (dom_l (wf_rfiD WF)); type_solver.
-  3: { rewrite WF.(wf_detourD).
-       rewrite WF.(wf_rfiD). type_solver. }
+  3: { rewrite (wf_detourD WF).
+       rewrite (wf_rfiD WF). type_solver. }
   2: { arewrite (ppo ∩ same_loc ⊆ ppo).
        rewrite ppo_rfi_ppo. rewrite <- ct_step.
        rewrite ppo_in_ar_int. eauto with hahn. }
@@ -111,13 +111,13 @@ Proof using WF.
        rewrite rfi_in_sb.
        arewrite (ppo ∩ same_loc ⊆ ppo).
        rewrite (dom_r (@wf_ppoD G)).
-       rewrite WF.(ppo_in_sb).
+       rewrite (ppo_in_sb WF).
        arewrite (sb ⨾ sb ⨾ sb ⊆ sb).
        { generalize (@sb_trans G). basic_solver. }
        rewrite <- ct_step.
        rewrite w_ex_acq_sb_w_in_ar_int. eauto with hahn. }
   rewrite (dom_r (@wf_ppoD G)).
-  rewrite WF.(ppo_in_sb).
+  rewrite (ppo_in_sb WF).
   rewrite seq_eqv_inter_lr.
   sin_rewrite DD.
   rewrite bob_sb_same_loc_W_in_bob.
@@ -131,7 +131,7 @@ Proof using WF IMMCON.
   rewrite unionA, seq_union_l.
   unionL.
   { rewrite wf_scD with (sc:=sc) at 1; [|by apply IMMCON].
-    rewrite (dom_l WF.(wf_rfD)).
+    rewrite (dom_l (wf_rfD WF)).
     type_solver. }
   rewrite ar_int_rfe_rf_ppo_loc_in_ar_int_rfe_ct.
   apply clos_trans_mori. eauto with hahn.
@@ -155,7 +155,7 @@ Proof using WF COM IMMCON.
   split.
   2: { red. rewrite ct_of_ct. apply IMMCON. }
   rewrite (@wf_ppoD G).
-  rewrite WF.(ppo_in_sb).
+  rewrite (ppo_in_sb WF).
   rewrite seq_eqv_inter_ll.
   rewrite seq_eqv_inter_lr.
   rewrite r_sb_loc_w_in_fri; auto.

@@ -15,16 +15,16 @@ Section RC11.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'hb'" := G.(hb).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'hb'" := (hb G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).

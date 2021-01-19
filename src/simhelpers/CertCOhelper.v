@@ -12,12 +12,12 @@ Variables G : execution.
 Variable I : actid -> Prop.  (* issued *)
 Variable T : actid -> Prop.  (* all writes in certified thread *)
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
 Notation "'loc'" := (loc lab).
 Notation "'same_loc'" := (same_loc lab).

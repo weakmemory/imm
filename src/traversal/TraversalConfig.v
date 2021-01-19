@@ -16,30 +16,30 @@ Section TraversalConfig.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
   Notation "'ar'" := (ar G sc).
 
@@ -50,17 +50,17 @@ Section TraversalConfig.
   Notation "'t_acq'" := (t_acq G sc).
   Notation "'t_cur'" := (t_cur G sc).
   Notation "'t_rel'" := (t_rel G sc).
-  Notation "'S_tm'" := G.(S_tm).
-  Notation "'S_tmr'" := G.(S_tmr).
+  Notation "'S_tm'" := (S_tm G).
+  Notation "'S_tmr'" := (S_tmr G).
   Notation "'msg_rel'" := (msg_rel G sc).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -374,7 +374,7 @@ Section Properties.
   Proof using WF IMMCON TCCOH.
     unfold imm_s.ar.
     rewrite !seq_union_l.
-    rewrite WF.(ar_int_in_sb).
+    rewrite (ar_int_in_sb WF).
     arewrite (rfe ⊆ rf).
     rewrite sb_coverable, rf_coverable.
     rewrite sc_coverable.
@@ -398,7 +398,7 @@ Section Properties.
   Lemma ar_rfrmw_ct_issuable_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗issuable T⦘) ⊆₁ issued T.
   Proof using WF.
-    rewrite WF.(rmw_in_ppo_loc). apply ar_rf_ppo_loc_ct_issuable_in_I.
+    rewrite (rmw_in_ppo_loc WF). apply ar_rf_ppo_loc_ct_issuable_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_ct_I_in_I  :
@@ -411,7 +411,7 @@ Section Properties.
   Lemma ar_rfrmw_ct_I_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_ct_I_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_ct_I_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_rt_I_in_I  :
@@ -425,7 +425,7 @@ Section Properties.
   Lemma ar_rfrmw_rt_I_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)＊ ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_rt_I_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_rt_I_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_issuable_in_I  :
@@ -438,7 +438,7 @@ Section Properties.
   Lemma ar_rfrmw_issuable_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw) ⨾ ⦗issuable T⦘) ⊆₁ issued T.
   Proof using WF.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_issuable_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_issuable_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_I_in_I  :
@@ -451,7 +451,7 @@ Section Properties.
   Lemma ar_rfrmw_I_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw) ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_I_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_I_in_I.
   Qed.
 
   Lemma ar_ct_issuable_in_I  :
@@ -537,7 +537,7 @@ Section Properties.
     dom_rel (rf ⨾ (ppo ∩ same_loc) ⨾ ⦗coverable T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
     arewrite (ppo ∩ same_loc ⊆ ppo).
-    rewrite (dom_l WF.(wf_rfD)), seqA.
+    rewrite (dom_l (wf_rfD WF)), seqA.
     rewrite rfi_union_rfe, !seq_union_l, !seq_union_r, dom_union.
     unionL.
     2: { rewrite (dom_r (@wf_ppoD G)), !seqA.
@@ -546,14 +546,14 @@ Section Properties.
          sin_rewrite rfe_ppo_in_ar_ct; auto.
            by apply ar_ct_I_in_I. }
     arewrite (rfi ⊆ sb).
-    rewrite WF.(ppo_in_sb). sin_rewrite sb_sb.
+    rewrite (ppo_in_sb WF). sin_rewrite sb_sb.
     rewrite dom_W_sb_coverable_in_I; auto.
   Qed.
 
   Lemma rfrmw_coverable_in_I  :
     dom_rel (rf ⨾ rmw ⨾ ⦗coverable T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply rf_ppo_loc_coverable_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply rf_ppo_loc_coverable_in_I.
   Qed.
 
   Lemma rf_ppo_loc_C_in_I  :
@@ -576,7 +576,7 @@ Section Properties.
     rewrite id_union, !seq_union_r, dom_union.
     unionL.
     { apply rf_ppo_loc_coverable_in_I. }
-    rewrite (dom_l WF.(wf_rfD)), !seqA.
+    rewrite (dom_l (wf_rfD WF)), !seqA.
     arewrite (rf ⨾ ppo ∩ same_loc ⊆ ar ∪ rf ⨾ ppo ∩ same_loc).
       by apply ar_rf_ppo_loc_issuable_in_I.
   Qed.
@@ -584,13 +584,13 @@ Section Properties.
   Lemma rfrmw_coverable_issuable_in_I  :
     dom_rel (rf ⨾ rmw ⨾ ⦗coverable T ∪₁ issuable T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply rf_ppo_loc_coverable_issuable_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply rf_ppo_loc_coverable_issuable_in_I.
   Qed.
 
   Lemma rf_ppo_loc_I_in_I  :
     dom_rel (rf ⨾ (ppo ∩ same_loc) ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite (dom_l WF.(wf_rfD)), seqA.
+    rewrite (dom_l (wf_rfD WF)), seqA.
     arewrite (rf ⨾ (ppo ∩ same_loc) ⊆ ar ∪ rf ⨾ (ppo ∩ same_loc)).
       by apply ar_rf_ppo_loc_I_in_I.
   Qed.
@@ -598,7 +598,7 @@ Section Properties.
   Lemma rfrmw_I_in_I  :
     dom_rel (rf ⨾ rmw ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply rf_ppo_loc_I_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply rf_ppo_loc_I_in_I.
   Qed.
 
   Lemma rf_ppo_loc_rt_I_in_I  :
@@ -606,7 +606,7 @@ Section Properties.
   Proof using WF TCCOH.
     rewrite rtE. rewrite !seq_union_l, !seq_id_l. rewrite dom_union.
     unionL; [basic_solver|].
-    rewrite (dom_l WF.(wf_rfD)). rewrite !seqA.
+    rewrite (dom_l (wf_rfD WF)). rewrite !seqA.
     rewrite inclusion_ct_seq_eqv_l. rewrite !seqA.
     arewrite (rf ⨾ ppo ∩ same_loc ⊆ ar ∪ rf ⨾ ppo ∩ same_loc).
     apply ar_rf_ppo_loc_ct_I_in_I.
@@ -615,7 +615,7 @@ Section Properties.
   Lemma rfrmw_rt_I_in_I  :
     dom_rel ((rf ⨾ rmw)＊ ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply rf_ppo_loc_rt_I_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply rf_ppo_loc_rt_I_in_I.
   Qed.
 
   Lemma rf_ppo_loc_CI_in_I  :
@@ -630,7 +630,7 @@ Section Properties.
   Lemma rfrmw_CI_in_I  :
     dom_rel (rf ⨾ rmw ⨾ ⦗covered T ∪₁ issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply rf_ppo_loc_CI_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply rf_ppo_loc_CI_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_coverable_in_CI  :
@@ -645,7 +645,7 @@ Section Properties.
   Lemma ar_rfrmw_coverable_in_CI  :
     dom_rel ((ar ∪ rf ⨾ rmw) ⨾ ⦗coverable T⦘) ⊆₁ covered T ∪₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_coverable_in_CI.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_coverable_in_CI.
   Qed.
 
   Lemma ar_rf_ppo_loc_C_in_CI  :
@@ -658,7 +658,7 @@ Section Properties.
   Lemma ar_rfrmw_C_in_CI  :
     dom_rel ((ar ∪ rf ⨾ rmw) ⨾ ⦗covered T⦘) ⊆₁ covered T ∪₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_C_in_CI.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_C_in_CI.
   Qed.
 
   Lemma ar_rf_ppo_loc_coverable_issuable_in_I  :
@@ -673,7 +673,7 @@ Section Properties.
   Lemma ar_rfrmw_coverable_issuable_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw) ⨾ ⦗coverable T ∪₁ issuable T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_coverable_issuable_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_coverable_issuable_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_CI_in_I  :
@@ -688,7 +688,7 @@ Section Properties.
   Lemma ar_rfrmw_CI_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw) ⨾ ⦗covered T ∪₁ issued T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). by apply ar_rf_ppo_loc_CI_in_I.
+    rewrite (rmw_in_ppo_loc WF). by apply ar_rf_ppo_loc_CI_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_ct_coverable_issuable_in_I  :
@@ -726,7 +726,7 @@ Section Properties.
   Lemma ar_rfrmw_ct_coverable_issuable_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗coverable T ∪₁ issuable T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). apply ar_rf_ppo_loc_ct_coverable_issuable_in_I.
+    rewrite (rmw_in_ppo_loc WF). apply ar_rf_ppo_loc_ct_coverable_issuable_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_ct_CI_in_I  :
@@ -740,7 +740,7 @@ Section Properties.
   Lemma ar_rfrmw_ct_CI_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗covered T ∪₁ issued T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). apply ar_rf_ppo_loc_ct_CI_in_I.
+    rewrite (rmw_in_ppo_loc WF). apply ar_rf_ppo_loc_ct_CI_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_rt_coverable_in_I  :
@@ -756,7 +756,7 @@ Section Properties.
   Lemma ar_rfrmw_rt_coverable_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)＊ ⨾ ⦗coverable T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). apply ar_rf_ppo_loc_rt_coverable_in_I.
+    rewrite (rmw_in_ppo_loc WF). apply ar_rf_ppo_loc_rt_coverable_in_I.
   Qed.
 
   Lemma ar_rf_ppo_loc_rt_CI_in_I  :
@@ -771,7 +771,7 @@ Section Properties.
   Lemma ar_rfrmw_rt_CI_in_I  :
     dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)＊ ⨾ ⦗covered T ∪₁ issued T⦘) ⊆₁ issued T.
   Proof using WF IMMCON TCCOH.
-    rewrite WF.(rmw_in_ppo_loc). apply ar_rf_ppo_loc_rt_CI_in_I.
+    rewrite (rmw_in_ppo_loc WF). apply ar_rf_ppo_loc_rt_CI_in_I.
   Qed.
   
   Lemma ar_rt_C_in_I  :
@@ -832,9 +832,9 @@ Section Properties.
       arewrite (rfi ⊆ sb). basic_solver 10. }
     arewrite (ar ⨾ ⦗W⦘ ⊆ sb).
     { unfold imm_s.ar.
-      rewrite !seq_union_l. rewrite WF.(ar_int_in_sb).
+      rewrite !seq_union_l. rewrite (ar_int_in_sb WF).
       rewrite wf_scD with (sc:=sc); [|by apply IMMCON].
-      rewrite WF.(wf_rfeD). type_solver. }
+      rewrite (wf_rfeD WF). type_solver. }
     apply dom_rel_helper_in in DD.
     rewrite DD.
     arewrite ((ar ∪ sb)^? ⨾ ⦗covered T⦘ ⊆ ⦗covered T ∪₁ issued T⦘ ⨾ (ar ∪ sb)^? ⨾ ⦗covered T⦘).
@@ -851,7 +851,7 @@ Section Properties.
   Lemma dom_rfe_ppo_issued :
     dom_rel (rfe ⨾ ppo ⨾ ⦗issued T⦘) ⊆₁ issued T.
   Proof using WF TCCOH.
-    rewrite (dom_l WF.(wf_rfeD)).
+    rewrite (dom_l (wf_rfeD WF)).
     arewrite (rfe ⊆ ar).
     rewrite ppo_in_ar.
     sin_rewrite ar_ar_in_ar_ct.
@@ -868,8 +868,8 @@ Section Properties.
   Lemma dom_detour_rfe_ppo_issuable :
     dom_rel ((detour ∪ rfe) ⨾ ppo ⨾ ⦗issuable T⦘) ⊆₁ issued T.
   Proof using WF.
-    rewrite (dom_l WF.(wf_rfeD)).
-    rewrite (dom_l WF.(wf_detourD)).
+    rewrite (dom_l (wf_rfeD WF)).
+    rewrite (dom_l (wf_detourD WF)).
     arewrite (rfe ⊆ ar).
     arewrite (detour ⊆ ar).
     relsf.
@@ -888,8 +888,8 @@ Section Properties.
   Lemma dom_detour_rfe_acq_sb_issuable :
     dom_rel ((detour ∪ rfe) ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb ⨾ ⦗issuable T⦘) ⊆₁ issued T.
   Proof using WF.
-    rewrite (dom_l WF.(wf_detourD)).
-    rewrite (dom_l WF.(wf_rfeD)).
+    rewrite (dom_l (wf_detourD WF)).
+    rewrite (dom_l (wf_rfeD WF)).
     arewrite (rfe ⊆ ar).
     arewrite (detour ⊆ ar).
     relsf.
@@ -912,8 +912,8 @@ Section Properties.
     arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗Acq⦘ ⨾ ⦗R ∩₁ Acq⦘) by basic_solver.
     arewrite (rfi ⊆ rf).
     sin_rewrite (@rmwrf_rt_Acq_in_ar_rfrmw_rt G WF sc); auto.
-    rewrite (dom_l WF.(wf_detourD)).
-    rewrite (dom_l WF.(wf_rfeD)).
+    rewrite (dom_l (wf_detourD WF)).
+    rewrite (dom_l (wf_rfeD WF)).
     arewrite (rfe ⊆ ar).
     arewrite (detour ⊆ ar).
     relsf.
@@ -953,7 +953,7 @@ Section Properties.
   Proof using WF.
     arewrite (⦗W_ex_acq⦘ ⊆ ⦗W⦘ ⨾ ⦗W_ex_acq⦘).
     { rewrite <- seq_eqvK at 1.
-      rewrite WF.(W_ex_in_W) at 1. basic_solver. }
+      rewrite (W_ex_in_W WF) at 1. basic_solver. }
     arewrite (⦗issuable T⦘ ⊆ ⦗W⦘ ⨾ ⦗issuable T⦘).
     { unfold issuable. basic_solver 10. }
     arewrite (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar).
@@ -985,13 +985,13 @@ Section Properties.
     { apply dom_rel_helper.
       arewrite (rmw ⨾ (rfi ⨾ rmw)＊ ⊆ ar＊).
       { arewrite (rfi ⊆ rf).
-        rewrite WF.(rmw_in_ppo) at 1. rewrite ppo_in_ar.
+        rewrite (rmw_in_ppo WF) at 1. rewrite ppo_in_ar.
         rewrite rtE at 1. rewrite seq_union_r, seq_id_r.
         apply inclusion_union_l.
         { rewrite ct_step at 1. apply inclusion_t_rt. }
         rewrite rmw_in_ppo_loc; auto.
         rewrite ar_rf_ppo_loc_ct_in_ar_ct; auto. apply inclusion_t_rt. }
-      rewrite (dom_l WF.(wf_rfeD)), !seqA.
+      rewrite (dom_l (wf_rfeD WF)), !seqA.
       arewrite (rfe ⊆ ar) at 1.
       seq_rewrite <- ct_begin. by apply ar_ct_I_in_I. }
     arewrite (rfe ⨾ rmw ⊆ rf ⨾ rmw).
@@ -1007,22 +1007,22 @@ Section Properties.
   Proof using WF.
     rewrite seq_union_l. rewrite dom_union.
     apply set_subset_union_l; split.
-    { rewrite seqA. rewrite WF.(rfi_in_sbloc'). rewrite WF.(rmw_in_sb).
+    { rewrite seqA. rewrite (rfi_in_sbloc' WF). rewrite (rmw_in_sb WF).
       arewrite (sb ∩ same_loc ⨾ sb ⊆ sb).
       { generalize (@sb_trans G). basic_solver. }
       arewrite (⦗issuable T⦘ ⊆ ⦗W⦘ ⨾ ⦗issuable T⦘).
       { unfold issuable. basic_solver 10. }
       arewrite (⦗W_ex_acq⦘ ⊆ ⦗W⦘ ⨾ ⦗W_ex_acq⦘).
       { rewrite <- seq_eqvK at 1.
-        rewrite WF.(W_ex_in_W) at 1. basic_solver. }
+        rewrite (W_ex_in_W WF) at 1. basic_solver. }
       arewrite (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar).
       rewrite ct_step with (r:=ar).
       unfold issuable.
       arewrite (ar ⊆ ar ∪ rf ⨾ ppo ∩ same_loc) at 1.
       basic_solver 10. }
-    rewrite WF.(rmw_in_ppo).
+    rewrite (rmw_in_ppo WF).
     rewrite ppo_in_ar.
-    rewrite (dom_l WF.(wf_rfeD)), !seqA.
+    rewrite (dom_l (wf_rfeD WF)), !seqA.
     arewrite (rfe ⊆ ar).
     sin_rewrite ar_ar_in_ar_ct.
     unfold issuable.
@@ -1059,7 +1059,7 @@ Section Properties.
     apply ar_rfrmw_I_in_I. exists z.
     apply seq_eqv_lr. splits; auto.
     2: by right.
-    red in TT. desf. apply WF.(wf_rfD) in TT. unfolder in TT. desf.
+    red in TT. desf. apply (wf_rfD WF) in TT. unfolder in TT. desf.
   Qed.
 
   Lemma dom_W_Rel_sb_loc_I_in_C :
@@ -1290,7 +1290,7 @@ Lemma sc_sb_I_dom_C  :
   dom_rel (sc ⨾ sb ⨾ ⦗issued T⦘) ⊆₁ covered T.
 Proof using WF IMMCON TCCOH RELCOV.
   cdes IMMCON.
-  rewrite (dom_r Wf_sc.(wf_scD)).
+  rewrite (dom_r (wf_scD Wf_sc)).
   unfolder. ins. desf.
   cdes TCCOH.
   assert (covered T z) as AA.
@@ -1517,7 +1517,7 @@ Proof using WF TCCOH RELCOV IMMCON.
   { rewrite AA. by rewrite seq_id_l. }
   rewrite id_union, !seq_union_l.
   apply union_mori; [basic_solver|].
-  rewrite (dom_r WF.(wf_swD)).
+  rewrite (dom_r (wf_swD WF)).
   rewrite sw_in_ar0; auto.
   remember (⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ (sb ∩ same_loc)^? ⨾ ⦗W⦘ ⨾ (rfe ∪ ar_int G)⁺) as ax.
   rewrite !seq_union_l, !seq_union_r.

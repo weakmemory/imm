@@ -21,41 +21,41 @@ Section JSMM_TO_IMM_S.
 Variable G : execution.
 Hypothesis WF : Wf G.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'rs'" := G.(rs).
-Notation "'release'" := G.(release).
-Notation "'sw'" := G.(imm_s_hb.sw).
-Notation "'hb'" := G.(imm_s_hb.hb).
+Notation "'rs'" := (rs G).
+Notation "'release'" := (release G).
+Notation "'sw'" := (imm_s_hb.sw G).
+Notation "'hb'" := (imm_s_hb.hb G).
 
-Notation "'sw_js'" := G.(JSMM.sw).
-Notation "'hb_js'" := G.(JSMM.hb).
+Notation "'sw_js'" := (JSMM.sw G).
+Notation "'hb_js'" := (JSMM.hb G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'ar_int'" := G.(ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
+Notation "'ar_int'" := (ar_int G).
+Notation "'ppo'" := (ppo G).
+Notation "'bob'" := (bob G).
 
-Notation "'ar'" := G.(ar).
+Notation "'ar'" := (ar G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -82,7 +82,7 @@ Proof using WF.
   rewrite <- HH.
   rewrite <- !inclusion_id_cr.
   rewrite !seq_id_l.
-  rewrite (dom_l WF.(wf_rfD)) at 1.
+  rewrite (dom_l (wf_rfD WF)) at 1.
   basic_solver 10.
 Qed.
 
@@ -218,17 +218,17 @@ Proof using WF.
   { unfolder. intros w' [r [HBWR HH]].
     destruct HH as [w [RF [[HBJS AA] WW']]].
     assert (hb w w') as HB by (by apply hb_js_in_hb).
-    apply WF.(wf_hbE) in HB.
+    apply (wf_hbE WF) in HB.
     apply seq_eqv_l in HB. destruct HB as [EW HB].
     apply seq_eqv_r in HB. destruct HB as [HB EW'].
-    apply (dom_l WF.(wf_rfD)) in RF.
+    apply (dom_l (wf_rfD WF)) in RF.
     apply seq_eqv_l in RF. destruct RF as [WW RF].
     edestruct is_w_loc as [l LL].
     { apply WW. }
     assert (w <> w') as NEQ.
     { intros HH. subst.
       eapply hb_irr; eauto. }
-    edestruct WF.(wf_co_total).
+    edestruct (wf_co_total WF).
     3: by eauto.
     1,2: by unfolder; splits.
     { eapply Cint. exists r. split.
@@ -250,7 +250,7 @@ Proof using WF.
     { intros HH. subst.
       eapply tot_ext_irr; [|by eauto].
       eapply hb_js_co_fr_ac; eauto. }
-    edestruct WF.(wf_co_total).
+    edestruct (wf_co_total WF).
     3: by eauto.
     1,2: by unfolder; splits.
     all: eapply tot_ext_irr;
@@ -282,7 +282,7 @@ Proof using WF.
     { intros HH. subst.
       eapply tot_ext_irr; [|by eauto].
       eapply hb_js_co_fr_ac; eauto. }
-    edestruct WF.(wf_co_total).
+    edestruct (wf_co_total WF).
     3: by eauto.
     1,2: by unfolder; splits.
     { eapply Cint.
@@ -304,9 +304,9 @@ Proof using WF.
   apply seq_eqv_r in TOT. destruct TOT as [TOT ER].
   apply seq_eqv_l in HH. destruct HH as [[RR SCR] HH].
   destruct HH as [w [[HBWR RF] [HBJS SL]]].
-  apply (dom_l WF.(wf_rfD)) in RF.
+  apply (dom_l (wf_rfD WF)) in RF.
   apply seq_eqv_l in RF. destruct RF as [WW RF].
-  apply (dom_l WF.(wf_rfE)) in RF.
+  apply (dom_l (wf_rfE WF)) in RF.
   apply seq_eqv_l in RF. destruct RF as [EW RF].
   edestruct is_w_loc as [l LL].
   { apply WW. }
@@ -314,7 +314,7 @@ Proof using WF.
   { intros HH. subst.
     eapply hb_irr; eauto.
     apply hb_js_in_hb. eauto. }
-  edestruct WF.(wf_co_total).
+  edestruct (wf_co_total WF).
   3: by eauto.
   1,2: by unfolder; splits.
   { eapply tot_ext_irr; [by eapply hb_js_co_fr_ac; eauto|].

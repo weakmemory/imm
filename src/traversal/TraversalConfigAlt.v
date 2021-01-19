@@ -17,39 +17,39 @@ Section TCCOH_ALT.
  Variable G : execution.
  Variable sc : relation actid.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
   Notation "'ar'" := (ar G sc).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -92,7 +92,7 @@ Record tc_coherent_alt T :=
 Lemma tc_I_ar_rfrmw_I WF T (TCCOH : tc_coherent_alt T) :
   dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗issued T⦘) ⊆₁ issued T.
 Proof using.
-  rewrite WF.(rmw_in_ppo_loc). apply TCCOH.
+  rewrite (rmw_in_ppo_loc WF). apply TCCOH.
 Qed.
 
 Lemma tc_I_ar_I WF T (TCCOH : tc_coherent_alt T) :
@@ -105,8 +105,8 @@ Qed.
 Lemma tc_dr_pb_I WF T (TCCOH : tc_coherent_alt T) :
   dom_rel ( (detour ∪ rfe) ⨾ (ppo ∪ bob) ⨾ ⦗issued T⦘) ⊆₁ issued T.
 Proof using.
-  rewrite (dom_l WF.(wf_detourD)).
-  rewrite (dom_l WF.(wf_rfeD)).
+  rewrite (dom_l (wf_detourD WF)).
+  rewrite (dom_l (wf_rfeD WF)).
   arewrite (detour ⊆ ar).
   arewrite (rfe ⊆ ar).
   rewrite ppo_in_ar, bob_in_ar.

@@ -23,39 +23,39 @@ Section TCCOH_ALT_OLD.
   Notation "'I'" := (issued T).
   Notation "'C'" := (covered T).
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
   Notation "'ar'" := (ar G sc).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -103,7 +103,7 @@ Hypothesis tc_old : tc_coherent_alt_old.
 
 Lemma otc_rfirmw_I : dom_rel (rfi ⨾ rmw ⨾ ⦗I⦘) ⊆₁ I.
 Proof using WF tc_old.
-  rewrite WF.(rmw_in_ppo_loc).
+  rewrite (rmw_in_ppo_loc WF).
   apply tc_old.
 Qed.
 
@@ -125,7 +125,7 @@ Proof using WF tc_old.
   rewrite rfi_union_rfe. rewrite !seq_union_l, dom_union.
   unionL.
   { apply otc_rfirmw_I. }
-  rewrite WF.(rmw_in_ppo).
+  rewrite (rmw_in_ppo WF).
   etransitivity.
   2: by apply otc_dr_pb_I. 
   basic_solver 10.
@@ -234,7 +234,7 @@ Qed.
 Lemma otc_dr_ppo_I : dom_rel ((rfe ∪ detour) ⨾ ppo ⨾ ⦗I⦘) ⊆₁ I.
 Proof using tc_old.
   etransitivity.
-  2: by apply tc_old.(otc_dr_pb_I). 
+  2: by apply (otc_dr_pb_I tc_old). 
   basic_solver 10.
 Qed.
 
@@ -254,7 +254,7 @@ Proof using WF tc_old.
   rewrite (dom_rel_helper otc_tc_fwbob_I).
   subst rd; relsf. split.
   { generalize (otc_rf_C tc_old); unfold Execution.rfe. basic_solver 21. }
-  rewrite (dom_l WF.(wf_detourD)).
+  rewrite (dom_l (wf_detourD WF)).
   rewrite detour_in_sb.
   generalize (otc_sb_C tc_old) (otc_W_C_in_I tc_old); basic_solver 21.
 Qed.
@@ -349,12 +349,12 @@ Proof using WF IMMCON tc_old.
     { rewrite crE. rewrite !seq_union_l, !seq_union_r, dom_union, seq_id_l.
       unionL; subst rd.
       2: by apply otc_dr_ppo_I.
-      rewrite tc_old.(otc_I_in_W) at 1.
-      rewrite (dom_r WF.(wf_rfeD)), (dom_r WF.(wf_detourD)).
+      rewrite (otc_I_in_W tc_old) at 1.
+      rewrite (dom_r (wf_rfeD WF)), (dom_r (wf_detourD WF)).
       mode_solver. }
     rewrite crE. rewrite !seq_union_l, !seq_union_r, dom_union, seq_id_l.
     unionL.
-    2: { rewrite (dom_r G.(wf_ppoD)), !seqA.
+    2: { rewrite (dom_r (wf_ppoD G)), !seqA.
          arewrite (bob ⊆ bob ∪ ppo).
          rewrite (dom_rel_helper otc_I_ar_I_implied_helper_0).
          subst rd.
@@ -364,8 +364,8 @@ Proof using WF IMMCON tc_old.
     arewrite (⦗I⦘ ⊆ ⦗W⦘ ⨾ ⦗I⦘).
     { generalize (otc_I_in_W tc_old). basic_solver. }
     sin_rewrite bob_sb. rewrite !seq_union_l, !seq_union_r, dom_union. unionL.
-    2: { subst rd. rewrite WF.(W_ex_acq_in_W).
-         rewrite (dom_r WF.(wf_rfeD)), (dom_r WF.(wf_detourD)).
+    2: { subst rd. rewrite (W_ex_acq_in_W WF).
+         rewrite (dom_r (wf_rfeD WF)), (dom_r (wf_detourD WF)).
          mode_solver. }
     rewrite !seqA.
     arewrite ((⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ⨾ ⦗I⦘ ⊆
@@ -374,14 +374,14 @@ Proof using WF IMMCON tc_old.
       rewrite crE. rewrite !seq_union_l, seq_id_l, dom_union. unionL.
       { basic_solver. }
       etransitivity.
-      2: by apply tc_old.(otc_W_ex_sb_I).
+      2: by apply (otc_W_ex_sb_I tc_old).
       basic_solver 10. }
     rewrite <- !seqA. do 3 rewrite dom_seq. rewrite seqA.
     subst rd. by apply otc_dr_bob_ct_I. }
   rewrite BB. rewrite ct_of_trans; [|by apply sb_trans].
   arewrite (⦗C ∩₁ F ∩₁ Sc⦘ ⊆  ⦗C⦘).
   { basic_solver. }
-  rewrite WF.(ppo_in_sb).
+  rewrite (ppo_in_sb WF).
   arewrite (sb^? ⨾ sb ⊆ sb).
   { generalize (@sb_trans G). basic_solver. }
   rewrite (dom_rel_helper (otc_sb_C tc_old)).
@@ -405,7 +405,7 @@ Qed.
 Lemma otc_rfrmw_ct_I :
   dom_rel ((rf ⨾ rmw)⁺ ⨾ ⦗I⦘) ⊆₁ I.
 Proof using WF tc_old.
-  rewrite WF.(rmw_in_ppo_loc). apply otc_rf_ppo_loc_ct_I.
+  rewrite (rmw_in_ppo_loc WF). apply otc_rf_ppo_loc_ct_I.
 Qed.
 
 Lemma otc_I_ar_rf_ppo_loc_I_implied_helper_2 :
@@ -435,7 +435,7 @@ Qed.
 Lemma otc_I_ar_rfrmw_I_implied_helper_2 :
    dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ rmw)⁺ ⨾ ⦗I⦘) ⊆₁ I.
 Proof using WF IMMCON tc_old.
-  rewrite WF.(rmw_in_ppo_loc). apply otc_I_ar_rf_ppo_loc_I_implied_helper_2.
+  rewrite (rmw_in_ppo_loc WF). apply otc_I_ar_rf_ppo_loc_I_implied_helper_2.
 Qed.
 
 End Props.

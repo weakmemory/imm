@@ -21,30 +21,30 @@ Section SimTraversal.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := G.(acts).
-  Notation "'sb'" := G.(sb).
-  Notation "'rmw'" := G.(rmw).
-  Notation "'data'" := G.(data).
-  Notation "'addr'" := G.(addr).
-  Notation "'ctrl'" := G.(ctrl).
-  Notation "'rf'" := G.(rf).
-  Notation "'co'" := G.(co).
-  Notation "'coe'" := G.(coe).
-  Notation "'fr'" := G.(fr).
+  Notation "'acts'" := (acts G).
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
-  Notation "'eco'" := G.(eco).
+  Notation "'eco'" := (eco G).
 
-  Notation "'bob'" := G.(bob).
-  Notation "'fwbob'" := G.(fwbob).
-  Notation "'ppo'" := G.(ppo).
-  Notation "'fre'" := G.(fre).
-  Notation "'rfi'" := G.(rfi).
-  Notation "'rfe'" := G.(rfe).
-  Notation "'deps'" := G.(deps).
-  Notation "'detour'" := G.(detour).
-  Notation "'release'" := G.(release).
-  Notation "'sw'" := G.(sw).
-  Notation "'hb'" := G.(hb).
+  Notation "'bob'" := (bob G).
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+  Notation "'release'" := (release G).
+  Notation "'sw'" := (sw G).
+  Notation "'hb'" := (hb G).
 
   Notation "'urr'" := (urr G sc).
   Notation "'c_acq'" := (c_acq G sc).
@@ -53,17 +53,17 @@ Section SimTraversal.
   Notation "'t_acq'" := (t_acq G sc).
   Notation "'t_cur'" := (t_cur G sc).
   Notation "'t_rel'" := (t_rel G sc).
-  Notation "'S_tm'" := G.(S_tm).
-  Notation "'S_tmr'" := G.(S_tmr).
+  Notation "'S_tm'" := (S_tm G).
+  Notation "'S_tmr'" := (S_tmr G).
   Notation "'msg_rel'" := (msg_rel G sc).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (Events.mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'R'" := (fun x => is_true (is_r lab x)).
 Notation "'W'" := (fun x => is_true (is_w lab x)).
 Notation "'F'" := (fun x => is_true (is_f lab x)).
@@ -194,18 +194,18 @@ Proof using WF IMMCON.
         apply WCOV. eexists. apply seq_eqv_r. split; eauto.
           by apply rmw_in_sb. }
       assert (is_w lab w) as WW.
-      { apply (dom_r WF.(wf_rmwD)) in RMW.
+      { apply (dom_r (wf_rmwD WF)) in RMW.
         apply seq_eqv_r in RMW. desf. }
       assert (dom_rel (sb ⨾ ⦗eq w⦘) ⊆₁ covered T ∪₁ eq e) as SBW.
       { hahn_rewrite (rmw_from_non_init WF) in RMW.
-        hahn_rewrite WF.(wf_rmwi) in RMW.
+        hahn_rewrite (wf_rmwi WF) in RMW.
         hahn_rewrite (sb_immediate_adjacent WF) in RMW.
         unfold adjacent in *; unfolder in *; ins; desf.
         apply LA_ca in H; desf; eauto.
         generalize (@sb_coverable G sc T). unfolder; ins; desf.
         left; eapply H0; eauto. }
       assert (E w) as EW.
-      { apply (dom_r WF.(wf_rmwE)) in RMW.
+      { apply (dom_r (wf_rmwE WF)) in RMW.
         apply seq_eqv_r in RMW. desf. }
       assert (~ (covered T ∪₁ eq e) w) as C1.
       { intros [H|H]; desf. type_solver. }
@@ -272,7 +272,7 @@ Proof using WF IMMCON.
     destruct RMW as [r RMW].
     apply (RMWCOV _ _ RMW). eapply COV.
     eexists. apply seq_eqv_r. split; eauto.
-      by apply WF.(rmw_in_sb). }
+      by apply (rmw_in_sb WF). }
   assert (is_w lab e) as WW by apply ISS.
   destruct (classic (Rel e)) as [REL|NREL].
   2: { eexists; eexists. eapply rlx_write_promise_step; eauto.

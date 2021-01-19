@@ -15,17 +15,17 @@ Section OCamlMM.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'rfe'" := G.(rfe).
-Notation "'co'" := G.(co).
-Notation "'coe'" := G.(coe).
-Notation "'rmw'" := G.(rmw).
-Notation "'fr'" := G.(fr).
-Notation "'fre'" := G.(fre).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'rfe'" := (rfe G).
+Notation "'co'" := (co G).
+Notation "'coe'" := (coe G).
+Notation "'rmw'" := (rmw G).
+Notation "'fr'" := (fr G).
+Notation "'fre'" := (fre G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).

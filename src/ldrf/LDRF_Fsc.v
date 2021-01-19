@@ -41,41 +41,41 @@ Variable G : execution.
 Hypothesis WF: Wf G.
 Hypothesis IC : imm.imm_consistent G. 
            
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'Init'" := (is_init).
 Notation "'NInit'" := (set_compl Init).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'rs'" := G.(rs).
-Notation "'release'" := G.(release).
-Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(imm_hb.hb).
+Notation "'rs'" := (rs G).
+Notation "'release'" := (release G).
+Notation "'sw'" := (sw G).
+Notation "'hb'" := (imm_hb.hb G).
 
-Notation "'ar_int'" := G.(ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
+Notation "'ar_int'" := (ar_int G).
+Notation "'ppo'" := (ppo G).
+Notation "'bob'" := (bob G).
 
-Notation "'ar'" := G.(ar).
+Notation "'ar'" := (ar G).
 
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -162,7 +162,7 @@ Qed.
   
 Lemma sb_rf_acyclic: acyclic (sb ⨾ rfe).
 Proof using.
-  rewrite (WF.(wf_rfeD)). arewrite (R ⊆₁ RW).
+  rewrite ((wf_rfeD WF)). arewrite (R ⊆₁ RW).
   rewrite <- !seqA, acyclic_rotl, !seqA.
   sin_rewrite sb_f_w.
   cdes IC. cdes Cext.
@@ -185,7 +185,7 @@ Qed.
 
 Lemma sb_rfe_crt_hb: (⦗RW⦘ ⨾ sb ⨾ rfe)^* ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ hb.
 Proof using.
-  rewrite (dom_l WF.(wf_rfeD)).
+  rewrite (dom_l (wf_rfeD WF)).
   sin_rewrite sb_f_w.  
   arewrite (F ∩₁ Sc ⊆₁ F ∩₁ Acqrel) by mode_solver.
   do 2 rewrite inclusion_seq_eqv_r. rewrite unionK.
@@ -277,7 +277,7 @@ Lemma sb_eco_sb_psc: ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ eco ⨾ sb ⨾ ⦗F ∩₁ Sc�
 Proof using. unfold psc. rewrite sb_in_hb. basic_solver 10. Qed. 
 
 Lemma RFE1: rfe^+ ≡ rfe.
-Proof using.  apply ct_no_step. rewrite WF.(wf_rfeD). type_solver. Qed. 
+Proof using.  apply ct_no_step. rewrite (wf_rfeD WF). type_solver. Qed. 
 
 Lemma no_eco_to_init: eco ≡ eco ⨾ ⦗NInit⦘. 
 Proof using.
@@ -303,7 +303,7 @@ Proof using.
   { cdes IC. cdes Cint. 
     apply acyclic_union1.    
     { rewrite inclusion_restr. 
-      rewrite WF.(wf_rfeD). apply acyclic_disj. type_solver. }
+      rewrite (wf_rfeD WF). apply acyclic_disj. type_solver. }
     { rewrite inclusion_restr. 
       red. rewrite (ct_of_trans (eco_trans WF)).
       apply (eco_irr WF). }

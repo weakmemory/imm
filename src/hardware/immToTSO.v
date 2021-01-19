@@ -19,27 +19,27 @@ Section immToTSO.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -57,16 +57,16 @@ Notation "'same_loc'" := (same_loc lab).
 
 
 (* imm *)
-Notation "'sw'" := G.(sw).
-Notation "'release'" := G.(release).
-Notation "'rs'" := G.(rs).
-Notation "'hb'" := G.(hb).
-Notation "'ppo'" := G.(ppo).
-Notation "'psc'" := G.(psc).
-Notation "'psc_f'" := G.(psc_f).
-Notation "'psc_base'" := G.(psc_base).
-Notation "'scb'" := G.(scb).
-Notation "'bob'" := G.(bob).
+Notation "'sw'" := (sw G).
+Notation "'release'" := (release G).
+Notation "'rs'" := (rs G).
+Notation "'hb'" := (hb G).
+Notation "'ppo'" := (ppo G).
+Notation "'psc'" := (psc G).
+Notation "'psc_f'" := (psc_f G).
+Notation "'psc_base'" := (psc_base G).
+Notation "'scb'" := (scb G).
+Notation "'bob'" := (bob G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
@@ -77,10 +77,10 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 (* tso *)
-Notation "'ppot'" := G.(TSO.ppo).
-Notation "'fence'" := G.(fence).
-Notation "'implied_fence'" := G.(implied_fence).
-Notation "'hbt'" := G.(TSO.hb).
+Notation "'ppot'" := (TSO.ppo G).
+Notation "'fence'" := (fence G).
+Notation "'implied_fence'" := (implied_fence G).
+Notation "'hbt'" := (TSO.hb G).
 Notation "'MFENCE'" := (F ∩₁ (fun a => is_true (is_sc lab a))).
 
 Hypothesis CON: TSOConsistent G.
@@ -253,7 +253,7 @@ Proof using CON.
   arewrite_id ⦗F⦘. rewrite !seq_id_l.
   rewrite sb_in_hb. 
   sin_rewrite rewrite_trans_seq_cr_r; auto.
-  rewrite WF.(wf_coD), <- !seqA.
+  rewrite (wf_coD WF), <- !seqA.
   apply acyclic_seqC. rewrite !seqA.
   arewrite (⦗W⦘ ⨾ hb ⨾ ⦗W⦘ ⊆ hbt⁺).
   { rewrite hb_in. rewrite seq_union_l, seq_union_r, !seqA.
@@ -550,7 +550,7 @@ Proof using CON.
     apply trans_irr_acyclic.
     { apply sb_irr. }
     apply sb_trans. }
-  rewrite WF.(wf_hbD). rewrite !seqA.
+  rewrite (wf_hbD WF). rewrite !seqA.
   apply acyclic_seqC. rewrite !seqA.
   arewrite (⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ∪ ⦗MFENCE⦘ ⨾ sb)＊ ⨾ ⦗RW⦘ ⊆
             ⦗RW⦘ ⨾ (sb ⨾ ⦗MFENCE⦘ ⨾ sb)^? ⨾ ⦗RW⦘).
@@ -684,17 +684,17 @@ Proof using CON.
   rewrite !seq_union_l, !seq_union_r, seq_id_l, !seqA.
   unionL.
   { apply fsc_hb_fsc_in_ehbt. }
-  rewrite (dom_l WF.(wf_ecoD)). rewrite !seqA.
+  rewrite (dom_l (wf_ecoD WF)). rewrite !seqA.
   sin_rewrite fsc_hb_rw_in_ehbt.
   arewrite (eco ⊆ (hbt)＊ ⨾ ⦗ RW ⦘ ⨾ rfi^?).
-  { rewrite WF.(eco_alt).
-    rewrite (dom_r WF.(wf_coD)).
-    rewrite (dom_r WF.(wf_frD)).
+  { rewrite (eco_alt WF).
+    rewrite (dom_r (wf_coD WF)).
+    rewrite (dom_r (wf_frD WF)).
     arewrite (co ⊆ hbt).
     arewrite (fr ⊆ hbt).
     rewrite !unionK.
     rewrite rfi_union_rfe.
-    rewrite (dom_r WF.(wf_rfeD)).
+    rewrite (dom_r (wf_rfeD WF)).
     arewrite (rfe ⊆ hbt).
     rewrite seq_union_r.
     unionL.
@@ -705,7 +705,7 @@ Proof using CON.
          basic_solver 10. }
     arewrite_id ⦗W⦘. rewrite seq_id_r.
     arewrite (hbt^? ⊆ hbt＊).
-    rewrite (dom_l WF.(wf_rfiD)).
+    rewrite (dom_l (wf_rfiD WF)).
     basic_solver 10. }
   arewrite (rfi^? ⊆ sb^?).
   rewrite sb_in_hb.
@@ -849,8 +849,8 @@ Proof using CON.
   { rewrite HBB.
     rewrite unionA.
     arewrite (co ∪ fr ⊆ hbt ⨾ ⦗ W ⦘).
-    { rewrite (dom_r WF.(wf_coD)).
-      rewrite (dom_r WF.(wf_frD)).
+    { rewrite (dom_r (wf_coD WF)).
+      rewrite (dom_r (wf_frD WF)).
       arewrite (co ⊆ hbt).
       arewrite (fr ⊆ hbt). eauto with hahn. }
     rewrite !seq_union_l, !seq_union_r, !seqA.
@@ -864,8 +864,8 @@ Proof using CON.
   rewrite HBB.
   rewrite unionA.
   arewrite (co ∪ fr ⊆ ⦗ RW ⦘ ⨾ hbt).
-  { rewrite (dom_l WF.(wf_coD)).
-    rewrite (dom_l WF.(wf_frD)).
+  { rewrite (dom_l (wf_coD WF)).
+    rewrite (dom_l (wf_frD WF)).
     arewrite (co ⊆ hbt).
     arewrite (fr ⊆ hbt). basic_solver. }
   rewrite !seq_union_l, !seq_union_r, !seqA.

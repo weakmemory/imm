@@ -15,21 +15,21 @@ Remove Hints plus_n_O.
 Section ECO.
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
+Notation "'E'" := (acts_set G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
 
-Notation "'fr'" := G.(fr).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
-Notation "'fre'" := G.(fre).
-Notation "'fri'" := G.(fri).
+Notation "'fr'" := (fr G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
+Notation "'fre'" := (fre G).
+Notation "'fri'" := (fri G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -426,20 +426,20 @@ Qed.
 
 Lemma rf_rmw_in_co_helper WF SC_PER_LOC: rf ⨾ rmw ⊆ co ∪ co^{-1}.
 Proof using.
-rewrite (dom_l WF.(wf_rfE)).
-rewrite (dom_r WF.(wf_rmwE)).
-rewrite (dom_l WF.(wf_rfD)).
-rewrite (dom_r WF.(wf_rmwD)).
+rewrite (dom_l (wf_rfE WF)).
+rewrite (dom_r (wf_rmwE WF)).
+rewrite (dom_l (wf_rfD WF)).
+rewrite (dom_r (wf_rmwD WF)).
 unfolder; ins; desf.
-eapply WF.(wf_co_total); [basic_solver| |].
+eapply (wf_co_total WF); [basic_solver| |].
 { unfolder; ins; desf; splits; eauto.
-  apply WF.(wf_rfl) in H0.
-  apply WF.(wf_rmwl) in H1.
+  apply (wf_rfl WF) in H0.
+  apply (wf_rmwl WF) in H1.
   unfold Events.same_loc in *; congruence. }
 intro; subst.
 eapply SC_PER_LOC.
 exists y; splits; eauto.
-eapply WF.(rmw_in_sb); edone.
+eapply (rmw_in_sb WF); edone.
 eapply rf_in_eco; edone.
 Qed.
 
@@ -452,7 +452,7 @@ transitivity (fun _ _ : actid => False); [|basic_solver].
 unfolder; ins; desf.
 eapply SC_PER_LOC.
 exists y; splits; eauto.
-eapply WF.(rmw_in_sb); edone.
+eapply (rmw_in_sb WF); edone.
 eapply co_rf_in_eco; basic_solver.
 Qed.
 

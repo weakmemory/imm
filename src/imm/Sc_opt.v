@@ -19,28 +19,28 @@ Section Sc_opt.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'detour'" := G.(detour).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'detour'" := (detour G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -57,16 +57,16 @@ Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
-Notation "'sw'" := G.(sw).
-Notation "'release'" := G.(release).
-Notation "'rs'" := G.(rs).
-Notation "'hb'" := G.(hb).
-Notation "'ppo'" := G.(ppo).
-Notation "'psc'" := G.(psc).
-Notation "'psc_base'" := G.(psc_base).
-Notation "'psc_f'" := G.(psc_f).
-Notation "'bob'" := G.(bob).
-Notation "'scb'" := G.(scb).
+Notation "'sw'" := (sw G).
+Notation "'release'" := (release G).
+Notation "'rs'" := (rs G).
+Notation "'hb'" := (hb G).
+Notation "'ppo'" := (ppo G).
+Notation "'psc'" := (psc G).
+Notation "'psc_base'" := (psc_base G).
+Notation "'psc_f'" := (psc_f G).
+Notation "'bob'" := (bob G).
+Notation "'scb'" := (scb G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
@@ -162,9 +162,9 @@ Proof using WF.
   arewrite (hb ∪ eco ∪ eco ⊆ hb ∪ eco).
   rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
   arewrite_false !(⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⨾ eco).
-  { rewrite WF.(wf_ecoD). type_solver. }
+  { rewrite (wf_ecoD WF). type_solver. }
   arewrite_false !(eco ⨾ ⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘).
-  { rewrite WF.(wf_ecoD). type_solver. }
+  { rewrite (wf_ecoD WF). type_solver. }
   rewrite !seq_false_l, !seq_false_r, !union_false_l, !union_false_r.
   repeat arewrite (hb ⨾ hb ⊆ hb).
   repeat arewrite (⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
@@ -184,7 +184,7 @@ Proof using WF.
   { rewrite crE, !seq_union_r. type_solver. }
   rewrite crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
   arewrite_false !(eco ⨾ ⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘).
-  { rewrite WF.(wf_ecoD). type_solver. }
+  { rewrite (wf_ecoD WF). type_solver. }
   generalize (@hb_trans G). 
   basic_solver 42.
 Qed.
@@ -198,7 +198,7 @@ Proof using WF.
   { rewrite crE, !seq_union_l. type_solver. }
   rewrite crE, !seq_union_l, !seq_union_r, !seq_id_l, !seqA.
   arewrite_false !(⦗F ∩₁ Sc⦘ ⨾ ⦗Sc⦘ ⨾ eco).
-  { rewrite WF.(wf_ecoD). type_solver. }
+  { rewrite (wf_ecoD WF). type_solver. }
   generalize (@hb_trans G). 
   basic_solver 42.
 Qed.
@@ -217,10 +217,10 @@ Proof using WF.
   repeat arewrite (⦗Sc⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
   repeat arewrite (⦗F⦘ ⨾ ⦗F ∩₁ Sc⦘ ⊆ ⦗F ∩₁ Sc⦘).
   assert (⦗F ∩₁ Sc⦘ ⨾ eco ⊆ ∅₂) as AA.
-  { rewrite WF.(wf_ecoD). type_solver 40. }
+  { rewrite (wf_ecoD WF). type_solver 40. }
   repeat sin_rewrite AA.
   assert (eco ⨾ ⦗F ∩₁ Sc⦘ ⊆ ∅₂) as BB.
-  { rewrite WF.(wf_ecoD). type_solver 40. }
+  { rewrite (wf_ecoD WF). type_solver 40. }
   repeat sin_rewrite BB.
   unionL; try done.
   all: basic_solver.
@@ -234,7 +234,7 @@ Proof using COH COMP SC_PER_LOC WF.
   rewrite RW_scb_RW.
   rewrite hb_loc_in_eco; auto.
   arewrite (sb_neq_loc ⊆ sb').
-  { generalize WF.(wf_rmwl). basic_solver. }
+  { generalize (wf_rmwl WF). basic_solver. }
   arewrite (sb ⊆ sb' ∪ rmw) at 1.
   { unfold inclusion, minus_rel, union; ins; tauto. }
   rewrite rmw_in_fr at 2; auto.
@@ -315,7 +315,7 @@ Proof using COH COMP SC_PER_LOC WF.
     rewrite rmw_in_fr at 2; auto.
     rewrite fr_in_eco, co_in_eco, hb_loc_in_eco; auto.
     arewrite (sb_neq_loc ⊆ sb').
-    { generalize WF.(wf_rmwl). basic_solver. }
+    { generalize (wf_rmwl WF). basic_solver. }
     basic_solver 10. }
   sin_rewrite psc_base_rw_f; auto.
   sin_rewrite psc_base_f_rw; auto.

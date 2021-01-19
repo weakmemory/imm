@@ -21,27 +21,27 @@ Section immToPower.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -59,13 +59,13 @@ Notation "'same_loc'" := (same_loc lab).
 
 
 (* imm *)
-Notation "'sw'" := G.(sw).
-Notation "'release'" := G.(release).
-Notation "'rs'" := G.(rs).
-Notation "'hb'" := G.(hb).
-Notation "'ppo'" := G.(ppo).
-Notation "'psc'" := G.(psc).
-Notation "'bob'" := G.(bob).
+Notation "'sw'" := (sw G).
+Notation "'release'" := (release G).
+Notation "'rs'" := (rs G).
+Notation "'hb'" := (hb G).
+Notation "'ppo'" := (ppo G).
+Notation "'psc'" := (psc G).
+Notation "'bob'" := (bob G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
@@ -76,14 +76,14 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 (* power *)
-Notation "'ctrli'" := G.(ctrli).
-Notation "'sync'" := G.(sync).
-Notation "'lwsync'" := G.(lwsync).
-Notation "'fence'" := G.(fence).
-Notation "'ppop'" := G.(Power_ppo.ppo).
-Notation "'hbp'" := G.(Power.hb).
-Notation "'S'" := G.(S).
-Notation "'detour'" := G.(detour).
+Notation "'ctrli'" := (ctrli G).
+Notation "'sync'" := (sync G).
+Notation "'lwsync'" := (lwsync G).
+Notation "'fence'" := (fence G).
+Notation "'ppop'" := (Power_ppo.ppo G).
+Notation "'hbp'" := (Power.hb G).
+Notation "'S'" := (S G).
+Notation "'detour'" := (detour G).
 
 Notation "'F^isync'" := (F ∩₁ (fun a => is_true (is_rlx lab a))).
 Notation "'F^lwsync'" := (F ∩₁ (fun a => is_true (is_ra lab a))).
@@ -376,7 +376,7 @@ Proof using CON DATA_RMW NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
   sin_rewrite rmw_sb_in_ctrl.
   rewrite (ctrl_ctrli_RW_in_ppo WF).
   arewrite (rmw ⨾ sb ⊆ ⦗R⦘ ⨾ sb).
-  { rewrite (dom_l WF.(wf_rmwD)), WF.(rmw_in_sb).
+  { rewrite (dom_l (wf_rmwD WF)), (rmw_in_sb WF).
     generalize (@sb_trans G). type_solver. }
   rewrite R_sb_F_sb_RW_in_fence.
   arewrite (ppop ⊆ hbp＊).
@@ -625,7 +625,7 @@ relsf; unionL.
   { rewrite seq_union_l.
     rewrite ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour.
     rewrite !seqA. arewrite_false (⦗R ∩₁ Acq⦘ ⨾ ⦗W_ex⦘).
-    { rewrite WF.(W_ex_in_W). type_solver. }
+    { rewrite (W_ex_in_W WF). type_solver. }
     basic_solver. }
   rewrite <- ct_end; relsf.
 Qed.
@@ -667,7 +667,7 @@ Qed.
 
 (*     rewrite ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour. *)
 (*     rewrite !seqA. arewrite_false (⦗R ∩₁ Acq⦘ ⨾ ⦗W_ex⦘). *)
-(*     { rewrite WF.(W_ex_in_W). type_solver. } *)
+(*     { rewrite (W_ex_in_W WF). type_solver. } *)
 (*     basic_solver. } *)
 (*   rewrite <- ct_end; relsf. *)
 (* Qed. *)
@@ -719,15 +719,15 @@ relsf; unionL.
       by rewrite !(r_deps_rfi WF). }
   { rewrite (ppo_alt WF RMW_DEPS RMW_CTRL_FAIL' DATA_RMW DEPS_RMW_FAIL).
     rewrite ct_begin. rewrite !seqA. 
-    rewrite WF.(W_ex_in_W). type_solver. }
+    rewrite (W_ex_in_W WF). type_solver. }
   rewrite !seqA.
   sin_rewrite R_W_ex_rfi_R_Acq_in_R.
   sin_rewrite W_ex_rfi_R_Acq_ct_step.
   arewrite_id ⦗R ∩₁ Acq⦘. rewrite seq_id_r.
   arewrite (rfi ⊆ sb).
   assert ((ppo ∪ ctrli ∪ detour)⁺ ⊆ sb) as AA.
-  { rewrite WF.(ctrli_in_sb), detour_in_sb. 
-    rewrite WF.(ppo_in_sb).
+  { rewrite (ctrli_in_sb WF), detour_in_sb. 
+    rewrite (ppo_in_sb WF).
     generalize (@sb_trans G). relsf. }
   arewrite ((ppo ∪ ctrli ∪ detour)＊ ⊆ sb^?).
   { rewrite rtE. rewrite AA. basic_solver. }

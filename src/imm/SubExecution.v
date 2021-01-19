@@ -21,31 +21,31 @@ Section SubExecution.
 Variables G G' : execution.
 Variables sc sc' : relation actid.
 
-Notation "'E''" := G'.(acts_set).
-Notation "'acts''" := G'.(acts).
-Notation "'lab''" := G'.(lab).
-Notation "'sb''" := G'.(sb).
-Notation "'rf''" := G'.(rf).
-Notation "'co''" := G'.(co).
-Notation "'rmw''" := G'.(rmw).
-Notation "'data''" := G'.(data).
-Notation "'addr''" := G'.(addr).
-Notation "'ctrl''" := G'.(ctrl).
-Notation "'deps''" := G'.(deps).
-Notation "'rmw_dep''" := G'.(rmw_dep).
+Notation "'E''" := (acts_set G').
+Notation "'acts''" := (acts G').
+Notation "'lab''" := (lab G').
+Notation "'sb''" := (sb G').
+Notation "'rf''" := (rf G').
+Notation "'co''" := (co G').
+Notation "'rmw''" := (rmw G').
+Notation "'data''" := (data G').
+Notation "'addr''" := (addr G').
+Notation "'ctrl''" := (ctrl G').
+Notation "'deps''" := (deps G').
+Notation "'rmw_dep''" := (rmw_dep G').
 
-Notation "'fre''" := G'.(fre).
-Notation "'rfe''" := G'.(rfe).
-Notation "'coe''" := G'.(coe).
-Notation "'rfi''" := G'.(rfi).
-Notation "'fri''" := G'.(fri).
-Notation "'coi''" := G'.(coi).
-Notation "'fr''" := G'.(fr).
-Notation "'eco''" := G'.(eco).
-Notation "'detour''" := G'.(detour).
-Notation "'furr''" := (G'.(furr) sc').
-Notation "'urr''" := (G'.(urr) sc').
-Notation "'msg_rel''" := (G'.(msg_rel) sc').
+Notation "'fre''" := (fre G').
+Notation "'rfe''" := (rfe G').
+Notation "'coe''" := (coe G').
+Notation "'rfi''" := (rfi G').
+Notation "'fri''" := (fri G').
+Notation "'coi''" := (coi G').
+Notation "'fr''" := (fr G').
+Notation "'eco''" := (eco G').
+Notation "'detour''" := (detour G').
+Notation "'furr''" := ((furr G') sc').
+Notation "'urr''" := ((urr G') sc').
+Notation "'msg_rel''" := ((msg_rel G') sc').
 
 Notation "'R''" := (fun a => is_true (is_r lab' a)).
 Notation "'W''" := (fun a => is_true (is_w lab' a)).
@@ -65,16 +65,16 @@ Notation "'Loc'_' l" := (fun x => loc' x = Some l) (at level 1).
 Notation "'W'_' l" := (W' ∩₁ Loc'_ l) (at level 1).
 Notation "'R'_' l" := (R' ∩₁ Loc'_ l) (at level 1).
 
-Notation "'ppo''" := G'.(ppo).
-Notation "'bob''" := G'.(bob).
-Notation "'fwbob''" := G'.(fwbob).
-Notation "'ar''" := G'.(ar).
-Notation "'ar_int''" := G'.(ar_int).
-Notation "'sw''" := G'.(sw).
-Notation "'rs''" := G'.(rs).
-Notation "'release''" := G'.(release).
-Notation "'rs''" := G'.(rs).
-Notation "'hb''" := G'.(hb).
+Notation "'ppo''" := (ppo G').
+Notation "'bob''" := (bob G').
+Notation "'fwbob''" := (fwbob G').
+Notation "'ar''" := (ar G').
+Notation "'ar_int''" := (ar_int G').
+Notation "'sw''" := (sw G').
+Notation "'rs''" := (rs G').
+Notation "'release''" := (release G').
+Notation "'rs''" := (rs G').
+Notation "'hb''" := (hb G').
 
 Notation "'Pln''" := (fun a => is_true (is_only_pln lab' a)).
 Notation "'Rlx''" := (fun a => is_true (is_rlx lab' a)).
@@ -84,31 +84,31 @@ Notation "'Acqrel''" := (fun a => is_true (is_acqrel lab' a)).
 Notation "'Acq/Rel''" := (fun a => is_true (is_ra lab' a)).
 Notation "'Sc''" := (fun a => is_true (is_sc lab' a)).
 
-Notation "'E'" := G.(acts_set).
-Notation "'acts'" := G.(acts).
-Notation "'lab'" := G.(lab).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'deps'" := G.(deps).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'E'" := (acts_set G).
+Notation "'acts'" := (acts G).
+Notation "'lab'" := (lab G).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'deps'" := (deps G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fre'" := G.(fre).
-Notation "'rfe'" := G.(rfe).
-Notation "'coe'" := G.(coe).
-Notation "'rfi'" := G.(rfi).
-Notation "'fri'" := G.(fri).
-Notation "'coi'" := G.(coi).
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'detour'" := G.(detour).
-Notation "'furr'" := (G.(furr) sc).
-Notation "'urr'" := (G.(urr) sc).
-Notation "'msg_rel'" := (G.(msg_rel) sc).
+Notation "'fre'" := (fre G).
+Notation "'rfe'" := (rfe G).
+Notation "'coe'" := (coe G).
+Notation "'rfi'" := (rfi G).
+Notation "'fri'" := (fri G).
+Notation "'coi'" := (coi G).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'detour'" := (detour G).
+Notation "'furr'" := ((furr G) sc).
+Notation "'urr'" := ((urr G) sc).
+Notation "'msg_rel'" := ((msg_rel G) sc).
 
 Notation "'R'" := (fun a => is_true (is_r lab a)).
 Notation "'W'" := (fun a => is_true (is_w lab a)).
@@ -128,15 +128,15 @@ Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 Notation "'W_' l" := (W ∩₁ Loc_ l) (at level 1).
 Notation "'R_' l" := (R ∩₁ Loc_ l) (at level 1).
 
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
-Notation "'fwbob'" := G.(fwbob).
-Notation "'ar'" := G.(ar).
-Notation "'ar_int'" := G.(ar_int).
-Notation "'sw'" := G.(sw).
-Notation "'rs'" := G.(rs).
-Notation "'release'" := G.(release).
-Notation "'hb'" := G.(hb).
+Notation "'ppo'" := (ppo G).
+Notation "'bob'" := (bob G).
+Notation "'fwbob'" := (fwbob G).
+Notation "'ar'" := (ar G).
+Notation "'ar_int'" := (ar_int G).
+Notation "'sw'" := (sw G).
+Notation "'rs'" := (rs G).
+Notation "'release'" := (release G).
+Notation "'hb'" := (hb G).
 
 Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
 Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
@@ -515,26 +515,26 @@ End SubExecution.
 (******************************************************************************)
 
 Definition restrict (G : execution) D :=
-    {| acts := filterP (fun x => D x) G.(acts);
-       lab := G.(lab);
-       rmw := ⦗ D ⦘ ⨾ G.(rmw) ⨾ ⦗ D ⦘;
-       data := ⦗ D ⦘ ⨾G.(data) ⨾ ⦗ D ⦘;
-       addr := ⦗ D ⦘ ⨾ G.(addr) ⨾ ⦗ D ⦘;
-       ctrl := ⦗ D ⦘ ⨾ G.(ctrl) ⨾ ⦗ D ⦘;
-       rmw_dep := ⦗ D ⦘ ⨾ G.(rmw_dep) ⨾ ⦗ D ⦘;
-       rf := ⦗ D ⦘ ⨾ G.(rf) ⨾ ⦗ D ⦘;
-       co := ⦗ D ⦘ ⨾ G.(co) ⨾ ⦗ D ⦘;
+    {| acts := filterP (fun x => D x) (acts G);
+       lab := (lab G);
+       rmw := ⦗ D ⦘ ⨾ (rmw G) ⨾ ⦗ D ⦘;
+       data := ⦗ D ⦘ ⨾(data G) ⨾ ⦗ D ⦘;
+       addr := ⦗ D ⦘ ⨾ (addr G) ⨾ ⦗ D ⦘;
+       ctrl := ⦗ D ⦘ ⨾ (ctrl G) ⨾ ⦗ D ⦘;
+       rmw_dep := ⦗ D ⦘ ⨾ (rmw_dep G) ⨾ ⦗ D ⦘;
+       rf := ⦗ D ⦘ ⨾ (rf G) ⨾ ⦗ D ⦘;
+       co := ⦗ D ⦘ ⨾ (co G) ⨾ ⦗ D ⦘;
     |}.
 
-Lemma restrict_E G D (IN: D ⊆₁ G.(acts_set)) :
- (restrict G D).(acts_set) ≡₁ D.
+Lemma restrict_E G D (IN: D ⊆₁ (acts_set G)) :
+ (acts_set (restrict G D)) ≡₁ D.
 Proof using.
 unfold acts_set in *; unfolder in *; split; ins; desf; splits; eauto.
 apply in_filterP_iff in H; desf. 
 apply in_filterP_iff; splits; eauto.
 Qed.
 
-Lemma restrict_sub G sc sc' D (SC: sc' ≡ ⦗D⦘ ⨾ sc ⨾ ⦗D⦘) (IN: D ⊆₁ G.(acts_set)) : 
+Lemma restrict_sub G sc sc' D (SC: sc' ≡ ⦗D⦘ ⨾ sc ⨾ ⦗D⦘) (IN: D ⊆₁ (acts_set G)) : 
  sub_execution G (restrict G D) sc sc'.
 Proof using.
 by constructor; ins; rewrite (@restrict_E G D IN).

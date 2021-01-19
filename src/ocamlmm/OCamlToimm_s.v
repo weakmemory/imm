@@ -19,40 +19,40 @@ Section OCamlMM_TO_IMM_S.
 
 Variable G : execution.
 
-Notation "'E'" := G.(acts_set).
+Notation "'E'" := (acts_set G).
 Notation "'Einit'" := (E ∩₁ is_init).
 Notation "'Eninit'" := (E \₁ is_init).
-Notation "'sb'" := G.(sb).
-Notation "'rf'" := G.(rf).
-Notation "'co'" := G.(co).
-Notation "'rmw'" := G.(rmw).
-Notation "'data'" := G.(data).
-Notation "'addr'" := G.(addr).
-Notation "'ctrl'" := G.(ctrl).
-Notation "'rmw_dep'" := G.(rmw_dep).
+Notation "'sb'" := (sb G).
+Notation "'rf'" := (rf G).
+Notation "'co'" := (co G).
+Notation "'rmw'" := (rmw G).
+Notation "'data'" := (data G).
+Notation "'addr'" := (addr G).
+Notation "'ctrl'" := (ctrl G).
+Notation "'rmw_dep'" := (rmw_dep G).
 
-Notation "'fr'" := G.(fr).
-Notation "'eco'" := G.(eco).
-Notation "'coe'" := G.(coe).
-Notation "'coi'" := G.(coi).
-Notation "'deps'" := G.(deps).
-Notation "'rfi'" := G.(rfi).
-Notation "'rfe'" := G.(rfe).
+Notation "'fr'" := (fr G).
+Notation "'eco'" := (eco G).
+Notation "'coe'" := (coe G).
+Notation "'coi'" := (coi G).
+Notation "'deps'" := (deps G).
+Notation "'rfi'" := (rfi G).
+Notation "'rfe'" := (rfe G).
 
-Notation "'detour'" := G.(detour).
+Notation "'detour'" := (detour G).
 
-Notation "'rs'" := G.(rs).
-Notation "'release'" := G.(release).
-Notation "'sw'" := G.(sw).
-Notation "'hb'" := G.(imm_s_hb.hb).
+Notation "'rs'" := (rs G).
+Notation "'release'" := (release G).
+Notation "'sw'" := (sw G).
+Notation "'hb'" := (imm_s_hb.hb G).
 
-Notation "'ar_int'" := G.(ar_int).
-Notation "'ppo'" := G.(ppo).
-Notation "'bob'" := G.(bob).
+Notation "'ar_int'" := (ar_int G).
+Notation "'ppo'" := (ppo G).
+Notation "'bob'" := (bob G).
 
-Notation "'ar'" := G.(ar).
+Notation "'ar'" := (ar G).
 
-Notation "'lab'" := G.(lab).
+Notation "'lab'" := (lab G).
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
@@ -71,7 +71,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'Loc_' l" := (fun x => loc x = Some l) (at level 1).
 
-Notation "'ohb'" := G.(OCaml.hb).
+Notation "'ohb'" := (OCaml.hb G).
 
 Hypothesis LSM : forall l,
     ⟪ LM : Loc_ l \₁ is_init ⊆₁ ORlx ⟫ \/
@@ -91,7 +91,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   unfold imm_s_hb.sw, imm_s_hb.release, imm_s_hb.rs.
   rewrite !seqA.
   hahn_frame.
-  rewrite (dom_l WF.(wf_rfD)) at 1.
+  rewrite (dom_l (wf_rfD WF)) at 1.
   basic_solver 40.
 Qed. 
 
@@ -100,7 +100,7 @@ Lemma sc_rf_in_pscb (WF: Wf G):
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   arewrite (rf ⊆ rf ∩ same_loc).
   { apply inclusion_inter_r; try basic_solver.
-    apply WF.(wf_rfl). }
+    apply (wf_rfl WF). }
   rewrite <- seq_eqvK, !seqA.  
   arewrite (⦗Sc⦘ ⨾ rf ∩ same_loc ⨾ ⦗Sc⦘ ⊆ hb ∩ same_loc).
   { apply inclusion_inter_r.
@@ -116,10 +116,10 @@ Lemma co_sc_in_hb (WF : Wf G) sc
   ⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ hb.
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite fsupp_imm_t with (r:=⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘).
-  4: { generalize WF.(co_trans). basic_solver. }
-  3: { generalize WF.(co_irr). basic_solver. }
+  4: { generalize (co_trans WF). basic_solver. }
+  3: { generalize (co_irr WF). basic_solver. }
   2: { arewrite (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ co) by basic_solver.
-       rewrite WF.(wf_coE). unfold acts_set.
+       rewrite (wf_coE WF). unfold acts_set.
        red. ins. eexists. basic_solver. }
   
   assert (sc_per_loc G) as SPL.
@@ -132,7 +132,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   2: { sin_rewrite (sc_rf_in_sw WF).
        rewrite sw_in_hb, sb_in_hb.
        apply rewrite_trans, hb_trans. }
-  rewrite (dom_r WF.(wf_coD)).
+  rewrite (dom_r (wf_coD WF)).
   rewrite !seqA.
   rewrite <- id_inter.
   rewrite WSCFACQRMW.
@@ -149,10 +149,10 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   { apply RMWSC in rw_r2_w2. generalize rw_r2_w2. basic_solver. }
   
   assert (E r2) as ER2.
-  { apply (dom_l WF.(wf_rmwE)) in rw_r2_w2.
+  { apply (dom_l (wf_rmwE WF)) in rw_r2_w2.
     generalize rw_r2_w2. basic_solver. }
   assert (R r2) as EW.
-  { apply (dom_l WF.(wf_rmwD)) in rw_r2_w2.
+  { apply (dom_l (wf_rmwD WF)) in rw_r2_w2.
     generalize rw_r2_w2. type_solver. }
   
   exists r2. split.
@@ -163,9 +163,9 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   destruct (classic (w1 = w')) as [|NEQ]; desf.
 
   assert (E w') as EW'. 
-  { apply WF.(wf_rfE) in RF. generalize RF. basic_solver. }
+  { apply (wf_rfE WF) in RF. generalize RF. basic_solver. }
   assert (W w') as WW'. 
-  { apply WF.(wf_rfD) in RF. generalize RF. basic_solver. }
+  { apply (wf_rfD WF) in RF. generalize RF. basic_solver. }
   
   set (GG := WW').
   apply is_w_loc in GG. desf.
@@ -176,16 +176,16 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   
   assert (same_loc_w1_w': same_loc w1 w').
   { red. rewrite GG. rewrite <- LOCR2.
-    apply WF.(wf_col) in co_rmw_w1_w2. red in co_rmw_w1_w2.
-    apply WF.(wf_rmwl) in rw_r2_w2. red in rw_r2_w2.
+    apply (wf_col WF) in co_rmw_w1_w2. red in co_rmw_w1_w2.
+    apply (wf_rmwl WF) in rw_r2_w2. red in rw_r2_w2.
     symmetry in rw_r2_w2.
     apply (same_loc_trans co_rmw_w1_w2 rw_r2_w2). }
   
   assert (E w1) as EW1.
-  { apply (dom_l WF.(wf_coE)) in co_rmw_w1_w2.
+  { apply (dom_l (wf_coE WF)) in co_rmw_w1_w2.
     generalize co_rmw_w1_w2. basic_solver. }
   assert (W w1) as WW1.
-  { apply (dom_l WF.(wf_coD)) in co_rmw_w1_w2.
+  { apply (dom_l (wf_coD WF)) in co_rmw_w1_w2.
     generalize co_rmw_w1_w2. basic_solver. }
   
   destruct (classic (is_init w')) as [INIT|NINIT].
@@ -296,34 +296,34 @@ Proof using LSM.
 Qed.
 
 Lemma sc_ninit (WF: Wf G): Sc ⊆₁ set_compl is_init.
-Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW. rewrite WF.(init_pln). mode_solver. Qed.
+Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW. rewrite (init_pln WF). mode_solver. Qed.
   
 Lemma sc_rf_l (WF: Wf G): ⦗Sc⦘ ⨾ rf ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
-  rewrite WF.(wf_rfD) at 1.
-  rewrite WF.(wf_rfE) at 1.
+  rewrite (wf_rfD WF) at 1.
+  rewrite (wf_rfE WF) at 1.
   rewrite !seqA.
   arewrite (⦗Sc⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘ ⨾ ⦗Sc⦘).
   { arewrite (Sc ⊆₁ Sc ∩₁ set_compl is_init).
-    { generalize WF.(sc_ninit). basic_solver. }
+    { generalize (sc_ninit WF). basic_solver. }
     type_solver. }
   rewrite <- id_inter.
   arewrite (E ∩₁ R ⊆₁ Eninit \₁ F).
   { rewrite init_w; eauto. type_solver. }
   seq_rewrite seq_eqvC. 
-  rewrite !seqA. sin_rewrite (sl_mode WF); [| by apply WF.(wf_rfl) ]. 
+  rewrite !seqA. sin_rewrite (sl_mode WF); [| by apply (wf_rfl WF) ]. 
   mode_solver.
 Qed.
 
 Lemma sc_rf_r (WF: Wf G): ⦗set_compl is_init⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ ⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘.
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
-  rewrite WF.(wf_rfD) at 1.
-  rewrite WF.(wf_rfE) at 1.
+  rewrite (wf_rfD WF) at 1.
+  rewrite (wf_rfE WF) at 1.
   rewrite !seqA.
   arewrite (⦗set_compl is_init⦘ ⨾ ⦗W⦘ ⨾ ⦗E⦘ ⊆ ⦗Eninit \₁ F⦘) by type_solver.
   arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗Eninit \₁ F⦘).
   { rewrite init_w; eauto. type_solver. }
-  sin_rewrite (sl_mode WF); [| apply WF.(wf_rfl) ].
+  sin_rewrite (sl_mode WF); [| apply (wf_rfl WF) ].
   mode_solver.
 Qed.
 
@@ -339,7 +339,7 @@ Qed.
 Lemma sb_w_sync (WF: Wf G): 
     ⦗E \₁ F⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ sb ⨾ (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗ORlx⦘ ∪ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗Sc⦘) ⨾ ⦗W⦘ ∪ rmw ⨾ ⦗W⦘.
 Proof using LSM RSCF WRLXF WSCFACQRMW.
-  rewrite (dom_r G.(wf_sbE)) at 1.
+  rewrite (dom_r (wf_sbE G)) at 1.
   rewrite inclusion_union_minus with (r:=sb) (r':=rmw) at 1.
   rewrite !seq_union_l, !seq_union_r.
   apply union_mori; [|basic_solver].
@@ -371,7 +371,7 @@ Proof using LSM RSCF WRLXF WSCFACQRMW.
   desf.
   exists f.
   assert (immediate sb r' w) as [SBr'w IMMr'w]. 
-  { apply WF.(wf_rmwi) in Z0. auto. }
+  { apply (wf_rmwi WF) in Z0. auto. }
   splits; auto. 
   2: { apply (rmw_in_sb WF) in Z0. apply (sb_trans Z Z0). }
   assert (e <> f) as NEQfe. 
@@ -380,7 +380,7 @@ Proof using LSM RSCF WRLXF WSCFACQRMW.
   { assert (e <> r') as NEQer'. 
     { red. type_solver. }
     assert (~is_init r') as NINITr'.
-    { apply (WF.(wf_rmwD)), seq_eqv_l in Z0. desf. 
+    { apply ((wf_rmwD WF)), seq_eqv_l in Z0. desf. 
       generalize (@read_or_fence_is_not_init G WF r'). type_solver 10. }
     pose (sb_semi_total_r WF NINITr' NEQer' w') as SB. destruct SB; auto.    
     exfalso. specialize (IMMr'w e). auto. }
@@ -429,7 +429,7 @@ Lemma f_hb (WF: Wf G):
   ((⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗ORlx⦘ ⨾ rf ∪ sb ⨾ ⦗Sc⦘ ⨾ rf)
      ⨾ (rmw ⨾ rf)＊ ⨾ sb ⨾ ⦗F ∩₁ Acq⦘) ⊆ hb. 
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
-  rewrite (dom_l WF.(wf_rfD)) at 1.
+  rewrite (dom_l (wf_rfD WF)) at 1.
   rewrite seq_union_l, !seqA. 
   seq_rewrite <- rt_seq_swap. rewrite !seqA. 
   assert (⦗F ∩₁ Acqrel⦘ ⨾ sb ⨾ ⦗W⦘ ⨾ (rf ⨾ rmw)＊ ⊆ release) as REL. 
@@ -454,7 +454,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
     rewrite ct_rotl.
     rewrite (rmw_rf_hbl WF).
     sin_rewrite (sc_rf_l WF).
-    sin_rewrite WF.(rmw_in_sb). sin_rewrite sb_in_hb. 
+    sin_rewrite (rmw_in_sb WF). sin_rewrite sb_in_hb. 
     sin_rewrite (sc_rf_in_sw WF). sin_rewrite sw_in_hb.
     rewrite inclusion_seq_eqv_l,  inclusion_seq_eqv_r.
     arewrite (hb ∩ same_loc ⊆ hb).
@@ -472,7 +472,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   unfold scb. arewrite (⦗Sc⦘ ⨾ rf ⨾ ⦗Sc⦘ ⊆ hb ∩ same_loc).
   { apply inclusion_inter_r.
     { rewrite <- sw_in_hb. apply (sc_rf_in_sw WF). }
-    rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r. apply WF.(wf_rfl). }
+    rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r. apply (wf_rfl WF). }
   basic_solver 10.
 Qed.
 
@@ -517,7 +517,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
     arewrite (hb ⊆ hb＊). apply sbnl_hb_scb. }
   
   repeat case_union _ _. unionL.    
-  2: { rewrite (dom_l WF.(wf_rfD)) at 1. seq_rewrite (seq_eqvC Sc W).
+  2: { rewrite (dom_l (wf_rfD WF)) at 1. seq_rewrite (seq_eqvC Sc W).
        rewrite !seqA. 
        sin_rewrite (sc_rf_l WF).
        rewrite <- seqA with (r2:=⦗W⦘). sin_rewrite SCB'.
@@ -536,18 +536,18 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   
   rewrite !seqA.
   arewrite (sb ⨾ ⦗ORlx⦘ ⨾ rf ⊆ sb ⨾ ⦗ORlx⦘ ⨾ rf ⨾ ⦗ORlx⦘).
-  { rewrite (WF.(wf_rfE)), (WF.(wf_rfD)) at 1.
+  { rewrite ((wf_rfE WF)), ((wf_rfD WF)) at 1.
     rewrite no_sb_to_init, (no_rf_to_init WF) at 1. hahn_frame_l.    
     arewrite (⦗fun x : actid => ~ is_init x⦘ ⨾ ⦗ORlx⦘ ⨾ ⦗E⦘ ⨾ ⦗W⦘ ⊆ ⦗ORlx⦘ ⨾ ⦗E \₁ (fun a : actid => is_init a) \₁ F⦘) by mode_solver.
     arewrite (⦗fun x : actid => ~ is_init x⦘ ⨾ ⦗R⦘ ⨾ ⦗E⦘ ⊆ ⦗E \₁ (fun a : actid => is_init a) \₁ F⦘) by mode_solver.
-    rewrite (sl_mode WF (WF.(wf_rfl))).
+    rewrite (sl_mode WF ((wf_rfl WF))).
     rewrite seq_union_r. unionL; [mode_solver| ].
     basic_solver. }
   arewrite (⦗ORlx⦘ ⨾ (rmw ⨾ rf)＊ ⊆ ⦗ORlx⦘).
   { rewrite rtE, seq_union_r. unionL; [basic_solver| ].
     rewrite ct_begin, RMWSC, !seqA. mode_solver.  }
   arewrite (rf ⨾ ⦗ORlx⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘ ⊆ rf ⨾ sb ⨾ ⦗F ∩₁ Acq⦘ ⨾ sb ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗Sc⦘).
-  { rewrite (dom_r (WF.(wf_rfD))), (dom_r (WF.(wf_rfE))) at 1. 
+  { rewrite (dom_r ((wf_rfD WF))), (dom_r ((wf_rfE WF))) at 1. 
     rewrite !seqA. 
     arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗E \₁ F⦘) by type_solver.
     hahn_frame_l. seq_rewrite (@seq_eqvC _ _ ORlx). rewrite seqA. 
@@ -597,9 +597,9 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   
   arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (sb ⨾ rf)⁺ ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ (⦗E \₁ F⦘ ⨾ sb ⨾ rf)⁺).
   { rewrite ct_rotl at 1.
-    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply (dom_r WF.(wf_rfD)).
+    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply (dom_r (wf_rfD WF)).
     arewrite (rf ⨾ ⦗R⦘ ⊆ rf ⨾ ⦗E \₁ F⦘).
-    { rewrite (dom_r WF.(wf_rfE)) at 1. rewrite seqA.
+    { rewrite (dom_r (wf_rfE WF)) at 1. rewrite seqA.
       hahn_frame. type_solver. }
     arewrite (⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ sb ⊆ ⦗Sc⦘ ⨾ ⦗W ∪₁ R⦘ ⨾ ⦗E \₁ F⦘ ⨾ sb).
     { rewrite <- (seq_eqvK (W ∪₁ R)) at 1.
@@ -613,7 +613,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
     rewrite <- ct_rotl.
     seq_rewrite seq_eqvK. basic_solver 10. }
   
-  rewrite (dom_l WF.(wf_rfD)) at 1. sin_rewrite (sb_w_sync WF).
+  rewrite (dom_l (wf_rfD WF)) at 1. sin_rewrite (sb_w_sync WF).
   
   rewrite <- seq_eqvK with (dom:=F ∩₁ Acqrel).
   case_union _ _. seq_rewrite ct_unionE.
@@ -623,7 +623,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite !seqA. 
   arewrite (⦗W ∪₁ R⦘ ⨾ (rmw ⨾ ⦗W⦘ ⨾ rf)＊ ⊆ ⦗W ∪₁ R⦘ ⨾ (rmw ⨾ rf)＊ ⨾ ⦗W ∪₁ R⦘).
   { rewrite inclusion_seq_eqv_l with (dom:=W).
-    rewrite (dom_r WF.(wf_rfD)) at 1. arewrite (R ⊆₁ W ∪₁ R) at 2.
+    rewrite (dom_r (wf_rfD WF)) at 1. arewrite (R ⊆₁ W ∪₁ R) at 2.
     rewrite <- seqA. rewrite dom_crt.
     rewrite !seqA. hahn_frame. rewrite inclusion_seq_eqv_r. basic_solver. }
   
@@ -646,7 +646,7 @@ Lemma sc_sb_rf_ct_pscb (WF: Wf G):
 Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite ct_end, !seqA.
   sin_rewrite sb_rf_sc_sc; auto.
-  rewrite (dom_l WF.(wf_rfD)) at 2.
+  rewrite (dom_l (wf_rfD WF)) at 2.
   rewrite <- seq_eqvK with (dom:=Sc) at 1. rewrite !seqA.
   seq_rewrite (seq_eqvC Sc W). rewrite !seqA. 
   sin_rewrite (sc_rf_in_pscb); auto.
@@ -668,13 +668,13 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite ct_of_trans by apply sb_trans.
   red in Cext. cdes Cext. 
   apply acyclic_union.
-  { apply acyclic_disj. rewrite WF.(wf_rfeD). mode_solver. }
+  { apply acyclic_disj. rewrite (wf_rfeD WF). mode_solver. }
   rewrite seqA, <- ct_begin.
   arewrite (rfe⁺ ≡ rfe).
   { rewrite ct_begin, rtE, seq_union_r.
-    rewrite ct_begin. rewrite WF.(wf_rfeD) at 2. rewrite WF.(wf_rfeD) at 3. 
+    rewrite ct_begin. rewrite (wf_rfeD WF) at 2. rewrite (wf_rfeD WF) at 3. 
     type_solver. }
-  rewrite WF.(wf_rfeD), (dom_r WF.(wf_rfeE)), seqA. 
+  rewrite (wf_rfeD WF), (dom_r (wf_rfeE WF)), seqA. 
   arewrite (⦗E⦘ ⨾ ⦗R⦘ ⊆ ⦗E \₁ F⦘) by type_solver.
   arewrite (rfe ⊆ ar sc). 
   do 2 rewrite <- seqA. rewrite acyclic_rotl, !seqA.
@@ -685,10 +685,10 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite <- seq_eqvK with (dom:=(F ∩₁ Acq/Rel)), !seqA. 
   repeat arewrite (sb ⨾ ⦗F ∩₁ Acq/Rel⦘ ⊆ imm_bob.bob G).
   repeat arewrite (⦗F ∩₁ Acq/Rel⦘ ⨾ sb ⊆ imm_bob.bob G).
-  rewrite RMWSC, WF.(wf_rmwD).
+  rewrite RMWSC, (wf_rmwD WF).
   rewrite !seqA.
   arewrite (⦗Sc⦘ ⨾ ⦗R⦘ ⊆ ⦗R ∩₁ Acq⦘) by mode_solver. 
-  rewrite WF.(rmw_in_sb). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_bob.bob G).
+  rewrite (rmw_in_sb WF). arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ imm_bob.bob G).
   rewrite bob_in_ar.
   repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
   rewrite !seqA, unionK.
@@ -721,7 +721,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
 
   seq_rewrite (@ct_of_trans _ (co ∪ fr)); [| apply (trans_co_fr WF)].
   arewrite (co ∪ fr ⊆ ⦗W ∪₁ R⦘ ⨾ (co ∪ fr) ⨾ ⦗W ∪₁ R⦘).
-  { rewrite WF.(wf_coD), WF.(wf_frD). basic_solver. }
+  { rewrite (wf_coD WF), (wf_frD WF). basic_solver. }
   seq_rewrite (@seq_eqvC _ _ (W ∪₁ R)). rewrite seqA. rewrite seq_eqvC. 
   rewrite <- !seqA, acyclic_rotl, !seqA.
   sin_rewrite CO_FR_PSCB.
@@ -761,7 +761,7 @@ Proof using LSM RMWSC RSCF WRLXF WSCFACQRMW.
     1, 2: rewrite set_interC with (s:=Sc), set_interC with (s':=Sc) at 1.
     { apply SB_RF'. }
     arewrite (⦗Sc ∩₁ (W ∪₁ R)⦘ ⊆ ⦗Sc⦘) by mode_solver.
-    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply dom_r; apply WF.(wf_rfD).
+    arewrite (rf ≡ rf ⨾ ⦗R⦘) at 1 by eapply dom_r; apply (wf_rfD WF).
     arewrite (⦗R⦘ ⊆ ⦗W ∪₁R⦘) by mode_solver. 
     sin_rewrite (sc_rf_l WF). 
     rewrite <- seq_eqvK at 2. rewrite !seqA.
