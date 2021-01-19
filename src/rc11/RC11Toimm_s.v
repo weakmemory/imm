@@ -14,7 +14,6 @@ Require Import imm_s.
 Require Import RC11.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section RC11_TO_IMM_S.
 

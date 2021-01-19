@@ -12,7 +12,6 @@ Require Import TraversalConfig.
 Require Import Traversal.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section SimTraversal.
   Variable G : execution.

@@ -7,7 +7,6 @@ Require Import Execution.
 Require Import Execution_eco.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section TSO.
 

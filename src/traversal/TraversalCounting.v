@@ -11,7 +11,6 @@ Require Import SimTraversal.
 Require Import SimTraversalProperties.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Definition countP (f: actid -> Prop) l :=
   length (filterP f l).

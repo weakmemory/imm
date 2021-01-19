@@ -14,7 +14,6 @@ Require Import TraversalConfig.
 Require Import imm_s_rfppo.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section Traversal.
   Variable G : execution.

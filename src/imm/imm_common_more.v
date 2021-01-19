@@ -12,7 +12,6 @@ Require Import imm_s_ppo.
 Require Import imm_bob.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section IMM.
 

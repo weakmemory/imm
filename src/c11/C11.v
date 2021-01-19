@@ -9,7 +9,6 @@ Require Import imm_s_hb.
 Require Import imm_s.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section C11.
 

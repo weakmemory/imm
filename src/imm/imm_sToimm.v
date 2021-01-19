@@ -16,7 +16,6 @@ Require Import imm_s.
 Require Import imm_s_hb_hb.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section S_IMM_TO_IMM.
 

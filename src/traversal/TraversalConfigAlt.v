@@ -10,7 +10,6 @@ Require Import imm_s.
 Require Import TraversalConfig.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section TCCOH_ALT.
 

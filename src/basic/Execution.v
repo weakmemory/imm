@@ -9,7 +9,6 @@ Require Import AuxDef.
 Require Import Events.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 (** Definition of an execution *)
 Record execution :=

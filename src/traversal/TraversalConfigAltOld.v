@@ -12,7 +12,6 @@ Require Import TraversalConfig TraversalConfigAlt.
 Require Import imm_s_rfppo.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section TCCOH_ALT_OLD.
 

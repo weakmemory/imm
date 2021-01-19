@@ -18,7 +18,6 @@ Require Import immToARMhelper.
 Require Import imm_s_hb_hb.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section immToARM.
 

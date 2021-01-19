@@ -14,7 +14,6 @@ Require Import imm_s.
 Require Import CombRelations.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section SubExecution.
 

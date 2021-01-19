@@ -4,7 +4,6 @@ Require Import AuxDef Events Execution.
 Require Import Execution_eco imm_s_hb imm_s imm_bob imm_s_ppo.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section ImmRFRMWPPO.
 

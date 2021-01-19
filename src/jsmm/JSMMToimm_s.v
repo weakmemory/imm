@@ -14,7 +14,6 @@ Require Import imm_s.
 Require Import JSMM.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section JSMM_TO_IMM_S.
 

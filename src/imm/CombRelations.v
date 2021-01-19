@@ -12,7 +12,6 @@ Require Import imm_s.
 Require Import imm_bob.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section Relations.
 

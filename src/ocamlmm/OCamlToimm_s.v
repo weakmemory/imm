@@ -13,7 +13,6 @@ Require Import imm_s.
 Require Import OCaml.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section OCamlMM_TO_IMM_S.
 

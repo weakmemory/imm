@@ -6,7 +6,6 @@ Require Import imm_s_ppo CombRelations.
 Require Import imm_s_rfppo.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section TraversalConfig.
 

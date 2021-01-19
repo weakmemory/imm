@@ -17,7 +17,6 @@ Require Import AuxDef.
 Require Import AuxRel2.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section IMM.
 

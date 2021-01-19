@@ -11,7 +11,6 @@ Require Import CombRelationsMore.
 Require Import TraversalConfig.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section ViewRelHelpers.
 

@@ -12,7 +12,6 @@ Require Import imm_hb.
 Require Import imm.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section Rel_opt.
 

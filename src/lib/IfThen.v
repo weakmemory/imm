@@ -2,7 +2,6 @@ From hahn Require Import Hahn.
 Require Import Setoid.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 (******************************************************************************)
 (** ** ifthenelse  *)

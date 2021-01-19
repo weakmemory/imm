@@ -8,7 +8,6 @@ Require Import CombRelations.
 Require Import IfThen. 
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section CombRelationsMore.
 

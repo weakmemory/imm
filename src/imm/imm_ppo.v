@@ -11,7 +11,6 @@ Require Import Execution_eco.
 Require Import imm_bob.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section IMM_PPO.
 

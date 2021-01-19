@@ -13,7 +13,6 @@ Require Import imm_s_hb.
 Require Import imm_s C11.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section C11_TO_IMM_S.
 

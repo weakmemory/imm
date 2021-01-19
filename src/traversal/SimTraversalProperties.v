@@ -7,7 +7,6 @@ Require Import SimTraversal.
 Require Import AuxDef.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section SimTraversalProperties.
   Variable G : execution.

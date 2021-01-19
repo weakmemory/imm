@@ -6,7 +6,6 @@ Require Import Events.
 Require Import Execution.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section Power_ppo.
 

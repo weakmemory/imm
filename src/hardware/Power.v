@@ -9,7 +9,6 @@ Require Import Power_fences.
 Require Import Power_ppo.
 
 Set Implicit Arguments.
-Remove Hints plus_n_O.
 
 Section Power.
 
