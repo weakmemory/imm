@@ -133,12 +133,12 @@ Section TraversalCounting.
     red in STEP. desc.
     destruct STEP.
     1-4: by apply trav_steps_left_decrease; red; eauto.
-    { eapply lt_trans.
+    { eapply Nat.lt_trans.
       all: apply trav_steps_left_decrease; red; eauto. }
-    { eapply lt_trans.
+    { eapply Nat.lt_trans.
       all: apply trav_steps_left_decrease; red; eauto. }
-    eapply lt_trans.
-    eapply lt_trans.
+    eapply Nat.lt_trans.
+    eapply Nat.lt_trans.
     all: apply trav_steps_left_decrease; red; eauto.
   Qed.
   
@@ -199,7 +199,7 @@ Section TraversalCounting.
   Proof using.
     induction STEPS.
     { by apply trav_steps_left_decrease_sim. }
-    eapply lt_trans; eauto.
+    eapply Nat.lt_trans; eauto.
   Qed.
 
   Theorem nat_ind_lt (P : nat -> Prop)
@@ -212,7 +212,7 @@ Section TraversalCounting.
     ins. induction n.
     { unfold Q. ins. inv H. apply HPi. ins. inv H0. }
     unfold Q in *. ins.
-    apply le_lt_eq_dec in H.
+    apply Compare_dec.le_lt_eq_dec in H.
     destruct H as [Hl | Heq].
     { unfold lt in Hl. apply le_S_n in Hl. by apply IHn. }
     rewrite Heq. apply HPi. ins.

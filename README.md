@@ -27,7 +27,7 @@
 ## Building the Project
 
 ### Requirements
-* [Coq 8.9.1](https://coq.inria.fr)
+* [Coq 8.13.0](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
 * [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib) (`coq-promising-lib`)
 

@@ -287,10 +287,9 @@ ins; desc; subst.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
       apply not_all_ex_not in H0; desf.
-      apply seq_eqv_r in n0. desf.
       eapply H; eauto. 
       cdes IMMCON.
-      apply wf_ar_rf_ppo_loc_ctE in n2; auto. by destruct_seq_l n2 as AA. }
+      apply wf_ar_rf_ppo_loc_ctE in n3; auto. by destruct_seq_l n3 as AA. }
 
     assert ((exists f, (F∩₁Sc) f  /\ ~ covered T f /\ E f) ->
             exists f, (F∩₁Sc) f /\ ~ covered T f /\

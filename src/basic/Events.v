@@ -579,7 +579,7 @@ Qed.
 Lemma ext_sb_irr : irreflexive ext_sb.
 Proof using.
 unfold ext_sb; red; ins.
-destruct x; firstorder.
+destruct x; firstorder. lia.
 Qed.
 
 Lemma ext_sb_to_non_init : ext_sb ⊆ ext_sb ⨾  ⦗fun x => ~ is_init x⦘.
