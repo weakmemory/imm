@@ -1387,5 +1387,6 @@ End Execution.
 (** ** Tactics *)
 (******************************************************************************)
 
+#[global]
 Hint Unfold rfe coe fre rfi coi fri : ie_unfolderDb.
 Tactic Notation "ie_unfolder" :=  repeat autounfold with ie_unfolderDb in *.
