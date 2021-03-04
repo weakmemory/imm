@@ -12,7 +12,6 @@ Variable I : actid -> Prop.  (* issued *)
 Variable T : actid -> Prop.  (* all writes in certified thread *)
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).
@@ -429,4 +428,3 @@ Qed.
 
 
 End CO.
-

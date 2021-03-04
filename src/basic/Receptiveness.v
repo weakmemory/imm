@@ -151,7 +151,7 @@ Qed.
 (******************************************************************************)
 
 Definition sim_execution G G' MOD :=
-      ⟪ ACTS : (acts G) = (acts G') ⟫ /\
+      ⟪ ACTS : (acts_set G) = (acts_set G') ⟫ /\
       ⟪ SAME : same_lab_u2v (lab G') (lab G) ⟫ /\
       ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val ((lab G')) a = val ((lab G)) a ⟫ /\
       ⟪ RMW  : (rmw G)  ≡ (rmw G')  ⟫ /\
@@ -195,8 +195,7 @@ Qed.
 Lemma sim_execution_same_acts G G' MOD (EXEC: sim_execution G G' MOD) :
 acts_set G ≡₁ acts_set G'.
 Proof using.
-red in EXEC; desf.
-unfold acts_set; rewrite ACTS; basic_solver.
+red in EXEC; desf. by rewrite ACTS.
 Qed.
 
 (******************************************************************************)
@@ -356,7 +355,7 @@ Definition get_val (v: option value) :=
 Lemma RFI_index_helper tid s new_rfi (TWF : thread_wf tid s)
    (RFI_INDEX : new_rfi ⊆ ext_sb)
    w r (RFI: new_rfi w r) 
-  (IN: ThreadEvent tid (eindex s) = r \/ In r (acts (G s))) :
+  (IN: ThreadEvent tid (eindex s) = r \/ (acts_set (G s)) r) :
    w <> ThreadEvent tid ((eindex s)).
 Proof using.
 intro; subst; desf.
@@ -471,9 +470,9 @@ do 7 eexists; splits; red; splits.
          unfold is_w in WRITE; rewrite updo in WRITE; desf.
       -- unfold val in *; rewrite !updo; try done.
          eapply NEW_VAL1; try edone.
-         unfold add, acts_set in INr; ins; desf.
-         by unfold is_r in *; rewrite updo in READ.
-         by unfold is_w in *; rewrite updo in WRITE.
+         { unfolder in INr. desf. }
+         { by unfold is_r in *; rewrite updo in READ. }
+           by unfold is_w in *; rewrite updo in WRITE.
   * simpl; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + destruct (excluded_middle_informative (MOD (ThreadEvent tid (eindex s1')))); [subst|desf].
@@ -481,8 +480,8 @@ do 7 eexists; splits; red; splits.
       by unfold val in *; rewrite !upds.
     + unfold val in *; rewrite !updo; try done.
       apply NEW_VAL2; try done.
-      by unfold is_r in *; rewrite updo in READ.
-      by unfold add, acts_set in IN; ins; desf.
+      { by unfold is_r in *; rewrite updo in READ. }
+        by unfolder in IN; unfold add in IN; ins; desf.
 Qed.
 
 Lemma receptiveness_sim_store (tid : thread_id)
@@ -571,16 +570,16 @@ by ins; desc; eauto.
       by unfold is_r in *; rewrite !upds in READ; desf.
       unfold val in *; rewrite !updo; try done.
       eapply NEW_VAL1; try edone.
-      by  unfold add, acts_set in INr; ins; desf.
-      by unfold is_r in *; rewrite updo in READ.
-      by unfold is_w in *; rewrite updo in WRITE.
+      { unfolder in INr; desf. }
+      { by unfold is_r in *; rewrite updo in READ. }
+        by unfold is_w in *; rewrite updo in WRITE.
   * simpl; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     by unfold is_r in *; rewrite upds in READ; desf.
     unfold val; rewrite updo; try done.
     apply NEW_VAL2; try done.
     unfold is_r in *; rewrite updo in READ; try done.
-    by unfold add, acts_set in IN; ins; desf.
+    unfolder in IN. desf.
 Qed.
 
 Lemma receptiveness_sim_fence (tid : thread_id)
@@ -643,12 +642,9 @@ do 7 eexists; splits; red; splits.
     by unfold is_r in READ; rewrite upds in READ; desf.
     unfold val; rewrite !updo; try done.
     eapply NEW_VAL1; try edone.
-    unfold add, acts_set in INr; ins; desf.
-    rewrite <- EINDEX in n0; desf.
-    unfold add, acts_set in INw; ins; desf.
-    rewrite <- EINDEX in n; desf.
-    red in EXEC; desf.
-    unfold is_r in *; rewrite updo in READ; try edone.
+    { unfolder in INr; desf. }
+    { unfolder in INw; desf. }
+    { unfold is_r in *; rewrite updo in READ; try edone. }
     unfold is_w in *; rewrite updo in WRITE; try edone.
   * simpl; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
@@ -656,7 +652,7 @@ do 7 eexists; splits; red; splits.
     unfold val; rewrite updo; try done.
     apply NEW_VAL2; try done.
     unfold is_r in *; rewrite updo in READ; try done.
-    by unfold add, acts_set in IN; ins; desf.
+    unfolder in IN; desf.
 Qed.
 
 Lemma receptiveness_sim_cas_fail (tid : thread_id)
@@ -748,31 +744,28 @@ do 7 eexists; splits; red; splits.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
       eapply NREX; split; [eauto|].
-      rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
+      { rewrite UG; unfold add; ins. split; eauto.
+        rewrite EINDEX; basic_solver. }
       rewrite UG; unfold add; unfold R_ex; ins.
-      by rewrite EINDEX, upds.
+        by rewrite EINDEX, upds.
     + unfold val; rewrite !updo; try done.
       eapply NEW_VAL1; try edone.
-      unfold add, acts_set in INr; ins; desf.
-      rewrite <- EINDEX in n0; desf.
-      unfold add, acts_set in INw; ins; desf.
-      rewrite <- EINDEX in n; desf.
-      red in EXEC; desf.
-      unfold is_r in *; rewrite updo in READ; try edone.
+      { unfolder in INr. desf. }
+      { unfolder in INw. desf. }
+      { unfold is_r in *; rewrite updo in READ; try edone. }
       unfold is_w in *; rewrite updo in WRITE; try edone.
   * simpl; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
       eapply NREX; split; [eauto|].
-      rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
+      { rewrite UG; unfold add; ins. split; eauto.
+        rewrite EINDEX; basic_solver. }
       rewrite UG; unfold add; unfold R_ex; ins.
       by rewrite EINDEX, upds.
     + unfold val; rewrite updo; try done.
       apply NEW_VAL2; try done.
       unfold is_r in *; rewrite updo in READ; try done.
-      by unfold add, acts_set in IN; ins; desf.
+      unfolder in IN. desf.
 Qed.
 
 Lemma receptiveness_sim_cas_suc (tid : thread_id)
@@ -891,8 +884,8 @@ do 7 eexists; splits; red; splits.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
       eapply NREX; split; [eauto|].
-      rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
+      { rewrite UG; unfold add; ins. split; eauto.
+        rewrite EINDEX; basic_solver. }
       rewrite UG; unfold add; unfold R_ex; ins.
       by rewrite updo; [| intro; desf; lia]; rewrite EINDEX, upds.
     + unfold val; rewrite updo; [|done].
@@ -901,7 +894,7 @@ do 7 eexists; splits; red; splits.
       -- exfalso.
          apply RFI_INDEX in RF; unfold ext_sb in RF.
          destruct r; [eauto|]; desc.
-         destruct INr as [X|[X|INr]]; try by desf.
+         destruct INr as [[X|X]|INr]; try by desf.
          apply sim_execution_same_acts in EXEC.
          apply EXEC in INr.
          apply TWF in INr; desc.
@@ -909,10 +902,10 @@ do 7 eexists; splits; red; splits.
          desf; lia.
       -- rewrite !updo; try done.
          eapply NEW_VAL1; try edone.
-         by rewrite <- EINDEX in n0; desf.
-         by rewrite <- EINDEX in n; desf.
-         by rewrite !updo in READ; try edone.
-         by rewrite !updo in WRITE; try edone.
+         { unfolder in INr; desf. }
+         { unfolder in INw; desf. }
+         { by rewrite !updo in READ; try edone. }
+           by rewrite !updo in WRITE; try edone.
   * simpl; ins.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
     by unfold is_r in READ; rewrite upds in READ; desf.
@@ -920,14 +913,14 @@ do 7 eexists; splits; red; splits.
     destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'))); subst.
     + exfalso.
       eapply NREX; split; [eauto|].
-      rewrite UG; unfold add; unfold acts_set; ins.
-      split; [eauto| rewrite EINDEX; eauto].
+      { rewrite UG; unfold add; unfold acts_set; ins. split; eauto.
+        rewrite EINDEX; basic_solver. }
       rewrite UG; unfold add; unfold R_ex; ins.
       by rewrite updo; [| intro; desf; lia]; rewrite EINDEX, upds.
     + unfold val; rewrite updo; try done.
       apply NEW_VAL2; try done.
       unfold is_r in *; rewrite !updo in READ; try done.
-      by unfold add, acts_set in IN; ins; desf.
+      unfolder in IN; desf.
 Qed.
 
 Lemma receptiveness_sim_inc (tid : thread_id)
@@ -1053,7 +1046,7 @@ Proof using.
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1' + 1))); subst.
     { exfalso.
       apply RFI_INDEX in RF; unfold ext_sb in RF.
-      destruct INr as [INr|[INr|INr]]; subst.
+      destruct INr as [[INr|INr]|INr]; subst.
       1,2: clear -RF; lia.
       destruct r; [eauto|]; desc.
       apply sim_execution_same_acts in EXEC.
@@ -1085,8 +1078,8 @@ Proof using.
       clear -WW'. unfold is_w in WW'. desf. }
     rewrite !updo; auto.
     eapply NEW_VAL1; try edone.
-    { by rewrite <- EINDEX in n0; desf. }
-    { by rewrite <- EINDEX in n; desf. }
+    { unfolder in INr; desf. }
+    { unfolder in INw; desf. }
       by rewrite !updo in READ; try edone. }
   simpl; ins.
   destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
@@ -1097,7 +1090,7 @@ Proof using.
   unfold val; rewrite updo; try done.
   apply NEW_VAL2; try done.
   unfold is_r in *; rewrite !updo in READ; try done.
-    by unfold add, acts_set in IN; ins; desf.
+  unfolder in IN; desf.
 Qed.
 
 Lemma receptiveness_sim_exchange
@@ -1214,7 +1207,7 @@ Proof using.
     destruct (eq_dec_actid w (ThreadEvent tid (eindex s1' + 1))); subst.
     { exfalso.
       apply RFI_INDEX in RF; unfold ext_sb in RF.
-      destruct INr as [INr|[INr|INr]]; subst.
+      destruct INr as [[INr|INr]|INr]; subst.
       1,2: clear -RF; lia.
       destruct r; [eauto|]; desc.
       apply sim_execution_same_acts in EXEC.
@@ -1246,8 +1239,8 @@ Proof using.
       clear -WW'. unfold is_w in WW'. desf. }
     rewrite !updo; auto.
     eapply NEW_VAL1; try edone.
-    { by rewrite <- EINDEX in n0; desf. }
-    { by rewrite <- EINDEX in n; desf. }
+    { unfolder in INr; desf. }
+    { unfolder in INw; desf. }
       by rewrite !updo in READ; try edone. }
   simpl; ins.
   destruct (eq_dec_actid r (ThreadEvent tid (eindex s1'+1))); subst.
@@ -1258,7 +1251,7 @@ Proof using.
   unfold val; rewrite updo; try done.
   apply NEW_VAL2; try done.
   { unfold is_r in *; rewrite !updo in READ; done. }
-    by unfold add, acts_set in IN; ins; desf.
+  unfolder in IN; desf.
 Qed.
 
 Lemma receptiveness_sim_step (tid : thread_id)
@@ -1452,7 +1445,7 @@ Lemma receptiveness_full (tid : thread_id)
       (NDATA: ⦗MOD⦘ ⨾ (data (G s)) ⨾ ⦗set_compl MOD⦘ ⊆ ∅₂) :
     exists s',
       ⟪ STEPS' : (step tid)＊ s_init s' ⟫ /\
-      ⟪ RACTS : (acts (G s)) = (acts (G s')) ⟫ /\
+      ⟪ RACTS : (acts_set (G s)) = (acts_set (G s')) ⟫ /\
       ⟪ RRMW  : (rmw (G s))  ≡ (rmw (G s'))  ⟫ /\
       ⟪ RDATA : (data (G s)) ≡ (data (G s')) ⟫ /\
       ⟪ RADDR : (addr (G s)) ≡ (addr (G s')) ⟫ /\

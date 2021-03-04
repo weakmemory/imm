@@ -24,7 +24,6 @@ Section immToARM.
 Variable G : execution.
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).
@@ -226,9 +225,10 @@ Proof using CON RMW_DEPS W_EX_ACQ_SB.
   apply immToARMhelper.C_SC; auto.
 Qed.
 
-Lemma IMM_s_psc_consistent : exists sc, imm_psc_consistent G sc.
+Lemma IMM_s_psc_consistent (FINDOM : set_finite E) :
+  exists sc, imm_psc_consistent G sc.
 Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
-  edestruct (imm_s.s_acyc_ext_helper WF C_EXT_helper) as [sc HH]. desc.
+  edestruct (imm_s.s_acyc_ext_helper WF FINDOM C_EXT_helper) as [sc HH]. desc.
   exists sc. red. splits; eauto.
   2: by apply C_SC.
   red. splits; eauto; try apply CON.

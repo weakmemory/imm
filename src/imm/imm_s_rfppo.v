@@ -9,12 +9,12 @@ Section ImmRFRMWPPO.
 
   Variable G : execution.
   Variable WF : Wf G.
+  Hypothesis FINDOM : set_finite G.(acts_set).
   Variable COM : complete G.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
   Variable WFSC : wf_sc G sc.
 
-  Notation "'acts'" := (acts G).
   Notation "'sb'" := (sb G).
   Notation "'rmw'" := (rmw G).
   Notation "'data'" := (data G).
@@ -182,14 +182,16 @@ Qed.
 
 Lemma wf_ar_rf_ppo_loc_ct :
   well_founded (ar ∪ rf ;; ppo ∩ same_loc)⁺.
-Proof using WF WFSC COM IMMCON.
+Proof using WF FINDOM WFSC COM IMMCON.
+  cdes FINDOM.
   eapply wf_finite; auto.
   { red. rewrite ct_of_ct. apply ar_rf_ppo_loc_acyclic; auto. }
   rewrite (dom_l (wf_arE WF WFSC)).
   rewrite (dom_l (wf_rfE WF)). rewrite !seqA.
   rewrite <- seq_union_r.
   rewrite inclusion_ct_seq_eqv_l.
-  red. basic_solver.
+  red. ins. apply FINDOM0.
+  generalize REL. basic_solver.
 Qed.
 
 End ImmRFRMWPPO.

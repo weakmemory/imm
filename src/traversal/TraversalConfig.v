@@ -15,7 +15,6 @@ Section TraversalConfig.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := (acts G).
   Notation "'sb'" := (sb G).
   Notation "'rmw'" := (rmw G).
   Notation "'data'" := (data G).
@@ -1490,10 +1489,10 @@ Qed.
     basic_solver 21.
   Qed.
 
-Lemma exists_ncov thread :
+Lemma exists_ncov thread (FINDOM : set_finite E) :
   exists n, ~ covered T (ThreadEvent thread n).
 Proof using TCCOH.
-  destruct (exists_nE G thread) as [n HH].
+  destruct (exists_nE G FINDOM thread) as [n HH].
   exists n. intros CC. apply HH.
   eapply coveredE; eauto.
 Qed.

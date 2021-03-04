@@ -17,11 +17,11 @@ Set Implicit Arguments.
 
 Section Traversal.
   Variable G : execution.
-  Variable WF : Wf G.
+  Hypothesis WF : Wf G.
+  Hypothesis FINDOM : set_finite G.(acts_set).
   Variable sc : relation actid.
-  Variable IMMCON : imm_consistent G sc.
+  Hypothesis IMMCON : imm_consistent G sc.
 
-  Notation "'acts'" := (acts G).
   Notation "'sb'" := (sb G).
   Notation "'rmw'" := (rmw G).
   Notation "'data'" := (data G).
@@ -222,11 +222,11 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
         (ACTS : E e)
         (N_COV : ~ P e) :
     exists e', sb^? e' e /\ next G P e'.
-  Proof using.
+  Proof using FINDOM.
     generalize dependent e.
     set (Q e := E e -> ~ P e ->
                 exists e' : actid, sb^? e' e /\ next G P e').
-    apply (@well_founded_ind _ sb (wf_sb G) Q).
+    apply (@well_founded_ind _ sb (wf_sb G FINDOM) Q).
     ins; subst Q; simpls.
     destruct (classic (exists e', sb e' x /\ ~ P e')) as
         [[e' [H' COV]]| H']; ins.
@@ -249,7 +249,7 @@ ins; desc; subst.
   Lemma exists_trav_step T (TCCOH : tc_coherent G sc T)
         e (N_FIN : next G (covered T) e) :
     exists T', trav_step T T'.
-  Proof using WF IMMCON.
+  Proof using WF FINDOM IMMCON.
     assert (wf_sc G sc) as WFSC by apply IMMCON.
     assert (complete G) as COM by apply IMMCON.
 
@@ -281,7 +281,7 @@ ins; desc; subst.
                       dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w /\
                       E w) as WMIN.
     { intros P; desf.
-      induction w using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON WFSC)).
+      induction w using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF FINDOM COM IMMCON WFSC)).
       destruct (classic (dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w)); eauto.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
@@ -295,7 +295,7 @@ ins; desc; subst.
                       doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
                       E f) as FMIN.
     { intros P; desf.
-      induction f using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON WFSC)).
+      induction f using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF FINDOM COM IMMCON WFSC)).
       destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T)))
         as [H0 | H0]; eauto.
       rewrite seq_eqv_r, seq_eqv_l in H0.

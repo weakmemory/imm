@@ -74,7 +74,7 @@ Section State.
   }.
 
   Definition init_execution : execution :=
-    {| acts := nil;
+    {| acts_set := ∅;
        lab := fun _ => Afence Orlx;
        rmw := ∅₂;
        data := ∅₂;
@@ -100,7 +100,7 @@ Section State.
   
   Definition add G tid index elab ddata daddr dctrl drmw_dep :=
     let e := ThreadEvent tid index in 
-    {| acts := e :: (acts G);
+    {| acts_set := eq e ∪₁ G.(acts_set);
        lab := upd (lab G) e elab;
        rmw := (rmw G);
        data := (data G) ∪ ddata × (eq e);
@@ -115,7 +115,7 @@ Section State.
     let er:= ThreadEvent tid index in 
     let ew:= ThreadEvent tid (index + 1) in 
     let rw_edge := singl_rel er ew in
-    {| acts := ew :: er :: (acts G);
+    {| acts_set := eq ew ∪₁ eq er ∪₁ G.(acts_set);
        lab := upd (upd (lab G) er erlab) ew ewlab; 
        rmw := rw_edge ∪ (rmw G);
        data := (data G) ∪ ddata × (eq ew);
@@ -306,7 +306,7 @@ Section State.
     all: unfold add, add_rmw, acts_set in *; simpls; vauto.
     all: try (destruct INY as [EIN|INX]; [|apply WF in INX; desf];
       eexists; split; eauto; lia).
-    all: destruct INY as [EIN|[EIN|INX]]; [ | | apply WF in INX; desf];
+    all: destruct INY as [[EIN|EIN]|INX]; [ | | apply WF in INX; desf];
       eexists; split; eauto; lia.
   Qed.
 

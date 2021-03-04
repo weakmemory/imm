@@ -12,7 +12,7 @@ Set Implicit Arguments.
 
 (** Definition of an execution *)
 Record execution :=
-  { acts : list actid;
+  { acts_set : actid -> Prop ;
     lab : actid -> label;
     rmw : actid -> actid -> Prop ;
     data : actid -> actid -> Prop ;   (** data dependency *)
@@ -38,13 +38,12 @@ Record execution :=
 Section Execution.
 
 Variable G : execution.
-
-Definition acts_set := fun x => In x (acts G).
+Hypothesis FINDOM : set_finite G.(acts_set).
 
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
-Notation "'E'" := acts_set.
+Notation "'E'" := (acts_set G).
 Notation "'lab'" := (lab G).
 Notation "'rf'" := (rf G).
 Notation "'co'" := (co G).
@@ -343,11 +342,13 @@ by apply trans_irr_acyclic; [apply co_irr| apply co_trans].
 Qed.
 
 Lemma wf_sb : well_founded sb.
-Proof using.
+Proof using FINDOM.
+  cdes FINDOM.
   eapply wf_finite; auto.
   apply sb_acyclic.
   rewrite (dom_l wf_sbE).
-  unfold doma; basic_solver.
+  generalize FINDOM0.
+  unfold doma. basic_solver.
 Qed.
 
 (******************************************************************************)
@@ -1103,25 +1104,13 @@ Qed.
 
 Lemma exists_nE thread :
   exists n, ~ E (ThreadEvent thread n).
-Proof using.
-  unfold acts_set.
-  destruct G. simpls.
-  clear.
-  assert (exists n, forall m (IN : In (ThreadEvent thread m) acts0),
-               m < n) as [n AA].
-  2: { desf. exists n. induction acts0; simpls.
-       intros HH. apply AA in HH. lia. }
-  induction acts0; simpls.
-  { exists 1. ins. }
+Proof using FINDOM.
+  set (AA:=FINDOM).
+  apply set_finite_exists_bigger with (f:=ThreadEvent thread) in AA.
+  3: { ins. desf. }
+  2: { apply eq_dec_actid. }
   desf.
-  destruct a.
-  { exists n. ins. desf. intuition. }
-  exists (1 + max n index).
-  ins. desf.
-  { apply Max.max_case_strong; lia. }
-  apply IHacts0 in IN.
-  etransitivity; eauto.
-  apply Max.max_case_strong; lia.
+  exists (1 + n). apply AA. lia.
 Qed.
 
 Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
@@ -1302,11 +1291,12 @@ Proof using.
 Qed.
 
 Lemma co_imm WF : co ≡ (immediate co)⁺.
-Proof using.
+Proof using FINDOM.
   apply fsupp_imm_t; try apply WF.
   rewrite (wf_coE WF).
-  red. ins. eexists. ins. destruct_seq_l REL as AA.
-  apply AA.
+  red. ins.
+  cdes FINDOM.
+  eexists. ins. destruct_seq_l REL as AA. by apply FINDOM0.
 Qed.
 
 Lemma nS_imm_co_in_sb WF
@@ -1318,10 +1308,11 @@ Lemma nS_imm_co_in_sb WF
       (CONEXT : co w wnext)
       (FOR_SPLIT : ⦗set_compl S⦘ ⨾ immediate co ⊆ sb) :
   sb w wnext.
-Proof using.
-  clear -WF WW NSW FOR_SPLIT NCOIMM ISSNEXT CONEXT. simpls. desc.
+Proof using FINDOM.
+  clear -WF WW NSW FOR_SPLIT NCOIMM ISSNEXT CONEXT FINDOM. simpls. desc.
   apply clos_trans_of_transitiveD; [apply sb_trans|].
   apply (inclusion_t_t FOR_SPLIT).
+  cdes FINDOM.
   eapply ct_imm1 in CONEXT.
   2: by apply (co_irr WF).
   2: by apply (co_trans WF).
@@ -1352,7 +1343,7 @@ Proof using.
       { apply (co_irr WF). }
       { red; ins. apply (wf_coE WF) in REL.
         apply seq_eqv_l in REL; destruct REL as [_ REL].
-        apply seq_eqv_r in REL. apply REL. }
+        apply seq_eqv_r in REL. apply FINDOM0. apply REL. }
       destruct IMM' as [II _].
       apply seq_eqv_r in II; apply II. }
     assert (immediate (co ⨾ ⦗S⦘) y wnext) as YNEXTIMM.

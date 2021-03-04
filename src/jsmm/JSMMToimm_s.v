@@ -19,6 +19,7 @@ Section JSMM_TO_IMM_S.
 
 Variable G : execution.
 Hypothesis WF : Wf G.
+Hypothesis FINDOM : set_finite G.(acts_set).
 
 Notation "'E'" := (acts_set G).
 Notation "'sb'" := (sb G).
@@ -184,10 +185,11 @@ Qed.
 Theorem s_imm_consistent_implies_jsmm_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   exists tot, jsmm_consistent G tot.
-Proof using WF.
+Proof using WF FINDOM.
   cdes IPC. cdes IC.
+  cdes FINDOM.
   exists (⦗E⦘ ⨾
-            tot_ext (acts G)
+            tot_ext findom 
             (hb_js ∪ ⦗ Sc ⦘ ⨾ (fr ∪ co) ⨾ ⦗ Sc ⦘) ⨾
           ⦗E⦘).
   red. splits.

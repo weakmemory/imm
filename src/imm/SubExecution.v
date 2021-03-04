@@ -21,7 +21,6 @@ Variables G G' : execution.
 Variables sc sc' : relation actid.
 
 Notation "'E''" := (acts_set G').
-Notation "'acts''" := (acts G').
 Notation "'lab''" := (lab G').
 Notation "'sb''" := (sb G').
 Notation "'rf''" := (rf G').
@@ -84,7 +83,6 @@ Notation "'Acq/Rel''" := (fun a => is_true (is_ra lab' a)).
 Notation "'Sc''" := (fun a => is_true (is_sc lab' a)).
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).
@@ -514,7 +512,7 @@ End SubExecution.
 (******************************************************************************)
 
 Definition restrict (G : execution) D :=
-    {| acts := filterP (fun x => D x) (acts G);
+    {| acts_set := D ∩₁ G.(acts_set);
        lab := (lab G);
        rmw := ⦗ D ⦘ ⨾ (rmw G) ⨾ ⦗ D ⦘;
        data := ⦗ D ⦘ ⨾(data G) ⨾ ⦗ D ⦘;
@@ -528,9 +526,9 @@ Definition restrict (G : execution) D :=
 Lemma restrict_E G D (IN: D ⊆₁ (acts_set G)) :
  (acts_set (restrict G D)) ≡₁ D.
 Proof using.
-unfold acts_set in *; unfolder in *; split; ins; desf; splits; eauto.
-apply in_filterP_iff in H; desf. 
-apply in_filterP_iff; splits; eauto.
+  unfolder in *; split; ins; desf; splits; eauto.
+  { apply H. }
+  split; auto.
 Qed.
 
 Lemma restrict_sub G sc sc' D (SC: sc' ≡ ⦗D⦘ ⨾ sc ⨾ ⦗D⦘) (IN: D ⊆₁ (acts_set G)) : 

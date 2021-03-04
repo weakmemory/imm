@@ -26,7 +26,7 @@ Definition relax_release_labels (l: label) : label :=
   end.
 
 Definition G' : execution :=
-  {|  acts   := (acts G);
+  {|  acts_set   := (acts_set G);
       lab    := (fun a => relax_release_labels ((lab G) a));
       rmw    := (rmw G);
       data   := (data G);
@@ -38,7 +38,6 @@ Definition G' : execution :=
   |}.
 
 Notation "'E''" := (acts_set G').
-Notation "'acts''" := (acts G').
 Notation "'lab''" := (lab G').
 Notation "'sb''" := (sb G').
 Notation "'rf''" := (rf G').
@@ -100,7 +99,6 @@ Implicit Type COHp : coherence G'.
 Implicit Type SC_PER_LOCp : sc_per_loc G'.
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).

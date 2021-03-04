@@ -20,6 +20,8 @@ Set Implicit Arguments.
 Section S_IMM_TO_IMM.
 
 Variable G : execution.
+Hypothesis WF : Wf G.
+Hypothesis FINDOM : set_finite G.(acts_set).
 
 Notation "'E'" := (acts_set G).
 Notation "'sb'" := (sb G).
@@ -88,8 +90,8 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 Lemma s_psc_in_psc : ⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘ ⊆ psc.
 Proof using. unfold imm.psc. by rewrite s_hb_in_hb. Qed.
 
-Lemma s_ppo_in_ppo (WF: Wf G) : s_ppo ⊆ ppo.
-Proof using.
+Lemma s_ppo_in_ppo : s_ppo ⊆ ppo.
+Proof using WF.
   unfold imm_s_ppo.ppo, imm_ppo.ppo.
   assert (rmw ∪ (rmw_dep ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb) ⊆
           (rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺) as AA.
@@ -103,19 +105,18 @@ Proof using.
   all: rewrite <- ct_step; unionR left; basic_solver 10.
 Qed.
 
-Lemma s_ar_int_in_ar_int (WF: Wf G) : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
-Proof using. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite (s_ppo_in_ppo WF). Qed.
+Lemma s_ar_int_in_ar_int : ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ ar_int⁺ ⨾ ⦗W⦘.
+Proof using WF. unfold imm_s_ppo.ar_int, imm_ppo.ar_int. by rewrite s_ppo_in_ppo. Qed.
 
-Lemma acyc_ext_implies_s_acyc_ext_helper (WF: Wf G)
-      (AC : imm.acyc_ext G) :
+Lemma acyc_ext_implies_s_acyc_ext_helper (AC : imm.acyc_ext G) :
   imm_s.acyc_ext G (⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
-Proof using.
+Proof using WF.
   unfold imm_s.acyc_ext, imm.acyc_ext in *.
   unfold imm_s.ar.
   apply s_acyc_ext_psc_helper; auto.
   unfold imm_s.psc.
   rewrite s_psc_in_psc.
-  rewrite (s_ar_int_in_ar_int WF).
+  rewrite s_ar_int_in_ar_int.
   arewrite (sb^? ⨾ psc ⨾ sb^? ⊆ ar⁺).
   { rewrite imm.wf_pscD. rewrite !seqA.
     arewrite (sb^? ⨾ ⦗F ∩₁ Sc⦘ ⊆ bob^?).
@@ -133,28 +134,28 @@ Proof using.
   red. by rewrite ct_of_ct.
 Qed.
 
-Lemma acyc_ext_implies_s_acyc_ext (WF: Wf G) (AC : imm.acyc_ext G) :
+Lemma acyc_ext_implies_s_acyc_ext (AC : imm.acyc_ext G) :
   exists sc, wf_sc G sc /\ imm_s.acyc_ext G sc /\ coh_sc G sc.
-Proof using.
-  apply (imm_s.s_acyc_ext_helper WF).
+Proof using WF FINDOM.
+  apply imm_s.s_acyc_ext_helper; auto.
     by apply acyc_ext_implies_s_acyc_ext_helper.
 Qed.
 
-Lemma imm_consistentimplies_s_imm_consistent (WF: Wf G): imm.imm_consistent G -> 
-  exists sc, imm_s.imm_consistent G sc.
-Proof using.
-unfold imm_s.imm_consistent, imm.imm_consistent.
-ins; desf.
-apply acyc_ext_implies_s_acyc_ext in Cext; eauto; desf.
-exists sc; splits; eauto 10 using coherence_implies_s_coherence.
+Lemma imm_consistentimplies_s_imm_consistent (AC : imm.acyc_ext G) :
+  imm.imm_consistent G -> exists sc, imm_s.imm_consistent G sc.
+Proof using WF FINDOM.
+  unfold imm_s.imm_consistent, imm.imm_consistent.
+  ins; desf.
+  edestruct acyc_ext_implies_s_acyc_ext as [sc]; auto. desf.
+  exists sc; splits; eauto 10 using coherence_implies_s_coherence.
 Qed.
 
-Lemma imm_consistentimplies_s_imm_psc_consistent (WF: Wf G)
+Lemma imm_consistentimplies_s_imm_psc_consistent
       (IC : imm.imm_consistent G) :
   exists sc, imm_s.imm_psc_consistent G sc.
-Proof using.
-  edestruct imm_consistentimplies_s_imm_consistent as [sc];
-    eauto.
+Proof using WF FINDOM.
+  edestruct imm_consistentimplies_s_imm_consistent as [sc]; eauto.
+  { apply IC. }
   exists sc. red. splits; auto.
   unfold psc_f, psc_base, scb. rewrite s_hb_in_hb.
   apply IC.

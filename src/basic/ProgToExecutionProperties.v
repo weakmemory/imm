@@ -50,7 +50,7 @@ Section StateWF.
 Variable thread : thread_id.
 Variable s : state.
 
-Notation "'E'" := (fun x => In x (acts (G s))).
+Notation "'E'" := (acts_set (G s)).
 Notation "'lab'" := (lab (G s)).
 Notation "'rf'" := (rf (G s)).
 Notation "'co'" := (co (G s)).
@@ -154,8 +154,8 @@ Lemma add_preserves_acts_clos thread ll s s' hl s1 s2 s3 s4
       (UINDEX : eindex s' = eindex s + 1) :
   forall n : nat,
     n < eindex s + 1 ->
-    In (ThreadEvent thread n)
-       (acts (add (G s) thread (eindex s) hl s1 s2 s3 s4)).
+    acts_set (add (G s) thread (eindex s) hl s1 s2 s3 s4)
+             (ThreadEvent thread n).
 Proof using.
   unfold add. simpls. ins.
   apply Lt.le_lt_n_Sm in H.
@@ -173,8 +173,8 @@ Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
       (UINDEX : eindex s' = eindex s + 2) :
   forall n : nat,
     n < eindex s + 2 ->
-    In (ThreadEvent thread n)
-       (acts (add_rmw (G s) thread (eindex s) rl wl s1 s2 s3 s4)).
+    acts_set (add_rmw (G s) thread (eindex s) rl wl s1 s2 s3 s4)
+             (ThreadEvent thread n).
 Proof using.
   unfold add_rmw. simpls. ins.
   apply Lt.le_lt_n_Sm in H.
@@ -182,11 +182,11 @@ Proof using.
   destruct H as [LT|LT].
   { apply Const.le_lteq in LT.
     destruct LT as [LT|LT].
-    { right. right. apply (acts_clos WF). lia. }
+    { right. apply (acts_clos WF). lia. }
     rewrite Const.add_comm in LT. inv LT.
-    right. by left. }
+    left. by right. }
   rewrite Const.add_comm in LT. inv LT.
-  rewrite Const.add_comm. eauto.
+  rewrite Const.add_comm. do 2 left. eauto.
 Qed.
 
 Lemma step_preserves_E thread state state'
@@ -288,7 +288,7 @@ Proof using.
     all: try (intros e [HH|IN]; [eexists; splits; eauto; lia|];
         edestruct (acts_rep WF); eauto; desc;
         eexists; splits; eauto; lia).
-    all: intros e [HH|[IN|IN]].
+    all: intros e [[HH|IN]|IN].
     all: try (eexists; splits; eauto; lia).
     all: edestruct (acts_rep WF); eauto; desc.
     all: eexists; splits; eauto; lia. }
@@ -421,7 +421,6 @@ Section StepProperties.
   Variable sc : relation actid.
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'co'" := (co G).
 Notation "'coi'" := (coi G).
 Notation "'sb'" := (sb G).
@@ -621,8 +620,8 @@ Lemma step_same_E_empty_in thread state state'
   <->
   istep thread nil state state'.
 Proof using.
-  assert (~ In (ThreadEvent thread (eindex state))
-            (Execution.acts (ProgToExecution.G state))) as XX.
+  assert (~ Execution.acts_set (ProgToExecution.G state)
+            (ThreadEvent thread (eindex state))) as XX.
   { intros HH. apply (acts_rep GPC) in HH.
     desc. inv REP. lia. }
   red in STEP. desc.
@@ -637,7 +636,7 @@ Proof using.
   all: exfalso; apply XX; apply IN.
   1-4: by rewrite UG; unfold acts_set, add; simpls; left.
   all: by rewrite UG; unfold acts_set, add_rmw; simpls;
-    right; left.
+    left; right.
 Qed.
 
 Lemma step_same_E_empty thread state state'
@@ -820,8 +819,9 @@ Proof using.
     unfold add, acts_set in *; simpls.
     intros y [AA|BB]; [|by apply OIN].
     destruct (classic (C y)) as [|NC]; auto.
-    by exfalso; apply NINO; ins;
-      set (YY := H0); apply INN in YY; desf. }
+    exfalso; apply NINO; ins.
+    set (YY := H0). apply INN in YY.
+    red in YY. desf. }
   assert (G'2: (exists new_lbl1 new_lbl2 add_dep1 add_ldep add_ctrl add_dep2,
                    G state' = add_rmw (G state) thread (eindex state)
                                       new_lbl1 new_lbl2
@@ -831,9 +831,11 @@ Proof using.
     rewrite H in *; auto.
     unfold add_rmw, acts_set in *; simpls.
     destruct (classic (C (ThreadEvent thread (eindex state)))) as [ZZ|NC].
-    2: { exfalso. apply NINO. ins. set (YY := H0); apply INN in YY; desf.
+    2: { exfalso. apply NINO. ins.
+         set (YY := H0); apply INN in YY.
+         unfolder in YY; desf.
          exfalso. apply NC. eapply RMWC; [|by apply H0]. by left. }
-    intros x [AA|[BB|CC]]; [ | | by apply OIN]; desf.
+    intros x [[AA|BB]|CC]; [ | | by apply OIN]; desf.
     eapply RMWC with (r:=ThreadEvent thread (eindex state)); auto. by left. }
   destruct ISTEP0.
   all: rewrite UG in *; auto.

@@ -12,7 +12,6 @@ Section Power_fences.
 Variable G : execution.
 
 Notation "'E'" := (acts_set G).
-Notation "'acts'" := (acts G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).

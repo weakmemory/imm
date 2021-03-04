@@ -22,7 +22,6 @@ Section TCCOH_ALT_OLD.
   Notation "'I'" := (issued T).
   Notation "'C'" := (covered T).
 
-  Notation "'acts'" := (acts G).
   Notation "'sb'" := (sb G).
   Notation "'rmw'" := (rmw G).
   Notation "'data'" := (data G).

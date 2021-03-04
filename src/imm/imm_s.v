@@ -113,6 +113,7 @@ Definition imm_psc_consistent sc :=
   ⟪ Cpsc : acyclic (psc_f ∪ psc_base) ⟫.
 
 Hypothesis WF : Wf G.
+Hypothesis FINDOM : set_finite E.
 Hypothesis COH : coherence G.
 Hypothesis AT : rmw_atomicity G.
 
@@ -373,20 +374,25 @@ apply F_sc_ar_F_sc; done.
 Qed.
 
 Lemma wf_ar : well_founded (ar sc).
-Proof using WF WF_SC IMMCON.
+Proof using WF FINDOM WF_SC IMMCON.
+  cdes FINDOM.
   eapply wf_finite.
   { cdes IMMCON. apply Cext. }
   rewrite wf_arE; auto.
+  eapply doma_mori; [reflexivity|red; apply FINDOM0 |].
   apply doma_eqv.
 Qed.
 
 Lemma wf_ar_tc : well_founded ((ar sc)⁺).
-Proof using WF WF_SC IMMCON.
+Proof using WF FINDOM WF_SC IMMCON.
+  cdes FINDOM.
   eapply wf_finite; auto.
   { cdes IMMCON. unfold acyclic. rewrite ct_of_ct.
     apply Cext. }
   rewrite wf_arE; auto.
-  apply ct_doma. apply doma_eqv.
+  apply ct_doma.
+  eapply doma_mori; [reflexivity|red; apply FINDOM0 |].
+  apply doma_eqv.
 Qed.
 
 Lemma ar_int_in_ar : ar_int ⊆ ar sc.
@@ -805,22 +811,23 @@ End SC.
 Lemma s_acyc_ext_helper
       (AC : acyclic (psc ∪ rfe ∪ ar_int)) :
   exists sc, wf_sc sc /\ acyc_ext sc /\ coh_sc sc.
-Proof using WF.
+Proof using WF FINDOM.
+  cdes FINDOM.
   set (ar' := psc ∪ rfe ∪ ar_int).
   unfold acyc_ext.
-  exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext (acts G) ar' ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
+  exists (⦗ E ∩₁ F ∩₁ Sc ⦘ ⨾ tot_ext findom ar' ⨾ ⦗ E ∩₁ F ∩₁ Sc ⦘).
   splits.
   { constructor.
     1,2: apply dom_helper_3; basic_solver.
     { rewrite <- restr_relE; apply transitive_restr, tot_ext_trans. }
     { unfolder; ins; desf.
-      cut (tot_ext (acts G) ar' a b \/ tot_ext (acts G) ar' b a).
+      cut (tot_ext findom ar' a b \/ tot_ext findom ar' b a).
       { basic_solver 12. }
       eapply tot_ext_total; desf; eauto. }
     rewrite <- restr_relE.
     apply irreflexive_restr. by apply tot_ext_irr. }
   { unfold ar.
-    apply acyclic_mon with (r:= tot_ext (acts G) ar').
+    apply acyclic_mon with (r:= tot_ext findom ar').
     { apply trans_irr_acyclic.
       { apply tot_ext_irr, AC. }
       apply tot_ext_trans. }
@@ -830,9 +837,9 @@ Proof using WF.
   unfold coh_sc.
   rotate 4.
   arewrite (⦗E ∩₁ F ∩₁ Sc⦘ ⨾ hb ⨾ (eco ⨾ hb)^? ⨾ ⦗E ∩₁ F ∩₁ Sc⦘ ⊆ ar'⁺).
-  2: { arewrite (ar' ⊆ tot_ext (acts G) ar') at 2.
+  2: { arewrite (ar' ⊆ tot_ext findom ar') at 2.
        { apply tot_ext_extends. }
-       rewrite ct_step with (r:= tot_ext (acts G) ar') at 1.
+       rewrite ct_step with (r:= tot_ext findom ar') at 1.
        rewrite ct_ct.
        apply trans_irr_acyclic.
        { apply tot_ext_irr, AC. }
