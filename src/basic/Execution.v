@@ -38,7 +38,6 @@ Record execution :=
 Section Execution.
 
 Variable G : execution.
-Hypothesis FINDOM : set_finite G.(acts_set).
 
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
@@ -342,13 +341,12 @@ by apply trans_irr_acyclic; [apply co_irr| apply co_trans].
 Qed.
 
 Lemma wf_sb : well_founded sb.
-Proof using FINDOM.
-  cdes FINDOM.
-  eapply wf_finite; auto.
-  apply sb_acyclic.
-  rewrite (dom_l wf_sbE).
-  generalize FINDOM0.
-  unfold doma. basic_solver.
+Proof using. 
+  unfold Execution.sb.
+  rewrite <- restr_relE. eapply wf_mon; [by apply inclusion_restr| ].
+  apply Wf_nat.well_founded_lt_compat
+    with (f := fun (e: actid) => if e then 0 else index e + 1).
+  intros x y SB. destruct x, y; simpl in *; lia. 
 Qed.
 
 (******************************************************************************)
@@ -1102,17 +1100,6 @@ Proof using.
   all: by split; [split|rewrite <- LL].
 Qed.
 
-Lemma exists_nE thread :
-  exists n, ~ E (ThreadEvent thread n).
-Proof using FINDOM.
-  set (AA:=FINDOM).
-  apply set_finite_exists_bigger with (f:=ThreadEvent thread) in AA.
-  3: { ins. desf. }
-  2: { apply eq_dec_actid. }
-  desf.
-  exists (1 + n). apply AA. lia.
-Qed.
-
 Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
 Proof using.
   rewrite (dom_r (wf_rmwD WF)).
@@ -1290,87 +1277,7 @@ Proof using.
   all: apply seq_eqv_r; split; auto.
 Qed.
 
-Lemma co_imm WF : co ≡ (immediate co)⁺.
-Proof using FINDOM.
-  apply fsupp_imm_t; try apply WF.
-  rewrite (wf_coE WF).
-  red. ins.
-  cdes FINDOM.
-  eexists. ins. destruct_seq_l REL as AA. by apply FINDOM0.
-Qed.
 
-Lemma nS_imm_co_in_sb WF
-      (S : actid -> Prop) w wnext
-      (WW : is_w lab w)
-      (NSW : ~ S w)
-      (NCOIMM : immediate (co ⨾ ⦗S⦘) w wnext)
-      (ISSNEXT : S wnext)
-      (CONEXT : co w wnext)
-      (FOR_SPLIT : ⦗set_compl S⦘ ⨾ immediate co ⊆ sb) :
-  sb w wnext.
-Proof using FINDOM.
-  clear -WF WW NSW FOR_SPLIT NCOIMM ISSNEXT CONEXT FINDOM. simpls. desc.
-  apply clos_trans_of_transitiveD; [apply sb_trans|].
-  apply (inclusion_t_t FOR_SPLIT).
-  cdes FINDOM.
-  eapply ct_imm1 in CONEXT.
-  2: by apply (co_irr WF).
-  2: by apply (co_trans WF).
-  2: by intros x [y H']; apply (wf_coE WF) in H'; apply seq_eqv_l in H'; desf; eauto.
-  apply t_rt_step in CONEXT. destruct CONEXT as [z [IMMS IMM]].
-  apply t_rt_step. exists z; split; [|apply seq_eqv_l; split; [|done]].
-  { apply rtE in IMMS. destruct IMMS as [IMMS|IMMS].
-    { red in IMMS; desf. apply rt_refl. }
-    assert (immediate (co ⨾ ⦗S⦘) z wnext) as IMM'.
-    { red; split; [apply seq_eqv_r; split; auto|].
-      { apply clos_trans_immediate1; auto.
-        eapply (co_trans WF). }
-      ins. eapply NCOIMM; [|by apply R2].
-      apply seq_eqv_r in R1; destruct R1 as [R1 R3].
-      apply seq_eqv_r; split; auto.
-      eapply (co_trans WF); [|by apply R1].
-      apply clos_trans_immediate1; auto.
-      eapply (co_trans WF). }
-    clear IMM.
-    induction IMMS.
-    { apply rt_step. apply seq_eqv_l; split; auto. }
-    assert (co y wnext) as YNEXT.
-    { apply clos_trans_immediate1; auto.
-      eapply (co_trans WF).
-      eapply transitive_ct; [by apply IMMS2|].
-      eapply clos_trans_immediate2.
-      { apply (co_trans WF). }
-      { apply (co_irr WF). }
-      { red; ins. apply (wf_coE WF) in REL.
-        apply seq_eqv_l in REL; destruct REL as [_ REL].
-        apply seq_eqv_r in REL. apply FINDOM0. apply REL. }
-      destruct IMM' as [II _].
-      apply seq_eqv_r in II; apply II. }
-    assert (immediate (co ⨾ ⦗S⦘) y wnext) as YNEXTIMM.
-    { red; split; [by apply seq_eqv_r; split|].
-      ins. eapply NCOIMM; [|by apply R2].
-      apply seq_eqv_r in R1; destruct R1 as [R1 R3].
-      apply seq_eqv_r; split; auto.
-      eapply (co_trans WF); [|by apply R1].
-      apply clos_trans_immediate1; auto.
-      eapply (co_trans WF). }
-    eapply rt_trans.
-    { by apply IHIMMS1. }
-    apply IHIMMS2; auto.
-    { apply (wf_coD WF) in YNEXT.
-      apply seq_eqv_l in YNEXT; desf. }
-    intros NISS. eapply NCOIMM; apply seq_eqv_r; split; auto.
-    2: by apply NISS.
-    2: done.
-    apply clos_trans_immediate1; auto.
-      by apply (co_trans WF). }
-  intros HH. apply rtE in IMMS; destruct IMMS as [IMSS|IMMS].
-  { red in IMSS; desf. }
-  eapply NCOIMM; apply seq_eqv_r; split; auto.
-  2: by apply HH.
-  all: apply clos_trans_immediate1; auto.
-  all: apply (co_trans WF).
-Qed.
 
 End Execution.
 
