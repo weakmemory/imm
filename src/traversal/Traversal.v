@@ -18,7 +18,7 @@ Set Implicit Arguments.
 Section Traversal.
   Variable G : execution.
   Hypothesis WF : Wf G.
-  Hypothesis FINDOM : set_finite G.(acts_set).
+  (* Hypothesis FINDOM : set_finite G.(acts_set). *)
   Variable sc : relation actid.
   Hypothesis IMMCON : imm_consistent G sc.
 
@@ -222,11 +222,11 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
         (ACTS : E e)
         (N_COV : ~ P e) :
     exists e', sb^? e' e /\ next G P e'.
-  Proof using FINDOM.
+  Proof using.
     generalize dependent e.
     set (Q e := E e -> ~ P e ->
                 exists e' : actid, sb^? e' e /\ next G P e').
-    apply (@well_founded_ind _ sb (wf_sb G FINDOM) Q).
+    apply (@well_founded_ind _ sb (wf_sb G) Q).
     ins; subst Q; simpls.
     destruct (classic (exists e', sb e' x /\ ~ P e')) as
         [[e' [H' COV]]| H']; ins.
@@ -247,9 +247,11 @@ ins; desc; subst.
   Qed.
   
   Lemma exists_trav_step T (TCCOH : tc_coherent G sc T)
-        e (N_FIN : next G (covered T) e) :
+        e (N_FIN : next G (covered T) e)
+        (FINDOM: set_finite (acts_set G))
+    :
     exists T', trav_step T T'.
-  Proof using WF FINDOM IMMCON.
+  Proof using WF IMMCON.
     assert (wf_sc G sc) as WFSC by apply IMMCON.
     assert (complete G) as COM by apply IMMCON.
 
