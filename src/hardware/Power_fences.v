@@ -270,7 +270,7 @@ Qed.
 Lemma rf_fence_W_in_fence WF: rf^? ⨾ fence ⨾ ⦗W⦘ ⊆ rfe^? ⨾ fence ⨾ ⦗W⦘.
 Proof using.
 rewrite (dom_l (wf_rfD WF)) at 1.
-rewrite (@rfi_union_rfe G) at 1 3.
+rewrite (@rfi_union_rfe G) at 1.
 arewrite(rfi ⊆ sb).
 generalize (RW_sb_fence_in_fence WF).
 basic_solver 42.

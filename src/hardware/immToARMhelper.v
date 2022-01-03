@@ -133,8 +133,9 @@ Proof using CON.
   rewrite !seqA, ct_end, !seqA.
   arewrite (⦗W⦘ ⨾ ((sb ∩ same_loc)^? ⨾ rf ⨾ rmw)＊ ⊆ ⦗W⦘ ⨾ co^?).
   revert X.
-  relsf.
-  { unfolder; ins; desf; splits; eauto; eapply H; eauto. }
+  { relsf.
+    unfolder; ins; desf; splits; eauto.
+    eapply X; eauto. }
   rewrite (dom_l (wf_rfD WF)) at 1; rewrite !seqA.
   sin_rewrite (co_sb_loc WF SC_PER_LOC).
   rewrite rmw_W_ex, !seqA, (rmw_in_fr  WF SC_PER_LOC COMP).

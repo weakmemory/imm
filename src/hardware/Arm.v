@@ -128,7 +128,7 @@ rewrite (wf_dataE WF) at 1 2.
 rewrite (wf_rfiE WF) at 1.
 rewrite (wf_ctrlE WF) at 1 2.
 rewrite (wf_coiE WF) at 1.
-rewrite wf_sbE at 1 2 3.
+rewrite wf_sbE at 1 2.
 basic_solver 42.
 Qed.
 
