@@ -24,10 +24,9 @@ Section FinExecution.
 
   Lemma fin_exec_fair (WF: Wf G):
     mem_fair G.
-  Proof.
+  Proof using FINDOM.
     red. rewrite wf_coE, wf_frE; eauto.
     destruct FINDOM as [findom FIN]. 
     split; red; intros; exists findom; basic_solver.
   Qed. 
-  
 End FinExecution. 

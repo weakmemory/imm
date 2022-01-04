@@ -14,7 +14,7 @@ Section FairExecution.
 
   Lemma co_imm:
     co G ≡ (immediate (co G))⁺.
-  Proof. apply fsupp_imm_t; apply WF || apply FAIR. Qed. 
+  Proof using WF FAIR. apply fsupp_imm_t; apply WF || apply FAIR. Qed. 
 
   Lemma nS_imm_co_in_sb
         (S : actid -> Prop) w wnext
@@ -23,7 +23,7 @@ Section FairExecution.
         (NCOIMM : immediate ((co G) ⨾ ⦗S⦘) w wnext)
         (FOR_SPLIT : ⦗set_compl S⦘ ⨾ immediate (co G) ⊆ sb G) :
     sb G w wnext.
-  Proof.
+  Proof using WF FAIR.
     assert (S wnext /\ co G w wnext) as [ISSNEXT CONEXT].
     { generalize NCOIMM. basic_solver. }
     apply clos_trans_of_transitiveD; [apply sb_trans|].
@@ -82,7 +82,5 @@ Section FairExecution.
     all: apply clos_trans_immediate1; auto.
     all: apply (co_trans WF).
   Qed.
-  
-
 End FairExecution.   
 
