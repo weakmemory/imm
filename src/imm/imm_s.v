@@ -113,7 +113,6 @@ Definition imm_psc_consistent sc :=
   ⟪ Cpsc : acyclic (psc_f ∪ psc_base) ⟫.
 
 Hypothesis WF : Wf G.
-Hypothesis FINDOM : set_finite E.
 Hypothesis COH : coherence G.
 Hypothesis AT : rmw_atomicity G.
 
@@ -121,6 +120,7 @@ Section SC.
 
 Variable sc : relation actid.
 
+Hypothesis FSUPP : fsupp (ar sc)⁺.
 Hypothesis WF_SC : wf_sc sc.
 Hypothesis IMMCON : imm_consistent sc.
 Hypothesis CSC : coh_sc sc.
@@ -373,27 +373,29 @@ sin_rewrite f_sc_hb_f_sc_in_ar.
 apply F_sc_ar_F_sc; done.
 Qed.
 
-Lemma wf_ar : well_founded (ar sc).
-Proof using WF FINDOM WF_SC IMMCON.
-  cdes FINDOM.
-  eapply wf_finite.
-  { cdes IMMCON. apply Cext. }
-  rewrite wf_arE; auto.
-  eapply doma_mori; [reflexivity|red; apply FINDOM0 |].
-  apply doma_eqv.
-Qed.
+(* Lemma wf_ar : well_founded (ar sc). *)
+(* Proof using WF FINDOM WF_SC IMMCON. *)
+(*   cdes FINDOM. *)
+(*   eapply wf_finite. *)
+(*   { cdes IMMCON. apply Cext. } *)
+(*   rewrite wf_arE; auto. *)
+(*   eapply doma_mori; [reflexivity|red; apply FINDOM0 |]. *)
+(*   apply doma_eqv. *)
+(* Qed. *)
 
-Lemma wf_ar_tc : well_founded ((ar sc)⁺).
-Proof using WF FINDOM WF_SC IMMCON.
-  cdes FINDOM.
-  eapply wf_finite; auto.
-  { cdes IMMCON. unfold acyclic. rewrite ct_of_ct.
-    apply Cext. }
-  rewrite wf_arE; auto.
-  apply ct_doma.
-  eapply doma_mori; [reflexivity|red; apply FINDOM0 |].
-  apply doma_eqv.
-Qed.
+(* Lemma wf_ar_tc : well_founded ((ar sc)⁺). *)
+(* Proof using WF FSUPP WF_SC IMMCON. *)
+(*   apply fsupp_well_founded; auto. *)
+(*   apply transitive_ct. *)
+(*   (* cdes FINDOM. *) *)
+(*   (* eapply wf_finite; auto. *) *)
+(*   (* { cdes IMMCON. unfold acyclic. rewrite ct_of_ct. *) *)
+(*   (*   apply Cext. } *) *)
+(*   (* rewrite wf_arE; auto. *) *)
+(*   (* apply ct_doma. *) *)
+(*   (* eapply doma_mori; [reflexivity|red; apply FINDOM0 |]. *) *)
+(*   (* apply doma_eqv. *) *)
+(* Qed. *)
 
 Lemma ar_int_in_ar : ar_int ⊆ ar sc.
 Proof using. unfold ar. basic_solver. Qed.
@@ -809,9 +811,10 @@ Qed.
 End SC.
 
 Lemma s_acyc_ext_helper
+      (FINDOM : set_finite E)
       (AC : acyclic (psc ∪ rfe ∪ ar_int)) :
   exists sc, wf_sc sc /\ acyc_ext sc /\ coh_sc sc.
-Proof using WF FINDOM.
+Proof using WF.
   cdes FINDOM.
   set (ar' := psc ∪ rfe ∪ ar_int).
   unfold acyc_ext.

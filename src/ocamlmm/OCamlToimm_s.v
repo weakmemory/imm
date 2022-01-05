@@ -18,7 +18,7 @@ Section OCamlMM_TO_IMM_S.
 
 Variable G : execution.
 Hypothesis WF : Wf G.
-Hypothesis FINDOM : set_finite G.(acts_set).
+Hypothesis FSUPPCO : fsupp (co G).
 
 Notation "'E'" := (acts_set G).
 Notation "'Einit'" := (E ∩₁ is_init).
@@ -115,15 +115,11 @@ Qed.
 Lemma co_sc_in_hb sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ hb.
-Proof using WF FINDOM LSM RMWSC RSCF WRLXF WSCFACQRMW.
+Proof using WF FSUPPCO LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite fsupp_imm_t with (r:=⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘).
   4: { generalize (co_trans WF). basic_solver. }
   3: { generalize (co_irr WF). basic_solver. }
-  2: { arewrite (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ co) by basic_solver.
-       rewrite (wf_coE WF).
-       cdes FINDOM. red. ins.
-       eexists. ins. apply FINDOM0.
-       generalize REL. basic_solver. }
+  2: { arewrite (⦗Sc⦘ ⨾ co ⨾ ⦗Sc⦘ ⊆ co) by basic_solver. }
   
   assert (sc_per_loc G) as SPL.
   { apply coherence_sc_per_loc. apply IPC. }
@@ -236,7 +232,7 @@ Qed.
 
 Lemma ohb_in_hb sc (IPC : imm_s.imm_psc_consistent G sc) :
   ohb ⊆ hb.
-Proof using WF FINDOM LSM RMWSC RSCF WRLXF WSCFACQRMW.
+Proof using WF FSUPPCO LSM RMWSC RSCF WRLXF WSCFACQRMW.
   unfold OCaml.hb.
   rewrite !seq_union_l, !seq_union_r.
   rewrite co_sc_in_hb; eauto.
@@ -247,7 +243,7 @@ Qed.
   
 Lemma imm_to_ocaml_coherent sc (IPC : imm_s.imm_psc_consistent G sc) :
   irreflexive (ohb ⨾ (co ∪ fr)).
-Proof using WF FINDOM LSM RMWSC RSCF WRLXF WSCFACQRMW.
+Proof using WF FSUPPCO LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite ohb_in_hb; eauto. 
   arewrite (co ∪ fr ⊆ eco^?).
   { rewrite co_in_eco, fr_in_eco. basic_solver. }
@@ -779,7 +775,7 @@ Qed.
 Lemma imm_to_ocaml_consistent sc
       (IPC : imm_s.imm_psc_consistent G sc) :
   ocaml_consistent G.
-Proof using WF FINDOM LSM RMWSC RSCF WRLXF WSCFACQRMW.
+Proof using WF FSUPPCO LSM RMWSC RSCF WRLXF WSCFACQRMW.
   cdes IPC. cdes IC.
   assert (irreflexive (ohb ⨾ (co ∪ fr))) as HH.
   { eapply imm_to_ocaml_coherent; eauto. }

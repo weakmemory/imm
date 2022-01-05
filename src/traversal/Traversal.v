@@ -18,7 +18,6 @@ Set Implicit Arguments.
 Section Traversal.
   Variable G : execution.
   Hypothesis WF : Wf G.
-  (* Hypothesis FINDOM : set_finite G.(acts_set). *)
   Variable sc : relation actid.
   Hypothesis IMMCON : imm_consistent G sc.
 
@@ -248,8 +247,7 @@ ins; desc; subst.
   
   Lemma exists_trav_step T (TCCOH : tc_coherent G sc T)
         e (N_FIN : next G (covered T) e)
-        (FINDOM: set_finite (acts_set G))
-    :
+        (FSUPP : fsupp (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) :
     exists T', trav_step T T'.
   Proof using WF IMMCON.
     assert (wf_sc G sc) as WFSC by apply IMMCON.
@@ -283,7 +281,7 @@ ins; desc; subst.
                       dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w /\
                       E w) as WMIN.
     { intros P; desf.
-      induction w using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF FINDOM COM IMMCON WFSC)).
+      induction w using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON FSUPP)).
       destruct (classic (dom_cond (⦗W⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) (issued T) w)); eauto.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
@@ -297,7 +295,7 @@ ins; desc; subst.
                       doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T) /\
                       E f) as FMIN.
     { intros P; desf.
-      induction f using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF FINDOM COM IMMCON WFSC)).
+      induction f using (well_founded_ind (wf_ar_rf_ppo_loc_ct WF COM IMMCON FSUPP)).
       destruct (classic (doma (⦗F∩₁Sc⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗eq f⦘) (covered T)))
         as [H0 | H0]; eauto.
       rewrite seq_eqv_r, seq_eqv_l in H0.

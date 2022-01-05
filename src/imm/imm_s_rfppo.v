@@ -9,7 +9,6 @@ Section ImmRFRMWPPO.
 
   Variable G : execution.
   Variable WF : Wf G.
-  Hypothesis FINDOM : set_finite G.(acts_set).
   Variable COM : complete G.
   Variable sc : relation actid.
   Variable IMMCON : imm_consistent G sc.
@@ -180,18 +179,26 @@ Proof using WF IMMCON.
   rewrite ct_step with (r:=ar) at 1. by apply ar_ct_rf_ppo_loc_ct_in_ar_ct.
 Qed.
 
-Lemma wf_ar_rf_ppo_loc_ct :
-  well_founded (ar ∪ rf ;; ppo ∩ same_loc)⁺.
-Proof using WF FINDOM WFSC COM IMMCON.
-  cdes FINDOM.
-  eapply wf_finite; auto.
-  { red. rewrite ct_of_ct. apply ar_rf_ppo_loc_acyclic; auto. }
+Lemma fsupp_ar_rf_ppo_loc (FINDOM : set_finite E) :
+  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+Proof using WF WFSC.
   rewrite (dom_l (wf_arE WF WFSC)).
   rewrite (dom_l (wf_rfE WF)). rewrite !seqA.
   rewrite <- seq_union_r.
   rewrite inclusion_ct_seq_eqv_l.
-  red. ins. apply FINDOM0.
+  red. ins.
+  cdes FINDOM.
+  exists findom. ins. apply FINDOM0.
   generalize REL. basic_solver.
+Qed.
+
+Lemma wf_ar_rf_ppo_loc_ct
+      (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
+  well_founded (ar ∪ rf ;; ppo ∩ same_loc)⁺.
+Proof using WF COM IMMCON.
+  apply fsupp_well_founded; auto.
+  { now apply ar_rf_ppo_loc_acyclic. }
+  now apply transitive_ct.
 Qed.
 
 End ImmRFRMWPPO.
