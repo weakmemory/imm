@@ -120,7 +120,7 @@ Section SC.
 
 Variable sc : relation actid.
 
-Hypothesis FSUPP : fsupp (ar sc)⁺.
+(* Hypothesis FSUPP : fsupp (ar sc)⁺. *)
 Hypothesis WF_SC : wf_sc sc.
 Hypothesis IMMCON : imm_consistent sc.
 Hypothesis CSC : coh_sc sc.
