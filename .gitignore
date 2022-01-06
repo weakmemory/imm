@@ -1,3 +1,8 @@
+.lia.cache
+Makefile.coq
+.Makefile.coq.d
+Makefile.coq.conf
+_CoqProject
 *~
 *.vo
 *.vos
