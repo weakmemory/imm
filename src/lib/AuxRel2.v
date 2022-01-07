@@ -107,3 +107,15 @@ Proof using. basic_solver. Qed.
 
 Lemma r_to_r_codom_rel_r {A} (r: relation A) : r ≡ r ⨾ ⦗codom_rel r⦘.
 Proof using. basic_solver. Qed.
+
+Lemma set_full_split {A: Type} (S: A -> Prop):
+  set_full ≡₁ S ∪₁ set_compl S.
+Proof.
+  split; [| basic_solver]. red. ins. destruct (classic (S x)); basic_solver.
+Qed.
+
+Lemma set_bunion_separation {A B: Type} (S: A -> Prop) (fab: A -> B):
+  S ≡₁ ⋃₁ b, S ∩₁ (fun a => fab a = b).
+Proof. basic_solver. Qed.       
+
+
