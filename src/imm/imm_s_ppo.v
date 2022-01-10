@@ -194,6 +194,19 @@ arewrite (rfi ⊆ sb).
 basic_solver 21.
 Qed.
 
+Lemma ppo_loc_in_fr WF
+      (COM : complete G)
+      (SPL : sc_per_loc G) :
+  ppo ∩ same_loc ⊆ fr.
+Proof using.
+  rewrite wf_ppoD.
+  rewrite (ppo_in_sb WF).
+  rewrite seq_eqv_inter_ll.
+  rewrite seq_eqv_inter_lr.
+  rewrite r_sb_loc_w_in_fri; auto.
+  apply fri_in_fr.
+Qed.
+
 Lemma ppo_rfi_ppo : ppo ⨾ rfi ⨾ ppo ⊆ ppo.
 Proof using.
 unfold ppo.

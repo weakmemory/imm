@@ -152,13 +152,8 @@ Proof using WF COM IMMCON.
   { right. apply ar_ct_rf_ppo_loc_in_ar_ct. }
   split.
   2: { red. rewrite ct_of_ct. apply IMMCON. }
-  rewrite (@wf_ppoD G).
-  rewrite (ppo_in_sb WF).
-  rewrite seq_eqv_inter_ll.
-  rewrite seq_eqv_inter_lr.
-  rewrite r_sb_loc_w_in_fri; auto.
+  rewrite ppo_loc_in_fr; auto.
   2: { apply coherence_sc_per_loc. by apply IMMCON. }
-  arewrite (fri G ⊆ fr).
   rewrite rf_fr; auto. by apply co_acyclic.
 Qed.
 
@@ -199,6 +194,55 @@ Proof using WF COM IMMCON.
   apply fsupp_well_founded; auto.
   { now apply ar_rf_ppo_loc_acyclic. }
   now apply transitive_ct.
+Qed.
+
+Lemma ar_rf_ppo_loc_in_sb_rf_no_f_sc
+      (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
+  ar ∪ rf ⨾ ppo ∩ same_loc ⊆ (sb ∪ rf)⁺.
+Proof using WF WFSC.
+  unfold imm_s.ar. rewrite ar_int_in_sb; auto.
+  arewrite_false sc.
+  { rewrite (dom_l (wf_scE WFSC)).
+    rewrite (dom_l (wf_scD WFSC)).
+    rewrite <- !seqA, <- id_inter, <- set_interA.
+    rewrite NOSC. basic_solver 1. }
+  rewrite rfe_in_rf.
+  unionL.
+  { basic_solver 1. }
+  1,2: now rewrite <- ct_step; eauto with hahn.
+  rewrite <- ct_ct, <- !ct_step.
+  rewrite (ppo_in_sb WF). basic_solver 10.
+Qed.
+
+Lemma fsupp_sb_rf_implies_fsupp_ar_rf_ppo_loc
+      (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅)
+      (FSUPP : fsupp (sb ∪ rf)⁺) :
+  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+Proof using WF WFSC.
+  rewrite ar_rf_ppo_loc_in_sb_rf_no_f_sc; auto.
+  now rewrite ct_of_ct.
+Qed.
+
+Lemma fsupp_ar_implies_fsupp_ar_rf_ppo_loc
+      (FSUPPCO : fsupp co)
+      (FSUPP   : fsupp ar⁺) :
+  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+Proof using WF COM IMMCON.
+  rewrite ct_unionE.
+  arewrite (ar ⨾ (rf ⨾ ppo ∩ same_loc)＊ ⊆ ar⁺).
+  { rewrite rtE, seq_union_r, seq_id_r.
+    rewrite ar_rf_ppo_loc_ct_in_ar_ct.
+    eauto with hahn. }
+  rewrite ct_of_ct.
+  enough (fsupp (rf ⨾ ppo ∩ same_loc)⁺) as AA.
+  { apply fsupp_union; auto.
+    apply fsupp_seq; auto.
+    now apply fsupp_ct_rt. }
+  rewrite ppo_loc_in_fr; auto.
+  2: { apply coherence_sc_per_loc. by apply IMMCON. }
+  rewrite rf_fr; auto. 
+  rewrite ct_of_trans; auto.
+  apply WF.
 Qed.
 
 End ImmRFRMWPPO.
