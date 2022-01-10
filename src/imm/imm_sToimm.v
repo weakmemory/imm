@@ -161,4 +161,53 @@ Proof using WF FINDOM.
   apply IC.
 Qed.
 
+Lemma imm_consistentimplies_s_imm_psc_consistent_with_fsupp
+      (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅)
+      (FSUPPSB : fsupp sb) (* NEXT TODO: remove the restriction *)
+      (FSUPPRF : fsupp rf) (* NEXT TODO: remove the restriction *)
+      (FSUPP : fsupp ar⁺)
+      (IC : imm.imm_consistent G) :
+    << CONS : imm_s.imm_psc_consistent G ∅₂ >> /\
+    << FSUPP : fsupp (s_ar ∅₂)⁺ >>.
+Proof using WF.
+  assert (transitive sb) as TSB by apply sb_trans.
+  splits.
+  2: { unfold imm_s.ar. rewrite union_false_l.
+       rewrite ct_unionE.
+       assert (fsupp s_ar_int⁺) as AA.
+       { rewrite imm_s_ppo.ar_int_in_sb; auto.
+         rewrite ct_of_trans; auto. }
+       apply fsupp_union; auto.
+       apply fsupp_seq.
+       { now apply fsupp_ct_rt. }
+       rewrite (wf_rfeD WF), !seqA.
+       rewrite ct_rotl, !seqA.
+       repeat (apply fsupp_seq); try apply fsupp_eqv.
+       3: { rewrite imm_s_ppo.ar_int_in_sb; auto.
+            rewrite rt_of_trans; auto.
+            now apply fsupp_cr. }
+       2: now rewrite rfe_in_rf.
+       arewrite (⦗R⦘ ⨾ s_ar_int＊ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘).
+       { rewrite rtE. clear. type_solver. }
+       rewrite s_ar_int_in_ar_int.
+       arewrite (rfe ⊆ ar).
+       arewrite (ar_int ⊆ ar).
+       arewrite_id ⦗R⦘. arewrite_id ⦗W⦘.
+       rewrite seq_id_l, seq_id_r.
+       arewrite (ar ⊆ ar⁺) at 1.
+       rewrite ct_ct. rewrite rt_of_ct.
+       rewrite <- cr_of_ct. now apply fsupp_cr. }
+  red. splits.
+  2: { unfold psc_f, psc_base, scb. rewrite s_hb_in_hb.
+       apply IC. }
+  red. splits; try apply IC.
+  { constructor; rewrite ?NOSC.
+    all: basic_solver. }
+  { red. basic_solver. }
+  { cdes IC. apply coherence_implies_s_coherence; auto. }
+  red. unfold imm_s.ar.
+  arewrite (∅₂ ⊆ ⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
+  apply acyc_ext_implies_s_acyc_ext_helper. apply IC.
+Qed.
+
 End S_IMM_TO_IMM.
