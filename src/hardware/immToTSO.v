@@ -901,4 +901,30 @@ apply C_EXT.
 by apply C_SC.
 Qed.
 
+Lemma TSO_fsupp_ar_ct
+      (SCF : E ∩₁ MFENCE ⊆₁ ∅) :
+  fsupp (ar G)⁺.
+Proof using CON.
+  unfold ar.
+  rewrite (ar_int_in_sb WF), rfe_in_rf.
+  arewrite (psc ⊆ ∅₂).
+  { rewrite (dom_l (wf_pscE WF)).
+    rewrite (dom_l (wf_pscD G)).
+    rewrite <- seqA, <- id_inter.
+    rewrite SCF.
+    clear; basic_solver 1. }
+  rewrite union_false_l.
+  arewrite (rf ∪ sb ⊆ (sb ∪ rf)⁺).
+  rewrite ct_of_ct.
+  (* TODO: move a lemma from `fairness`, which uses `bounded_threads` *)
+  apply fsupp_ct with (s:=E).
+  { admit. }
+  { rewrite wf_sbE, (wf_rfE WF). basic_solver. }
+  (* TODO: move a lemma from `fairness`, which uses `bounded_threads` *)
+  { admit. }
+  apply fsupp_union.
+  { admit. }
+  admit.
+Admitted.
+
 End immToTSO.
