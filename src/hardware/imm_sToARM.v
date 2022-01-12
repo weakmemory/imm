@@ -225,13 +225,9 @@ Proof using CON RMW_DEPS W_EX_ACQ_SB.
   apply immToARMhelper.C_SC; auto.
 Qed.
 
-Lemma IMM_s_psc_consistent (FINDOM : set_finite E) :
-  exists sc, imm_psc_consistent G sc.
-Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
-  edestruct (imm_s.s_acyc_ext_helper WF FINDOM C_EXT_helper) as [sc HH]. desc.
-  exists sc. red. splits; eauto.
-  2: by apply C_SC.
-  red. splits; eauto; try apply CON.
+Lemma IMM_s_coherence :
+  imm_s_hb.coherence G.
+Proof using CON.
   red.
   rewrite crE, seq_union_r, seq_id_r.
   rewrite s_hb_in_hb. 
@@ -241,6 +237,62 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   apply irreflexive_union. split.
   { by apply (@sb_irr G). }
   apply (external_alt_bob' WF CON).
+Qed.
+
+Lemma IMM_s_psc_consistent (FINDOM : set_finite E) :
+  exists sc, imm_psc_consistent G sc.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
+  edestruct (imm_s.s_acyc_ext_helper WF FINDOM C_EXT_helper) as [sc HH]. desc.
+  exists sc. red. splits; eauto.
+  2: by apply C_SC.
+  red. splits; eauto; try apply CON.
+  now apply IMM_s_coherence.
+Qed.
+
+Lemma IMM_s_fsupp_consistent
+      (FSUPPSB : fsupp sb) (* NEXT TODO: remove the restriction *)
+      (FSUPPRF : fsupp rf) (* NEXT TODO: remove the restriction *)
+      (* NEXT TODO: note that here we use boba' instead of original Arm.bob *)
+      (FSUPP : fsupp (obs ∪ dob ∪ aob ∪ boba')⁺) 
+      (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
+  << CONS  : imm_psc_consistent G ∅₂ >> /\
+  << FSUPP : fsupp (imm_s.ar G ∅₂)⁺ >>.
+Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
+  assert (WF' : Wf G) by apply WF.
+  assert (transitive sb) as TSB by apply sb_trans.
+  splits.
+  2: { unfold imm_s.ar. rewrite union_false_l.
+       rewrite ct_unionE.
+       assert (fsupp s_ar_int⁺) as AA.
+       { rewrite imm_s_ppo.ar_int_in_sb; auto.
+         rewrite ct_of_trans; auto. }
+       apply fsupp_union; auto.
+       apply fsupp_seq.
+       { now apply fsupp_ct_rt. }
+       rewrite (wf_rfeD WF), !seqA.
+       rewrite ct_rotl, !seqA.
+       repeat (apply fsupp_seq); try apply fsupp_eqv.
+       3: { rewrite imm_s_ppo.ar_int_in_sb; auto.
+            rewrite rt_of_trans; auto.
+            now apply fsupp_cr. }
+       2: now rewrite rfe_in_rf.
+       arewrite (⦗R⦘ ⨾ s_ar_int＊ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ s_ar_int⁺ ⨾ ⦗W⦘).
+       { rewrite rtE. clear. type_solver. }
+       rewrite s_ar_int_in_ord.
+       arewrite (rfe ⊆ (obs ∪ dob ∪ aob ∪ boba')⁺).
+       { rewrite <- ct_step. unfold Arm.obs. eauto with hahn. }
+       rewrite ct_ct, rt_of_ct.
+       rewrite <- cr_of_ct. now apply fsupp_cr. }
+  red; splits.
+  2: now apply C_SC.
+  red. splits; try apply CON.
+  { constructor; rewrite ?NOSC.
+    all: basic_solver. }
+  { red. basic_solver. }
+  { now apply IMM_s_coherence. }
+  red. unfold imm_s.ar.
+  arewrite (∅₂ ⊆ ⦗F∩₁Sc⦘ ⨾ s_hb ⨾ eco ⨾ s_hb ⨾ ⦗F∩₁Sc⦘).
+  apply C_EXT_helper.
 Qed.
 
 End immToARM.
