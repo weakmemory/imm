@@ -792,4 +792,45 @@ Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB 
   rewrite <- ct_step. unfold ar. eauto with hahn.
 Qed.
 
+Lemma IMM_fsupp_ar
+      (FSUPPSB : fsupp sb) (* NEXT TODO: remove the restriction *)
+      (FSUPPRF : fsupp rf) (* NEXT TODO: remove the restriction *)
+      (* NEXT TODO: note that here we use boba' instead of original Arm.bob *)
+      (FSUPP : fsupp hbp⁺) 
+      (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
+  fsupp (ar G)⁺.
+Proof using CON DATA_RMW DEPS_RMW_FAIL G NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
+  assert (WF' : Wf G) by apply WF.
+  assert (transitive sb) as TSB by apply sb_trans.
+  unfold ar.
+  arewrite (psc ⊆ ∅₂).
+  { rewrite (dom_l (wf_pscE WF)).
+    rewrite (dom_l (wf_pscD G)).
+    rewrite <- seqA, <- id_inter.
+    rewrite <- set_interA. rewrite NOSC.
+    clear; basic_solver 1. }
+  rewrite union_false_l.
+  rewrite ct_unionE.
+  assert (fsupp (ar_int G)⁺) as AA.
+  { rewrite imm_ppo.ar_int_in_sb; auto.
+    rewrite ct_of_trans; auto. }
+  apply fsupp_union; auto.
+  apply fsupp_seq.
+  { now apply fsupp_ct_rt. }
+  rewrite (wf_rfeD WF), !seqA.
+  rewrite ct_rotl, !seqA.
+  repeat (apply fsupp_seq); try apply fsupp_eqv.
+  3: { rewrite <- cr_of_ct. now apply fsupp_cr. }
+  2: now rewrite rfe_in_rf.
+  arewrite (⦗R⦘ ⨾ (ar_int G)＊ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ (ar_int G)⁺ ⨾ ⦗W⦘).
+  { rewrite rtE. clear. type_solver. }
+  unfold ar_int.
+  arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.
+  rewrite C_EXT_helper1.
+  arewrite (rfe ⊆ hbp).
+  arewrite (hbp ⊆ hbp⁺).
+  rewrite ct_ct, rt_of_ct.
+  rewrite <- cr_of_ct. now apply fsupp_cr.
+Qed.
+
 End immToPower.
