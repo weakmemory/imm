@@ -86,7 +86,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         | TravAction.cover, TravAction.cover =>
             << SBSC : (sb ∪ sc) e1 e2 >>
         | TravAction.issue, TravAction.cover =>
-            << RF : rf e1 e2 >>
+            << RFQ : rf^? e1 e2 >>
         | TravAction.cover, TravAction.issue =>
             << FWBOB : fwbob e1 e2 >>
         | TravAction.issue, TravAction.issue =>
