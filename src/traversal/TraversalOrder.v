@@ -77,36 +77,136 @@ Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
   (* Essentially, it is an alternative representation of a part of tc_coherent *)
-  Definition iord (l1 l2 : t) : Prop :=
-    match l1, l2 with
-    | mkTL a1 e1, mkTL a2 e2 =>
-        << EE1 : (E \₁ is_init) e1 >> /\
-        << EE2 : (E \₁ is_init) e2 >> /\
-        match a1, a2 with
-        | TravAction.cover, TravAction.cover =>
-            << SBSC : (sb ∪ sc) e1 e2 >>
-        | TravAction.issue, TravAction.cover =>
-            << RFQ : rf^? e1 e2 >>
-        | TravAction.cover, TravAction.issue =>
-            << FWBOB : fwbob e1 e2 >>
-        | TravAction.issue, TravAction.issue =>
-            << ARRFPPO : (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) e1 e2 >>
-        end
-    end. 
+  Definition iord : relation t :=
+    restr_rel (event ↓₁ (E \₁ is_init))
+
+              (⦗action ↓₁ (eq TravAction.cover)⦘ ⨾
+               (event ↓ (sb ∪ sc)) ⨾
+               ⦗action ↓₁ (eq TravAction.cover)⦘
+                 ∪
+
+               ⦗action ↓₁ (eq TravAction.issue)⦘ ⨾
+               (event ↓ rf^?) ⨾
+               ⦗action ↓₁ (eq TravAction.cover)⦘
+                 ∪
+
+               ⦗action ↓₁ (eq TravAction.cover)⦘ ⨾
+               (event ↓ fwbob) ⨾
+               ⦗action ↓₁ (eq TravAction.issue)⦘
+                 ∪
+
+               ⦗action ↓₁ (eq TravAction.issue)⦘ ⨾
+               (event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺)) ⨾
+               ⦗action ↓₁ (eq TravAction.issue)⦘).
   
   Lemma iord_irreflexive WF COMP WFSC CONS : irreflexive iord.
   Proof using.
-    unfold iord. red. ins. desf; desf.
-    { destruct SBSC as [AA|AA].
-      { eapply sb_irr; eauto. }
-      eapply (sc_irr WFSC); eauto. }
-    apply seq_eqv_l in ARRFPPO. destruct ARRFPPO as [_ AA].
+    unfold iord. unfolder. intros [y z]; ins; desf; eauto.
+    { eapply sb_irr; eauto. }
+    { eapply (sc_irr WFSC); eauto. }
     eapply ar_rf_ppo_loc_acyclic; eauto.
   Qed.
-  
-  Lemma iord_acyclic : acyclic iord.
+
+  Lemma iord_acyclic WF COMP CONS : acyclic iord.
   Proof using.
-    red. (* TODO: probably reuse parts of exists_trav_step *)
+    red. unfold iord.
+    rewrite !restr_union.
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.cover⦘
+                    ⨾ event ↓ (sb ∪ sc) ⨾ ⦗action ↓₁ eq TravAction.cover⦘)) as SB.
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.issue⦘
+                    ⨾ event ↓ rf^? ⨾ ⦗action ↓₁ eq TravAction.cover⦘)) as RF.
+
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.cover⦘
+                    ⨾ event ↓ fwbob ⨾ ⦗action ↓₁ eq TravAction.issue⦘)) as FWBOB.
+
+    remember
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.issue⦘
+                    ⨾ event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺)
+                    ⨾ ⦗action ↓₁ eq TravAction.issue⦘)) as AR.
+    
+    assert (transitive AR) as TAR.
+    { subst.
+      apply transitive_restr.
+      rewrite <- restr_relE.
+      apply transitive_restr.
+      apply transitiveI. rewrite map_rel_seq.
+      apply map_rel_mori; auto.
+      arewrite_id ⦗W⦘ at 2.
+      now rewrite seq_id_l, ct_ct. }
+    
+    assert (irreflexive AR) as IAR.
+    { subst.
+      apply irreflexive_restr.
+      rewrite <- restr_relE.
+      apply irreflexive_restr.
+      apply map_rel_irr.
+      arewrite_id ⦗W⦘. rewrite seq_id_l.
+      now apply ar_rf_ppo_loc_acyclic. }
+    
+    assert (acyclic AR) as AAR.
+    { now apply trans_irr_acyclic. }
+
+    assert (SB ⨾ RF ⊆ ∅₂) as SBRF.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    
+    assert (SB⁺ ⨾ AR ⊆ ∅₂) as SBAR.
+    { rewrite ct_end, !seqA.
+      arewrite_false (SB ⨾ AR).
+      2: clear; basic_solver 1.
+      subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+
+    assert (RF ⨾ AR ⊆ ∅₂) as RFAR.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    
+    assert (RF ;; RF ⊆ ∅₂) as RFRF.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    assert (RF⁺ ⊆ RF) as RFCT.
+    { apply ct_of_trans. apply transitiveI. rewrite RFRF.
+      clear; basic_solver 1. }
+
+    assert (RF⁺ ⨾ AR ⊆ ∅₂) as RFCTAR.
+    { now rewrite RFCT. }
+
+    assert (acyclic (SB ∪ RF ∪ FWBOB)) as SRFA.
+    { admit. }
+
+    apply acyclic_ut; auto.
+    splits; auto.
+    rewrite acyclic_seqC.
+    rewrite unionA, unionC.
+    arewrite (FWBOB ⊆ SB^* ⨾ FWBOB).
+    { clear. rewrite rtE. basic_solver 10. }
+
+    rewrite path_absorb.
+    2: { left. rewrite seq_union_r.
+         rewrite SBRF, union_false_l.
+         unionR right.
+         hahn_frame_r.
+         rewrite rt_begin at 2. eauto with hahn. }
+    rewrite !seq_union_l, !seqA. rewrite !SBAR.
+    rewrite seq_false_r, !union_false_r.
+    rewrite path_union, !seq_union_l.
+    rewrite RFCTAR, union_false_l, !seqA.
+    arewrite (RF＊ ⨾ AR ⊆ AR).
+    { rewrite rtE, !seq_union_l, seq_id_l. rewrite RFCTAR.
+      clear; basic_solver 1. }
+    
+    assert (RF＊ ⨾ SB＊ ⨾ FWBOB ⊆ AR⁺) as RFSBFW.
+    { admit. }
+    
+    rewrite RFSBFW, ct_of_ct, ct_unit.
+    red. now rewrite ct_of_ct.
   Admitted.
 
   Lemma iord_ct_fsupp
@@ -116,6 +216,8 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
   Admitted.
   
+  
+
   (* NEXT TODO: Combination of iord_ct_fsupp and iord_acyclic should
                 allow to get lineralization of traversal actions.
    *)
