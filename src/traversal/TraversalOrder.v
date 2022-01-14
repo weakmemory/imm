@@ -30,7 +30,7 @@ Proof using.
 Qed.
 
 (* TODO: move to AuxRel2.v *)
-Lemma fsupp_wf_implies_fsupp_rt {A} (r : relation A)
+Lemma fsupp_wf_implies_fsupp_ct {A} (r : relation A)
       (WF    : well_founded r)
       (FSUPP : fsupp r) : 
   fsupp r⁺.
@@ -386,6 +386,22 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
          admit. }
     admit.
   Admitted.
+
+  Lemma iord_wf : well_founded iord.
+  Proof using.
+    (* TODO: The idea is to prove the lemma by introducing two functions: 
+             1) nwrite : E∩W    -> nat  
+             2) nfence : E∩F∩Sc -> nat  
+             which totally order writes and SC fences separately
+             and respectively and are monotone on ar⁺.
+             Then, on each iord-descending chain of traversal actions
+             we can pick an issuing label w/ nwrite-minimal write
+             since action ↓ <|issue|> ;; iord^+ ;; <|issue|> ⊆ ar⁺.
+             The same could be done for SC fences.
+     *)
+    (* TODO: Would like to have smth like reversed
+             'wf_impl_no_inf_seq' *)
+  Admitted.
   
   Lemma iord_ct_fsupp WF WFSC COMP CONS
         (* (NOSC  : E ∩₁ F ∩₁ Sc ⊆₁ ∅) *)
@@ -394,18 +410,10 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
     fsupp iord⁺.
   Proof using.
-    eapply fsupp_ct with (s := dom_rel iord).
-    { apply iord_acyclic; auto. }
-    { basic_solver 10. }
-    2: now apply iord_fsupp.
-
-    eexists. red. ins.
-    (* It looks like it doesn't work right away since
-       it is possible to have an unbounded number of independent <issue, W> traversal
-       labels.
-     *)
-    admit.
-  Admitted.
+    apply fsupp_wf_implies_fsupp_ct.
+    { now apply iord_wf. }
+    now apply iord_fsupp.
+  Qed.
   
   (* NEXT TODO: Combination of iord_ct_fsupp and iord_acyclic should
                 allow to get lineralization of traversal actions.
