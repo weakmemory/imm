@@ -688,9 +688,9 @@ Proof using WF LSM RMWSC RSCF WRLXF WSCFACQRMW.
   rewrite bob_in_ar.
   repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
   rewrite !seqA, unionK.
-  arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)^+).
+  arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)⁺).
   { do 2 rewrite <- ct_ct at 1. basic_solver 10. }
-  arewrite (ar sc ⨾ ar sc ⊆ (ar sc)^+).
+  arewrite (ar sc ⨾ ar sc ⊆ (ar sc)⁺).
   { rewrite <- ct_ct at 1. basic_solver 10. }
   rewrite unionK. red in Cext. red.
   rewrite ct_of_ct. auto.

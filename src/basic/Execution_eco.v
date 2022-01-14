@@ -75,10 +75,10 @@ Proof using. unfold eco; basic_solver 6. Qed.
 Lemma fr_in_eco: fr ⊆ eco.
 Proof using. unfold eco; basic_solver 6. Qed.
 
-Lemma co_rf_in_eco: co ;; rf ⊆ eco.
+Lemma co_rf_in_eco: co ⨾ rf ⊆ eco.
 Proof using. unfold eco; basic_solver 6. Qed.
 
-Lemma fr_rf_in_eco: fr ;; rf ⊆ eco.
+Lemma fr_rf_in_eco: fr ⨾ rf ⊆ eco.
 Proof using. unfold eco; basic_solver 6. Qed.
 
 Lemma rfe_in_eco : rfe ⊆ eco.
@@ -444,7 +444,7 @@ Qed.
 
 Lemma rf_rmw_in_co WF SC_PER_LOC : rf ⨾ rmw ⊆ co.
 Proof using.
-arewrite (rf ⨾ rmw ⊆ (rf ⨾ rmw) ∩ (rf ;; rmw)).
+arewrite (rf ⨾ rmw ⊆ (rf ⨾ rmw) ∩ (rf ⨾ rmw)).
 rewrite rf_rmw_in_co_helper at 1; eauto.
 rewrite inter_union_l; unionL; [basic_solver|].
 transitivity (fun _ _ : actid => False); [|basic_solver].
@@ -504,7 +504,7 @@ rotate 1.
 by rewrite co_in_eco.
 Qed.
 
-Lemma rfe_fri WF SC_PER_LOC : rfe ;; fri ⊆ coe.
+Lemma rfe_fri WF SC_PER_LOC : rfe ⨾ fri ⊆ coe.
 Proof using.
   cut ((rf \ sb) ⨾ fr ∩ sb ⊆ rf ⨾ fr \ sb).
   { by rewrite (rf_fr WF). }

@@ -167,8 +167,8 @@ Lemma imm_consistentimplies_s_imm_psc_consistent_with_fsupp
       (FSUPPRF : fsupp rf) (* NEXT TODO: remove the restriction *)
       (FSUPP : fsupp ar⁺)
       (IC : imm.imm_consistent G) :
-    << CONS : imm_s.imm_psc_consistent G ∅₂ >> /\
-    << FSUPP : fsupp (s_ar ∅₂)⁺ >>.
+    ⟪ CONS : imm_s.imm_psc_consistent G ∅₂ ⟫ /\
+    ⟪ FSUPP : fsupp (s_ar ∅₂)⁺ ⟫.
 Proof using WF.
   assert (transitive sb) as TSB by apply sb_trans.
   splits.

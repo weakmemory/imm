@@ -67,7 +67,7 @@ Notation "'bob'" := (bob G).
 (******************************************************************************)
 
 Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪
-                       rmw ∪ rmw_dep ;; sb^? ∪ ⦗R_ex⦘ ⨾ sb)⁺ ⨾ ⦗W⦘.
+                       rmw ∪ rmw_dep ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb)⁺ ⨾ ⦗W⦘.
 
 Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ 
                      ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘.
@@ -124,7 +124,7 @@ Qed.
 
 Lemma R_ex_sb_W_in_ppo : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
 Proof using.
-  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘).
+  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ⨾ ⦗R_ex⦘).
   { generalize (@R_ex_in_R _ lab). basic_solver. }
   unfold ppo. hahn_frame.
   rewrite <- ct_step. eauto with hahn.
@@ -228,7 +228,7 @@ Qed.
 
 (* TODO: move to a more appropriate place. *)
 Lemma rmw_sb_loc_in_rmw_coi WF (SPL : sc_per_loc G) :
-  rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ;; coi^?.
+  rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ⨾ coi^?.
 Proof using.
   rewrite !crE, !seq_union_r, !seq_id_r.
   apply union_mori; [done|].
@@ -280,7 +280,7 @@ Lemma w_ex_acq_sb_w_in_ar_int : ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ar_int.
 Proof using. unfold ar_int. basic_solver 10. Qed.
 
 Lemma bob_ppo_W_sb WF :
-  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
 Proof using.
   arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
                 (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ ppo).
@@ -296,10 +296,10 @@ Proof using.
     basic_solver. }
   { rewrite (wf_ppoD) at 1. type_solver. }
   { rewrite (wf_ppoD) at 1 2. type_solver. }
-  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
+  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊); relsf.
   { sin_rewrite (bob_ppo WF). 
-    arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf. }
-  { arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*) at 1; relsf. }
+    arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊); relsf. }
+  { arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊) at 1; relsf. }
   { rewrite (wf_ppoD) at 1. type_solver. }
   { basic_solver 12. }
   rewrite (wf_ppoD) at 1 2. type_solver.
@@ -307,12 +307,12 @@ Qed.
 
 Lemma bob_ppo_W_ex_rfi_W_sb WF :
   (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ⊆
-  ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)^+.
+  ppo ∪ ppo ^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺.
 Proof using.
   assert (⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘ ⨾ sb ⊆
                  ppo ∪ ((bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺ ∪
                  ppo ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R ∩₁ Acq⦘)⁺)) as AA.
-  { arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ;; ⦗R ∩₁ Acq⦘) at 1 by basic_solver.
+  { arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R ∩₁ Acq⦘ ⨾ ⦗R ∩₁ Acq⦘) at 1 by basic_solver.
     arewrite (⦗R ∩₁ Acq⦘ ⨾ sb ⊆ bob).
     unionR right -> left.
     rewrite <- ct_ct. rewrite <- !ct_step.
@@ -365,7 +365,7 @@ Proof using.
 Qed.
 
 Lemma rf_rmw_sb_loc_in_rf_ppo_loc WF (RMWREX : dom_rel rmw ⊆₁ R_ex) :
-  rf ;; rmw ;; sb ∩ same_loc ;; <|W|> ⊆ rf ;; ppo ∩ same_loc.
+  rf ⨾ rmw ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ rf ⨾ ppo ∩ same_loc.
 Proof using.
   arewrite (rmw ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ (rmw ⨾ sb ⨾ ⦗W⦘) ∩ same_loc).
   { arewrite (rmw ⊆ rmw ∩ same_loc).
@@ -393,13 +393,13 @@ Proof using.
   rewrite <- ct_step. basic_solver 10.
 Qed.
 
-Lemma ar_int_rfe_rfrmw_in_ar_int_rfe_ct WF : (rfe ∪ ar_int) ;; rf ;; rmw ⊆ (rfe ∪ ar_int)⁺.
+Lemma ar_int_rfe_rfrmw_in_ar_int_rfe_ct WF : (rfe ∪ ar_int) ⨾ rf ⨾ rmw ⊆ (rfe ∪ ar_int)⁺.
 Proof using.
   remember (rfe ∪ ar_int) as ax.
-  assert (sb ;; sb ⊆ sb) as AA.
+  assert (sb ⨾ sb ⊆ sb) as AA.
   { apply transitiveI. apply sb_trans. }
   
-  assert (rfi ;; rmw ⊆ sb) as BB.
+  assert (rfi ⨾ rmw ⊆ sb) as BB.
   { arewrite (rfi ⊆ sb). by rewrite rmw_in_sb. }
 
   rewrite rfi_union_rfe.
@@ -437,7 +437,7 @@ Proof using.
 Qed.
 
 Lemma ar_int_rfe_rfrmw_rt_in_ar_int_rfe_ct WF :
-  (rfe ∪ ar_int) ;; (rf ;; rmw)^* ⊆ (rfe ∪ ar_int)⁺.
+  (rfe ∪ ar_int) ⨾ (rf ⨾ rmw)＊ ⊆ (rfe ∪ ar_int)⁺.
 Proof using.
   apply rt_ind_left with (P:=fun r => (rfe ∪ ar_int) ⨾ r).
   { eauto with hahn. }
@@ -448,7 +448,7 @@ Proof using.
 Qed.
 
 Lemma ar_int_rfe_ct_rfrmw_rt_in_ar_int_rfe_ct WF :
-  (rfe ∪ ar_int)⁺ ;; (rf ;; rmw)^* ⊆ (rfe ∪ ar_int)⁺.
+  (rfe ∪ ar_int)⁺ ⨾ (rf ⨾ rmw)＊ ⊆ (rfe ∪ ar_int)⁺.
 Proof using.
   rewrite ct_end at 1. rewrite !seqA. rewrite ar_int_rfe_rfrmw_rt_in_ar_int_rfe_ct; auto.
   relsf.

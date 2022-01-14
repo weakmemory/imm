@@ -176,8 +176,8 @@ generalize (@sb_trans G); basic_solver 21.
 Qed.
 
 Lemma bob_sb :
-  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+ ⨾ ⦗W⦘ ⊆ 
-  bob^+ ⨾ (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘.
+  (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⨾ ⦗W⦘ ⊆ 
+  bob⁺ ⨾ (⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^? ⨾ ⦗W⦘ ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘.
 Proof using.
 apply ct_ind_left with (P:= fun r =>  r ⨾ ⦗W⦘).
 by auto with hahn.
@@ -185,7 +185,7 @@ by arewrite (bob ⊆ bob⁺); basic_solver 12.
 intros k H.
 rewrite !seqA; rewrite H; clear k H.
 relsf; unionL.
-- arewrite(bob ⊆ bob^*) at 1; relsf.
+- arewrite(bob ⊆ bob＊) at 1; relsf.
 - sin_rewrite bob_in_sb.
 generalize (@sb_trans G); ins; relsf.
 basic_solver 12.
@@ -194,7 +194,7 @@ basic_solver 12.
 Qed.
 
 Lemma tc_bob :
-  bob^+ ⊆ fwbob^+ ∪ ⦗R ∩₁ Acq⦘ ⨾ sb.
+  bob⁺ ⊆ fwbob⁺ ∪ ⦗R ∩₁ Acq⦘ ⨾ sb.
 Proof using.
 unfold bob.
 apply ct_ind_left with (P:= fun r =>  r).
@@ -203,18 +203,18 @@ by arewrite (fwbob ⊆ fwbob⁺); basic_solver 12.
 intros k H.
 rewrite H; clear k H.
 relsf; unionL.
-- by arewrite (fwbob ⊆ fwbob^*); relsf; basic_solver 12.
+- by arewrite (fwbob ⊆ fwbob＊); relsf; basic_solver 12.
 - sin_rewrite (fwbob_in_sb).
   generalize (@sb_trans G); ins; relsf; basic_solver 12.
 - arewrite (⦗R ∩₁ Acq⦘ ⊆ ⦗R⦘). basic_solver.
   sin_rewrite fwbob_r_sb.
-  by arewrite (fwbob ⊆ fwbob^+); basic_solver 21.
+  by arewrite (fwbob ⊆ fwbob⁺); basic_solver 21.
 - generalize (@sb_trans G); basic_solver 12.
 Qed.
 
 Lemma fwbob_rfi_rmw_in_fwbob WF : fwbob ⨾ rfi ⨾ rmw ⊆ fwbob⁺.
 Proof using.
-  arewrite (rfi ⨾ rmw ⊆ <|W|> ;; sb ∩ same_loc ;; <|W|>).
+  arewrite (rfi ⨾ rmw ⊆ ⦗W⦘ ⨾ sb ∩ same_loc ⨾ ⦗W⦘).
   { rewrite (dom_l (wf_rfiD WF)).
     rewrite (dom_r (wf_rmwD WF)), !seqA.
       by sin_rewrite rfi_rmw_in_sb_loc. }
@@ -240,12 +240,12 @@ Proof using.
   all: unfold fwbob; eauto with hahn.
 Qed.
 
-Lemma fwbob_sb_same_loc_W_in_fwbob : fwbob ;; sb ∩ same_loc ;; <|W|> ⊆ fwbob⁺.
+Lemma fwbob_sb_same_loc_W_in_fwbob : fwbob ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ fwbob⁺.
 Proof using.
   unfold fwbob at 1.
   rewrite !seq_union_l, !seqA.
   unionL.
-  { arewrite (⦗W ∩₁ Rel⦘ ⊆ ⦗W ∩₁ Rel⦘ ;; ⦗W ∩₁ Rel⦘) by basic_solver.
+  { arewrite (⦗W ∩₁ Rel⦘ ⊆ ⦗W ∩₁ Rel⦘ ⨾ ⦗W ∩₁ Rel⦘) by basic_solver.
     rewrite <- ct_ct, <- !ct_step. rewrite <- seqA.
     apply seq_mori.
     all: unfold fwbob; eauto with hahn. }
@@ -255,7 +255,7 @@ Proof using.
       apply transitiveI. apply sb_same_loc_trans. }
     unfold fwbob; eauto with hahn. }
   { arewrite (sb ∩ same_loc ⨾ ⦗W⦘ ⊆ sb) by basic_solver.
-    arewrite (⦗F ∩₁ Acq/Rel⦘ ⊆ ⦗F ∩₁ Acq/Rel⦘ ;; ⦗F ∩₁ Acq/Rel⦘) by basic_solver.
+    arewrite (⦗F ∩₁ Acq/Rel⦘ ⊆ ⦗F ∩₁ Acq/Rel⦘ ⨾ ⦗F ∩₁ Acq/Rel⦘) by basic_solver.
     rewrite <- ct_ct, <- !ct_step. rewrite <- seqA.
     apply seq_mori.
     all: unfold fwbob; eauto with hahn. }
@@ -266,7 +266,7 @@ Proof using.
   unfold fwbob; eauto with hahn.
 Qed.
 
-Lemma bob_sb_same_loc_W_in_bob : bob ;; sb ∩ same_loc ;; <|W|> ⊆ bob⁺.
+Lemma bob_sb_same_loc_W_in_bob : bob ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ bob⁺.
 Proof using.
   unfold bob at 1.
   rewrite !seq_union_l, !seqA.

@@ -66,7 +66,7 @@ Notation "'bob'" := (bob G).
 (** ** Derived relations  *)
 (******************************************************************************)
 
-Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺ ⨾ ⦗W⦘.
+Definition ppo := ⦗R⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺ ⨾ ⦗W⦘.
 
 Definition ar_int := bob ∪ ppo ∪ detour ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘
                      ∪ ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘.
@@ -110,7 +110,7 @@ Qed.
 
 Lemma R_ex_sb_in_ppo WF : ⦗R_ex⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ ppo.
 Proof using.
-  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ;; ⦗R_ex⦘) by type_solver.
+  arewrite (⦗R_ex⦘ ⊆ ⦗R⦘ ⨾ ⦗R_ex⦘) by type_solver.
   unfold ppo. hahn_frame. rewrite <- ct_step. eauto with hahn.
 Qed.
 
@@ -130,8 +130,8 @@ Lemma wf_ppoE WF : ppo ≡ ⦗E⦘ ⨾ ppo ⨾ ⦗E⦘.
 Proof using.
 split; [|basic_solver].
 unfold ppo.
-arewrite ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺
-  ⊆ ⦗E⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; sb^?  ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺ ⨾ ⦗E⦘) at 1.
+arewrite ((data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺
+  ⊆ ⦗E⦘ ⨾ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ sb^?  ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)⁺ ⨾ ⦗E⦘) at 1.
 2: basic_solver 42.
 rewrite <- inclusion_ct_seq_eqv_r, <- inclusion_ct_seq_eqv_l.
 apply inclusion_t_t.
@@ -192,7 +192,7 @@ unfold ppo.
 rewrite !seqA.
 arewrite_id ⦗W⦘ at 1.
 arewrite_id ⦗R⦘ at 2.
-arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ;; sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)＊) at 2.
+arewrite (rfi ⊆ (data ∪ ctrl ∪ addr ⨾ sb^? ∪ rfi ∪ rmw ⨾ sb^? ∪ ⦗R_ex⦘ ⨾ sb ∪ rmw_dep)＊) at 2.
 { rewrite rtE, <- ct_step. eauto with hahn. }
 rewrite inclusion_t_rt at 1.
 relsf.
@@ -262,7 +262,7 @@ Lemma W_ex_rfi_Acq_in_ar_int : ⦗W_ex⦘ ⨾ rfi ⨾ ⦗R∩₁Acq⦘ ⊆ ar_in
 Proof using. unfold ar_int. basic_solver 10. Qed.
 
 Lemma bob_ppo_W_sb WF :
-  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ;; (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^+.
+  (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺ ⊆ ppo ∪ ppo ^? ⨾ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)⁺.
 Proof using.
 arewrite (bob ∪ ppo ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆
          (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘) ∪ ppo).
@@ -278,10 +278,10 @@ by auto with hahn.
   basic_solver.
 + rewrite (wf_ppoD) at 1. type_solver.
 + rewrite (wf_ppoD) at 1 2. type_solver.
-+ arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
++ arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊); relsf.
 + sin_rewrite (bob_ppo WF). 
-  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*); relsf.
-+ arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)^*) at 1; relsf.
+  arewrite(bob ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊); relsf.
++ arewrite(⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘ ⊆ (bob ∪ ⦗W_ex_acq⦘ ⨾ sb ⨾ ⦗W⦘)＊) at 1; relsf.
 + rewrite (wf_ppoD) at 1. type_solver.
 + basic_solver 12.
 + rewrite (wf_ppoD) at 1 2. type_solver.

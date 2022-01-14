@@ -108,7 +108,7 @@ Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis DEPS_RMW_SB : rmw_dep ⨾ sb ⊆ ctrl.
-Hypothesis REX_IN_RMW_CTRL : <|R_ex|> ;; sb ⊆ ctrl.
+Hypothesis REX_IN_RMW_CTRL : ⦗R_ex⦘ ⨾ sb ⊆ ctrl.
 
 Hypothesis CON: ArmConsistent G.
 
@@ -255,8 +255,8 @@ Lemma IMM_s_fsupp_consistent
       (* NEXT TODO: note that here we use boba' instead of original Arm.bob *)
       (FSUPP : fsupp (obs ∪ dob ∪ aob ∪ boba')⁺) 
       (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
-  << CONS  : imm_psc_consistent G ∅₂ >> /\
-  << FSUPP : fsupp (imm_s.ar G ∅₂)⁺ >>.
+  ⟪ CONS  : imm_psc_consistent G ∅₂ ⟫ /\
+  ⟪ FSUPP : fsupp (imm_s.ar G ∅₂)⁺ ⟫.
 Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   assert (WF' : Wf G) by apply WF.
   assert (transitive sb) as TSB by apply sb_trans.

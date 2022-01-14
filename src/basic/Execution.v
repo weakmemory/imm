@@ -1100,7 +1100,7 @@ Proof using.
   all: by split; [split|rewrite <- LL].
 Qed.
 
-Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ;; <|W|>.
+Lemma rfi_rmw_in_sb_same_loc_W WF : rfi ⨾ rmw ⊆ (sb ∩ same_loc) ⨾ ⦗W⦘.
 Proof using.
   rewrite (dom_r (wf_rmwD WF)).
   rewrite rfi_in_sbloc', rmw_in_sb_loc; auto.

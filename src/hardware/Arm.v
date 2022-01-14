@@ -220,7 +220,7 @@ Qed.
 Lemma obs_in_eco : obs ⊆ eco.
 Proof using. unfold Arm.obs. rewrite rfe_in_eco, fre_in_eco, coe_in_eco. eauto with hahn. Qed.
 
-Lemma eco_in_sb_obs_sb WF :  eco ⊆ sb^? ;; obs^? ;; obs^? ;; sb^?.
+Lemma eco_in_sb_obs_sb WF :  eco ⊆ sb^? ⨾ obs^? ⨾ obs^? ⨾ sb^?.
 Proof using.
   rewrite (eco_alt WF).
   rewrite cr_union_r, seq_union_l.
@@ -296,7 +296,7 @@ Proof using.
   unfold bob. eauto with hahn.
 Qed.
 
-Lemma bob_fri WF : bob ⨾ fri ⊆ bob ;; bob^?.
+Lemma bob_fri WF : bob ⨾ fri ⊆ bob ⨾ bob^?.
 Proof using.
   unfold bob at 1; relsf; rewrite ?seqA.
   arewrite (fri ⊆ sb) at 1.
@@ -307,14 +307,14 @@ Proof using.
   unionL.
   1-3: by rewrite <- AA; unfold bob; eauto with hahn.
   { rewrite (wf_coiD WF), (wf_friD WF). type_solver. }
-  arewrite (⦗A⦘ ⊆ ⦗A⦘ ;; ⦗Q⦘) by mode_solver.
+  arewrite (⦗A⦘ ⊆ ⦗A⦘ ⨾ ⦗Q⦘) by mode_solver.
   arewrite (fri ⊆ sb).
   arewrite (⦗Q⦘ ⨾ sb ⊆ bob).
   arewrite (⦗L⦘ ⨾ sb ⨾ ⦗A⦘ ⊆ bob).
   basic_solver.
 Qed.
 
-Lemma bob'_fri WF : bob' ⨾ fri ⊆ bob' ;; bob^?.
+Lemma bob'_fri WF : bob' ⨾ fri ⊆ bob' ⨾ bob^?.
 Proof using.
   unfold bob' at 1.
   rewrite !seq_union_l, !seqA.

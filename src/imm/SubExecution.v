@@ -161,7 +161,7 @@ Hypothesis INIT : is_init ∩₁ E ⊆₁ E'.
 Hypothesis WF : Wf G.
 Hypothesis WF_SC : wf_sc G sc.
 Hypothesis SUB : sub_execution.
-Hypothesis RMWCLOS : codom_rel (<|E'|> ;; rmw) ⊆₁ E'.
+Hypothesis RMWCLOS : codom_rel (⦗E'⦘ ⨾ rmw) ⊆₁ E'.
 
 Lemma sub_Acq : Acq' ≡₁ Acq.
 Proof using SUB. by rewrite (sub_lab SUB). Qed.

@@ -737,7 +737,7 @@ relsf; unionL.
     relsf. rewrite <- ct_begin.
     generalize (@sb_trans G). relsf. }
   rewrite ct_end, !seqA.
-  arewrite (⦗W⦘ ⊆ ⦗W⦘ ;; ⦗W⦘).
+  arewrite (⦗W⦘ ⊆ ⦗W⦘ ⨾ ⦗W⦘).
   { basic_solver. }
   sin_rewrite ppo_ctrli_detour_seq_W_ex_sb_W_in_ppo_ctrli_detour.
   arewrite ((ppo ∪ ctrli ∪ detour)＊ ⨾ (ppo ∪ ctrli ∪ detour) ⊆ (ppo ∪ ctrli ∪ detour)⁺).

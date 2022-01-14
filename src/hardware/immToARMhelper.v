@@ -156,7 +156,7 @@ Qed.
 Lemma rs_prefix_co_in_ord :
   ⦗Rel⦘ ⨾ (⦗F⦘ ⨾ sb)^? ⨾ ⦗W⦘ ⨾ co^? ⊆ ⦗L ∪₁ F^sy⦘ ⨾ (obs ∪ dob ∪ aob ∪ boba')＊.
 Proof using.
-  arewrite (co^? ⊆ coi^? ;; obs^?).
+  arewrite (co^? ⊆ coi^? ⨾ obs^?).
   { rewrite coi_union_coe.
     rewrite cr_union_l.
     arewrite (coe ⊆ obs).
@@ -293,7 +293,7 @@ Proof using CON.
     rewrite rewrite_trans_seq_cr_r; [|by apply hb_trans].
     rewrite rewrite_trans_seq_cr_l; [|by apply hb_trans].
     done. }
-  arewrite (obs^? ⨾ obs^? ⊆ obs^*).
+  arewrite (obs^? ⨾ obs^? ⊆ obs＊).
   { rewrite <- rt_cr. hahn_frame. by apply inclusion_r_rt. }
   rewrite hb_in_ord.
   rewrite seq_union_l.

@@ -72,10 +72,10 @@ Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
 Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 
 Lemma ar_int_rfe_rf_ppo_loc_in_ar_int_rfe_ct :
-  (rfe ∪ ar_int) ;; rf ;; (ppo ∩ same_loc) ⊆ (rfe ∪ ar_int)⁺.
+  (rfe ∪ ar_int) ⨾ rf ⨾ (ppo ∩ same_loc) ⊆ (rfe ∪ ar_int)⁺.
 Proof using WF.
   remember (rfe ∪ ar_int) as ax.
-  assert (sb ;; sb ⊆ sb) as AA.
+  assert (sb ⨾ sb ⊆ sb) as AA.
   { apply transitiveI. apply sb_trans. }
   
   assert (rfi ⨾ sb ∩ same_loc ⊆ sb ∩ same_loc) as DD.
@@ -86,7 +86,7 @@ Proof using WF.
   unionL.
   2: { arewrite (ppo ∩ same_loc ⊆ ppo).
        rewrite ppo_in_ar_int.
-       arewrite (rfe ⨾ ar_int ⊆ ax ;; ax).
+       arewrite (rfe ⨾ ar_int ⊆ ax ⨾ ax).
        { subst ax. basic_solver 10. }
        arewrite (ax ⊆ ax⁺) at 1.
        arewrite (ax ⊆ ax⁺) at 2. by rewrite ct_unit, ct_ct. }
@@ -123,7 +123,7 @@ Proof using WF.
 Qed.
 
 Lemma ar_rf_ppo_loc_in_ar_ct :
-  ar ;; rf ;; ppo ∩ same_loc ⊆ ar⁺.
+  ar ⨾ rf ⨾ ppo ∩ same_loc ⊆ ar⁺.
 Proof using WF IMMCON.
   unfold imm_s.ar.
   rewrite unionA, seq_union_l.
@@ -136,7 +136,7 @@ Proof using WF IMMCON.
 Qed.
 
 Lemma ar_ct_rf_ppo_loc_in_ar_ct :
-  ar⁺ ;; rf ;; ppo ∩ same_loc ⊆ ar⁺.
+  ar⁺ ⨾ rf ⨾ ppo ∩ same_loc ⊆ ar⁺.
 Proof using WF IMMCON.
   rewrite ct_end at 1. rewrite !seqA.
   rewrite ar_rf_ppo_loc_in_ar_ct.
@@ -144,7 +144,7 @@ Proof using WF IMMCON.
 Qed.
 
 Lemma ar_rf_ppo_loc_acyclic :
-  acyclic (ar ∪ rf ;; ppo ∩ same_loc).
+  acyclic (ar ∪ rf ⨾ ppo ∩ same_loc).
 Proof using WF COM IMMCON.
   rewrite ct_step with (r:=ar).
   rewrite unionC.
@@ -189,7 +189,7 @@ Qed.
 
 Lemma wf_ar_rf_ppo_loc_ct
       (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
-  well_founded (ar ∪ rf ;; ppo ∩ same_loc)⁺.
+  well_founded (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
 Proof using WF COM IMMCON.
   apply fsupp_well_founded; auto.
   { now apply ar_rf_ppo_loc_acyclic. }
