@@ -156,6 +156,12 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (SB ⨾ RF ⊆ ∅₂) as SBRF.
     { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
       destruct z; desf; ins; desf. }
+    assert (SB⁺ ⨾ RF ⊆ RF) as SBCTRF.
+    { rewrite ct_end, !seqA.
+      rewrite SBRF. clear; basic_solver 1. }
+    assert (SB＊ ⨾ RF ⊆ RF) as SBRTRF.
+    { rewrite rtE, !seq_union_l, seq_id_l.
+      rewrite SBCTRF. eauto with hahn. }
     
     assert (SB⁺ ⨾ AR ⊆ ∅₂) as SBAR.
     { rewrite ct_end, !seqA.
@@ -171,15 +177,57 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (RF ;; RF ⊆ ∅₂) as RFRF.
     { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
       destruct z; desf; ins; desf. }
+    assert (transitive RF) as RFT.
+    { apply transitiveI. rewrite RFRF. clear; basic_solver 1. }
     assert (RF⁺ ⊆ RF) as RFCT.
-    { apply ct_of_trans. apply transitiveI. rewrite RFRF.
-      clear; basic_solver 1. }
+    { now apply ct_of_trans. }
 
     assert (RF⁺ ⨾ AR ⊆ ∅₂) as RFCTAR.
     { now rewrite RFCT. }
+    
+    assert (FWBOB ;; FWBOB ⊆ ∅₂) as FWFW.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+
+    assert (acyclic SB) as SBA.
+    { admit. }
+
+    assert (acyclic (SB ∪ RF)) as SBRFA.
+    { apply acyclic_ut; splits; auto.
+      { subst RF. clear. intros [a b].
+        unfolder. ins. desc. destruct z; desf. }
+      rewrite acyclic_seqC. rewrite ct_end, !seqA.
+      rewrite SBRF. rewrite seq_false_r.
+      (* TODO: add a lemma to AuxRel.v/Hahn *)
+      red. rewrite ct_of_trans; [|apply transitiveI].
+      all: clear; basic_solver. }
+
+    (* TODO: this is not completely true since
+             the left relation doesn't have to start from a write,
+             but the general idea of the proof should work anyway,
+             i.e., via acyclicity of the original 'ar'.
+     *)
+    assert (RF＊ ⨾ SB＊ ⨾ FWBOB ⊆ AR⁺) as RFSBFW.
+    { admit. }
+    
+    assert (acyclic (FWBOB ⨾ (SB ∪ RF)⁺)) as FWSBRFA.
+    { rewrite acyclic_seqC.
+      rewrite path_ut2; auto.
+      arewrite ((RF ⨾ SB⁺)＊ ⨾ RF ⊆ RF).
+      { rewrite rtE, !seq_union_l, seq_id_l.
+        unionL; eauto with hahn.
+        rewrite ct_end, !seqA.
+        rewrite SBCTRF, RFRF. clear; basic_solver 1. }
+      rewrite <- !seqA. rewrite SBRTRF.
+      rewrite ct_begin. rewrite <- seq_union_l, !seqA.
+
+      admit. }
 
     assert (acyclic (SB ∪ RF ∪ FWBOB)) as SRFA.
-    { admit. }
+    { apply acyclic_ut; splits; auto.
+      { apply transitiveI. rewrite FWFW. clear; basic_solver 1. }
+      unfolder. subst FWBOB. clear. intros [a b].
+      unfolder. ins. desc. destruct z; desf. }
 
     apply acyclic_ut; auto.
     splits; auto.
@@ -201,9 +249,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     arewrite (RF＊ ⨾ AR ⊆ AR).
     { rewrite rtE, !seq_union_l, seq_id_l. rewrite RFCTAR.
       clear; basic_solver 1. }
-    
-    assert (RF＊ ⨾ SB＊ ⨾ FWBOB ⊆ AR⁺) as RFSBFW.
-    { admit. }
     
     rewrite RFSBFW, ct_of_ct, ct_unit.
     red. now rewrite ct_of_ct.
