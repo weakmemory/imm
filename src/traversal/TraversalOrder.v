@@ -313,12 +313,52 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     rewrite RSFAR. rewrite ct_of_ct.
     admit.
   Admitted.
-
-  Lemma iord_ct_fsupp
-        (NOSC  : E ∩₁ F ∩₁ Sc ⊆₁ ∅)
+  
+  Lemma iord_fsupp 
+        (* (NOSC  : E ∩₁ F ∩₁ Sc ⊆₁ ∅) *)
+        (FSUPPSB : fsupp sb) (* TODO: remove the requirement *)
+        (FSUPPRF : fsupp rf) (* TODO: remove the requirement *)
+        (FSUPP   : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
+    fsupp iord.
+  Proof using.
+    unfold iord. rewrite fwbob_in_sb.
+    rewrite !restr_union.
+    repeat (apply fsupp_union).
+    4: { apply fsupp_restr.
+         repeat (apply fsupp_seq); try now apply fsupp_eqv.
+         (* TODO: requires a lemma about fsupp and map_rel.
+                  I think we'll have to have some restrictions on the mapping function.
+          *)
+         admit. }
+    2: { apply fsupp_restr.
+         repeat (apply fsupp_seq); try now apply fsupp_eqv.
+         (* TODO: same *)
+         admit. }
+    2: { apply fsupp_restr.
+         repeat (apply fsupp_seq); try now apply fsupp_eqv.
+         (* TODO: same *)
+         admit. }
+    admit.
+  Admitted.
+  
+  Lemma iord_ct_fsupp WF WFSC COMP CONS
+        (* (NOSC  : E ∩₁ F ∩₁ Sc ⊆₁ ∅) *)
+        (FSUPPSB : fsupp sb) (* TODO: remove the requirement *)
+        (FSUPPRF : fsupp rf) (* TODO: remove the requirement *)
         (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
     fsupp iord⁺.
   Proof using.
+    eapply fsupp_ct with (s := dom_rel iord).
+    { apply iord_acyclic; auto. }
+    { basic_solver 10. }
+    2: now apply iord_fsupp.
+
+    eexists. red. ins.
+    (* It looks like it doesn't work right away since
+       it is possible to have an unbounded number of independent <issue, W> traversal
+       labels.
+     *)
+    admit.
   Admitted.
   
   (* NEXT TODO: Combination of iord_ct_fsupp and iord_acyclic should
