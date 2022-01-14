@@ -17,7 +17,6 @@ Require Import AuxDef.
 
 Set Implicit Arguments.
 
-
 Module TravAction.
   Inductive t := cover | issue.
 
@@ -107,8 +106,11 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     eapply ar_rf_ppo_loc_acyclic; eauto.
   Qed.
 
-  Lemma iord_acyclic WF COMP CONS : acyclic iord.
+  Lemma iord_acyclic WF WFSC COMP CONS : acyclic iord.
   Proof using.
+    assert (transitive sb) as SBTRANS.
+    { apply sb_trans. }
+
     red. unfold iord.
     rewrite !restr_union.
     remember 
@@ -189,8 +191,30 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
       destruct z; desf; ins; desf. }
 
+    assert (event ↑ RF ⊆ rf^?) as ERF.
+    { subst RF. clear. basic_solver 10. }
+
+    assert (event ↑ SB ⊆ sb ∪ sc) as ESB.
+    { subst SB. clear. basic_solver 10. }
+
+    assert (event ↑ FWBOB ⊆ fwbob) as EFWBOB.
+    { subst FWBOB. clear. basic_solver 10. }
+
+    (* TODO: move to imm_s.v? *)
+    assert (acyclic (sb ∪ sc)) as SBSCA.
+    { apply acyclic_utt; splits; auto.
+      all: try now apply WFSC.
+      { apply sb_irr. }
+      rewrite (wf_scD WFSC). rewrite <- !seqA, acyclic_seqC, !seqA.
+      arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ sc).
+      2: { rewrite rewrite_trans; try apply WFSC.
+           red. rewrite ct_of_trans; apply WFSC. }
+      rewrite <- f_sc_hb_f_sc_in_sc with (sc:=sc); eauto; try apply CONS.
+      hahn_frame. apply imm_s_hb.sb_in_hb. }
+
     assert (acyclic SB) as SBA.
-    { admit. }
+    { eapply collect_rel_acyclic with (f:=event).
+      now rewrite ESB. }
 
     assert (acyclic (SB ∪ RF)) as SBRFA.
     { apply acyclic_ut; splits; auto.
@@ -201,15 +225,46 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       (* TODO: add a lemma to AuxRel.v/Hahn *)
       red. rewrite ct_of_trans; [|apply transitiveI].
       all: clear; basic_solver. }
-
-    (* TODO: this is not completely true since
-             the left relation doesn't have to start from a write,
-             but the general idea of the proof should work anyway,
-             i.e., via acyclicity of the original 'ar'.
-     *)
-    assert (RF＊ ⨾ SB＊ ⨾ FWBOB ⊆ AR⁺) as RFSBFW.
-    { admit. }
     
+    assert (sb^? ⨾ fwbob ⊆ fwbob⁺) as SBFINA.
+    { rewrite crE, seq_union_l, seq_id_l.
+      apply inclusion_union_l; eauto with hahn.
+      apply sb_fwbob_in_fwbob. }
+    assert (sb^? ⨾ fwbob⁺ ⊆ fwbob⁺) as SBFCTINA.
+    { rewrite ct_begin at 1. rewrite <- !seqA, SBFINA.
+      now rewrite ct_rt. }
+
+    assert (event ↑ (RF^? ⨾ SB＊ ⨾ FWBOB) ⊆ ar⁺) as RSFAR.
+    { rewrite !collect_rel_seq, !collect_rel_cr, !collect_rel_crt.
+      rewrite ERF, ESB, EFWBOB. rewrite cr_of_cr.
+      rewrite unionC. rewrite path_ut; auto.
+      rewrite !seqA.
+      rewrite SBFINA.
+      arewrite (sc⁺ ⊆ sc).
+      { apply ct_of_trans. apply WFSC. }
+      arewrite (sc＊ ⨾ (sb ⨾ sc)＊ ⊆ sc^?).
+      { admit. }
+      arewrite (rf^? ⊆ rfe^? ;; sb^?).
+      { rewrite rfi_union_rfe, cr_union_r.
+        rewrite rfi_in_sb. clear. basic_solver 10. }
+      arewrite (sb^? ⨾ sc^? ⨾ fwbob⁺ ⊆ ar⁺).
+      2: { rewrite rfe_in_ar. now rewrite cr_ct. }
+      arewrite (sb^? ⨾ sc^? ⊆ sb^? ∪ fwbob^? ;; sc^?).
+      2: { rewrite seq_union_l, SBFCTINA, !seqA.
+           rewrite sc_in_ar with (G:=G) (sc:=sc) at 1.
+           rewrite fwbob_in_bob, bob_in_ar with (sc:=sc).
+           rewrite !cr_ct. eauto with hahn. }
+      rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r.
+      unionL; eauto with hahn.
+      transitivity (fwbob ⨾ sc); eauto with hahn.
+      rewrite (dom_l (wf_scD WFSC)) at 1.
+      hahn_frame. unfold imm_bob.fwbob.
+      clear. mode_solver 10. }
+
+    assert (acyclic (RF^? ⨾ SB＊ ⨾ FWBOB)) as RFSBFA.
+    { eapply collect_rel_acyclic with (f:=event).
+      rewrite RSFAR. red. rewrite ct_of_ct. apply CONS. }
+
     assert (acyclic (FWBOB ⨾ (SB ∪ RF)⁺)) as FWSBRFA.
     { rewrite acyclic_seqC.
       rewrite path_ut2; auto.
@@ -220,8 +275,9 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         rewrite SBCTRF, RFRF. clear; basic_solver 1. }
       rewrite <- !seqA. rewrite SBRTRF.
       rewrite ct_begin. rewrite <- seq_union_l, !seqA.
-
-      admit. }
+      arewrite ((SB ∪ RF) ⨾ SB＊ ⊆ RF^? ;; SB＊); auto.
+      rewrite seq_union_l. rewrite <- ct_begin, inclusion_t_rt.
+      rewrite crE. clear; basic_solver 10. }
 
     assert (acyclic (SB ∪ RF ∪ FWBOB)) as SRFA.
     { apply acyclic_ut; splits; auto.
@@ -249,9 +305,13 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     arewrite (RF＊ ⨾ AR ⊆ AR).
     { rewrite rtE, !seq_union_l, seq_id_l. rewrite RFCTAR.
       clear; basic_solver 1. }
-    
-    rewrite RFSBFW, ct_of_ct, ct_unit.
-    red. now rewrite ct_of_ct.
+    arewrite (RF＊ ⊆ RF^?).
+    { now apply rt_of_trans. }
+
+    eapply collect_rel_acyclic with (f:=event).
+    rewrite collect_rel_seq, collect_rel_ct.
+    rewrite RSFAR. rewrite ct_of_ct.
+    admit.
   Admitted.
 
   Lemma iord_ct_fsupp
@@ -261,8 +321,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
   Admitted.
   
-  
-
   (* NEXT TODO: Combination of iord_ct_fsupp and iord_acyclic should
                 allow to get lineralization of traversal actions.
    *)
