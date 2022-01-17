@@ -15,6 +15,8 @@ Require Import SimTraversal.
 Require Import SimTraversalProperties.
 Require Import AuxDef.
 
+Import ListNotations.
+
 Set Implicit Arguments.
 
 (* TODO: move to AuxRel2.v *)
@@ -62,6 +64,25 @@ Proof using.
   intuition.
 Qed.
 
+(* TODO: move to AuxRel2.v *)
+Lemma fsupp_map_rel {A B} (f : B -> A)
+      (FININJ : forall y, set_finite (fun x => y = f x))
+      r (FSUPP : fsupp r) :
+  fsupp (map_rel f r).
+Proof using.
+  unfolder. ins. red in FSUPP.
+  specialize (FSUPP (f y)). desf.
+  set (g :=
+         fun (a : A) =>
+           proj1_sig
+             (constructive_indefinite_description _ (FININJ a))
+      ).
+  exists (flat_map g findom).
+  ins. apply in_flat_map.
+  exists (f x). splits; auto.
+  subst g. unfold proj1_sig. desf.
+  intuition.
+Qed.
 
 Module TravAction.
   Inductive t := cover | issue.
@@ -367,23 +388,25 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         (FSUPP   : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
     fsupp iord.
   Proof using.
+    assert (forall y, set_finite (fun x => y = event x)) as AA.
+    { ins. exists [mkTL TravAction.issue y;
+                   mkTL TravAction.cover y].
+      ins. subst. destruct x as [[]]; ins; auto. }
+
     unfold iord. rewrite fwbob_in_sb.
     rewrite !restr_union.
     repeat (apply fsupp_union).
     4: { apply fsupp_restr.
          repeat (apply fsupp_seq); try now apply fsupp_eqv.
-         (* TODO: requires a lemma about fsupp and map_rel.
-                  I think we'll have to have some restrictions on the mapping function.
-          *)
-         admit. }
+         apply fsupp_map_rel; auto.
+         arewrite_id ⦗W⦘. now rewrite seq_id_l. }
     2: { apply fsupp_restr.
          repeat (apply fsupp_seq); try now apply fsupp_eqv.
-         (* TODO: same *)
-         admit. }
+         apply fsupp_map_rel; auto.
+         now apply fsupp_cr. }
     2: { apply fsupp_restr.
          repeat (apply fsupp_seq); try now apply fsupp_eqv.
-         (* TODO: same *)
-         admit. }
+         apply fsupp_map_rel; auto. }
     admit.
   Admitted.
 
@@ -392,7 +415,8 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     (* TODO: The idea is to prove the lemma by introducing two functions: 
              1) nwrite : E∩W    -> nat  
              2) nfence : E∩F∩Sc -> nat  
-             which totally order writes and SC fences separately
+             w    tc_sb_C : dom_rel ( sb ⨾ ⦗covered T⦘) ⊆₁ covered T ;
+hich totally order writes and SC fences separately
              and respectively and are monotone on ar⁺.
              Then, on each iord-descending chain of traversal actions
              we can pick an issuing label w/ nwrite-minimal write
