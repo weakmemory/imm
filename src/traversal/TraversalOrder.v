@@ -713,17 +713,41 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     rewrite !seqA.
     sin_rewrite rewrite_trans_seq_cr_l; auto.
     rewrite FWBOBSBRF.
+    arewrite ((FWBOB ⨾ RF ⨾ SB＊)＊ ⨾ FWBOB ⨾ AR ⊆ FWBOB ⨾ AR).
+    { rewrite rtE with (r:=FWBOB ⨾ RF ⨾ SB＊).
+      rewrite seq_union_l, seq_id_l. unionL; eauto with hahn.
+      rewrite ct_rotl, !seqA.
+      sin_rewrite !RFSBFWBOBINAR.
+      hahn_frame_l. seq_rewrite <- ct_end.
+      rewrite ct_unit. now apply ct_of_trans. }
+    arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ;; SB＊ ⨾ FWBOB).
+    { admit. }
+    rewrite crE, !seq_union_l, seq_id_l.
+    sin_rewrite RFSBFWBOBINAR.
+    rewrite rewrite_trans; auto.
+    rewrite rt_of_trans with (r:=SB＊ ⨾ FWBOB ⨾ AR ∪ AR).
+    { apply fsupp_cr, fsupp_union; auto.
+      repeat apply fsupp_seq; auto. }
 
-    (* arewrite ((FWBOB ⨾ RF ⨾ SB＊)＊ ⊆ (FWBOB ⨾ RF ⨾ SB＊)^?). *)
-    (* { admit. } *)
-    (* arewrite ((FWBOB ⨾ RF ⨾ SB＊)^? ⨾ FWBOB ⨾ AR ⊆ FWBOB ⨾ AR). *)
-    (* { admit. } *)
-    (* arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ⨾ SB＊ ⨾ FWBOB). *)
-    (* { admit. } *)
-    (* arewrite (RF^? ⨾ SB＊ ⨾ FWBOB ⊆ AR). *)
-    (* { admit. } *)
+    assert (AR ⨾ FWBOB ⊆ ∅₂) as ARFWBOB.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    assert (AR ⨾ SB ⊆ ∅₂) as ARSB.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+
+    assert (AR ⨾ SB＊ ⨾ FWBOB ⊆ ∅₂) as ARSBFW.
+    { rewrite rtE, !seq_union_l, !seq_union_r, !seq_id_l.
+      rewrite ct_begin, !seqA.
+      rewrite ARFWBOB. sin_rewrite ARSB.
+      clear; basic_solver 1. }
+    apply transitiveI.
+    rewrite !seq_union_r, !seq_union_l, !seqA.
+    unionL.
+    { sin_rewrite ARSBFW. clear; basic_solver 1. }
+    { sin_rewrite ARSBFW. clear; basic_solver 1. }
+    all: rewrite rewrite_trans; eauto with hahn.
   Admitted.
-
 
   Lemma iord_wf : well_founded iord.
   Proof using.
