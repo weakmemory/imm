@@ -68,7 +68,7 @@ Qed.
 Lemma fsupp_map_rel {A B} (f : B -> A)
       (FININJ : forall y, set_finite (fun x => y = f x))
       r (FSUPP : fsupp r) :
-  fsupp (map_rel f r).
+  fsupp (f ↓ r).
 Proof using.
   unfolder. ins. red in FSUPP.
   specialize (FSUPP (f y)). desf.
@@ -82,6 +82,38 @@ Proof using.
   exists (f x). splits; auto.
   subst g. unfold proj1_sig. desf.
   intuition.
+Qed.
+
+(* (* TODO: move to AuxRel2.v *) *)
+(* Lemma fsupp_collect_rel {A B} (f : A -> B) *)
+(*       (FSURJ : forall y, exists x, y = f x) *)
+(*       r (FSUPP : fsupp r) : *)
+(*   fsupp (f ↑ r). *)
+(* Proof using. *)
+(*   unfolder. ins. red in FSUPP. *)
+(*   destruct (FSURJ y) as [x AA]; subst. *)
+(*   destruct (FSUPP x) as [l BB]. *)
+(*   specialize (FSUPP x). desf. *)
+(*   exists (map f findom). *)
+(*   ins. desf. apply in_map_iff. *)
+(*   eexists; splits; eauto. *)
+(*   apply FSUPP. *)
+(* Qed. *)
+
+(* TODO: move to AuxRel2.v *)
+Lemma fsupp_map_rel2 {A B} (f : B -> A)
+      (FSURJ : forall y, exists x, y = f x)
+      r (FSUPP : fsupp (f ↓ r)) :
+  fsupp r.
+Proof using.
+  unfolder. ins. red in FSUPP.
+  unfold map_rel in *.
+  destruct (FSURJ y) as [x AA]; subst.
+  destruct (FSUPP x) as [l BB].
+  exists (map f l).
+  ins. apply in_map_iff.
+  destruct (FSURJ x0) as [z CC]; subst.
+  eexists; eauto.
 Qed.
 
 Module TravAction.
@@ -597,17 +629,59 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       unfolder. ins. desc. destruct z; desf. }
 
     assert (fsupp AR) as FAR.
-    { (* follows from fsupp_iord *)
-      admit. }
+    { arewrite (AR ⊆ iord).
+      2: now apply iord_fsupp.
+      unfold iord. rewrite !restr_union.
+      subst AR. eauto with hahn. }
 
     assert (fsupp FWBOB) as FFWBOB.
-    { (* follows from fsupp_iord *)
-      admit. }
+    { arewrite (FWBOB ⊆ iord).
+      2: now apply iord_fsupp.
+      unfold iord. rewrite !restr_union.
+      subst FWBOB. eauto with hahn. }
+
+    assert (fsupp RF) as FRF.
+    { arewrite (RF ⊆ iord).
+      2: now apply iord_fsupp.
+      unfold iord. rewrite !restr_union.
+      subst RF. eauto with hahn. }
+
+    assert (fsupp SB＊) as FSBRT.
+    { admit. }
+
+    assert (fsupp AR＊) as FARRT.
+    { rewrite rt_of_trans; auto.
+      now apply fsupp_cr. }
 
     assert (fsupp (SB ∪ RF)＊) as SRA.
     { admit. }
+    
+    assert (FWBOB ⨾ SB ⊆ ∅₂) as FWBOBSB.
+    { subst FWBOB SB. clear. intros [a b] [c d].
+      unfolder. ins. desc; subst; ins.
+      destruct z0 as [[]]; desf; ins. }
+    
+    assert (RF ⨾ SB＊ ⨾ RF ⊆ ∅₂) as RFSBRF.
+    { rewrite rtE, !seq_union_l, !seq_union_r, seq_id_l.
+      rewrite RFRF. rewrite ct_end, !seqA.
+      rewrite SBRF. clear; basic_solver 1. }
+
+    assert (RF ⨾ SB＊ ⨾ (RF ⨾ SB⁺)＊ ⊆ RF ⨾ SB＊) as RFSBRFSB.
+    { rewrite rtE with (r:=RF ⨾ SB⁺). rewrite !seq_union_r, seq_id_r.
+      unionL; eauto with hahn. rewrite ct_begin, !seqA.
+      sin_rewrite RFSBRF. clear; basic_solver 1. }
 
     assert (FWBOB ⨾ (SB ∪ RF)⁺ ⊆ FWBOB ⨾ RF ⨾ SB＊) as FWBOBSBRF.
+    { rewrite ct_begin. rewrite path_ut; auto.
+      arewrite (FWBOB ⨾ (SB ∪ RF) ⊆ FWBOB ⨾ RF).
+      { rewrite seq_union_r. rewrite FWBOBSB.
+        unionL; eauto with hahn. clear; basic_solver 1. }
+      sin_rewrite RFSBRFSB. rewrite !seqA.
+      rewrite crE, !seq_union_r, !seq_id_r.
+      rewrite RFSBRF. unionL; eauto with hahn.
+      clear; basic_solver 1. }
+
+    assert (RF ⨾ SB＊ ⨾ FWBOB ⊆ AR) as RFSBFWBOBINAR.
     { admit. }
 
     assert (fsupp (SB ∪ RF ∪ FWBOB)⁺) as FSRFW.
@@ -616,7 +690,10 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       repeat apply fsupp_seq; auto.
       2: now apply fsupp_cr. 
       rewrite FWBOBSBRF.
-      admit. }
+      apply fsupp_ct_rt.
+      rewrite ct_rotl, !seqA.
+      repeat apply fsupp_seq; auto.
+      now rewrite RFSBFWBOBINAR. }
 
     apply fsupp_rt_ct.
     rewrite path_ut; auto.
@@ -628,20 +705,23 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     repeat (apply fsupp_seq; auto).
     rewrite ct_end, !seqA.
     arewrite ((SB ∪ RF ∪ FWBOB) ⨾ AR ⊆ FWBOB ⨾ AR).
-    { admit. }
+    { arewrite (SB ⊆ SB⁺).
+      rewrite !seq_union_l. rewrite SBAR, RFAR.
+      unionL; eauto with hahn.
+      all: clear; basic_solver 1. }
     rewrite path_ut; auto.
     rewrite !seqA.
-    arewrite (FWBOB^? ⨾ FWBOB ⊆ FWBOB).
-    { admit. }
+    sin_rewrite rewrite_trans_seq_cr_l; auto.
     rewrite FWBOBSBRF.
-    arewrite ((FWBOB ⨾ RF ⨾ SB＊)＊ ⊆ (FWBOB ⨾ RF ⨾ SB＊)^?).
-    { admit. }
-    arewrite ((FWBOB ⨾ RF ⨾ SB＊)^? ⨾ FWBOB ⨾ AR ⊆ FWBOB ⨾ AR).
-    { admit. }
-    arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ⨾ SB＊ ⨾ FWBOB).
-    { admit. }
-    arewrite (RF^? ⨾ SB＊ ⨾ FWBOB ⊆ AR).
-    { admit. }
+
+    (* arewrite ((FWBOB ⨾ RF ⨾ SB＊)＊ ⊆ (FWBOB ⨾ RF ⨾ SB＊)^?). *)
+    (* { admit. } *)
+    (* arewrite ((FWBOB ⨾ RF ⨾ SB＊)^? ⨾ FWBOB ⨾ AR ⊆ FWBOB ⨾ AR). *)
+    (* { admit. } *)
+    (* arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ⨾ SB＊ ⨾ FWBOB). *)
+    (* { admit. } *)
+    (* arewrite (RF^? ⨾ SB＊ ⨾ FWBOB ⊆ AR). *)
+    (* { admit. } *)
   Admitted.
 
 
