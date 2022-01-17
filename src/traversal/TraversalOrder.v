@@ -410,6 +410,241 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     admit.
   Admitted.
 
+  Lemma iord_ct_fsupp WF WFSC COMP CONS
+        (* (NOSC  : E ∩₁ F ∩₁ Sc ⊆₁ ∅) *)
+        (FSUPPSB : fsupp sb) (* TODO: remove the requirement *)
+        (FSUPPRF : fsupp rf) (* TODO: remove the requirement *)
+        (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
+    fsupp iord⁺.
+  Proof using.
+    assert (transitive sb) as SBTRANS.
+    { apply sb_trans. }
+
+    unfold iord.
+    rewrite !restr_union.
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.cover⦘
+                    ⨾ event ↓ (sb ∪ sc) ⨾ ⦗action ↓₁ eq TravAction.cover⦘)) as SB.
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.issue⦘
+                    ⨾ event ↓ rf^? ⨾ ⦗action ↓₁ eq TravAction.cover⦘)) as RF.
+
+    remember 
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.cover⦘
+                    ⨾ event ↓ fwbob ⨾ ⦗action ↓₁ eq TravAction.issue⦘)) as FWBOB.
+
+    remember
+      (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
+                 (⦗action ↓₁ eq TravAction.issue⦘
+                    ⨾ event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺)
+                    ⨾ ⦗action ↓₁ eq TravAction.issue⦘)) as AR.
+    
+    assert (transitive AR) as TAR.
+    { subst.
+      apply transitive_restr.
+      rewrite <- restr_relE.
+      apply transitive_restr.
+      apply transitiveI. rewrite map_rel_seq.
+      apply map_rel_mori; auto.
+      arewrite_id ⦗W⦘ at 2.
+      now rewrite seq_id_l, ct_ct. }
+    
+    assert (irreflexive AR) as IAR.
+    { subst.
+      apply irreflexive_restr.
+      rewrite <- restr_relE.
+      apply irreflexive_restr.
+      apply map_rel_irr.
+      arewrite_id ⦗W⦘. rewrite seq_id_l.
+      now apply ar_rf_ppo_loc_acyclic. }
+    
+    assert (acyclic AR) as AAR.
+    { now apply trans_irr_acyclic. }
+
+    assert (SB ⨾ RF ⊆ ∅₂) as SBRF.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    assert (SB⁺ ⨾ RF ⊆ RF) as SBCTRF.
+    { rewrite ct_end, !seqA.
+      rewrite SBRF. clear; basic_solver 1. }
+    assert (SB＊ ⨾ RF ⊆ RF) as SBRTRF.
+    { rewrite rtE, !seq_union_l, seq_id_l.
+      rewrite SBCTRF. eauto with hahn. }
+    
+    assert (SB⁺ ⨾ AR ⊆ ∅₂) as SBAR.
+    { rewrite ct_end, !seqA.
+      arewrite_false (SB ⨾ AR).
+      2: clear; basic_solver 1.
+      subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+
+    assert (RF ⨾ AR ⊆ ∅₂) as RFAR.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    
+    assert (RF ;; RF ⊆ ∅₂) as RFRF.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+    assert (transitive RF) as RFT.
+    { apply transitiveI. rewrite RFRF. clear; basic_solver 1. }
+    assert (RF⁺ ⊆ RF) as RFCT.
+    { now apply ct_of_trans. }
+
+    assert (RF⁺ ⨾ AR ⊆ ∅₂) as RFCTAR.
+    { now rewrite RFCT. }
+    
+    assert (FWBOB ;; FWBOB ⊆ ∅₂) as FWFW.
+    { subst. clear. unfolder. intros [a b] [c d]; ins. desc.
+      destruct z; desf; ins; desf. }
+
+    assert (event ↑ RF ⊆ rf^?) as ERF.
+    { subst RF. clear. basic_solver 10. }
+
+    assert (event ↑ SB ⊆ sb ∪ sc) as ESB.
+    { subst SB. clear. basic_solver 10. }
+
+    assert (event ↑ FWBOB ⊆ fwbob) as EFWBOB.
+    { subst FWBOB. clear. basic_solver 10. }
+
+    (* TODO: move to imm_s.v? *)
+    assert (acyclic (sb ∪ sc)) as SBSCA.
+    { apply acyclic_utt; splits; auto.
+      all: try now apply WFSC.
+      { apply sb_irr. }
+      rewrite (wf_scD WFSC). rewrite <- !seqA, acyclic_seqC, !seqA.
+      arewrite (⦗F ∩₁ Sc⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ sc).
+      2: { rewrite rewrite_trans; try apply WFSC.
+           red. rewrite ct_of_trans; apply WFSC. }
+      rewrite <- f_sc_hb_f_sc_in_sc with (sc:=sc); eauto; try apply CONS.
+      hahn_frame. apply imm_s_hb.sb_in_hb. }
+
+    assert (acyclic SB) as SBA.
+    { eapply collect_rel_acyclic with (f:=event).
+      now rewrite ESB. }
+
+    assert (acyclic (SB ∪ RF)) as SBRFA.
+    { apply acyclic_ut; splits; auto.
+      { subst RF. clear. intros [a b].
+        unfolder. ins. desc. destruct z; desf. }
+      rewrite acyclic_seqC. rewrite ct_end, !seqA.
+      rewrite SBRF. rewrite seq_false_r.
+      (* TODO: add a lemma to AuxRel.v/Hahn *)
+      red. rewrite ct_of_trans; [|apply transitiveI].
+      all: clear; basic_solver. }
+    
+    assert (sb^? ⨾ fwbob ⊆ fwbob⁺) as SBFINA.
+    { rewrite crE, seq_union_l, seq_id_l.
+      apply inclusion_union_l; eauto with hahn.
+      apply sb_fwbob_in_fwbob. }
+    assert (sb^? ⨾ fwbob⁺ ⊆ fwbob⁺) as SBFCTINA.
+    { rewrite ct_begin at 1. rewrite <- !seqA, SBFINA.
+      now rewrite ct_rt. }
+
+    assert (event ↑ (RF^? ⨾ SB＊ ⨾ FWBOB) ⊆ ar⁺) as RSFAR.
+    { rewrite !collect_rel_seq, !collect_rel_cr, !collect_rel_crt.
+      rewrite ERF, ESB, EFWBOB. rewrite cr_of_cr.
+      rewrite unionC. rewrite path_ut; auto.
+      rewrite !seqA.
+      rewrite SBFINA.
+      arewrite (sc⁺ ⊆ sc).
+      { apply ct_of_trans. apply WFSC. }
+      arewrite (sc＊ ⨾ (sb ⨾ sc)＊ ⊆ sc^?).
+      { admit. }
+      arewrite (rf^? ⊆ rfe^? ;; sb^?).
+      { rewrite rfi_union_rfe, cr_union_r.
+        rewrite rfi_in_sb. clear. basic_solver 10. }
+      arewrite (sb^? ⨾ sc^? ⨾ fwbob⁺ ⊆ ar⁺).
+      2: { rewrite rfe_in_ar. now rewrite cr_ct. }
+      arewrite (sb^? ⨾ sc^? ⊆ sb^? ∪ fwbob^? ;; sc^?).
+      2: { rewrite seq_union_l, SBFCTINA, !seqA.
+           rewrite sc_in_ar with (G:=G) (sc:=sc) at 1.
+           rewrite fwbob_in_bob, bob_in_ar with (sc:=sc).
+           rewrite !cr_ct. eauto with hahn. }
+      rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r.
+      unionL; eauto with hahn.
+      transitivity (fwbob ⨾ sc); eauto with hahn.
+      rewrite (dom_l (wf_scD WFSC)) at 1.
+      hahn_frame. unfold imm_bob.fwbob.
+      clear. mode_solver 10. }
+
+    assert (acyclic (RF^? ⨾ SB＊ ⨾ FWBOB)) as RFSBFA.
+    { eapply collect_rel_acyclic with (f:=event).
+      rewrite RSFAR. red. rewrite ct_of_ct. apply CONS. }
+
+    assert (acyclic (FWBOB ⨾ (SB ∪ RF)⁺)) as FWSBRFA.
+    { rewrite acyclic_seqC.
+      rewrite path_ut2; auto.
+      arewrite ((RF ⨾ SB⁺)＊ ⨾ RF ⊆ RF).
+      { rewrite rtE, !seq_union_l, seq_id_l.
+        unionL; eauto with hahn.
+        rewrite ct_end, !seqA.
+        rewrite SBCTRF, RFRF. clear; basic_solver 1. }
+      rewrite <- !seqA. rewrite SBRTRF.
+      rewrite ct_begin. rewrite <- seq_union_l, !seqA.
+      arewrite ((SB ∪ RF) ⨾ SB＊ ⊆ RF^? ;; SB＊); auto.
+      rewrite seq_union_l. rewrite <- ct_begin, inclusion_t_rt.
+      rewrite crE. clear; basic_solver 10. }
+
+    assert (transitive FWBOB) as FWBOBTRANS.
+    { apply transitiveI. rewrite FWFW. clear; basic_solver 1. }
+
+    assert (acyclic (SB ∪ RF ∪ FWBOB)) as SRFA.
+    { apply acyclic_ut; splits; auto.
+      unfolder. subst FWBOB. clear. intros [a b].
+      unfolder. ins. desc. destruct z; desf. }
+
+    assert (fsupp AR) as FAR.
+    { (* follows from fsupp_iord *)
+      admit. }
+
+    assert (fsupp FWBOB) as FFWBOB.
+    { (* follows from fsupp_iord *)
+      admit. }
+
+    assert (fsupp (SB ∪ RF)＊) as SRA.
+    { admit. }
+
+    assert (FWBOB ⨾ (SB ∪ RF)⁺ ⊆ FWBOB ⨾ RF ⨾ SB＊) as FWBOBSBRF.
+    { admit. }
+
+    assert (fsupp (SB ∪ RF ∪ FWBOB)⁺) as FSRFW.
+    { apply fsupp_rt_ct.
+      rewrite path_ut; auto.
+      repeat apply fsupp_seq; auto.
+      2: now apply fsupp_cr. 
+      rewrite FWBOBSBRF.
+      admit. }
+
+    apply fsupp_rt_ct.
+    rewrite path_ut; auto.
+    repeat apply fsupp_seq.
+    3: now apply fsupp_cr.
+    { now apply fsupp_ct_rt. }
+    apply fsupp_ct_rt.
+    rewrite ct_rotl.
+    repeat (apply fsupp_seq; auto).
+    rewrite ct_end, !seqA.
+    arewrite ((SB ∪ RF ∪ FWBOB) ⨾ AR ⊆ FWBOB ⨾ AR).
+    { admit. }
+    rewrite path_ut; auto.
+    rewrite !seqA.
+    arewrite (FWBOB^? ⨾ FWBOB ⊆ FWBOB).
+    { admit. }
+    rewrite FWBOBSBRF.
+    arewrite ((FWBOB ⨾ RF ⨾ SB＊)＊ ⊆ (FWBOB ⨾ RF ⨾ SB＊)^?).
+    { admit. }
+    arewrite ((FWBOB ⨾ RF ⨾ SB＊)^? ⨾ FWBOB ⨾ AR ⊆ FWBOB ⨾ AR).
+    { admit. }
+    arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ⨾ SB＊ ⨾ FWBOB).
+    { admit. }
+    arewrite (RF^? ⨾ SB＊ ⨾ FWBOB ⊆ AR).
+    { admit. }
+  Admitted.
+
+
   Lemma iord_wf : well_founded iord.
   Proof using.
     (* TODO: The idea is to prove the lemma by introducing two functions: 
