@@ -291,7 +291,7 @@ Lemma is_f_val x (FX : is_f x) : val x = None.
 Proof using. unfold is_f, val in *; desf. Qed.
 
 Lemma is_f_loc x  (FX: is_f x): loc x = None.
-Proof. unfold is_f, loc in *; desf. Qed. 
+Proof using. unfold is_f, loc in *; desf. Qed. 
 
 End Labels.
 

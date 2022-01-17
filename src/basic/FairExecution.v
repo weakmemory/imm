@@ -131,7 +131,7 @@ End FairExecution.
 
 Lemma fin_exec_fair G (WF: Wf G) (FIN: fin_exec G):
   mem_fair G.
-Proof.
+Proof using.
   red. apply fsupp_union_iff.
   arewrite (co G ∪ fr G ≡ ⦗acts_set G⦘ ⨾ (co G ∪ fr G) ⨾ ⦗is_w (lab G)⦘).
   { rewrite wf_coE, wf_frE, wf_coD, wf_frD; eauto. basic_solver 10. }
@@ -147,14 +147,11 @@ Proof.
     2: { rewrite wf_col, wf_frl, unionK; eauto. reflexivity. }
     red in REL0. unfold loc in REL0 at 1. rewrite wf_init_lab in REL0; auto.
     congruence. }
-  (* TODO: need to require that tid_init <-> is_init *)
-(* Qed.  *)
-Abort. 
+  right. apply FIN. split; auto. 
+Qed. 
 
-Lemma fin_exec_fair G (WF: Wf G) (FIN: fin_exec_full G):
+Lemma fin_exec_full_fair G (WF: Wf G) (FIN: fin_exec_full G):
   mem_fair G.
-Proof.
-  red. rewrite wf_coE, wf_frE; eauto.
-  destruct FIN as [findom FIN]. 
-  split; red; intros; exists findom; basic_solver.
+Proof using.
+  apply fin_exec_fair; auto. apply fin_exec_full_equiv in FIN. by desc. 
 Qed. 

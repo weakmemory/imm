@@ -204,7 +204,6 @@ Qed.
 
 End CASREX.
 
-(* TODO: move to to imm/RMWinstrProps.v. *)
 Lemma dom_rmw_in_rex_thread_steps thread s s'
       (RMWREX : rmw_is_rex_instrs (instrs s))
       (WF : wf_thread_state thread s)

@@ -764,7 +764,7 @@ Proof using.
   apply COH.
 Qed.
 
-Lemma rf_sbl_w_in_co WF (SCPL: sc_per_loc G):
+Lemma rf_sb_loc_w_in_co WF (SCPL: sc_per_loc G):
   rf ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ co.
 Proof using.
   red. intros w1 w2 [w' [RF HH]]. apply seq_eqv_r in HH as [[SB LOC] W2].

@@ -9,7 +9,7 @@ Require Import Execution.
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 
 Definition fin_exec (G: execution) :=
-  set_finite (acts_set G \₁ Tid_ tid_init).
+  set_finite (acts_set G \₁ is_init).
 
 (* TODO: currently seems that the notion of full finiteness is needed 
    to support traversal as is *)
@@ -18,8 +18,8 @@ Definition fin_exec_full (G: execution) :=
   set_finite (acts_set G).
 
 Lemma fin_exec_full_equiv (G: execution):
-  fin_exec_full G <-> fin_exec G /\ set_finite (acts_set G ∩₁ Tid_ tid_init).
-Proof.
+  fin_exec_full G <-> fin_exec G /\ set_finite (acts_set G ∩₁ is_init).
+Proof using.
   unfold fin_exec, fin_exec_full.
   rewrite <- set_finite_union. apply set_finite_more. 
   rewrite set_minusE, set_unionC, <- set_inter_union_r, <- set_full_split.
