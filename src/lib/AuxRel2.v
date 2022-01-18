@@ -116,6 +116,4 @@ Qed.
 
 Lemma set_bunion_separation {A B: Type} (S: A -> Prop) (fab: A -> B):
   S ≡₁ ⋃₁ b, S ∩₁ (fun a => fab a = b).
-Proof using. basic_solver. Qed.       
-
-
+Proof using. basic_solver. Qed.

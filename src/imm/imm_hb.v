@@ -779,8 +779,8 @@ Proof using.
   { intros <-.
     red in SCPL. destruct (SCPL w'). 
     exists w1. split.
-    - generalize SB. basic_solver.
-    - unfold "eco". do 2 left. generalize RF. basic_solver. }
+    { generalize SB. basic_solver. }
+    unfold "eco". do 2 left. generalize RF. basic_solver. }
   ins. des; auto.
   destruct (SCPL w'). 
   exists w2. split.

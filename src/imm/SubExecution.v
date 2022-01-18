@@ -567,6 +567,6 @@ Lemma restrict_fair G (S: actid -> Prop) (FAIR: mem_fair G):
 Proof using.
   unfold restrict, mem_fair, fr. simpl. destruct FAIR as [FSco FSfr].
   split.
-  - eapply fsupp_mori; [| by apply FSco]. red. basic_solver.
-  - eapply fsupp_mori; [| by apply FSfr]. red. unfold fr. basic_solver.
+  { eapply fsupp_mori; [| by apply FSco]. red. basic_solver. }
+  eapply fsupp_mori; [| by apply FSfr]. red. unfold fr. basic_solver.
 Qed.
