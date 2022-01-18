@@ -287,6 +287,12 @@ Proof using. unfold is_r, val in *; desf. eexists; eauto. Qed.
 Lemma is_r_loc x (WX : is_r x) : exists l, loc x = Some l.
 Proof using. unfold is_r, loc in *; desf. eexists; eauto. Qed.
 
+Lemma is_f_val x (FX : is_f x) : val x = None.
+Proof using. unfold is_f, val in *; desf. Qed.
+
+Lemma is_f_loc x  (FX: is_f x): loc x = None.
+Proof using. unfold is_f, loc in *; desf. Qed. 
+
 End Labels.
 
 (******************************************************************************)

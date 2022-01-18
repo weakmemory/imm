@@ -764,4 +764,29 @@ Proof using.
   apply COH.
 Qed.
 
+Lemma rf_sb_loc_w_in_co WF (SCPL: sc_per_loc G):
+  rf ⨾ sb ∩ same_loc ⨾ ⦗W⦘ ⊆ co.
+Proof using.
+  red. intros w1 w2 [w' [RF HH]]. apply seq_eqv_r in HH as [[SB LOC] W2].
+  forward eapply is_w_loc as [l Ll]; eauto.
+  red in LOC. pose proof (wf_rfl WF _ _ RF) as Ll'. red in Ll'.
+  eapply same_relation_exp in RF.
+  2: { rewrite wf_rfE, wf_rfD; auto. }
+  apply wf_sbE in SB. 
+  
+  forward eapply (@wf_co_total _ WF (Some l)) with (a := w1) (b := w2). 
+  1, 2: unfolder in *; desc; splits; congruence.
+  { intros <-.
+    red in SCPL. destruct (SCPL w'). 
+    exists w1. split.
+    { generalize SB. basic_solver. }
+    unfold "eco". do 2 left. generalize RF. basic_solver. }
+  ins. des; auto.
+  destruct (SCPL w'). 
+  exists w2. split.
+  { generalize SB. basic_solver. }
+  left. right. eexists. splits; eauto.
+  generalize RF. basic_solver.
+Qed.
+
 End IMM_hb.

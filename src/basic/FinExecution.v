@@ -2,14 +2,35 @@ Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxDef.
+Require Import AuxRel2. 
 Require Import Events.
 Require Import Execution.
-Require Import FairExecution.
+
+Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+
+Definition fin_exec (G: execution) :=
+  set_finite (acts_set G \₁ is_init).
+
+(* TODO: currently seems that the notion of full finiteness is needed 
+   to support traversal as is *)
+Definition fin_exec_full (G: execution) :=
+  (* fin_exec G /\ set_finite (acts_set G ∩₁ Tid_ tid_init).  *)
+  set_finite (acts_set G).
+
+Lemma fin_exec_full_equiv (G: execution):
+  fin_exec_full G <-> fin_exec G /\ set_finite (acts_set G ∩₁ is_init).
+Proof using.
+  unfold fin_exec, fin_exec_full.
+  rewrite <- set_finite_union. apply set_finite_more. 
+  rewrite set_minusE, set_unionC, <- set_inter_union_r, <- set_full_split.
+  basic_solver.
+Qed. 
+
 
 Section FinExecution.
   Variable G: execution.
 
-  Hypothesis FINDOM: set_finite (acts_set G).
+  Hypothesis FINDOM: fin_exec_full G.
 
   Lemma exists_nE thread :
     exists n, ~ acts_set G (ThreadEvent thread n).
@@ -21,12 +42,6 @@ Section FinExecution.
     desf.
     exists (1 + n). apply AA. lia.
   Qed.
-
-  Lemma fin_exec_fair (WF: Wf G):
-    mem_fair G.
-  Proof using FINDOM.
-    red. rewrite wf_coE, wf_frE; eauto.
-    destruct FINDOM as [findom FIN]. 
-    split; red; intros; exists findom; basic_solver.
-  Qed. 
+  
 End FinExecution. 
+

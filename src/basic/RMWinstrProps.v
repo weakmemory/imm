@@ -203,3 +203,18 @@ Proof using.
 Qed.
 
 End CASREX.
+
+Lemma dom_rmw_in_rex_thread_steps thread s s'
+      (RMWREX : rmw_is_rex_instrs (instrs s))
+      (WF : wf_thread_state thread s)
+      (STEPS : (step thread)^* s s')
+      (SS : dom_rmw_in_rex s) :
+  dom_rmw_in_rex s'.
+Proof using.
+  apply clos_rt_rtn1_iff in STEPS.
+  induction STEPS; auto.
+  apply clos_rt_rtn1_iff in STEPS.
+  eapply dom_rmw_in_rex_thread_step with (s:=y); eauto.
+  { erewrite steps_preserve_instrs; eauto. }
+  eapply wf_thread_state_steps; eauto.
+Qed.

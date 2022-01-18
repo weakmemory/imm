@@ -2,8 +2,11 @@ Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
 Require Import AuxDef.
+Require Import AuxRel2. 
 Require Import Events.
 Require Import Execution.
+Import ListNotations.
+Require Import FinExecution.
 
 Definition mem_fair (G: execution) := fsupp (co G) /\ fsupp (fr G). 
 
@@ -82,5 +85,73 @@ Section FairExecution.
     all: apply clos_trans_immediate1; auto.
     all: apply (co_trans WF).
   Qed.
-End FairExecution.   
+  
+  Lemma fsupp_rf: fsupp (rf G).
+  Proof using WF FAIR.
+    apply functional_inv_fsupp. by inversion WF.
+  Qed.
 
+  Lemma fsupp_sb:
+    fsupp (⦗set_compl is_init⦘ ⨾ sb G).
+  Proof using WF.
+    unfold sb, ext_sb; unfolder; ins.
+    destruct y; [exists nil; ins; desf|].
+    exists (map (fun i => ThreadEvent thread i) (List.seq 0 index)).
+    intros e ((NIe & E0) & (SB & E)).
+    destruct e; [done| ]. destruct SB as [-> LT].
+    apply in_map_iff. eexists. split; eauto. by apply in_seq0_iff.
+  Qed.
+
+  Lemma fsupp_sb_loc:
+    fsupp (sb G ∩ same_loc (lab G)).
+  Proof using WF.
+    rewrite <- seq_id_l.
+    rewrite set_full_split with (S := is_init), id_union, seq_union_l.
+    apply fsupp_union.
+    2: { eapply fsupp_mori; [| by apply fsupp_sb; eauto].
+         red. basic_solver. }
+    
+    red. ins.
+    remember (loc (lab G) y) as ly. destruct ly. 
+    { exists [InitEvent l].
+      intros x REL%seq_eqv_l. desc. destruct x; [| done].
+      simpl. left. f_equal. apply proj2 in REL0.
+      red in REL0.
+      unfold Events.loc in REL0 at 1. rewrite wf_init_lab in REL0; auto.
+      congruence. }
+    exists []. red. intros x REL%seq_eqv_l. desc.
+    apply proj2 in REL0. red in REL0.
+    destruct x; [| done]. 
+    unfold Events.loc in REL0 at 1. rewrite wf_init_lab in REL0; auto.
+    congruence.
+  Qed.
+  
+  
+End FairExecution.
+
+Lemma fin_exec_fair G (WF: Wf G) (FIN: fin_exec G):
+  mem_fair G.
+Proof using.
+  red. apply fsupp_union_iff.
+  arewrite (co G ∪ fr G ≡ ⦗acts_set G⦘ ⨾ (co G ∪ fr G) ⨾ ⦗is_w (lab G)⦘).
+  { rewrite wf_coE, wf_frE, wf_coD, wf_frD; eauto. basic_solver 10. }
+  red. intros w.
+  destruct (classic (is_w (lab G) w)) as [W | NW].
+  2: { exists []. intros. apply seq_eqv_lr in REL. by desc. }
+  forward eapply is_w_loc as [l Lw]; eauto. 
+  destruct FIN as [findom FIN].
+  exists (InitEvent l :: findom).
+  intros r REL%seq_eqv_lr. desc.
+  destruct r eqn:RR.
+  { simpl. left. f_equal. eapply hahn_inclusion_exp in REL0.
+    2: { rewrite wf_col, wf_frl, unionK; eauto. reflexivity. }
+    red in REL0. unfold loc in REL0 at 1. rewrite wf_init_lab in REL0; auto.
+    congruence. }
+  right. apply FIN. split; auto. 
+Qed. 
+
+Lemma fin_exec_full_fair G (WF: Wf G) (FIN: fin_exec_full G):
+  mem_fair G.
+Proof using.
+  apply fin_exec_fair; auto. apply fin_exec_full_equiv in FIN. by desc. 
+Qed. 

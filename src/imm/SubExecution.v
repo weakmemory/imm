@@ -7,11 +7,15 @@ From hahn Require Import Hahn.
 
 Require Import Events.
 Require Import Execution.
+Require Import FinExecution.
+Require Import FairExecution.
+Require Import ThreadBoundedExecution.
 Require Import Execution_eco.
 Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import CombRelations.
+Require Import AuxRel2.
 
 Set Implicit Arguments.
 
@@ -535,4 +539,34 @@ Lemma restrict_sub G sc sc' D (SC: sc' ≡ ⦗D⦘ ⨾ sc ⨾ ⦗D⦘) (IN: D �
  sub_execution G (restrict G D) sc sc'.
 Proof using.
 by constructor; ins; rewrite (@restrict_E G D IN).
+Qed.
+
+Lemma events_separation G:
+  acts_set G ≡₁ ⋃₁ t, acts_set (restrict G (Tid_ t)).
+Proof using.
+  unfold restrict. simpl.
+  rewrite set_bunion_inter_compat_r, set_interC, <- set_bunion_inter_compat_l.
+  apply set_bunion_separation. 
+Qed.
+
+Lemma fin_exec_bounded_threads G b
+      (TB: threads_bound G b)
+      (FIN_B: forall t (LTB: BinPos.Pos.lt t b), fin_exec (restrict G (Tid_ t))):
+  fin_exec G. 
+Proof using.
+  red. rewrite events_separation, <- set_bunion_minus_compat_r.
+  rewrite set_full_split with (S := fun t => BinPos.Pos.lt t b).
+  rewrite set_bunion_union_l. apply set_finite_union. split.
+  2: { exists nil. unfold restrict. simpl. unfolder. ins. desc.
+       red in TB. apply TB in IN2. congruence. }
+  apply set_finite_bunion; [by apply BinPos_lt_fin| done].
+Qed.
+
+Lemma restrict_fair G (S: actid -> Prop) (FAIR: mem_fair G):
+  mem_fair (restrict G S).
+Proof using.
+  unfold restrict, mem_fair, fr. simpl. destruct FAIR as [FSco FSfr].
+  split.
+  { eapply fsupp_mori; [| by apply FSco]. red. basic_solver. }
+  eapply fsupp_mori; [| by apply FSfr]. red. unfold fr. basic_solver.
 Qed.
