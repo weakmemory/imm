@@ -14,7 +14,7 @@ Require Import TraversalConfigAlt.
 Require Import SimTraversal.
 Require Import SimTraversalProperties.
 Require Import AuxDef.
-
+Require Import SetSize.
 Import ListNotations.
 
 Set Implicit Arguments.
@@ -713,4 +713,122 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   (* NEXT TODO: Combination of iord_ct_fsupp and iord_acyclic should
                 allow to get lineralization of traversal actions.
    *)
+
+  Definition respects_rel {A: Type} (enum: nat -> A) (r: relation A) (S: A -> Prop) :=
+    forall i j (DOMi: NOmega.lt_nat_l i (set_size S))
+      (DOMj: NOmega.lt_nat_l j (set_size S))
+      (Rij: r (enum i) (enum j)),
+      i < j.
+
+  Definition graph_steps: t -> Prop := event ↓₁ (E \₁ is_init). 
+
+  Definition set2trav_config (S: t -> Prop) :=
+    mkTC
+      (event ↑₁ (action ↓₁ (eq TravAction.cover) ∩₁ S) ∪₁ is_init ∩₁ E)
+      (event ↑₁ (action ↓₁ (eq TravAction.issue) ∩₁ S) ∩₁ W ∪₁ is_init ∩₁ E).
+
+  (* TODO: move upper *)
+  Require Import Coq.Logic.FinFun. 
+  
+  Lemma add_map_collect {A B: Type} (f : A -> B) (ra : relation A):
+    ra ⊆ map_rel f (collect_rel f ra).
+  Proof using. basic_solver 10. Qed. 
+    
+  Lemma add_collect_map_rel {A B: Type} (f : B -> A) (ra : relation A)
+        (SUR: Surjective f):
+    ra ⊆ collect_rel f (map_rel f ra).
+  Proof using.
+    unfolder. ins.
+    red in SUR. destruct (SUR x), (SUR y). 
+    do 2 eexists. splits; vauto.
+  Qed. 
+    
+  Lemma add_collect_set_map {A B: Type} (f : B -> A) (sa : A -> Prop)
+        (SUR: Surjective f):
+    sa ⊆₁ set_collect f (set_map f sa).
+  Proof using.
+    unfolder. ins.
+    red in SUR. destruct (SUR x). 
+    eexists. splits; vauto.
+  Qed. 
+    
+  Lemma event_sur: Surjective event.
+  Proof using. red. ins. by exists (mkTL TravAction.cover y). Qed. 
+
+  Lemma s2tc_closed_coherent_alt WF COMP WFSC CONS
+        (S: t -> Prop)
+        (IN_E: event ↑₁ S ⊆₁ acts_set G)
+        (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S):
+    tc_coherent_alt G sc (set2trav_config S).
+  Proof using. 
+    split; simpl. 
+    { basic_solver. }
+    { apply set_subset_union_l. split; [| basic_solver]. 
+      rewrite <- IN_E. basic_solver. }
+    { rewrite id_union, seq_union_r, dom_union. apply set_subset_union_l. split.
+      2: { rewrite no_sb_to_init. basic_solver. }
+      apply set_subset_union_r. left.
+      (* TODO: ? *)
+      admit. }
+    { admit. }
+    { admit. }
+    { admit. }
+    { apply set_subset_union_l. split; [| basic_solver].
+      rewrite <- IN_E. basic_solver. }
+    { apply set_subset_union_l. split; [| rewrite init_w]; basic_solver. }
+    { admit. }
+    { admit. }
+  Admitted.
+  
+  Section StepsEnum.
+    Variable (steps: nat -> t).
+    Hypothesis (ENUM: enumerates steps graph_steps).
+    Hypothesis (RESP: respects_rel steps iord⁺ graph_steps). 
+
+    Lemma steps_prefix_coherent_alt WF COMP WFSC CONS
+          i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)):
+      tc_coherent_alt G sc (set2trav_config (⋃₁ j < i, eq (steps j))).
+    Proof using RESP ENUM.
+      apply s2tc_closed_coherent_alt; auto.
+      { rewrite set_collect_bunion.
+        apply set_subset_bunion_l. ins.
+        apply enumeratesE' in ENUM. cdes ENUM.
+        forward eapply INSET as IN. 
+        { eapply NOmega.lt_lt_nat; eauto. }
+        red. ins. red in H. desc. subst.
+        do 3 red in IN. by desc. }
+      red. intros e' [e DOMe']. apply seq_eqv_r in DOMe' as [REL ENUMe].
+      red in ENUMe. destruct ENUMe as [j [LTji STEPje]].
+      apply enumeratesE' in ENUM. cdes ENUM.
+      specialize (IND e'). specialize_full IND.
+      { red. apply clos_trans_restrD in REL. by desc. }
+      destruct IND as [k [DOMk STEPke']].
+      red. exists k. splits; eauto.
+      etransitivity; [| apply LTji]. 
+      red in RESP. apply RESP with (j := j); eauto.
+      2: congruence.
+      eapply NOmega.lt_lt_nat; eauto.
+    Qed. 
+      
+  End StepsEnum. 
+
+  Lemma iord_enum_exists WF COMP WFSC CONS:
+    exists (steps: nat -> t),
+      enumerates steps graph_steps /\
+      respects_rel steps iord⁺ graph_steps. 
+  Proof using.
+    edestruct countable_ext with (s := graph_steps) (r := iord⁺)
+      as [| [steps [ENUM RESP]]].
+    { eapply countable_subset; [| by apply set_subset_full_r].
+      admit. }
+    { red. split; [apply iord_acyclic | apply transitive_ct]; auto. }
+    { apply iord_ct_fsupp; auto.
+      all: admit. }
+    { edestruct H. constructor. econstructor; vauto. }
+    exists steps. splits; eauto.
+    red. ins. apply RESP; auto.
+    all: by apply set_lt_size. 
+  Admitted.
+            
+        
 End TravLabel.
