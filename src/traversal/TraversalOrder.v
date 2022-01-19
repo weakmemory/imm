@@ -426,7 +426,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     ins. exists (mkTL TravAction.cover y); ins.
   Qed.
 
-  Local Hint Resolve RFSB_trans event_finite_inj event_surj : lbase.
+  Local Hint Resolve RFSB_trans FWBOBSB event_finite_inj event_surj : lbase.
 
   Lemma ERF : event ↑ RF ⊆ rf^?.
   Proof using. unfold RF. clear. basic_solver 10. Qed.
@@ -639,7 +639,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     clear; basic_solver.
   Qed.
 
-  Local Hint Resolve RF_fsupp AR_fsupp : lbase.
+  Local Hint Resolve SB_fsupp RF_fsupp FWBOB_fsupp AR_fsupp : lbase.
   
   Lemma iord_fsupp WF WFSC MF CONS
         (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
@@ -660,11 +660,12 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
     assert (transitive sb) as SBTRANS.
     { apply sb_trans. }
-
     assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
     { now apply fsupp_sb. }
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
+    assert (FSUPPSC : fsupp sc).
+    { now arewrite (sc ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺). }
 
     unfold iord.
     rewrite !restr_union.
@@ -675,6 +676,147 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
                  FWBOB) as rFWBOB.
     rewrite !inclusion_restr.
+
+    assert (transitive rFWBOB) as TRFWBOB.
+    { subst rFWBOB. apply transitive_restr.
+      auto with lbase. }
+
+    assert (rSB ∪ RF ⊆ RF^? ;; rSB^?) as SBRFT.
+    { rewrite crE. clear; basic_solver 10. }
+
+    assert (fsupp rSB) as FSUPPRSB.
+    { subst rSB; auto with lbase. }
+
+    assert (fsupp rFWBOB) as FSUPPRFWBOB.
+    { subst rFWBOB; auto with lbase. }
+
+    assert (transitive rSB) as TRSB.
+    { subst rSB. apply transitive_restr. auto with lbase. }
+    
+    assert (rSB ⨾ RF ⊆ ∅₂) as RSBRF.
+    { arewrite (rSB ⊆ SB); auto with lbase.
+      subst rSB. apply inclusion_restr. }
+
+    assert (fsupp (rSB ∪ RF)＊) as SRA.
+    { rewrite SBRFT. rewrite rt_of_trans; auto.
+      { apply fsupp_cr. apply fsupp_seq; auto.
+        all: apply fsupp_cr; auto with lbase. }
+      apply transitiveI. rewrite !seqA.
+      rewrite !crE, !seq_union_l, !seq_union_r.
+      rewrite !seq_id_l,  !seq_id_r.
+      sin_rewrite !RFRF.
+      sin_rewrite !rewrite_trans; auto with lbase.
+      sin_rewrite !RSBRF.
+      unionL; eauto with hahn.
+      all: clear; basic_solver 1. }
+
+    assert (rFWBOB ⨾ rSB ⊆ ∅₂) as RFWBOBSB.
+    { subst rFWBOB rSB. rewrite !inclusion_restr. auto with lbase. }
+
+    assert (transitive (RF ⨾ rSB)) as TRFRSB.
+    { apply transitiveI. rewrite !seqA. sin_rewrite RSBRF.
+      clear; basic_solver 1. }
+
+    assert (rFWBOB ⨾ (rSB ∪ RF)⁺ ⊆ rFWBOB ⨾ RF ⨾ rSB^?) as FWBOBSBRF.
+    { rewrite ct_begin. rewrite path_ut; auto with lbase.
+      arewrite (rFWBOB ⨾ (rSB ∪ RF) ⊆ rFWBOB ⨾ RF).
+      { rewrite seq_union_r.
+        rewrite RFWBOBSB.
+        unionL; eauto with hahn.
+        clear; basic_solver 1. }
+      rewrite ct_of_trans; auto with lbase.
+      rewrite !rt_of_trans; auto with lbase.
+      rewrite !crE, !seq_union_r, !seq_union_l, !seq_union_r, !seq_id_r, !seq_id_l.
+      sin_rewrite !RSBRF.
+      sin_rewrite !RFRF.
+      rewrite !seq_false_l, !seq_false_r.
+      rewrite !union_false_l, !union_false_r.
+      rewrite !seqA.
+      sin_rewrite !RFRF.
+      rewrite !seq_false_l, !seq_false_r.
+      sin_rewrite !RSBRF.
+      rewrite !seq_false_l, !seq_false_r.
+      now rewrite !union_false_r. }
+
+    assert (fsupp AR^?) as FARCR.
+    { apply fsupp_cr; auto with lbase. }
+
+    assert (rSB ⊆ SB) as RSBIN.
+    { subst rSB. apply inclusion_restr. }
+    assert (rFWBOB ⊆ FWBOB) as RFWBOBIN.
+    { subst rFWBOB. apply inclusion_restr. }
+
+    assert (fsupp (rSB ∪ RF ∪ rFWBOB)⁺) as FSRFW.
+    { apply fsupp_rt_ct.
+      rewrite path_ut; auto.
+      repeat apply fsupp_seq; auto.
+      2: now apply fsupp_cr.
+      rewrite FWBOBSBRF.
+      apply fsupp_ct_rt.
+      rewrite ct_rotl, !seqA.
+      repeat (apply fsupp_seq; auto with lbase).
+      2: now apply fsupp_cr.
+      rewrite RSBIN, RFWBOBIN.
+      rewrite RFSBFWBOBINAR; auto.
+      rewrite rt_of_trans; auto with lbase. }
+
+    apply fsupp_rt_ct.
+    rewrite path_ut; auto with lbase.
+    repeat apply fsupp_seq.
+    3: now apply fsupp_cr; auto with lbase.
+    { now apply fsupp_ct_rt. }
+    apply fsupp_ct_rt.
+    rewrite ct_rotl.
+    repeat (apply fsupp_seq; auto with lbase).
+    rewrite ct_end, !seqA.
+    arewrite ((rSB ∪ RF ∪ rFWBOB) ⨾ AR ⊆ rFWBOB ⨾ AR).
+    { rewrite !seq_union_l.
+      rewrite RSBIN, SBAR, RFAR.
+      now rewrite !union_false_l. }
+    rewrite path_ut; auto.
+    rewrite !seqA.
+    sin_rewrite rewrite_trans_seq_cr_l; auto.
+    rewrite FWBOBSBRF.
+    arewrite ((rFWBOB ⨾ RF ⨾ rSB^?)＊ ⨾ rFWBOB ⨾ AR ⊆ rFWBOB ⨾ AR).
+    { rewrite rtE with (r:=rFWBOB ⨾ RF ⨾ rSB^?).
+      rewrite seq_union_l, seq_id_l. unionL; eauto with hahn.
+      rewrite ct_rotl, !seqA.
+      admit. }
+      (* sin_rewrite !RFSBFWBOBINAR. *)
+      (* hahn_frame_l. seq_rewrite <- ct_end. *)
+      (* rewrite ct_unit. now apply ct_of_trans. } *)
+
+    (* arewrite ((SB ∪ RF)＊ ⨾ FWBOB ⊆ RF^? ;; SB＊ ;; FWBOB). *)
+    (* { rewrite SBRFT. rewrite rt_of_trans; auto. *)
+    (*   rewrite cr_seq, !seqA. *)
+    (*   unionL; eauto with hahn. *)
+    (*   clear. basic_solver 10. } *)
+
+    (* rewrite crE, !seq_union_l, seq_id_l. *)
+    (* sin_rewrite RFSBFWBOBINAR. *)
+    (* rewrite rewrite_trans; auto. *)
+    (* rewrite rt_of_trans with (r:=SB＊ ⨾ FWBOB ⨾ AR ∪ AR). *)
+    (* { apply fsupp_cr, fsupp_union; auto. *)
+    (*   repeat apply fsupp_seq; auto. } *)
+
+    (* assert (AR ⨾ FWBOB ⊆ ∅₂) as ARFWBOB. *)
+    (* { subst. clear. unfolder. intros [a b] [c d]; ins. desc. *)
+    (*   destruct z; desf; ins; desf. } *)
+    (* assert (AR ⨾ SB ⊆ ∅₂) as ARSB. *)
+    (* { subst. clear. unfolder. intros [a b] [c d]; ins. desc. *)
+    (*   destruct z; desf; ins; desf. } *)
+
+    (* assert (AR ⨾ SB＊ ⨾ FWBOB ⊆ ∅₂) as ARSBFW. *)
+    (* { rewrite rtE, !seq_union_l, !seq_union_r, !seq_id_l. *)
+    (*   rewrite ct_begin, !seqA. *)
+    (*   rewrite ARFWBOB. sin_rewrite ARSB. *)
+    (*   clear; basic_solver 1. } *)
+    (* apply transitiveI. *)
+    (* rewrite !seq_union_r, !seq_union_l, !seqA. *)
+    (* unionL. *)
+    (* { sin_rewrite ARSBFW. clear; basic_solver 1. } *)
+    (* { sin_rewrite ARSBFW. clear; basic_solver 1. } *)
+    (* all: rewrite rewrite_trans; eauto with hahn. *)
     
     (* assert (SB⁺ ⨾ AR ⊆ ∅₂) as SBAR. *)
     (* { rewrite ct_end, !seqA. *)
@@ -757,16 +899,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   (*   { rewrite rtE with (r:=RF ⨾ SB⁺). rewrite !seq_union_r, seq_id_r. *)
   (*     unionL; eauto with hahn. rewrite ct_begin, !seqA. *)
   (*     sin_rewrite RFSBRF. clear; basic_solver 1. } *)
-
-  (*   assert (FWBOB ⨾ (SB ∪ RF)⁺ ⊆ FWBOB ⨾ RF ⨾ SB＊) as FWBOBSBRF. *)
-  (*   { rewrite ct_begin. rewrite path_ut; auto. *)
-  (*     arewrite (FWBOB ⨾ (SB ∪ RF) ⊆ FWBOB ⨾ RF). *)
-  (*     { rewrite seq_union_r. rewrite FWBOBSB. *)
-  (*       unionL; eauto with hahn. clear; basic_solver 1. } *)
-  (*     sin_rewrite RFSBRFSB. rewrite !seqA. *)
-  (*     rewrite crE, !seq_union_r, !seq_id_r. *)
-  (*     rewrite RFSBRF. unionL; eauto with hahn. *)
-  (*     clear; basic_solver 1. } *)
 
   (*   assert (forall y, exists x, y = event x) as EVENTSURJ. *)
   (*   { ins. exists (mkTL TravAction.cover y); ins. } *)
