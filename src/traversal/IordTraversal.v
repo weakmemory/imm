@@ -98,44 +98,155 @@ Module IordTraversal.
       ((event ↑₁ (action ↓₁ (eq TravAction.cover) ∩₁ S) \₁ is_init ∪₁ is_init) ∩₁ E)
       ((event ↑₁ (action ↓₁ (eq TravAction.issue) ∩₁ S) ∩₁ W \₁ is_init ∪₁ is_init) ∩₁ E).
   
+  (* Lemma s2tc_closed_coherent WF COMP WFSC CONS *)
+  (*       (S: t -> Prop) *)
+  (*       (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S): *)
+  (*   tc_coherent G sc (set2trav_config S). *)
+  (* Proof using.  *)
+  (*   red. splits. *)
+  (*   { simpl. basic_solver. } *)
+  (*   { unfold coverable. simpl.  *)
+
+  (* Lemma s2tc_coherence_helper WF COMP WFSC CONS *)
+  (*       (P1 P2: trav_config -> actid -> Prop) (r: relation actid) (S: t -> Prop) *)
+  (*       (NOI: r ⊆ r ⨾ ⦗is_init⦘)         *)
+  (*       (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S): *)
+  (*       (REL_IORD: ⦗P2 (set2trav_config S)⦘ ⨾ r ⨾ ⦗P1 (set2trav_config S)⦘ ⊆ iord): *)
+  (*   dom_rel (r ⨾ ⦗P1 (set2trav_config S)⦘) ⊆₁ P2 (set2trav_config S). *)
+  (* Proof. *)
+  (*   simpl. *)
+  (*   unfolder. intros e1 [e2 [REL E2]]. desf. *)
+  (*   2: { apply fwbob_in_sb in FWB. *)
+  (*        eapply no_sb_to_init, seq_eqv_r in FWB; eauto. tauto. } *)
+  (*   destruct y as [a_ e2]. simpl in *. subst a_. *)
+  (*   apply (dom_l (wf_fwbobE WF)), seq_eqv_l in FWB. desc. *)
+  (*   splits; auto. *)
+  (*   destruct (classic (is_init e1)); [tauto| ]. left. splits; auto. *)
+  (*   exists (mkTL TravAction.cover e1). splits; auto. *)
+  (*   apply PREF_CLOS. red. eexists. apply seq_eqv_r. splits; [| by eauto]. *)
+  (*   apply ct_step. do 2 red. splits; try basic_solver. *)
+  (*   left. right. red. apply seq_eqv_lr. splits; basic_solver. } *)
+  (* Abort.  *)
+
+  Lemma s2tc_coherence_helper WF COMP WFSC CONS
+        (* (P1 P2: trav_config -> actid -> Prop) *)
+        (a1 a2: TravAction.t)
+        (* (D1 D2: actid -> Prop) *)
+        (D1 D2: actid -> Prop)
+        (r: relation actid)
+        (S: t -> Prop)
+        (D2R: r ⊆ ⦗D2⦘ ⨾ r)
+        (RELNINIT: r ⊆ r ⨾ ⦗set_compl is_init⦘)
+        (RELE: r ⊆ restr_rel E r)
+        (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S)
+        (REL_IORD: ⦗action ↓₁ eq a2⦘ ⨾ event ↓ r ⨾ ⦗action ↓₁ eq a1⦘ ⊆
+                                     (SB ∪ RF ∪ FWBOB ∪ AR)):
+  dom_rel
+    (r
+     ⨾ ⦗(event ↑₁ (action ↓₁ eq a1 ∩₁ S) ∩₁ D1 \₁ is_init ∪₁ is_init) ∩₁ E⦘)
+    ⊆₁ (event ↑₁ (action ↓₁ eq a2 ∩₁ S) ∩₁ D2 \₁ is_init ∪₁ is_init) ∩₁ E.
+  Proof.
+    unfolder. intros x [y REL]. desc. des.
+    2: { apply RELNINIT, seq_eqv_r in REL. basic_solver. }
+    destruct y0 as [a y_]. simpl in *. subst a y_.
+    apply RELE in REL. red in REL. desc. clear REL4. splits; auto.
+    destruct (classic (is_init x)); [tauto| left]. splits; auto.
+    2: { apply D2R, seq_eqv_l in REL. basic_solver. } 
+    exists (mkTL a2 x). splits; auto.
+    apply PREF_CLOS. red. eexists. apply seq_eqv_r. split; [| by apply REL5].
+    apply ct_step. do 2 red. splits; try by basic_solver.
+    apply REL_IORD. basic_solver.
+  Qed. 
+    
+  
   Lemma s2tc_closed_coherent_alt WF COMP WFSC CONS
         (S: t -> Prop)
         (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S):
     tc_coherent_alt G sc (set2trav_config S).
-  Proof using. 
+  Proof using.
     split; simpl. 
     { basic_solver. }
     { basic_solver. }
-    { rewrite set_inter_union_l, id_union.
-      rewrite seq_union_r, dom_union.
-      apply set_subset_union_l. split.
-      2: { rewrite no_sb_to_init. basic_solver. }
-      
-      rewrite <- seq_id_l with (r := sb) at 1.
-      rewrite AuxRel2.set_full_split with (S0 := is_init).
-      rewrite id_union, !seq_union_l. rewrite dom_union.  
-      apply set_subset_union_l. split.
-      { apply set_subset_union_r. right.
-        rewrite wf_sbE, <- seqA, <- id_inter. basic_solver. }      
-
-      unfolder. ins. desf. destruct y0 as [? e]. ins. subst. left.
-      apply (dom_l (wf_sbE G)), seq_eqv_l in H0. desc.
-      splits; auto.
-
-      exists (mkTL TravAction.cover x). splits; auto. apply PREF_CLOS.
-      red. eexists. apply seq_eqv_r. split; eauto.
-      apply ct_step. red. red. splits; try by (unfolder; basic_solver).
-      repeat left. red. apply seq_eqv_lr. splits; try by (unfolder; basic_solver).
-      red. simpl. apply ct_step. basic_solver. }
-    { admit. }
-    { admit. }
-    { admit. }
+    { forward eapply s2tc_coherence_helper
+        with (r := sb) (D1 := fun _ => True) (D2 := fun _ => True)
+             (a1 := TravAction.cover) (a2 := TravAction.cover) as HELPER; eauto.
+      5: { rewrite set_inter_full_r in HELPER. auto. }
+      { basic_solver. } 
+      { rewrite no_sb_to_init. basic_solver. }
+      { rewrite wf_sbE. basic_solver. }
+      repeat apply inclusion_union_r1_search. unfold SB.
+      hahn_frame. apply map_rel_mori; [done| ]. by rewrite <- ct_step. }
+    (* { forward eapply s2tc_coherence_helper *)
+    (*     with (r := ⦗E⦘) (D1 := W) (D2 := W) *)
+    (*          (a1 := TravAction.cover) (a2 := TravAction.issue) as HELPER; eauto. *)
+    (*   5: { rewrite HELPER. basic_solver 10.  *)
+    { unfolder. intros e De. desc. splits; auto. desf; auto. left. splits; auto.
+      destruct y as [a_ e]. simpl in *. subst a_. 
+      exists (mkTL TravAction.issue e). splits; auto.
+      apply PREF_CLOS. red. exists (mkTL TravAction.cover e).
+      apply seq_eqv_r. split; auto.
+      apply ct_step. do 2 red. splits; try by (unfolder; vauto).
+      do 2 left. right. red. basic_solver 10. }
+    { forward eapply s2tc_coherence_helper
+        with (r := rf) (D1 := fun _ => True) (D2 := W)
+             (a1 := TravAction.cover) (a2 := TravAction.issue) as HELPER; eauto.
+      5: { rewrite set_inter_full_r in HELPER. auto. }
+      { rewrite wf_rfD; basic_solver. }
+      { rewrite no_rf_to_init; basic_solver. }
+      { rewrite wf_rfE; basic_solver. }
+      do 2 apply inclusion_union_r1_search. apply inclusion_union_r2_search.
+      unfold RF. hahn_frame. apply map_rel_mori; [done| ].
+      rewrite wf_rfD; [| done]. basic_solver. }
+    { forward eapply s2tc_coherence_helper
+        with (r := sc) (D1 := fun _ => True) (D2 := fun _ => True)
+             (a1 := TravAction.cover) (a2 := TravAction.cover) as HELPER; eauto.
+      5: { rewrite set_inter_full_r in HELPER. auto. }
+      { basic_solver. }
+      { rewrite no_sc_to_init; basic_solver. }
+      { rewrite wf_scE; basic_solver. }
+      repeat apply inclusion_union_r1_search. unfold SB. hahn_frame.
+      apply map_rel_mori; [done| ]. by rewrite <- ct_step. }      
     { basic_solver. }
     { rewrite set_inter_union_l. apply set_subset_union_l. split; [basic_solver| ].
       rewrite init_w; basic_solver. }
-    { admit. }
-    { admit. }
-  Admitted.
+    { forward eapply s2tc_coherence_helper
+        with (r := fwbob ⨾ ⦗W⦘) (D1 := W) (D2 := fun _ => True)
+             (a1 := TravAction.issue) (a2 := TravAction.cover) as HELPER; eauto.
+      5: { rewrite set_inter_full_r in HELPER.
+           rewrite <- HELPER. apply dom_rel_mori. rewrite seqA.
+           rewrite <- id_inter. hahn_frame. apply eqv_rel_mori.
+           rewrite set_inter_union_l. apply set_subset_union_l. split.
+           { basic_solver 10. }
+           apply set_subset_inter_r. split; [| basic_solver].
+           rewrite init_w; basic_solver. }
+      { basic_solver. }
+      { apply domb_rewrite. rewrite fwbob_in_sb.
+        rewrite no_sb_to_init; basic_solver. }
+      { rewrite wf_fwbobE; basic_solver. }
+      apply inclusion_union_r1_search, inclusion_union_r2_search.
+      unfold FWBOB. basic_solver. }
+    { forward eapply s2tc_coherence_helper
+        with (r := ⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗W⦘) (D1 := W) (D2 := W)
+             (a1 := TravAction.issue) (a2 := TravAction.issue) as HELPER; eauto.
+      5: { etransitivity; [| apply HELPER].
+           apply dom_rel_mori. rewrite !seqA. do 2 hahn_frame_l.
+           (* TODO: unify with previous case *)
+           rewrite <- id_inter. apply eqv_rel_mori.
+           rewrite set_inter_union_l. apply set_subset_union_l. split.
+           { basic_solver 10. }
+           apply set_subset_inter_r. split; [| basic_solver].
+           rewrite init_w; basic_solver. } 
+      { basic_solver. }
+      { red. intros x y REL%seq_eqv_lr. desc. 
+        do 2 apply seqA. apply seq_eqv_r. split; [basic_solver| ]. 
+        intros INIT. apply ct_end in REL0 as [z [? REL']]. 
+        forward eapply no_ar_rf_ppo_loc_to_init as [NOI _]; eauto.
+        apply (NOI z y). basic_solver. }
+      { rewrite wf_ar_rf_ppo_locE; auto. rewrite <- !restr_relE. split; auto.
+        red in H. desc. apply restr_ct in H. red in H. by desc. }
+      { apply inclusion_union_r2_search. unfold AR. hahn_frame. basic_solver. }
+    }
+  Qed. 
 
   Lemma iord_graph_steps:
     iord ≡ restr_rel graph_steps iord.
