@@ -5,6 +5,7 @@
 Require Import List.
 From hahn Require Import Hahn.
 From PromisingLib Require Import Basic Loc.
+Require Import CountabilityHelpers.
 
 Set Implicit Arguments.
 
@@ -676,3 +677,32 @@ Tactic Notation "mode_solver" int_or_var(index) :=
   mode_unfolder; basic_solver index.
 
 Tactic Notation "mode_solver" :=  mode_solver 4.
+
+Section EventsCountability. 
+  Definition actid_alt: Type := location + thread_id * nat.
+
+  Lemma actid_alt_isomorphic:
+    isomorphism (fun e => match e with
+                       | InitEvent l => inl l
+                       | ThreadEvent t i => inr (t, i)
+                       end)
+                (fun ae => match ae with
+                        | inl l => InitEvent l
+                        | inr (t, i) => ThreadEvent t i
+                        end).
+  Proof. split; ins; [destruct a | destruct b as [? | [? ?]]]; auto. Qed.   
+  
+  Lemma actid_countable: countable (@set_full actid).
+  Proof.
+    eapply countable_isomorphic.
+    { eapply isomorphism_sym, actid_alt_isomorphic. }
+    apply countable_sum.
+    { Set Printing All.
+      unfold location, Loc.Loc.t. apply pos_countable. }
+    apply countable_prod.
+    { unfold thread_id, Basic.Ident.t. apply pos_countable. }
+    apply nat_countable.
+  Qed.
+
+End EventsCountability.   
+

@@ -17,6 +17,7 @@ Require Import FairExecution.
 Import ListNotations.
 Require Import TraversalOrder.
 Require Import PropExtensionality.
+Require Import CountabilityHelpers.
 
 Set Implicit Arguments.
 
@@ -176,10 +177,6 @@ Module IordTraversal.
       { rewrite wf_sbE. basic_solver. }
       repeat apply inclusion_union_r1_search. unfold SB.
       hahn_frame. apply map_rel_mori; [done| ]. by rewrite <- ct_step. }
-    (* { forward eapply s2tc_coherence_helper *)
-    (*     with (r := ⦗E⦘) (D1 := W) (D2 := W) *)
-    (*          (a1 := TravAction.cover) (a2 := TravAction.issue) as HELPER; eauto. *)
-    (*   5: { rewrite HELPER. basic_solver 10.  *)
     { unfolder. intros e De. desc. splits; auto. desf; auto. left. splits; auto.
       destruct y as [a_ e]. simpl in *. subst a_. 
       exists (mkTL TravAction.issue e). splits; auto.
@@ -452,9 +449,33 @@ Module IordTraversal.
       apply trav_config_eq_helper; basic_solver.
     Qed.
     
-  End StepsEnum. 
+  End StepsEnum.
 
-  Lemma iord_enum_exists WF COMP WFSC CONS:
+  Definition ae2tl (ae: TravAction.t * actid): TravLabel.t
+    := mkTL (fst ae) (snd ae). 
+  Definition tl2ae (tl: TravLabel.t): TravAction.t * actid
+    := (action tl, event tl).
+
+  Lemma ae_tl_isomorphic: isomorphism ae2tl tl2ae.
+  Proof. split; ins; [destruct a | destruct b]; auto. Qed.
+
+   
+  
+  Lemma ae_countable: countable (@set_full (TravAction.t * actid)).
+  Proof.
+    apply countable_prod.
+    { apply finite_countable. exists [TravAction.cover; TravAction.issue].
+      ins. destruct x; tauto. }
+    apply actid_countable. 
+  Qed. 
+    
+  Lemma trav_label_countable: @countable t (@set_full t).
+  Proof.
+    eapply countable_isomorphic; [apply ae_tl_isomorphic| apply ae_countable].
+  Qed. 
+
+  Lemma iord_enum_exists WF COMP WFSC CONS MF
+        (IMM_FAIR: fsupp ar⁺):
     exists (steps: nat -> t),
       enumerates steps graph_steps /\
       respects_rel steps iord⁺ graph_steps. 
@@ -462,15 +483,15 @@ Module IordTraversal.
     edestruct countable_ext with (s := graph_steps) (r := iord⁺)
       as [| [steps [ENUM RESP]]].
     { eapply countable_subset; [| by apply set_subset_full_r].
-      admit. }
+      apply trav_label_countable. }
     { red. split; [apply iord_acyclic | apply transitive_ct]; auto. }
-    { apply iord_ct_fsupp; auto.
-      all: admit. }
+    { apply iord_ct_fsupp; auto.      
+      apply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; auto. apply MF. }
     { edestruct H. constructor. econstructor; vauto. }
     exists steps. splits; eauto.
     red. ins. apply RESP; auto.
     all: by apply set_lt_size. 
-  Admitted.
+  Qed. 
             
-       
+  
 End IordTraversal. 
