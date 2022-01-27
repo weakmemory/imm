@@ -396,16 +396,16 @@ Module IordTraversal.
         red. intros ? <-.
         specialize_full W'e; [by rewrite I| ]. rewrite I in W'e. simpl in *. 
         red. splits; auto. exists (steps i). by rewrite I. }
-    Qed. 
+    Qed.
 
-    Lemma trav_prefix_step WF COMP WFSC CONS
+    Lemma itrav_prefix_step WF COMP WFSC CONS
           i (DOMsi: NOmega.lt_nat_l (S i) (set_size graph_steps)):
-      trav_step G sc (set2trav_config (trav_prefix i))
+      itrav_step G sc (event (steps i)) (set2trav_config (trav_prefix i))
                 (set2trav_config (trav_prefix (S i))).
     Proof using RESP ENUM.
       assert (NOmega.lt_nat_l i (set_size graph_steps)) as DOMi.
       { eapply NOmega.lt_lt_nat; eauto. }
-      red. destruct (steps i) as [a e] eqn:I. exists e.
+      red. destruct (steps i) as [a e] eqn:I.
       assert (~ (event ↑₁ (action ↓₁ eq a ∩₁ trav_prefix i)) e) as NOPREF.
       { intros PREFe. 
         red in PREFe. desc. destruct y. simpl in PREFe0. subst event0.
@@ -414,7 +414,7 @@ Module IordTraversal.
           rewrite <- I in PREFe. red in PREFe. 
           desc. eapply prefix_border; eauto. }
         
-      red. destruct a; [left | right].
+      destruct a; [left | right].
 
       { forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
         splits.
@@ -447,7 +447,16 @@ Module IordTraversal.
       { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }          
       rewrite EQs. unfold trav_conf_union.
       apply trav_config_eq_helper; basic_solver.
-    Qed.
+    Qed. 
+    
+
+    Lemma trav_prefix_step WF COMP WFSC CONS
+          i (DOMsi: NOmega.lt_nat_l (S i) (set_size graph_steps)):
+      trav_step G sc (set2trav_config (trav_prefix i))
+                (set2trav_config (trav_prefix (S i))).
+    Proof using RESP ENUM.
+      forward eapply itrav_prefix_step; eauto. vauto.
+    Qed. 
     
   End StepsEnum.
 
