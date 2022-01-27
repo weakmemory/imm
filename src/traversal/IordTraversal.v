@@ -27,8 +27,10 @@ Definition respects_rel {A: Type} (enum: nat -> A) (r: relation A) (S: A -> Prop
     (Rij: r (enum i) (enum j)),
     i < j.
 
-Definition trav_conf_union (tc1 tc2: trav_config) : trav_config :=
+Definition trav_config_union (tc1 tc2: trav_config) : trav_config :=
   mkTC (covered tc1 ∪₁ covered tc2) (issued tc1 ∪₁ issued tc2).
+
+Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
 
 (* TODO: move to lib, or, better, to hahn *)
 Lemma set_extensionality A (s s' : A -> Prop) :
@@ -265,9 +267,9 @@ Module IordTraversal.
 
   Lemma set2trav_config_union (S1 S2: t -> Prop):
     set2trav_config (S1 ∪₁ S2) =
-    trav_conf_union (set2trav_config S1) (set2trav_config S2).
+    (set2trav_config S1) ⊔ (set2trav_config S2).
   Proof using.
-    unfold set2trav_config, trav_conf_union. simpl.
+    unfold set2trav_config, trav_config_union. simpl.
     f_equal; apply set_extensionality; basic_solver 10.
   Qed.         
 
@@ -336,9 +338,8 @@ Module IordTraversal.
           (DOMsi: NOmega.lt_nat_l (S i) (set_size graph_steps)):
       let (a, e) := steps i in
       set2trav_config (trav_prefix (S i)) =
-      trav_conf_union (set2trav_config (trav_prefix i))
-                      (mkTC (if a then eq e else ∅)
-                            (if a then ∅ else eq e)).
+      (set2trav_config (trav_prefix i)) ⊔
+      (mkTC (if a then eq e else ∅) (if a then ∅ else eq e)).
     Proof using ENUM.
       assert (NOmega.lt_nat_l i (set_size graph_steps)) as DOMi.
       { eapply NOmega.lt_lt_nat; eauto. }
@@ -429,7 +430,7 @@ Module IordTraversal.
         apply tc_coherent_alt_implies_tc_coherent.
         erewrite @f_equal. 
         { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }          
-        rewrite EQs. unfold trav_conf_union.
+        rewrite EQs. unfold trav_config_union.
         apply trav_config_eq_helper; basic_solver. }
 
       forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
@@ -445,7 +446,7 @@ Module IordTraversal.
       apply tc_coherent_alt_implies_tc_coherent.
       erewrite @f_equal. 
       { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }          
-      rewrite EQs. unfold trav_conf_union.
+      rewrite EQs. unfold trav_config_union.
       apply trav_config_eq_helper; basic_solver.
     Qed. 
     
