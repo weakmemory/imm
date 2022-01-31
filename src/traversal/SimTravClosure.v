@@ -265,7 +265,7 @@ Module SimTravClosure.
   (*   des; auto. edestruct IMMyw; eauto.  *)
   (* Qed.  *)
     
-  Lemma stc_coherent (tc: trav_config) WF WFSC
+  Lemma stc_coherent (tc: trav_config) WF WFSC CONS
         (COH: tc_coherent G sc tc):
     tc_coherent G sc (sim_trav_closure tc).
   Proof.
@@ -281,7 +281,7 @@ Module SimTravClosure.
       rewrite tc_sb_C. basic_solver. }
     constructor; simpl. 
     { etransitivity; [apply tc_init| ]. basic_solver. }
-    { admit. }
+    { unfold Cclos. simpl. rewrite wf_rmwE; auto. basic_solver. }
     { rewrite <- set_union_strict.  
       rewrite id_union, seq_union_r, dom_union.
       apply set_subset_union_l. split; [generalize tc_sb_C; basic_solver 10 | ].
@@ -317,8 +317,8 @@ Module SimTravClosure.
         type_solver. }
       erewrite (wf_scD WFSC). rewrite wf_rmwD at 1; auto.
       do 3 rewrite codom_seq at 1. rewrite codom_eqv. type_solver. }
-    { admit. }
-    { admit. }
+    { unfold Iclos. simpl. rewrite wf_rmwE; auto. basic_solver. }
+    { unfold Iclos. simpl. rewrite wf_rmwD; auto. basic_solver. }
     { rewrite <- !set_union_strict.
       rewrite !id_union, seq_union_r, dom_union, tc_fwbob_I.
       unfold Iclos, Cclos. simpl.
@@ -327,17 +327,20 @@ Module SimTravClosure.
       rewrite <- seqA. rewrite sb_invrmw_sbclos; auto.
       rewrite COV_SB'. basic_solver. }
     { rewrite <- !set_union_strict.
-      rewrite id_union, !seq_union_r, dom_union, tc_I_ar_rf_ppo_loc_I.
+      rewrite id_union, !seq_union_r, dom_union, tc_I_ar_rf_ppo_loc_I.      
+      
       unfold Iclos. simpl.
-      unfold "ar". rewrite ct_end, seqA.
+      rewrite ct_end, seqA. unfold "ar" at 2. 
       rewrite !seq_union_l.
       arewrite (sc ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw)⦘ ⊆ ∅₂).
       { rewrite (wf_scD WFSC), (wf_rmwD WF). type_solver. }
       arewrite (rfe ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw)⦘ ⊆ ∅₂).
       { rewrite wf_rfeD, wf_rmwD; auto. type_solver. }
+      rewrite !union_false_l.
+      
       rewrite ar_int_in_sb; auto.
       arewrite (ppo ∩ same_loc ⊆ sb) at 2 by (generalize ppo_in_sb; basic_solver).
-      rewrite !union_false_l. rewrite !seq_union_r. rewrite dom_union.
+      rewrite !seq_union_r. rewrite dom_union.
       repeat (apply set_subset_union_l; split).
       { basic_solver. }
       { rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
@@ -345,13 +348,17 @@ Module SimTravClosure.
         rewrite !seqA. rewrite <- seqA with (r3 := ⦗C⦘).
         seq_rewrite sb_invrmw_sbclos; auto. 
         rewrite COV_SB'. do 2 rewrite <- seqA. rewrite dom_seq.
-        rewrite rtE. rewrite seq_union_r, seq_union_l, dom_union.
-        apply set_subset_union_l. split.
-        { rewrite <- tc_W_C_in_I. basic_solver. }
-        (* TODO: need to restrict C to writes *)
-        admit. }
-      admit. }
-  Admitted. 
+        forward eapply ar_rf_ppo_loc_rt_CI_in_I as IN; eauto. simpl in IN.
+        generalize IN. basic_solver 10. }
+      (* TODO: refactor by unifying with case above? *)
+      rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
+      rewrite transp_seq, transp_eqv_rel. rewrite seqA.
+      rewrite <- seqA with (r1 := sb). seq_rewrite sb_invrmw_sbclos; auto.
+      rewrite COV_SB'. do 2 rewrite <- seqA. do 2 rewrite dom_seq.
+      rewrite seqA. rewrite <- dom_rel_eqv_dom_rel. rewrite tc_rf_C.
+      generalize tc_I_ar_rf_ppo_loc_I. basic_solver 10.  
+    }
+  Qed. 
         
   (* Lemma isim_trav_step_mon thread *)
   (*       (C1 I1 C2 I2 C' I': actid -> Prop) *)
