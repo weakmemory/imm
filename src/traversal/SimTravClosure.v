@@ -168,7 +168,7 @@ Module SimTravClosure.
                 (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
       right. red. left. splits; simpl. 
       { intros [? | ?]; done. }
-      { eapply traversal_mon; [| | apply COV]; simpl; basic_solver. }
+      { eapply traversal_mon; [.. | apply COV]; simpl; basic_solver. }
       all: (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
 
     destruct (classic (I' e)).
@@ -537,10 +537,13 @@ Module SimTravClosure.
     rewrite set_minus_union_l. apply set_disjoint_union_r. split. 
     { rewrite issuedW; eauto. type_solver. }
     rewrite wf_rmwD; eauto. type_solver.
-  Qed. 
-    
+  Qed.
 
-  Lemma trav_step_closures_isim WF WFSC CONS
+  Lemma set_eq_helper {A: Type} (s1 s2: A -> Prop) (EQ: s1 = s2):
+    s1 ≡₁ s2.
+  Proof. by rewrite EQ. Qed.  
+    
+  Lemma trav_step_closures_isim WF WFSC CONS COMP
         (tc tc': trav_config)
         (COH: tc_coherent G sc tc)
         (COH': tc_coherent G sc tc')
@@ -561,8 +564,6 @@ Module SimTravClosure.
       induction H.
       { apply ct_step. red. eauto. }
       eapply transitive_ct; eauto. }
-
-    foobar. use sequence of isim_trav_steps (? needed for rlx rmw case)
     
     cdes TRAV_STEP. desf. 
     
@@ -608,9 +609,8 @@ Module SimTravClosure.
              (* subst tc''. unfold Cclos, Iclos. *)
              (* destruct tc as [C I] eqn:TC, tc' as [C' I'] eqn:TC'. simpl in *. *)
              (* simpl. unfold trav_config_union. simpl. *)
+             apply rt_step. 
 
-             right.
-             
              apply isim_trav_step_mon_tcu; auto.
              2: { simpl. apply set_disjoint_union_l. split; [basic_solver| ].
                   unfold Cclos. subst tc''. simpl.
@@ -634,7 +634,34 @@ Module SimTravClosure.
         assert (E w /\ W w) as [Ew Ww].
         { eapply same_relation_exp in RMW.
           2: { rewrite wf_rmwD, wf_rmwE; auto. }
-          unfolder in RMW. desc. subst. auto. } 
+          unfolder in RMW. desc. subst. auto. }
+
+        assert (dom_cond sb ((covered tc) ∪₁ eq r) w) as DC_SBw. 
+        { unfolder. ins. desc. subst z y.
+          destruct (classic (x = r)) as [-> | ]; [tauto| ]. left.
+          apply wf_rmwi in RMW as [SBrw IMMrw]; auto.
+          assert ((sb ⨾ ⦗covered tc'⦘) x r) as SBxr.
+          { apply seq_eqv_r. split.
+            2: { subst. simpl. apply COVEQ. basic_solver. } 
+            eapply sb_semi_total_r in SBrw; eauto.
+            2: { eapply read_or_fence_is_not_init; eauto. }
+            des; auto. edestruct IMMrw; eauto. }
+          forward eapply (@dom_sb_covered G) with (T := tc') as SB_COV; eauto.
+          specialize (SB_COV x). specialize_full SB_COV; [by vauto| ]. 
+          apply COVEQ in SB_COV.
+          destruct SB_COV; vauto. }
+        
+        assert (~ (covered tc) w) as NCw.
+        { intros COVw. 
+          forward eapply (@dom_sb_covered G) with (T := tc) as COV_SB; eauto.
+          specialize (COV_SB r). specialize_full COV_SB; [| done].
+          exists w. apply rmw_in_sb in RMW; auto. basic_solver. }
+          
+        assert (set_disjoint (eq w) (codom_rel (⦗covered tc⦘ ⨾ rmw))) as DISJW.
+        { intros ? <- INTER. red in INTER. desc.
+          apply seq_eqv_l in INTER. desc.
+          forward eapply (wf_rmw_invf WF w r x) as ->; eauto. }
+        
         (* TODO: get rid of previous excessive split of tc'' *)
         erewrite <- TCU_HELPER with (tc := sim_trav_closure tc''); cycle 1.
         1,2: rewrite TC''; simpl; basic_solver.
@@ -651,15 +678,9 @@ Module SimTravClosure.
             apply dom_rel_fun_alt. red. repeat left.
             apply seq_eqv_r. unfolder; splits; auto.
             by apply rmw_in_sb. }
-          assert (~ (covered tc) w) as NCw.
-          { intros Cw. destruct NIw.
-            forward eapply (w_covered_issued COH (conj Ww Cw)). auto. }
-          assert (set_disjoint (eq w) (codom_rel (⦗covered tc⦘ ⨾ rmw))) as DISJW.
-          { intros ? <- INTER. red in INTER. desc.
-            apply seq_eqv_l in INTER. desc.
-            forward eapply (wf_rmw_invf WF w r x) as ->; eauto. }
+
+          apply rt_step. 
           
-          right. 
           apply isim_trav_step_mon_tcu.
           2: { simpl. apply set_disjoint_union_l. split; [basic_solver| ].
                unfold Cclos. subst tc''. simpl.
@@ -688,23 +709,6 @@ Module SimTravClosure.
           { erewrite trav_config_eq_helper'; [apply same_tc_Reflexive| ..]; simpl.
             { rewrite RMWD, <- set_unionA. reflexivity. }
             rewrite RMWD. reflexivity. }          
-
-          assert (dom_cond sb (C ∪₁ eq r) w) as DC_SBw. 
-          { unfolder. ins. desc. subst z y.
-            destruct (classic (x = r)) as [-> | ]; [tauto| ]. left.
-            apply wf_rmwi in RMW as [SBrw IMMrw]; auto.
-            assert ((sb ⨾ ⦗covered tc'⦘) x r) as SBxr.
-            { apply seq_eqv_r. split.
-              2: { subst. simpl. apply COVEQ. basic_solver. } 
-              eapply sb_semi_total_r in SBrw; eauto.
-              2: { eapply read_or_fence_is_not_init; eauto. }
-              des; auto. edestruct IMMrw; eauto. }
-            forward eapply (@dom_sb_covered G) with (T := tc') as SB_COV; eauto.
-            { eapply tc_coherent_more; [| by apply COH'].
-              subst tc'. red. simpl. by rewrite COVEQ, ISSEQ. } 
-            specialize (SB_COV x). specialize_full SB_COV; [by vauto| ]. 
-            rewrite TC' in SB_COV. apply COVEQ in SB_COV.
-            destruct SB_COV; vauto. }
           
           econstructor; auto; simpl. 
           { econstructor; eauto. }
@@ -724,7 +728,6 @@ Module SimTravClosure.
 
         rewrite <- TC''. 
         rewrite tcu_assoc, tcu_symm with (tc2 := sim_trav_closure tc''), <- tcu_assoc.
-        right.
 
         destruct tc as [C I] eqn:TC, tc' as [C' I'] eqn:TC'. 
         subst tc''. unfold Cclos, Iclos. simpl.
@@ -740,12 +743,147 @@ Module SimTravClosure.
                { apply set_subset_empty_r. type_solver. }
                apply set_inter_absorb_r. basic_solver. }
              apply set_union_empty_l. }
-
-        simpl in *. 
         
-        apply isim_trav_step_mon_strict.
-        { isim_trav_step
-          rlx_rmw_cover_step
+        simpl in *.
+
+        enough ((isim_trav_step G sc (tid r))＊
+    {|
+      covered :=
+        C
+        ∪₁ (I ∩₁ (fun a : actid => is_rel lab a) ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) \₁ C;
+      issued := I ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ I
+    |}
+    {|
+      covered :=
+        C
+        ∪₁ (I ∩₁ (fun a : actid => is_rel lab a) ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) \₁ C;
+      issued := I ∪₁ eq w ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ I
+    |}
+    ) as ISS_W_STEP.
+        { eapply rt_unit. eexists. split; [by apply ISS_W_STEP| ].
+          eapply isim_trav_step_more; [by apply same_tc_Reflexive| ..].
+          { erewrite trav_config_eq_helper'.
+            3: { simpl. reflexivity. }
+            2: { simpl.
+                 rewrite set_unionA, set_unionC with (s := (eq r ∪₁ eq w)).
+                 rewrite <- !set_unionA.
+                 reflexivity. }
+            apply same_tc_Reflexive. }
+          eapply rlx_rmw_cover_step; auto; simpl.
+          { basic_solver. }
+          { eapply itrav_step_more; [done| by apply same_tc_Reflexive| ..]. 
+            { apply same_tc_Symmetric. 
+              erewrite trav_config_eq_helper'.
+              2: { simpl. 
+                   rewrite set_unionC, <- set_unionA.
+                   rewrite set_unionC with (s := eq r).
+                   reflexivity. }
+              2: { simpl. reflexivity. }
+              apply same_tc_Reflexive. }
+            forward eapply itrav_step_mon_ext as STEP_EXT; [by apply TRAV_STEP| ].
+            red in STEP_EXT. des.
+            2: { eapply itrav_step_more; [done| .. | by apply STEP_EXT].
+                 { red. split; simpl.
+                   { apply set_equiv_union; reflexivity. }
+                   { rewrite set_unionA. reflexivity. }
+                 }
+                 red. simpl. rewrite COVEQ, ISSEQ. split; basic_solver 10. }
+            inversion STEP_EXT. apply set_eq_helper, proj2 in H0.
+            specialize (H0 r). specialize_full H0.
+            { left. apply COVEQ. basic_solver. }
+            forward eapply tc_I_in_W as IW.
+            { eapply tc_coherent_implies_tc_coherent_alt; [..| apply COH]; auto. }
+            simpl in IW. 
+            destruct H0; [done| ]. unfolder in H. desc. destruct H; desc. 
+            { apply IW in H. type_solver. }
+            apply wf_rmwD, seq_eqv_lr in H2; auto. desc. type_solver. }
+          red. left. splits; simpl.
+          { intros INw. destruct INw as [[Cw | [[REL | CW] ?]] | ->]; auto. 
+            { by destruct REL. } 
+            { by destruct (DISJW w). }
+            type_solver. }
+          { red. split.
+            { split; auto. simpl. red. red in DC_SBw.
+              rewrite DC_SBw. basic_solver. }
+            repeat left. split; auto. simpl. basic_solver. }
+          { basic_solver. }
+          { basic_solver. }
+        }
+
+        destruct (classic (I w)) as [Iw | NIw].
+        { apply rtE. left. red. split; auto.
+          apply trav_config_eq_helper; simpl; [basic_solver| ].
+          generalize Iw. basic_solver 10. }
+
+        apply rt_step. eapply isim_trav_step_more; [by apply same_tc_Reflexive| ..].
+        { erewrite trav_config_eq_helper'; cycle 1. 
+          { simpl. reflexivity. }
+          { simpl. rewrite set_unionA, set_unionC with (s := eq w), <- set_unionA.
+            reflexivity. }
+          apply same_tc_Reflexive. }
+        replace (tid r) with (tid w).
+        2: { symmetry. eapply wf_rmwt; eauto. }
+        eapply rlx_write_promise_step; auto; simpl. 
+        { intros [? | [CRMW ?]]; [done| ].
+          apply DISJW in CRMW; auto. }
+        red. right. simpl. splits.
+        3, 4: basic_solver. 
+        { intros [? | [CRMW ?]]; [done| ].
+          apply DISJW in CRMW; auto. }
+        { red. split.
+          { split; [basic_solver| ]. simpl.
+            red in DC_SBw.
+            unfold "fwbob". 
+            red. intros x [w_ DOMx%seq_eqv_r]. desc. subst w_.
+            unfolder in DOMx. des; [by vauto| ..]. 
+            { specialize (DC_SBw x). specialize_full DC_SBw.
+              { exists w. basic_solver. }
+              destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
+              type_solver. }
+            { type_solver. }
+            { specialize (DC_SBw x). specialize_full DC_SBw.
+              { exists w. basic_solver. }
+              destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
+              type_solver. }
+          }
+          
+          red. simpl. 
+          forward eapply (stc_coherent tc') as COH'_CLOS; auto. 
+          { congruence. }
+          apply ar_rf_ppo_loc_ct_I_in_I in COH'_CLOS.
+          rewrite TC' in COH'_CLOS.
+          rewrite TC'_UNION in COH'_CLOS.
+          rewrite stc_tcu_distribute in COH'_CLOS.
+          unfold trav_config_union in COH'_CLOS. simpl in COH'_CLOS.
+          
+          rewrite !set_inter_empty_l, !set_union_empty_r, !set_union_empty_l in COH'_CLOS.
+          rewrite !id_union, !seq_union_r, !dom_union in COH'_CLOS.
+          apply set_subset_union_l, proj2 in COH'_CLOS.
+          rewrite RMWD in COH'_CLOS.
+          rewrite set_inter_union_l, id_union, !seq_union_r,
+          seq_union_l, dom_union in COH'_CLOS. 
+          apply set_subset_union_l, proj2 in COH'_CLOS.
+          red. intros e DOMe. red in DOMe. desc.
+          apply seqA, seq_eqv_lr in DOMe. desc. subst y.
+          specialize (COH'_CLOS e). specialize_full COH'_CLOS.
+          { exists w. apply seq_eqv_lr. splits; auto. basic_solver. }
+          destruct COH'_CLOS as [[? | DOMe'] | [[-> ?] | [-> ?]]].
+          { by left. }
+          2: { type_solver. }
+          2: { edestruct ar_rf_ppo_loc_acyclic; eauto. }
+          destruct DOMe'. destruct H.
+          2: { apply codom_union in H. destruct H.
+               { destruct (classic (I e)); vauto. }
+               forward eapply codom_I_rmw_empty with (tc := tc) as NOCR; auto.
+               { congruence. }
+               rewrite TC in NOCR. by apply NOCR in H. }
+          destruct H; [| by left; apply H].
+          forward eapply tc_W_C_in_I as CW_I.
+          { eapply tc_coherent_implies_tc_coherent_alt; [..| apply COH]; auto. }
+          left. apply CW_I. vauto. }
+      }
+      { admit. }
+      { admit. }
   Admitted. 
              
 
