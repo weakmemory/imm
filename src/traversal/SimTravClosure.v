@@ -541,7 +541,30 @@ Module SimTravClosure.
 
   Lemma set_eq_helper {A: Type} (s1 s2: A -> Prop) (EQ: s1 = s2):
     s1 ≡₁ s2.
-  Proof. by rewrite EQ. Qed.  
+  Proof. by rewrite EQ. Qed.
+
+  Lemma set_minus_disjoint {A: Type} (s1 s2: A -> Prop)
+        (DISJ: set_disjoint s1 s2):
+    s1 \₁ s2 ≡₁ s1.
+  Proof. basic_solver. Qed.
+
+  (* TODO: move upper *)
+  Lemma itrav_step_mon_ext_equiv (e: actid)
+        (C1 I1 C2 I2 C' I' Cu1 Iu1 Cu2 Iu2: actid -> Prop)
+        (STEP: itrav_step G sc e {| covered := C1; issued := I1 |}
+                          {| covered := C2; issued := I2 |})
+        (EQC1: Cu1 ≡₁ C1 ∪₁ C') (EQI1: Iu1 ≡₁ I1 ∪₁ I')
+        (EQC2: Cu2 ≡₁ C2 ∪₁ C') (EQI2: Iu2 ≡₁ I2 ∪₁ I'):
+    (itrav_step G sc e)^? (mkTC Cu1 Iu1) (mkTC Cu2 Iu2).
+  Proof.
+    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto.
+    destruct STEP'.
+    { left. inversion H. apply trav_config_eq_helper'; simpl.
+      { rewrite EQC1, EQC2. rewrite H1. basic_solver. }
+      rewrite EQI1, EQI2. rewrite H2. basic_solver. }
+    right. eapply itrav_step_more; [done| .. | by apply H].
+    all: red; split; simpl; auto.
+  Qed. 
     
   Lemma trav_step_closures_isim WF WFSC CONS COMP
         (tc tc': trav_config)
@@ -882,8 +905,121 @@ Module SimTravClosure.
           { eapply tc_coherent_implies_tc_coherent_alt; [..| apply COH]; auto. }
           left. apply CW_I. vauto. }
       }
-      { admit. }
-      { admit. }
+      { rename e into w. 
+        assert ((issued tc) w) as Iw. 
+        { apply ISSEQ. eapply tc_W_C_in_I.
+          { eapply tc_coherent_implies_tc_coherent_alt; [..| apply COH']; auto. }
+          split; auto. apply COVEQ. basic_solver. }
+        assert (codom_rel (⦗eq w⦘ ⨾ rmw) ≡₁ ∅) as NOWRMW.
+        { rewrite wf_rmwD; auto. type_solver. } 
+        
+        rewrite !stc_alt; auto. 
+        destruct tc as [C I] eqn:TC, tc' as [C' I'] eqn:TC'. 
+        unfold Cclos, Iclos. simpl in *.
+        unfold trav_config_union. simpl in *.
+        erewrite f_equal.
+        2: { eapply trav_config_eq_helper'; simpl; rewrite COVEQ, ISSEQ.
+             all: rewrite id_union, seq_union_l, codom_union.
+             all: rewrite NOWRMW, set_union_empty_r.
+             2: reflexivity.
+             rewrite set_unionA, set_unionC with (s := eq w), <- set_unionA.
+             reflexivity. 
+        }
+        
+        destruct (classic (set_disjoint (I ∩₁ is_rel lab ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) (eq w))) as [NEWw | OLDw].
+        2: { apply rtE. left. red. split; [| done].
+             apply trav_config_eq_helper; simpl; [| basic_solver].
+             rewrite set_unionA. apply set_equiv_union; [basic_solver| ].
+             erewrite <- set_union_absorb_l
+               with (s' := (I ∩₁ is_rel lab ∪₁ codom_rel (⦗C⦘ ⨾ rmw)))
+                    (s := eq w) at 1.
+             2: { forward eapply not_iff_compat as [DOMw _].
+                  2: specialize (DOMw OLDw).
+                  1: by apply set_disjoint_eq_r.
+                  apply NNPP in DOMw.
+                  generalize DOMw. basic_solver 10. } 
+             rewrite set_minus_union_l.
+             rewrite set_minus_disjoint with (s1 := eq w); [| basic_solver].
+             rewrite set_union_strict.
+             rewrite set_minus_minus_l. basic_solver 10. }
+
+        apply rt_step.
+        eapply isim_trav_step_more; [by apply same_tc_Reflexive| ..].
+        { erewrite f_equal; [apply same_tc_Reflexive| ]. 
+          eapply trav_config_eq_helper'; simpl; [| reflexivity].
+          rewrite set_minus_union_r.
+          rewrite (set_minus_disjoint _ _ NEWw). 
+          rewrite set_inter_minus_l, set_interK.
+          reflexivity. }
+
+        apply set_disjointC in NEWw as NEWw_. specialize (NEWw_ w eq_refl).
+        apply Decidable.not_or in NEWw_ as [NRELw_ NCRMWw].  
+        assert (~ is_rel lab w) as NRELw; [| clear NRELw_].
+        { intros ?. by destruct NRELw_. }
+        
+        apply rlx_write_cover_step; auto.
+        { intros [r RMW].
+          red in COV. destruct COV as [[_ SB_COV] _].
+          specialize (SB_COV r). specialize_full SB_COV.
+          { exists w. apply seq_eqv_r. split; auto. by apply rmw_in_sb. }
+          destruct NCRMWw. exists r. apply seq_eqv_l. split; auto. }
+        { simpl. left. basic_solver. }
+        simpl.
+        eapply itrav_step_more; [reflexivity| by apply same_tc_Reflexive| ..]. 
+        { apply same_tc_Symmetric. erewrite f_equal; [apply same_tc_Reflexive| ]. 
+          apply trav_config_eq_helper'; simpl; [| reflexivity]. 
+          rewrite set_unionA, set_unionC with (s' := eq w), <- set_unionA.
+          reflexivity. }
+        edestruct itrav_step_mon_ext as [EQ | STEP]; [by apply TRAV_STEP| ..].
+        2: { eapply itrav_step_more; [done| .. | by apply STEP].
+             all: red; split; simpl; (rewrite ?COVEQ, ?ISSEQ); apply set_equiv_union; reflexivity. }
+        inversion EQ. clear EQ. apply set_eq_helper, proj2 in H0.
+        specialize (H0 w). specialize_full H0.
+        { repeat left. apply COVEQ. basic_solver. }
+        destruct H0; [done| ]. destruct H. edestruct NEWw; eauto. } 
+      { rename e into f. apply rt_step.
+        rewrite !stc_alt; auto.
+        destruct tc as [C I] eqn:TC, tc' as [C' I'] eqn:TC'.
+        unfold trav_config_union, Cclos, Iclos. simpl in *.
+
+        assert (codom_rel (⦗eq f⦘ ⨾ rmw) ≡₁ ∅) as NOFRMW.
+        { rewrite wf_rmwD; auto. type_solver. }
+        
+        assert (set_disjoint (I ∩₁ (is_rel lab) ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) (eq f))
+          as F_NI_NCRMW. 
+        { forward eapply issuedW as IW; [by apply COH| ]. rewrite IW.
+          rewrite wf_rmwD; auto. type_solver. }             
+
+        erewrite f_equal.
+        2: { eapply trav_config_eq_helper'; simpl; rewrite ?COVEQ, ?ISSEQ.
+             all: rewrite id_union, seq_union_l, codom_union, NOFRMW, set_union_empty_r. 
+             2: reflexivity. 
+             rewrite set_minus_union_r.
+             rewrite set_minus_disjoint with (s2 := eq f); [| done].              
+             rewrite set_inter_minus_l, set_interK.
+             rewrite set_unionA, set_unionC with (s := eq f), <- set_unionA.
+             reflexivity. }
+
+        simpl in *.
+        eapply fence_trav_step; auto. simpl.
+        forward eapply itrav_step_mon_ext_equiv 
+          with (C' := (I ∩₁ (is_rel lab) ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) \₁ C)
+               (I' := codom_rel (⦗C⦘ ⨾ rmw) \₁ I)
+          as TRAV_STEP'.
+        { by apply TRAV_STEP. }
+        1, 2: reflexivity. 
+        { rewrite COVEQ. 
+          rewrite set_unionA, set_unionC with (s := eq f), <- set_unionA.
+          reflexivity. }
+        { rewrite ISSEQ. reflexivity. }
+        destruct TRAV_STEP'; auto. 
+
+        inversion H. apply set_eq_helper, proj2 in H1.
+        specialize (H1 f). specialize_full H1; [right; basic_solver| ].
+        destruct H1; [done| ].
+        destruct (F_NI_NCRMW f); auto. apply H0. }
+      }
+    { admit. }
   Admitted. 
              
 
