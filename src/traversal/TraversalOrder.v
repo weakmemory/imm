@@ -18,114 +18,6 @@ Import ListNotations.
 
 Set Implicit Arguments.
 
-(* TODO: move to AuxRel2.v *)
-Require Import IndefiniteDescription.
-Lemma fsupp_rt_ct {A} (r : relation A)
-      (FSUPP : fsupp r＊) :
-  fsupp r⁺.
-Proof using.
-  intros y. specialize (FSUPP y).
-  desf. exists findom.
-  ins. apply FSUPP.
-  apply rtE. now right.
-Qed.
-
-(* TODO: move to AuxRel2.v *)
-Lemma fsupp_wf_implies_fsupp_ct {A} (r : relation A)
-      (WF    : well_founded r)
-      (FSUPP : fsupp r) : 
-  fsupp r⁺.
-Proof using.
-  apply fsupp_rt_ct.
-  red; intros y.
-  induction y as [y HH] using (well_founded_ind WF).
-  specialize (FSUPP y). desf.
-  set (f :=
-         fun (a : A) =>
-           match
-             excluded_middle_informative (r a y)
-           with
-           | left  PF =>
-               proj1_sig (constructive_indefinite_description _ (HH a PF))
-           | right _  => nil
-           end
-      ).
-  exists (y :: flat_map f findom).
-  ins. apply rtE in REL. red in REL. desf.
-  { red in REL. desf. auto. }
-  right.
-  apply ct_end in REL.
-  destruct REL as [z [AA BB]].
-  apply in_flat_map.
-  exists z. splits.
-  { now apply FSUPP. }
-  subst f. ins. unfold proj1_sig. desf.
-  intuition.
-Qed.
-
-(* TODO: move to AuxRel2.v *)
-Lemma fsupp_map_rel {A B} (f : B -> A)
-      (FININJ : forall y, set_finite (fun x => y = f x))
-      r (FSUPP : fsupp r) :
-  fsupp (f ↓ r).
-Proof using.
-  unfolder. ins. red in FSUPP.
-  specialize (FSUPP (f y)). desf.
-  set (g :=
-         fun (a : A) =>
-           proj1_sig
-             (constructive_indefinite_description _ (FININJ a))
-      ).
-  exists (flat_map g findom).
-  ins. apply in_flat_map.
-  exists (f x). splits; auto.
-  subst g. unfold proj1_sig. desf.
-  intuition.
-Qed.
-
-(* (* TODO: move to AuxRel2.v *) *)
-(* Lemma fsupp_collect_rel {A B} (f : A -> B) *)
-(*       (FSURJ : forall y, exists x, y = f x) *)
-(*       r (FSUPP : fsupp r) : *)
-(*   fsupp (f ↑ r). *)
-(* Proof using. *)
-(*   unfolder. ins. red in FSUPP. *)
-(*   destruct (FSURJ y) as [x AA]; subst. *)
-(*   destruct (FSUPP x) as [l BB]. *)
-(*   specialize (FSUPP x). desf. *)
-(*   exists (map f findom). *)
-(*   ins. desf. apply in_map_iff. *)
-(*   eexists; splits; eauto. *)
-(*   apply FSUPP. *)
-(* Qed. *)
-
-(* TODO: move to AuxRel2.v *)
-Lemma fsupp_map_rel2 {A B} (f : B -> A)
-      (FSURJ : forall y, exists x, y = f x)
-      r (FSUPP : fsupp (f ↓ r)) :
-  fsupp r.
-Proof using.
-  unfolder. ins. red in FSUPP.
-  unfold map_rel in *.
-  destruct (FSURJ y) as [x AA]; subst.
-  destruct (FSUPP x) as [l BB].
-  exists (map f l).
-  ins. apply in_map_iff.
-  destruct (FSURJ x0) as [z CC]; subst.
-  eexists; eauto.
-Qed.
-
-Lemma map_rel_seq2 {A B} {f : A -> B} r r'
-      (FSURJ : forall y, exists x, y = f x) :
-  f ↓ r ⨾ f ↓ r' ≡ f ↓ (r ⨾ r').
-Proof using.
-  split.
-  { apply map_rel_seq. }
-  unfolder. ins. desf.
-  specialize (FSURJ z). desf.
-  eauto.
-Qed.
-
 Module TravAction.
   Inductive t := cover | issue.
 
@@ -210,71 +102,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     restr_rel (event ↓₁ (E \₁ is_init))
               (SB ∪ RF ∪ FWBOB ∪ AR).
 
-  (* TODO: move to imm_s.v *)
-  Lemma fsc_sb_fsc_in_sc WF WFSC CONS : ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ sc.
-  Proof using.
-    rewrite imm_s_hb.sb_in_hb.
-    apply f_sc_hb_f_sc_in_sc; auto.
-    apply CONS.
-  Qed.
-
-  (* TODO: move to imm_s.v *)
-  Lemma sc_sb_sc_in_sc WF WFSC CONS : sc ⨾ sb ⨾ sc ⊆ sc.
-  Proof using.
-    assert (transitive sc) as TSC.
-    { now apply WFSC. }
-    rewrite (wf_scD WFSC) at 1 2.
-    rewrite !seqA.
-    sin_rewrite fsc_sb_fsc_in_sc; auto.
-    sin_rewrite !rewrite_trans; auto.
-    clear; basic_solver 1.
-  Qed.
-
-  Lemma sb_sc_acyclic WF WFSC CONS : acyclic (sb ∪ sc).
-  Proof using.
-    assert (transitive sc) as TSC.
-    { now apply WFSC. }
-    assert (transitive sb) as TSB.
-    { apply sb_trans. }
-    apply acyclic_utt; auto.
-    splits.
-    { apply sb_irr. }
-    { apply WFSC. }
-    rewrite (wf_scD WFSC).
-    rewrite <- !seqA, acyclic_rotl, !seqA.
-    sin_rewrite fsc_sb_fsc_in_sc; auto.
-    rewrite rewrite_trans; auto.
-    red. rewrite ct_of_trans; auto.
-    apply CONS.
-  Qed.
-  
-  (* TODO: move to imm_s.v *)
-  Lemma sb_sc_rt WF WFSC CONS : (sb ∪ sc)^* ≡ sb^? ;; sc^? ;; sb^?.
-  Proof using.
-    assert (transitive sc) as TSC.
-    { now apply WFSC. }
-    assert (transitive sb) as TSB.
-    { apply sb_trans. }
-    assert (transitive (sb ⨾ sc)) as TSBSC.
-    { apply transitiveI. rewrite seqA.
-      now rewrite sc_sb_sc_in_sc; auto. }
-    split.
-    2: { arewrite (sb^? ⊆ (sb ∪ sc)＊).
-         arewrite (sc^? ⊆ (sb ∪ sc)＊).
-         now rewrite !rt_rt. }
-    rewrite unionC.
-    rewrite path_ut; auto.
-    rewrite ct_of_trans; auto.
-    rewrite rt_of_trans; auto.
-    rewrite rt_of_trans; auto.
-    rewrite !crE. rewrite !seq_union_l, !seq_id_l, !seq_union_r, !seqA.
-    rewrite !seq_id_r.
-    rewrite sc_sb_sc_in_sc; auto.
-    unionL; eauto with hahn.
-    sin_rewrite sc_sb_sc_in_sc; auto.
-    eauto with hahn.
-  Qed.
-
   Lemma iord_irreflexive WF COMP WFSC CONS : irreflexive iord.
   Proof using.
     assert (transitive sc) as TSC.
@@ -290,7 +117,8 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     rewrite <- restr_relE.
     apply irreflexive_restr.
     apply map_rel_irr.
-    now apply sb_sc_acyclic.
+    apply sb_sc_acyclic; auto.
+    apply CONS.
   Qed.
   
   Lemma AR_trans : transitive AR.
@@ -361,6 +189,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     rewrite eSB_in_sb_sc_ct.
     red. rewrite ct_of_ct.
     apply sb_sc_acyclic; auto.
+    apply CONS.
   Qed.
   
   Lemma SB_trans : transitive SB.
@@ -398,9 +227,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
     apply acyclic_utt; splits; auto with lbase.
     rewrite SBRF. 
-    (* TODO: add a lemma to AuxRel.v/Hahn *)
-    red. rewrite ct_of_trans; [|apply transitiveI].
-    all: clear; basic_solver.
+    apply false_acyclic.
   Qed.
 
   Local Hint Resolve SBRF_acyc : lbase.
@@ -435,43 +262,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Lemma EAR : event ↑ AR ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
   Proof using. unfold AR. clear. basic_solver 10. Qed.
 
-  (* TODO: move to imm_s.v? *)
-  Lemma rf_sb_sc_sb_fwbob_in_ar WFSC : rf^? ⨾ sb^? ⨾ sc^? ⨾ sb^? ⨾ fwbob ⊆ ar⁺.
-  Proof using.
-    arewrite (rf^? ⊆ rfe^? ;; sb^?).
-    { rewrite rfi_union_rfe, cr_union_r.
-      rewrite rfi_in_sb. clear. basic_solver 10. }
-    rewrite <- cr_ct.
-    rewrite rfe_in_ar.
-    hahn_frame_l.
-    assert (sb^? ⨾ sb^? ⊆ sb^?) as SBSB.
-    { apply transitiveI. apply transitive_cr. apply sb_trans. }
-    sin_rewrite SBSB.
-    arewrite (sb^? ⨾ sc^? ⊆ sb^? ∪ fwbob^? ;; sc^?).
-    { rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r.
-      unionL; eauto with hahn.
-      transitivity (fwbob ⨾ sc); eauto with hahn.
-      rewrite (dom_l (wf_scD WFSC)) at 1.
-      hahn_frame. unfold imm_bob.fwbob.
-      clear. mode_solver 10. }
-    rewrite !seq_union_l. sin_rewrite SBSB.
-    arewrite (sb^? ⨾ fwbob ⊆ ar⁺).
-    { rewrite crE, !seq_union_l, seq_id_l.
-      rewrite sb_fwbob_in_fwbob. rewrite fwbob_in_bob, bob_in_ar.
-      eauto with hahn. }
-    rewrite fwbob_in_bob, bob_in_ar.
-    arewrite (sc^? ⊆ ar^?).
-    rewrite !cr_ct.
-    eauto with hahn.
-  Qed.
-
-  (* TODO: move to imm_s.v? *)
-  Lemma rf_sb_sc_rt_sb_fwbob_in_ar WF WFSC CONS : rf^? ⨾ (sb ∪ sc)^* ⨾ fwbob ⊆ ar⁺.
-  Proof using.
-    rewrite sb_sc_rt, !seqA; auto.
-    now apply rf_sb_sc_sb_fwbob_in_ar.
-  Qed.
-
   Lemma RFSBFWBOBINAR WF WFSC CONS : RF ⨾ SB^? ⨾ FWBOB ⊆ AR.
   Proof using.
     unfold AR, RF, FWBOB, SB.
@@ -483,7 +273,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     hahn_frame.
     rewrite map_rel_cr, !map_rel_seq.
     apply map_rel_mori; auto.
-    rewrite cr_of_ct. rewrite sb_sc_rt; auto.
+    rewrite cr_of_ct. rewrite sb_sc_rt; auto; try apply CONS.
     rewrite !seqA.
     rewrite rf_sb_sc_sb_fwbob_in_ar; auto.
     apply clos_trans_mori. eauto with hahn.
@@ -493,7 +283,8 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
     rewrite !collect_rel_seq, !collect_rel_cr.
     rewrite ERF, eSB_in_sb_sc_ct, EFWBOB. rewrite cr_of_cr.
-    rewrite cr_of_ct. now apply rf_sb_sc_rt_sb_fwbob_in_ar.
+    rewrite cr_of_ct. apply rf_sb_sc_rt_sb_fwbob_in_ar; auto.
+    apply CONS.
   Qed.
 
   Lemma FWBOB_SBRF_acyc WF WFSC COMP CONS : acyclic (FWBOB ⨾ (SB ∪ RF)⁺).
@@ -573,7 +364,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
     { now apply fsupp_sb. }
     unfold SB. rewrite inclusion_t_rt.
-    rewrite sb_sc_rt; auto.
+    rewrite sb_sc_rt; auto; try apply CONS.
     rewrite <- restr_relE, restrC.
     apply fsupp_restr.
     rewrite <- map_rel_restr.

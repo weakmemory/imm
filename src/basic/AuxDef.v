@@ -2,6 +2,100 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Classical.
 Require Import Lia.
+Require Import IndefiniteDescription.
+
+Lemma false_acyclic {A} : acyclic (∅₂ : relation A).
+Proof using.
+  red. rewrite ct_of_trans; [|apply transitiveI].
+  all: clear; basic_solver.
+Qed.
+
+Lemma fsupp_rt_ct {A} (r : relation A)
+      (FSUPP : fsupp r＊) :
+  fsupp r⁺.
+Proof using.
+  intros y. specialize (FSUPP y).
+  desf. exists findom.
+  ins. apply FSUPP.
+  apply rtE. now right.
+Qed.
+
+Lemma fsupp_wf_implies_fsupp_ct {A} (r : relation A)
+      (WF    : well_founded r)
+      (FSUPP : fsupp r) : 
+  fsupp r⁺.
+Proof using.
+  apply fsupp_rt_ct.
+  red; intros y.
+  induction y as [y HH] using (well_founded_ind WF).
+  specialize (FSUPP y). desf.
+  set (f :=
+         fun (a : A) =>
+           match
+             excluded_middle_informative (r a y)
+           with
+           | left  PF =>
+               proj1_sig (constructive_indefinite_description _ (HH a PF))
+           | right _  => nil
+           end
+      ).
+  exists (y :: flat_map f findom).
+  ins. apply rtE in REL. red in REL. desf.
+  { red in REL. desf. auto. }
+  right.
+  apply ct_end in REL.
+  destruct REL as [z [AA BB]].
+  apply in_flat_map.
+  exists z. splits.
+  { now apply FSUPP. }
+  subst f. ins. unfold proj1_sig. desf.
+  intuition.
+Qed.
+
+Lemma fsupp_map_rel {A B} (f : B -> A)
+      (FININJ : forall y, set_finite (fun x => y = f x))
+      r (FSUPP : fsupp r) :
+  fsupp (f ↓ r).
+Proof using.
+  unfolder. ins. red in FSUPP.
+  specialize (FSUPP (f y)). desf.
+  set (g :=
+         fun (a : A) =>
+           proj1_sig
+             (constructive_indefinite_description _ (FININJ a))
+      ).
+  exists (flat_map g findom).
+  ins. apply in_flat_map.
+  exists (f x). splits; auto.
+  subst g. unfold proj1_sig. desf.
+  intuition.
+Qed.
+
+Lemma fsupp_map_rel2 {A B} (f : B -> A)
+      (FSURJ : forall y, exists x, y = f x)
+      r (FSUPP : fsupp (f ↓ r)) :
+  fsupp r.
+Proof using.
+  unfolder. ins. red in FSUPP.
+  unfold map_rel in *.
+  destruct (FSURJ y) as [x AA]; subst.
+  destruct (FSUPP x) as [l BB].
+  exists (map f l).
+  ins. apply in_map_iff.
+  destruct (FSURJ x0) as [z CC]; subst.
+  eexists; eauto.
+Qed.
+
+Lemma map_rel_seq2 {A B} {f : A -> B} r r'
+      (FSURJ : forall y, exists x, y = f x) :
+  f ↓ r ⨾ f ↓ r' ≡ f ↓ (r ⨾ r').
+Proof using.
+  split.
+  { apply map_rel_seq. }
+  unfolder. ins. desf.
+  specialize (FSURJ z). desf.
+  eauto.
+Qed.
 
 (* TODO: move to Hahn. *)
 Lemma set_finite_exists_bigger {A}

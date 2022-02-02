@@ -373,6 +373,68 @@ sin_rewrite f_sc_hb_f_sc_in_ar.
 apply F_sc_ar_F_sc; done.
 Qed.
 
+Lemma f_sc_sb_f_sc_in_sc : ⦗F ∩₁ Sc⦘ ⨾ sb ⨾ ⦗F ∩₁ Sc⦘ ⊆ sc.
+Proof using WF WF_SC ACYC_EXT.
+  rewrite sb_in_hb.
+  apply f_sc_hb_f_sc_in_sc; auto.
+Qed.
+
+Lemma sc_sb_sc_in_sc : sc ⨾ sb ⨾ sc ⊆ sc.
+Proof using WF WF_SC ACYC_EXT.
+  assert (transitive sc) as TSC.
+  { now apply WF_SC. }
+  rewrite (wf_scD WF_SC) at 1 2.
+  rewrite !seqA.
+  sin_rewrite f_sc_sb_f_sc_in_sc; auto.
+  sin_rewrite !rewrite_trans; auto.
+  clear; basic_solver 1.
+Qed.
+
+Lemma sb_sc_acyclic : acyclic (sb ∪ sc).
+Proof using WF WF_SC ACYC_EXT.
+  assert (transitive sc) as TSC.
+  { now apply WF_SC. }
+  assert (transitive sb) as TSB.
+  { apply sb_trans. }
+  apply acyclic_utt; auto.
+  splits.
+  { apply sb_irr. }
+  { apply WF_SC. }
+  rewrite (wf_scD WF_SC).
+  rewrite <- !seqA, acyclic_rotl, !seqA.
+  sin_rewrite f_sc_sb_f_sc_in_sc; auto.
+  rewrite rewrite_trans; auto.
+  red. rewrite ct_of_trans; auto.
+  apply WF_SC.
+Qed.
+
+Lemma sb_sc_rt : (sb ∪ sc)^* ≡ sb^? ;; sc^? ;; sb^?.
+Proof using WF WF_SC ACYC_EXT.
+  assert (transitive sc) as TSC.
+  { now apply WF_SC. }
+  assert (transitive sb) as TSB.
+  { apply sb_trans. }
+  assert (transitive (sb ⨾ sc)) as TSBSC.
+  { apply transitiveI. rewrite seqA.
+    now rewrite sc_sb_sc_in_sc; auto. }
+  split.
+  2: { arewrite (sb^? ⊆ (sb ∪ sc)＊).
+       arewrite (sc^? ⊆ (sb ∪ sc)＊).
+       now rewrite !rt_rt. }
+  rewrite unionC.
+  rewrite path_ut; auto.
+  rewrite ct_of_trans; auto.
+  rewrite rt_of_trans; auto.
+  rewrite rt_of_trans; auto.
+  rewrite !crE. rewrite !seq_union_l, !seq_id_l, !seq_union_r, !seqA.
+  rewrite !seq_id_r.
+  rewrite sc_sb_sc_in_sc; auto.
+  unionL; eauto with hahn.
+  sin_rewrite sc_sb_sc_in_sc; auto.
+  eauto with hahn.
+Qed.
+
+
 (* Lemma wf_ar : well_founded (ar sc). *)
 (* Proof using WF FINDOM WF_SC IMMCON. *)
 (*   cdes FINDOM. *)
@@ -648,6 +710,41 @@ Proof using WF.
   sin_rewrite rewrite_trans_seq_cr_l.
   2: by apply sb_same_loc_trans.
   unfold fwbob. eauto with hahn.
+Qed.
+
+Lemma rf_sb_sc_sb_fwbob_in_ar : rf^? ⨾ sb^? ⨾ sc^? ⨾ sb^? ⨾ (fwbob G) ⊆ (ar sc)⁺.
+Proof using WF_SC.
+  arewrite (rf^? ⊆ rfe^? ;; sb^?).
+  { rewrite rfi_union_rfe, cr_union_r.
+    rewrite rfi_in_sb. clear. basic_solver 10. }
+  rewrite <- cr_ct.
+  rewrite rfe_in_ar.
+  hahn_frame_l.
+  assert (sb^? ⨾ sb^? ⊆ sb^?) as SBSB.
+  { apply transitiveI. apply transitive_cr. apply sb_trans. }
+  sin_rewrite SBSB.
+  arewrite (sb^? ⨾ sc^? ⊆ sb^? ∪ (fwbob G)^? ;; sc^?).
+  { rewrite !crE, !seq_union_l, !seq_union_r, !seq_id_l, !seq_id_r.
+    unionL; eauto with hahn.
+    transitivity (fwbob G ⨾ sc); eauto with hahn.
+    rewrite (dom_l (wf_scD WF_SC)) at 1.
+    hahn_frame. unfold imm_bob.fwbob.
+    clear. mode_solver 10. }
+  rewrite !seq_union_l. sin_rewrite SBSB.
+  arewrite (sb^? ⨾ (fwbob G) ⊆ (ar sc)⁺).
+  { rewrite crE, !seq_union_l, seq_id_l.
+    rewrite sb_fwbob_in_fwbob. rewrite fwbob_in_bob, bob_in_ar.
+    eauto with hahn. }
+  rewrite fwbob_in_bob, bob_in_ar.
+  arewrite (sc^? ⊆ (ar sc)^?).
+  rewrite !cr_ct.
+  eauto with hahn.
+Qed.
+
+Lemma rf_sb_sc_rt_sb_fwbob_in_ar : rf^? ⨾ (sb ∪ sc)^* ⨾ fwbob G ⊆ (ar sc)⁺.
+Proof using WF WF_SC ACYC_EXT.
+  rewrite sb_sc_rt, !seqA; auto.
+  now apply rf_sb_sc_sb_fwbob_in_ar.
 Qed.
 
 Lemma no_ar_to_init : ar sc ⨾ ⦗is_init⦘ ≡ ∅₂.
