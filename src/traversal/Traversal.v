@@ -101,7 +101,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
       ⟪ ISSEQ: issued  T' ≡₁ issued  T ∪₁ (eq e) ⟫
     ⟫.
 
-  Add Parametric Morphism : itrav_step with signature
+  Global Add Parametric Morphism : itrav_step with signature
       eq ==> same_trav_config ==> same_trav_config ==> iff as
           itrav_step_more.
   Proof using.
@@ -134,7 +134,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
        issued := Init ∩₁ E;
     |}.
 
-  Add Parametric Morphism : trav_step with signature
+  Global Add Parametric Morphism : trav_step with signature
       same_trav_config ==> same_trav_config ==> iff as
           trav_step_more.
   Proof using.
@@ -144,7 +144,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     all: by apply same_tc_Symmetric.
   Qed.
 
-  Add Parametric Morphism : traverse with signature
+  Global Add Parametric Morphism : traverse with signature
       same_trav_config ==> same_trav_config ==> iff as
           traverse_more.
   Proof using.

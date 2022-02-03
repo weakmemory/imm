@@ -133,23 +133,23 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
 (******************************************************************************)
 (** **   *)
 (******************************************************************************)
-
-  Add Parametric Relation : trav_config same_trav_config
+  
+  Global Add Parametric Relation : trav_config same_trav_config
       reflexivity proved by same_trav_config_refl
       symmetry proved by same_trav_config_sym
       transitivity proved by same_trav_config_trans
         as same_tc.
   
- Add Parametric Morphism : covered with signature
+  Global Add Parametric Morphism : covered with signature
       same_trav_config ==> set_equiv as covered_more.
   Proof using. by unfold same_trav_config; ins; split; ins; desf; apply H. Qed.
 
-  Add Parametric Morphism : issued with signature
+  Global Add Parametric Morphism : issued with signature
       same_trav_config ==> set_equiv as issued_more.
   Proof using. by unfold same_trav_config; ins; desf; apply H1. Qed.
   
 
-  Add Parametric Morphism : coverable with signature
+  Global Add Parametric Morphism : coverable with signature
       same_trav_config ==> set_equiv as coverable_more.
   Proof using.
     unfold coverable, same_trav_config; split; ins; desf.
@@ -157,7 +157,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     all: unfold set_equiv in *; unnw; intuition; basic_solver 12.
   Qed.
 
-  Add Parametric Morphism : issuable with signature
+  Global Add Parametric Morphism : issuable with signature
       same_trav_config ==> set_equiv as issuable_more.
   Proof using.
     unfold issuable, same_trav_config; split; ins; desf.
@@ -165,7 +165,7 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     all: unfold set_equiv in *; unnw; intuition; basic_solver 12.
   Qed.
 
-  Add Parametric Morphism : tc_coherent with signature
+  Global Add Parametric Morphism : tc_coherent with signature
       same_trav_config ==> iff as tc_coherent_more.
   Proof using.
     intros T T' EQ.
