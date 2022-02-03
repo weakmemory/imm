@@ -1044,65 +1044,65 @@ Module SimTravClosure.
     Hypothesis (ENUM: enumerates steps graph_steps).
     Hypothesis (RESP: respects_rel steps iord⁺ graph_steps).
     
-    Definition tc_enum (i: nat) :=
+    Definition tc_enum (i: nat): trav_config :=
       sim_trav_closure (set2trav_config (trav_prefix steps i)).
 
-
-    Lemma sim_traversal WF COMP WFSC CONS MF:
-      forall i (DOMi: NOmega.lt_nat_l (S i) (set_size graph_steps)),
-        (sim_trav_step G sc)^? (tc_enum i) (tc_enum (1 + i)).
+    Lemma sim_traversal_next WF COMP WFSC CONS MF:
+      forall i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)),
+        (sim_trav_step G sc)^* (tc_enum i) (tc_enum (1 + i)).
     Proof.
-      ins. 
-      forward eapply itrav_prefix_step as STEP; eauto.
-      forward eapply trav_prefix_extend as PREF'; eauto.
-      destruct (steps i) as [a e] eqn:STEPi. simpl in *.
-      unfold tc_enum. rewrite PREF'. clear PREF'.
+      ins.
+      unfold tc_enum. apply trav_step_closures_isim; auto.
+      1, 2: apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. 
+      { apply NOmega.lt_le_incl, DOMi. }
+      apply trav_prefix_step; auto. 
+    Qed. 
+          
+  End Traversal.
 
-      destruct a.
-      { destruct (classic (
+  (* TODO: move upper *)
+  Lemma stc_domE WF COMP WFSC CONS MF
+        tc (DOMC: covered tc ⊆₁ E) (DOMI: issued tc ⊆₁ E)
+        (COH: tc_coherent G sc tc):
+    covered (sim_trav_closure tc) ⊆₁ E /\ issued (sim_trav_closure tc) ⊆₁ E.
+  Proof.
+    rewrite stc_alt; auto. 
+    destruct tc. simpl in *.
+    unfold Cclos, Iclos. simpl.
+    rewrite wf_rmwE; auto. basic_solver.
+  Qed.  
 
-      
-      pose proof (lab_rwf lab e) as LABe. des.
-      3: {
-        right.
-        exists (tid e).
 
-    
-    Lemma sim_traversal WF COMP WFSC CONS MF:
-      forall i (DOMi: NOmega.lt_nat_l (S i) (set_size graph_steps)),
-        (sim_trav_step G sc)^? (tc_enum i) (tc_enum (1 + i)).
-    Proof. 
-      ins. unfold tc_enum.
-      forward eapply trav_prefix_extend as PREF'; eauto.
-      destruct (steps i) as [a e] eqn:STEPi.
-      rewrite PREF'. clear PREF'.
-
-      (* remember (if a then eq e else ∅) as Cp. remember (if a then ∅ else eq e) as Ip. *)
-      remember ({|
-            covered := if a then eq e else ∅; issued := if a then ∅ else eq e
-          |}) as TCp. 
-
-      rewrite stc_tcu_distribute.
-      remember (set2trav_config (trav_prefix steps i)) as tc.
-
-      apply sim_trav_step_closure.
-      forward eapply trav_prefix_step as STEP; eauto.
-      red in STEP. destruct STEP as [e' STEP]. 
-      right. red. 
-
-      rewrite !stc_alt.
-      remember ({| covered := Cclos tc; issued := Iclos tc |}) as TCclos.
-      remember ({| covered := Cclos TCp; issued := Iclos TCp |}) as TCclos_p.
-
-      (* rewrite tcu_assoc. rewrite tcu_symm with (tc1 := TCclos). *)
-      (* rewrite tcu_assoc. rewrite <- tcu_assoc with (tc2 := TCp). *)
-      (* rewrite tcu_symm with (tc1 := TCclos_p).  *)
-
-      apply sim_trav_step_closure. 
-      
-      
-      
-  End Traversal. 
+  Lemma sim_traversal_inf WF COMP WFSC CONS MF
+        (IMM_FAIR: fsupp ar⁺):
+    exists (sim_enum: nat -> trav_config),
+      ⟪DOM_TC: forall i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)),
+          covered (sim_enum i) ⊆₁ E /\ issued (sim_enum i) ⊆₁ E ⟫ /\
+      ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)),
+          tc_coherent G sc (sim_enum i) ⟫ /\
+      ⟪STEPS: forall i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)),
+          (sim_trav_step G sc)^* (sim_enum i) (sim_enum (1 + i)) ⟫ /\
+      ⟪ENUM: forall e (Ee: (E \₁ is_init) e), exists i, covered (sim_enum i) e⟫.
+  Proof.
+    destruct iord_enum_exists as [steps_enum [ENUM RESP]]; auto.
+    exists (tc_enum steps_enum). splits.
+    3: { apply sim_traversal_next; auto. }
+    2: { ins. unfold tc_enum. apply stc_coherent; auto.
+         apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
+    { intros i DOM. unfold tc_enum. apply stc_domE; auto.
+      1, 2: unfold set2trav_config; simpl; basic_solver.
+      apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
+    intros e Ee.
+    pose proof ENUM as ENUM'. apply enumeratesE' in ENUM. desc.
+    specialize (IND (mkTL TravAction.cover e)). specialize_full IND; [by vauto| ].
+    desc. exists (S i).
+    unfold tc_enum. rewrite stc_alt; auto.
+    2: { apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
+    unfold trav_config_union. simpl. left. split; [| by apply Ee].
+    left. split; [| by apply Ee].
+    exists (mkTL TravAction.cover e). split; auto. split; [by vauto| ].
+    rewrite <- IND0. apply trav_prefix_ext; auto. basic_solver. 
+  Qed. 
 
 
 End SimTravClosure.   
