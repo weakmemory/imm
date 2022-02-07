@@ -13,6 +13,8 @@ Require Import imm_bob.
 Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm.
+Require Import ImmFair.
+Require Import FairExecution.
 
 Set Implicit Arguments.
 
@@ -792,17 +794,25 @@ Proof using CON DATA_RMW DEPS_RMW_FAIL NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB 
   rewrite <- ct_step. unfold ar. eauto with hahn.
 Qed.
 
-Lemma IMM_fsupp_ar
-      (FSUPPSB : fsupp sb) (* NEXT TODO: remove the restriction *)
-      (FSUPPRF : fsupp rf) (* NEXT TODO: remove the restriction *)
+Lemma no_hbp_to_init:
+  hbp ≡ hbp ⨾ ⦗set_compl is_init⦘.
+Proof using CON.
+  split; [| basic_solver]. apply domb_rewrite. 
+  unfold "hbp". rewrite Power_ppo.ppo_in_sb, fence_in_sb; [| by apply WF].
+  rewrite rfe_in_rf. rewrite no_sb_to_init, no_rf_to_init; [| by apply WF].
+  basic_solver.
+Qed.
+  
+
+Lemma IMM_fair
       (* NEXT TODO: note that here we use boba' instead of original Arm.bob *)
-      (FSUPP : fsupp hbp⁺) 
+      (FSUPP : fsupp (⦗set_compl is_init⦘ ⨾ hbp⁺)) 
       (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
-  fsupp (ar G)⁺.
+  imm_fair G. 
 Proof using CON DATA_RMW DEPS_RMW_FAIL G NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_SB SC_F.
   assert (WF' : Wf G) by apply WF.
   assert (transitive sb) as TSB by apply sb_trans.
-  unfold ar.
+  red. unfold imm.ar.
   arewrite (psc ⊆ ∅₂).
   { rewrite (dom_l (wf_pscE WF)).
     rewrite (dom_l (wf_pscD G)).
@@ -810,10 +820,18 @@ Proof using CON DATA_RMW DEPS_RMW_FAIL G NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_S
     rewrite <- set_interA. rewrite NOSC.
     clear; basic_solver 1. }
   rewrite union_false_l.
+  rewrite clos_trans_domb_begin.
+  2: { rewrite rfe_in_rf, ar_int_in_ar.
+       rewrite no_rf_to_init; auto. generalize (IMM_no_ar_to_init _ WF).
+       basic_solver 10. Unshelve. all: by eauto. }
+  eapply fsupp_mori.
+  { red. apply clos_trans_mori. 
+    rewrite seq_union_r. apply union_mori; [| reflexivity].
+    apply inclusion_seq_eqv_l. }
   rewrite ct_unionE.
-  assert (fsupp (ar_int G)⁺) as AA.
+  assert (fsupp (⦗set_compl is_init⦘ ⨾ ar_int G)⁺) as AA.
   { rewrite imm_ppo.ar_int_in_sb; auto.
-    rewrite ct_of_trans; auto. }
+    rewrite ct_of_trans; [by apply fsupp_sb| basic_solver]. }
   apply fsupp_union; auto.
   apply fsupp_seq.
   { now apply fsupp_ct_rt. }
@@ -821,16 +839,29 @@ Proof using CON DATA_RMW DEPS_RMW_FAIL G NO_W_REL RMW_CTRL_FAIL RMW_DEPS R_ACQ_S
   rewrite ct_rotl, !seqA.
   repeat (apply fsupp_seq); try apply fsupp_eqv.
   3: { rewrite <- cr_of_ct. now apply fsupp_cr. }
-  2: now rewrite rfe_in_rf.
-  arewrite (⦗R⦘ ⨾ (ar_int G)＊ ⨾ ⦗W⦘ ⊆ ⦗R⦘ ⨾ (ar_int G)⁺ ⨾ ⦗W⦘).
-  { rewrite rtE. clear. type_solver. }
+  2: { rewrite rfe_in_rf. by apply fsupp_rf. }
+
+  rewrite rtE with (r := _ ⨾ ar_int G). repeat case_union _ _.
+  rewrite seq_id_l, <- id_inter. arewrite (R ∩₁ W ⊆₁ ∅) by type_solver.
+  rewrite eqv_empty, seq_false_r, union_false_l. 
+
   unfold ar_int.
-  arewrite (⦗W_ex ∩₁ (fun a : actid => is_xacq lab a)⦘ ⊆ ⦗W_ex⦘) by basic_solver.
+  arewrite (⦗W_ex ∩₁ (is_xacq lab)⦘ ⊆ ⦗W_ex⦘) by basic_solver.
+  rewrite inclusion_ct_seq_eqv_l. do 2 rewrite <- seqA with (r1 := ⦗R⦘).
+  rewrite seq_eqvC, !seqA. 
   rewrite C_EXT_helper1.
-  arewrite (rfe ⊆ hbp).
-  arewrite (hbp ⊆ hbp⁺).
-  rewrite ct_ct, rt_of_ct.
-  rewrite <- cr_of_ct. now apply fsupp_cr.
+  rewrite rtE. apply fsupp_union; [by apply fsupp_eqv| ].
+  rewrite ct_rotl. apply fsupp_seq.
+  { rewrite rfe_in_rf. by apply fsupp_rf. }
+  rewrite seqA. arewrite (rfe ⊆ hbp).
+  rewrite no_hbp_to_init at 1. rewrite seqA.
+
+  eapply fsupp_mori.
+  2: { eapply fsupp_mori; [| by apply FSUPP].
+       red. apply inclusion_ct_seq_eqv_l. }
+  red. rewrite ct_end. hahn_frame.
+  rewrite <- rt_of_rt with (r := ⦗_⦘ ⨾ hbp). apply clos_refl_trans_mori.
+  rewrite <- rt_unit. hahn_frame. red. ins. by apply rt_step. 
 Qed.
 
 End immToPower.
