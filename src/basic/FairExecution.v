@@ -87,7 +87,7 @@ Section FairExecution.
   Qed.
   
   Lemma fsupp_rf: fsupp (rf G).
-  Proof using WF FAIR.
+  Proof using WF.
     apply functional_inv_fsupp. by inversion WF.
   Qed.
 
