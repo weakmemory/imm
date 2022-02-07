@@ -27,11 +27,6 @@ Definition respects_rel {A: Type} (enum: nat -> A) (r: relation A) (S: A -> Prop
     (Rij: r (enum i) (enum j)),
     i < j.
 
-Definition trav_config_union (tc1 tc2: trav_config) : trav_config :=
-  mkTC (covered tc1 ∪₁ covered tc2) (issued tc1 ∪₁ issued tc2).
-
-Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
-
 (* TODO: move to lib, or, better, to hahn *)
 Lemma set_extensionality A (s s' : A -> Prop) :
   s ≡₁ s' -> s = s'.
@@ -40,47 +35,74 @@ Proof using.
   apply propositional_extensionality; split; apply H.
 Qed.
 
+(* TODO: move into TraversalConfig *)
+(* TODO: rename? *)
+Global Add Parametric Morphism : mkTC with signature
+    (@set_equiv actid) ==> (@set_equiv actid) ==> same_trav_config as mkTC_more.
+Proof using. vauto. Qed.  
 
-Lemma trav_config_eq_helper tc1 tc2
-      (EQC: covered tc1 ≡₁ covered tc2) (EQI: issued tc1 ≡₁ issued tc2):
+
+(* TODO: move to TraversalConfig? *)
+Lemma same_tc_extensionality tc1 tc2 (SAME: same_trav_config tc1 tc2):
   tc1 = tc2.
-Proof using.
-  destruct tc1, tc2. simpl in *.  f_equal; apply set_extensionality; auto.
-Qed.
+Proof.
+  destruct SAME.
+  destruct tc1, tc2. ins. apply set_extensionality in H, H0.   
+  congruence. 
+Qed. 
 
-(* TODO: move this lemma from promising2ToImm 
-   (where it's named set_split_comlete) *)
+Section TravConfigUnion.
+
+  Definition trav_config_union (tc1 tc2: trav_config) : trav_config :=
+    mkTC (covered tc1 ∪₁ covered tc2) (issued tc1 ∪₁ issued tc2).
+
+  Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10).
+  
+  Lemma tcu_same_equiv (tc1 tc2 tc1' tc2': trav_config)
+        (SAME1: same_trav_config tc1 tc1') (SAME2: same_trav_config tc2 tc2'):
+    tc1 ⊔ tc2 = tc1' ⊔ tc2'.
+  Proof.
+    apply same_tc_extensionality.
+    unfold trav_config_union. 
+    destruct SAME1 as [-> ->], SAME2 as [-> ->]. reflexivity. 
+  Qed.
+
+  Definition empty_tc := mkTC ∅ ∅.
+
+  Lemma tcu_empty_l (tc: trav_config):
+    tc ⊔ empty_tc = tc.
+  Proof.
+    apply same_tc_extensionality. 
+    unfold trav_config_union, empty_tc. simpl.
+    rewrite !set_union_empty_r. by destruct tc.  
+  Qed.
+  
+  Lemma tcu_assoc (tc1 tc2 tc3: trav_config):
+     (tc1 ⊔ tc2) ⊔ tc3 = tc1 ⊔ (tc2 ⊔ tc3).
+  Proof.
+    apply same_tc_extensionality. 
+    unfold trav_config_union. split; simpl; basic_solver. 
+  Qed.
+
+  Lemma tcu_symm (tc1 tc2: trav_config):
+    tc1 ⊔ tc2 = tc2 ⊔ tc1. 
+  Proof.
+    apply same_tc_extensionality. 
+    unfold trav_config_union. split; simpl; basic_solver. 
+  Qed.
+  
+End TravConfigUnion.   
+
+Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
+
+    
+(* TODO: move to hahn *)
 Lemma set_split_complete {A: Type} (s s': A -> Prop):
   s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
-Proof using. Admitted.
+Proof.
+  rewrite <- set_inter_union_r. rewrite <- AuxRel2.set_full_split. basic_solver. 
+Qed.
 
-(* (* TODO: move upper *) *)
-(* Require Import Coq.Logic.FinFun.  *)
-
-(* Lemma add_map_collect {A B: Type} (f : A -> B) (ra : relation A): *)
-(*   ra ⊆ map_rel f (collect_rel f ra). *)
-(* Proof using. basic_solver 10. Qed.  *)
-
-(* Lemma add_collect_map_rel {A B: Type} (f : B -> A) (ra : relation A) *)
-(*       (SUR: Surjective f): *)
-(*   ra ⊆ collect_rel f (map_rel f ra). *)
-(* Proof using. *)
-(*   unfolder. ins. *)
-(*   red in SUR. destruct (SUR x), (SUR y).  *)
-(*   do 2 eexists. splits; vauto. *)
-(* Qed.  *)
-
-(* Lemma add_collect_set_map {A B: Type} (f : B -> A) (sa : A -> Prop) *)
-(*       (SUR: Surjective f): *)
-(*   sa ⊆₁ set_collect f (set_map f sa). *)
-(* Proof using. *)
-(*   unfolder. ins. *)
-(*   red in SUR. destruct (SUR x).  *)
-(*   eexists. splits; vauto. *)
-(* Qed.  *)
-
-(* Lemma event_sur: Surjective event. *)
-(* Proof using. red. ins. by exists (mkTL TravAction.cover y). Qed. *)
 
 Module IordTraversal. 
   Include TraversalOrder.TravLabel.
@@ -89,8 +111,6 @@ Module IordTraversal.
          (WFSC : wf_sc G sc) (CONS : imm_consistent G sc)
          (MF : mem_fair G).
 
-  
-  (* TODO: unify graph_steps and set2trav_config definitions? *)
   
   Definition graph_steps: t -> Prop :=
     (action ↓₁ (eq TravAction.cover) ∩₁ event ↓₁ (E \₁ is_init)) ∪₁
@@ -101,40 +121,9 @@ Module IordTraversal.
       ((event ↑₁ (action ↓₁ (eq TravAction.cover) ∩₁ S) \₁ is_init ∪₁ is_init) ∩₁ E)
       ((event ↑₁ (action ↓₁ (eq TravAction.issue) ∩₁ S) ∩₁ W \₁ is_init ∪₁ is_init) ∩₁ E).
   
-  (* Lemma s2tc_closed_coherent WF COMP WFSC CONS *)
-  (*       (S: t -> Prop) *)
-  (*       (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S): *)
-  (*   tc_coherent G sc (set2trav_config S). *)
-  (* Proof using.  *)
-  (*   red. splits. *)
-  (*   { simpl. basic_solver. } *)
-  (*   { unfold coverable. simpl.  *)
-
-  (* Lemma s2tc_coherence_helper WF COMP WFSC CONS *)
-  (*       (P1 P2: trav_config -> actid -> Prop) (r: relation actid) (S: t -> Prop) *)
-  (*       (NOI: r ⊆ r ⨾ ⦗is_init⦘)         *)
-  (*       (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S): *)
-  (*       (REL_IORD: ⦗P2 (set2trav_config S)⦘ ⨾ r ⨾ ⦗P1 (set2trav_config S)⦘ ⊆ iord): *)
-  (*   dom_rel (r ⨾ ⦗P1 (set2trav_config S)⦘) ⊆₁ P2 (set2trav_config S). *)
-  (* Proof. *)
-  (*   simpl. *)
-  (*   unfolder. intros e1 [e2 [REL E2]]. desf. *)
-  (*   2: { apply fwbob_in_sb in FWB. *)
-  (*        eapply no_sb_to_init, seq_eqv_r in FWB; eauto. tauto. } *)
-  (*   destruct y as [a_ e2]. simpl in *. subst a_. *)
-  (*   apply (dom_l (wf_fwbobE WF)), seq_eqv_l in FWB. desc. *)
-  (*   splits; auto. *)
-  (*   destruct (classic (is_init e1)); [tauto| ]. left. splits; auto. *)
-  (*   exists (mkTL TravAction.cover e1). splits; auto. *)
-  (*   apply PREF_CLOS. red. eexists. apply seq_eqv_r. splits; [| by eauto]. *)
-  (*   apply ct_step. do 2 red. splits; try basic_solver. *)
-  (*   left. right. red. apply seq_eqv_lr. splits; basic_solver. } *)
-  (* Abort.  *)
 
   Lemma s2tc_coherence_helper WF COMP WFSC CONS
-        (* (P1 P2: trav_config -> actid -> Prop) *)
         (a1 a2: TravAction.t)
-        (* (D1 D2: actid -> Prop) *)
         (D1 D2: actid -> Prop)
         (r: relation actid)
         (S: t -> Prop)
@@ -358,7 +347,7 @@ Module IordTraversal.
       forward eapply (step_event_dom i) as [[Ee NIe] W'e]; auto.
       rewrite I in Ee, NIe. simpl in *.
       
-      apply trav_config_eq_helper.
+      apply same_tc_extensionality. split. 
       { unfold set2trav_config. simpl. etransitivity.
         2: { eapply set_equiv_union; [reflexivity| ].
              apply set_inter_absorb_r with (s' := E). basic_solver. }
@@ -434,7 +423,7 @@ Module IordTraversal.
         erewrite @f_equal. 
         { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }
         rewrite EQs. unfold trav_config_union.
-        apply trav_config_eq_helper; basic_solver. }
+        apply same_tc_extensionality; split; basic_solver. }
 
       forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
       splits.
@@ -450,8 +439,8 @@ Module IordTraversal.
       erewrite @f_equal. 
       { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }          
       rewrite EQs. unfold trav_config_union.
-      apply trav_config_eq_helper; basic_solver.
-    Qed.     
+      apply same_tc_extensionality; split; basic_solver.
+    Qed.
 
     Lemma trav_prefix_step WF COMP WFSC CONS
           i (DOMsi: NOmega.lt_nat_l i (set_size graph_steps)):
@@ -503,7 +492,6 @@ Module IordTraversal.
     exists steps. splits; eauto.
     red. ins. apply RESP; auto.
     all: by apply set_lt_size. 
-  Qed. 
-            
+  Qed.             
   
 End IordTraversal. 
