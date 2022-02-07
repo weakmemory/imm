@@ -365,148 +365,8 @@ Module SimTravClosure.
     }
   Qed. 
         
-  (* Lemma isim_trav_step_mon thread *)
-  (*       (C1 I1 C2 I2 C' I': actid -> Prop) *)
-  (*       (STEP: isim_trav_step G sc thread (mkTC C1 I1) (mkTC C2 I2)) *)
-  (*       (* (MON_C: C1 ⊆₁ C1') (MON_I: C1 ⊆₁ C1') *) *)
-  (*       : *)
-  (*   (isim_trav_step G sc thread)^? (mkTC (C1 ∪₁ C') (I1 ∪₁ I')) *)
-  (*                  (mkTC (C2 ∪₁ C') (I2 ∪₁ I')). *)
-  (* Proof. *)
-  (*   (* TODO: refactor *) *)
-  (*   inversion STEP; subst; simpl in *.  *)
-  (*   { destruct (classic ((C1 ∪₁ C') f)). *)
-  (*     { left. apply trav_config_eq_helper; simpl; basic_solver. } *)
-  (*     right. *)
-  (*     assert (C1 ∪₁ eq f ∪₁ C' ≡₁ C1 ∪₁ C' ∪₁ eq f) as C_ALT by basic_solver.  *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by apply C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     apply fence_trav_step; auto. simpl. *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by rewrite <- C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     eapply itrav_step_mon_ext with (C' := C') (I' := I') in TS as [? | ?]. *)
-  (*     2: { eapply itrav_step_more; [reflexivity| .. | apply H0]. *)
-  (*          all: by apply same_tc_Symmetric. } *)
-  (*     inversion H0. destruct H. rewrite H2. basic_solver. } *)
-  (*   { destruct (classic ((C1 ∪₁ C') r)). *)
-  (*     { left. apply trav_config_eq_helper; simpl; basic_solver. } *)
-  (*     right. *)
-  (*     assert (C1 ∪₁ eq r ∪₁ C' ≡₁ C1 ∪₁ C' ∪₁ eq r) as C_ALT by basic_solver.  *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by apply C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     apply read_trav_step; auto. simpl. *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by rewrite <- C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     eapply itrav_step_mon_ext with (C' := C') (I' := I') in TS as [? | ?]. *)
-  (*     2: { eapply itrav_step_more; [reflexivity| .. | apply H0]. *)
-  (*          all: by apply same_tc_Symmetric. } *)
-  (*     inversion H0. destruct H. rewrite H2. basic_solver. } *)
-  (*   { destruct (classic ((I1 ∪₁ I') w)). *)
-  (*     { left. apply trav_config_eq_helper; simpl; basic_solver. } *)
-  (*     right. *)
-  (*     assert (I1 ∪₁ eq w ∪₁ I' ≡₁ I1 ∪₁ I' ∪₁ eq w) as I_ALT by basic_solver.  *)
-  (*     erewrite trav_config_eq_helper'; [| reflexivity| simpl; by apply I_ALT]. *)
-  (*     simpl. *)
-  (*     apply rlx_write_promise_step; auto. simpl. *)
-  (*     erewrite trav_config_eq_helper'; [| reflexivity| simpl; by rewrite <- I_ALT]. *)
-  (*     simpl. *)
-  (*     eapply itrav_step_mon_ext with (C' := C') (I' := I') in TS as [? | ?]. *)
-  (*     2: { eapply itrav_step_more; [reflexivity| .. | apply H0]. *)
-  (*          all: by apply same_tc_Symmetric. } *)
-  (*     inversion H0. destruct H. rewrite H2. basic_solver. } *)
-  (*   { rename I2 into I1.  *)
-  (*     destruct (classic ((C1 ∪₁ C') w)). *)
-  (*     { left. apply trav_config_eq_helper; simpl; basic_solver. } *)
-  (*     right. *)
-  (*     assert (C1 ∪₁ eq w ∪₁ C' ≡₁ C1 ∪₁ C' ∪₁ eq w) as C_ALT by basic_solver.  *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by apply C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     apply rlx_write_cover_step; auto. *)
-  (*     { simpl. red. tauto. }  *)
-  (*     erewrite trav_config_eq_helper'; [| simpl; by rewrite <- C_ALT | reflexivity]. *)
-  (*     simpl. *)
-  (*     eapply itrav_step_mon_ext with (C' := C') (I' := I') in TS as [? | ?]. *)
-  (*     2: { eapply itrav_step_more; [reflexivity| .. | apply H0]. *)
-  (*          all: by apply same_tc_Symmetric. } *)
-  (*     inversion H0. destruct H. rewrite H2. basic_solver. } *)
-  (*   { assert (~ C1 w) as NC1w. *)
-  (*     { inversion TS2; red in H; desc; simpl in *; auto. *)
-  (*       destruct NISS0. basic_solver. } *)
-  (*     destruct (classic (C' w)) as [C'w | NC'w], (classic (I' w)) as [I'w | NI'w]. *)
-  (*     { left. apply trav_config_eq_helper; simpl; basic_solver. } *)
-  (*     2: {  *)
-  (*       (* TODO: so far it doesn't seem true *) *)
-  (* Admitted. *)
 
-  (* Lemma isim_trav_step_mon_tcu thread *)
-  (*       (tc1 tc2 tc': trav_config) *)
-  (*       (STEP: isim_trav_step G sc thread tc1 tc2): *)
-  (*   (isim_trav_step G sc thread)^? (tc1 ⊔ tc') (tc2 ⊔ tc'). *)
-  (* Proof.  *)
-  (*   destruct tc1, tc2, tc'. apply isim_trav_step_mon; auto.  *)
-  (* Qed. *)
-
-  Lemma isim_trav_step_mon_strict thread
-        (C1 I1 C2 I2 C' I': actid -> Prop)
-        (STEP: isim_trav_step G sc thread (mkTC C1 I1) (mkTC C2 I2))
-        (DISJ_C: set_disjoint C2 C') (DISJ_I: set_disjoint I2 I'):
-    (isim_trav_step G sc thread) (mkTC (C1 ∪₁ C') (I1 ∪₁ I'))
-                                 (mkTC (C2 ∪₁ C') (I2 ∪₁ I')).
-  Proof. Admitted. 
-
-  (* Lemma isim_trav_step_mon thread *)
-  (*       (C1 I1 C2 I2 C' I': actid -> Prop) *)
-  (*       (STEP: isim_trav_step G sc thread (mkTC C1 I1) (mkTC C2 I2)): *)
-  (*   (isim_trav_step G sc thread) (mkTC (C1 ∪₁ C') (I1 ∪₁ I')) *)
-  (*                                (mkTC (C2 ∪₁ C') (I2 ∪₁ I')). *)
-  (* Proof. *)
-  (*   eapply isim_trav_step_more with *)
-  (*       (tc1 := mkTC (C1 ∪₁ C' \₁ C2) (I1 ∪₁ I' \₁ I2)) *)
-  (*       (tc2 := mkTC (C2 ∪₁ C' \₁ C2) (I2 ∪₁ I' \₁ I2)). *)
-  (*   { red. split; simpl. *)
-  (*     { split; [basic_solver |].  *)
-
-  (*     apply same_tc_Reflexive. } *)
-  (*   { red. split; simpl; symmetry; apply set_union_strict. } *)
-    
-    
-
-    
-  (*   assert (exists Cp, C2 ≡₁ C1 ∪₁ Cp \₁ C1) by admit. *)
-  (*   assert (exists Ip, I2 ≡₁ I1 ∪₁ Ip \₁ I1) by admit. *)
-  (*   desc.  *)
-  (*   apply isim_trav_step_more with *)
-  (*       (tc1' := mkTC C1 I1) *)
-  (*       (tc2' := mkTC (C2 ∪₁ Cp \₁ C2 ∪₁ C') (I2 ∪₁ Ip \₁ I2 ∪₁ I')) *)
-  (*     in STEP. *)
-  (*   2: { red; split; simpl; basic_solver. } *)
-  (*   2: { red; split; simpl. } *)
-    
-  (*   desc.  *)
-  (*   eapply isim_trav_step_more with *)
-  (*       (tc1 := mkTC (C1 ∪₁ C' \₁ (C1 ∪₁ C2)) (I1 ∪₁ I' \₁ (I1 ∪₁ I2))) *)
-  (*       (tc2 := mkTC (C2 ∪₁ C' \₁ (C1 ∪₁ C2)) (I2 ∪₁ I' \₁ (I1 ∪₁ I2))). *)
-  (*       (* (tc1 := mkTC (C1 ∪₁ C' \₁ C2) (I1 ∪₁ I' \₁ I2)) *) *)
-  (*       (* (tc2 := mkTC (C2 ∪₁ C' \₁ C2) (I2 ∪₁ I' \₁ I2)).  *) *)
-  (*   { red. split; simpl. *)
-  (*     { symmetry. rewrite H.  *)
-  (*       apply set_union_strict.  *)
-    
-    
-  (* Admitted.  *)
   
-  Lemma isim_trav_step_mon_tcu thread
-        (tc1 tc2 tc': trav_config)
-        (STEP: isim_trav_step G sc thread tc1 tc2)
-        (DISJ_C: set_disjoint (covered tc2) (covered tc'))
-        (DISJ_I: set_disjoint (issued tc2) (issued tc'))
-    :
-    isim_trav_step G sc thread (tc1 ⊔ tc') (tc2 ⊔ tc').
-  Proof.
-    destruct tc1, tc2, tc'. 
-    apply isim_trav_step_mon_strict; auto.
-  Qed.
-
   Lemma tcu_same_equiv (tc1 tc2 tc1' tc2': trav_config)
         (SAME1: same_trav_config tc1 tc1') (SAME2: same_trav_config tc2 tc2'):
     tc1 ⊔ tc2 = tc1' ⊔ tc2'.
@@ -1003,6 +863,101 @@ Module SimTravClosure.
     rewrite !H, !H0. reflexivity. 
   Qed. 
 
+  Section IssueClosure.
+    Variables (C I: actid -> Prop).
+    Variable (e: actid).
+    Let tc := {| covered := C; issued := I |}.
+    Let tc' := {| covered := C; issued := I ∪₁ eq e|}.
+    Let stc := sim_trav_closure tc.
+    Let stc' := sim_trav_closure tc'. 
+      
+    Hypothesis (COH: tc_coherent G sc tc). 
+    Hypothesis (COH': tc_coherent G sc tc'). 
+    Hypothesis (TRAV_STEP : itrav_step G sc e tc tc'). 
+    Hypothesis (NISS: ~ I e).
+    Hypothesis (ISS: issuable G sc tc e).
+
+    Let irel_crmw := I ∩₁ (is_rel lab) ∪₁ codom_rel (⦗C⦘ ⨾ rmw).
+
+    Lemma trav_step_closures_isim_issue WF WFSC CONS COMP:
+      same_trav_config {|
+          covered :=
+            C
+              ∪₁ (I ∩₁ (fun a : actid => is_rel lab a) ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) \₁ C;
+          issued := I ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ I
+        |} (sim_trav_closure tc) ->
+      same_trav_config {|
+          covered :=
+            C
+              ∪₁ ((I ∪₁ eq e) ∩₁ (fun a : actid => is_rel lab a)
+                    ∪₁ codom_rel (⦗C⦘ ⨾ rmw)) \₁ C;
+          issued := I ∪₁ eq e ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ (I ∪₁ eq e)
+        |} (sim_trav_closure tc') ->
+      (isim_trav_step G sc (tid e))＊ (sim_trav_closure tc) (sim_trav_closure tc').
+    Proof.
+      rename e into w. 
+      assert (is_w lab w) as Ww.
+      { eapply issuedW; [by apply COH'| ]. subst tc'. basic_solver. }
+      assert (~ C w) as NCw.
+      { intros Cw. forward eapply (w_covered_issued COH). basic_solver. }
+
+      rewrite set_inter_union_l, set_unionA.
+      rewrite set_unionC with (s := eq w ∩₁ _), <- set_unionA.
+      rewrite set_minus_union_l with (s' := eq w ∩₁ _).
+      rewrite set_minus_disjoint with (s1 := eq w ∩₁ _); [| basic_solver].
+      rewrite <- set_minus_minus_l, set_unionA.
+      rewrite <- set_union_strict with (s1 := eq w).
+
+      destruct (classic (codom_rel (⦗C⦘ ⨾ rmw) w)) as [CRMWw | NCRMWw].
+      { rewrite set_union_absorb_l with (s := eq w).
+        2: { generalize CRMWw. basic_solver. }
+        rewrite set_minus_union_l, set_unionA.
+        rewrite set_union_absorb_r with (s := eq w ∩₁ _).
+        2: { generalize CRMWw. basic_solver. } 
+        rewrite <- set_minus_union_l. fold irel_crmw. 
+        intros -> ->. apply rt_refl. }      
+      
+      destruct (classic (is_rel lab w)) as [RELw | NRELw].
+      2: { rewrite (proj1 (set_disjointE (eq w) (is_rel lab))); [| basic_solver].
+           rewrite set_union_empty_r.
+           fold irel_crmw.           
+           rewrite set_unionC with (s := eq w), <- set_unionA.
+           intros <- <-. 
+           apply rt_step. apply rlx_write_promise_step; auto.
+           { simpl. intros [? | [?]]; basic_solver. }
+           simpl. apply itrav_step_mon_ext_issue.
+           { by fold tc tc'. }
+           simpl. apply set_disjoint_eq_r. intros [? | [?]]; basic_solver. }
+
+      rewrite set_inter_absorb_r with (s := eq w); [| basic_solver].
+      fold irel_crmw.
+
+      rewrite set_unionC with (s := eq w), <- !set_unionA.
+      intros STC STC'. rewrite <- STC, <- STC'. 
+      apply rt_step. apply rel_write_step; auto.
+      { intros [r RMW]. apply NCRMWw. exists r. apply seq_eqv_l. split; auto.
+        cdes ISS. apply proj1, proj2 in ISS0. red in ISS0. apply ISS0.
+        red. exists w. apply seq_eqv_r. split; auto.
+        red. repeat left. apply seq_eqv_r. split; [| basic_solver].
+        by apply rmw_in_sb. }
+      { simpl. intros [? | [?]]; basic_solver. }
+      { simpl. apply itrav_step_mon_ext_issue.
+        { by fold tc tc'. }
+        simpl. apply set_disjoint_eq_r. intros [? | [?]]; basic_solver. }
+
+      simpl. red. left. splits.
+      3, 4: simpl; basic_solver.
+      { simpl. unfold irel_crmw. intros [? | IC]; [by auto| ].
+        red in IC. desc. destruct IC as [IC | IC]; auto.
+        destruct NISS. apply IC. }
+      simpl. apply coverable_add_eq_iff; auto.
+      simpl. apply covered_in_coverable; [| simpl; basic_solver].
+      rewrite STC'. apply stc_coherent; auto. 
+      
+    Qed. 
+
+  End IssueClosure.
+  
   Lemma trav_step_closures_isim WF WFSC CONS COMP
         (tc tc': trav_config)
         (COH: tc_coherent G sc tc)
@@ -1034,8 +989,13 @@ Module SimTravClosure.
       { by rewrite <- COVEQ, <- ISSEQ. }
       { rewrite <- COVEQ. rewrite <- ISSEQ at 2. auto. }
       rewrite <- !COVEQ, <- !ISSEQ. by rewrite STC'. }
-    { admit. }
-  Admitted. 
+    { subst stc stc' tc tc'. rewrite COVEQ, ISSEQ.
+      apply trav_step_closures_isim_issue; auto.
+      { by rewrite <- COVEQ, <- ISSEQ. }
+      { rewrite <- COVEQ at 2. rewrite <- ISSEQ. auto. }
+      rewrite <- !COVEQ, <- !ISSEQ. by rewrite <- STC'.       
+    }
+  Qed. 
              
 
     
