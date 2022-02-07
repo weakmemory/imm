@@ -28,18 +28,14 @@ Section SimTravClosure.
          (WFSC : wf_sc G sc) (CONS : imm_consistent G sc)
          (MF : mem_fair G).
 
-  Definition sim_trav_closure (TC: trav_config) :=
-    let (C, I) := TC in
-    let C' := C ∪₁ I ∩₁ is_rel (lab G) in
-    let C'' := C' ∪₁ codom_rel (⦗C'⦘ ⨾ (rmw G)) in
-    mkTC
-      C''
-      (I ∪₁ C'' ∩₁ (is_w (lab G))).
-
   Definition Cclos (tc: trav_config) :=
     issued tc ∩₁ (is_rel (lab G)) ∪₁ codom_rel (⦗covered tc⦘ ⨾ (rmw G)).
   Definition Iclos (tc: trav_config) :=
-    codom_rel (⦗covered tc⦘ ⨾ (rmw G)). 
+    codom_rel (⦗covered tc⦘ ⨾ (rmw G)).
+
+  Definition sim_trav_closure (tc: trav_config) :=
+    mkTC (covered tc ∪₁ (Cclos tc \₁ covered tc))
+         (issued tc ∪₁ (Iclos tc \₁ issued tc)). 
 
   Lemma codom_I_rmw_empty WF WFSC
         (tc: trav_config) (COH: tc_coherent G sc tc):
@@ -59,32 +55,6 @@ Section SimTravClosure.
     split; [| basic_solver].
     intros x Sx. destruct (classic (s1 x)); [basic_solver| ].
     destruct Sx; [done| ]. basic_solver. 
-  Qed.
-
-  Lemma stc_alt WF WFSC
-        (tc: trav_config) (COH: tc_coherent G sc tc):
-    sim_trav_closure tc = tc ⊔ (mkTC (Cclos tc \₁ covered tc) (Iclos tc \₁ issued tc)). 
-  Proof.
-    forward eapply tc_coherent_implies_tc_coherent_alt as COH'; eauto.
-    forward eapply codom_I_rmw_empty as IW; eauto. simpl in IW.
-    unfold sim_trav_closure, Iclos, Cclos. destruct tc as [C I]. simpl.
-    unfold trav_config_union. simpl. 
-    apply same_tc_extensionality; split; simpl.
-    { rewrite <- set_union_strict.
-      rewrite id_union, !seq_union_l. rewrite codom_union.
-      rewrite IW. basic_solver 10. }
-    rewrite <- set_union_strict. 
-    rewrite !set_inter_union_l.
-    rewrite <- !set_unionA. apply set_equiv_union.
-    { split; [| basic_solver].
-      forward eapply tc_W_C_in_I as CI; eauto.         
-      simpl in CI. rewrite CI. basic_solver. }
-    
-    split.
-    2: { rewrite wf_rmwD at 1; auto.
-         basic_solver. }
-    rewrite id_union, !seq_union_l. rewrite codom_union.
-    rewrite IW. basic_solver 10. 
   Qed.
 
   Lemma sb_invrmw_sbclos WF:
@@ -107,7 +77,7 @@ Section SimTravClosure.
     apply tc_coherent_alt_implies_tc_coherent.
     pose proof COH as COH'. apply tc_coherent_implies_tc_coherent_alt in COH'; auto.
     inversion COH'.
-    rewrite stc_alt; auto.
+    unfold sim_trav_closure. 
     forward eapply codom_I_rmw_empty as CIR; eauto.
     destruct tc as [C I] eqn:TC. simpl in *. 
     assert ((sb G)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ (sb G)^? ⨾ ⦗C⦘) as COV_SB'.
@@ -200,7 +170,7 @@ Section SimTravClosure.
    covered (sim_trav_closure tc) ⊆₁ acts_set G /\
    issued (sim_trav_closure tc) ⊆₁ acts_set G.
   Proof.
-    rewrite stc_alt; auto. 
+    unfold sim_trav_closure. 
     destruct tc. simpl in *.
     unfold Cclos, Iclos. simpl.
     rewrite wf_rmwE; auto. basic_solver.
@@ -210,6 +180,7 @@ Section SimTravClosure.
       same_trav_config ==> same_trav_config as stc_more. 
   Proof.
     ins. destruct x as [C1 I1], y as [C2 I2]. destruct H. simpl in *.
+    unfold sim_trav_closure, Cclos, Iclos. simpl.
     red. split; simpl; rewrite !H, !H0; reflexivity. 
   Qed. 
     
@@ -463,7 +434,7 @@ Module STCTraversal.
         assert (tc_coherent G sc tcc0) as COHc0.
         { eapply tc_coherent_more. 
           2: { apply stc_coherent with (tc := tc); auto. }
-          rewrite (stc_alt G sc); auto.
+          unfold sim_trav_closure.
           unfold trav_config_union, Cclos, Iclos. subst tc. simpl in *.
           fold irel_crmw. subst tcc0. reflexivity. }  
         
@@ -823,7 +794,7 @@ Module STCTraversal.
     Qed. 
 
   End IssueClosure.
-  
+
   Lemma trav_step_closures_isim WF WFSC CONS COMP
         (tc tc': trav_config)
         (COH: tc_coherent G sc tc)
@@ -837,31 +808,14 @@ Module STCTraversal.
       apply rtE. right. induction H.
       { apply ct_step. red. eauto. }
       eapply transitive_ct; eauto. }
+    
+    unfold sim_trav_closure, Cclos, Iclos.
+    destruct tc as [C I], tc' as [C' I']. simpl in *.
 
-    remember (sim_trav_closure G tc) as stc.
-    remember (sim_trav_closure G tc')as stc'.
-    forward eapply same_tc_Reflexive with (x := stc) as STC.
-    forward eapply same_tc_Reflexive with (x := stc') as STC'.
-    
-    rewrite Heqstc in STC at 1. rewrite Heqstc' in STC' at 1.
-    destruct tc as [C I] eqn:TC, tc' as [C' I'] eqn:TC'.
-    rewrite <- TC in Heqstc. rewrite <- TC' in Heqstc'. 
-    erewrite stc_alt in STC, STC'; eauto. 
-    unfold trav_config_union, Cclos, Iclos in STC, STC'. simpl in *.
-    
-    cdes TRAV_STEP. revert Heqstc Heqstc' TC TC'. desf; simpl in *; ins. 
-    { (* TODO: get rid of unused remembers *)
-      subst stc stc' tc tc'. rewrite COVEQ, ISSEQ. 
-      apply trav_step_closures_isim_cover; auto.
-      { by rewrite <- COVEQ, <- ISSEQ. }
-      { rewrite <- COVEQ. rewrite <- ISSEQ at 2. auto. }
-      rewrite <- !COVEQ, <- !ISSEQ. by rewrite STC'. }
-    { subst stc stc' tc tc'. rewrite COVEQ, ISSEQ.
-      apply trav_step_closures_isim_issue; auto.
-      { by rewrite <- COVEQ, <- ISSEQ. }
-      { rewrite <- COVEQ at 2. rewrite <- ISSEQ. auto. }
-      rewrite <- !COVEQ, <- !ISSEQ. by rewrite <- STC'.       
-    }
+    pose proof TRAV_STEP as TRAV_STEP_. 
+    red in TRAV_STEP_. des; rewrite !COVEQ, !ISSEQ in *; simpl in *. 
+    { apply trav_step_closures_isim_cover; auto; reflexivity. }
+    apply trav_step_closures_isim_issue; auto; reflexivity. 
   Qed. 
   
   Section Traversal.
@@ -909,8 +863,7 @@ Module STCTraversal.
     pose proof ENUM as ENUM'. apply enumeratesE' in ENUM. desc.
     specialize (IND (mkTL TravAction.cover e)). specialize_full IND; [by vauto| ].
     desc. exists (S i).
-    unfold tc_enum. erewrite stc_alt; eauto.
-    2: { apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
+    unfold tc_enum, sim_trav_closure. 
     unfold trav_config_union. simpl. left. split; [| by apply Ee].
     left. split; [| by apply Ee].
     exists (mkTL TravAction.cover e). split; auto. split; [by vauto| ].
