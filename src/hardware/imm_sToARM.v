@@ -17,6 +17,7 @@ Require Import imm.
 Require Import immToARMhelper.
 Require Import imm_s_hb_hb.
 Require Import ImmFair.
+Require Import FairExecution.
 
 Set Implicit Arguments.
 
@@ -249,9 +250,6 @@ Proof using CON DEPS_RMW_SB REX_IN_RMW_CTRL RMW_DEPS W_EX_ACQ_SB.
   red. splits; eauto; try apply CON.
   now apply IMM_s_coherence.
 Qed.
-
-(* TODO: move upper *)
-Require Import FairExecution.
 
 Lemma no_ar_int_to_init:
   s_ar_int ≡ s_ar_int ⨾ ⦗set_compl is_init⦘.
