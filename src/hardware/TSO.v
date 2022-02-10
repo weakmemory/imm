@@ -5,6 +5,8 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
+Require Import ThreadBoundedExecution. 
+Require Import FairExecution.
 
 Set Implicit Arguments.
 
@@ -146,5 +148,33 @@ Lemma ppo_in_sb : ppo ⊆ sb.
 Proof using.
 unfold ppo; basic_solver.
 Qed.
+
+Lemma rel_union_minus_alt {A: Type} (r r': relation A):
+  r ≡ r ∩ r' ∪ r \ r'.
+Proof using.
+  split; [| basic_solver].
+  red. intros x y Rxy.
+  destruct (classic (r' x y)); basic_solver. 
+Qed.
+
+Lemma TSO_sb_rf_acyclic WF (TSO: TSOConsistent):
+  acyclic (sb ∪ rf). 
+Proof using. 
+  rewrite rfi_union_rfe, <- unionA.
+  rewrite union_absorb_r with (r := rfi); [| unfold "rfi"; basic_solver].  
+  apply acyclic_utt. 
+  { by apply sb_trans. }
+  { apply transitiveI. rewrite wf_rfeD; auto. type_solver. }
+  splits. 
+  { by apply sb_irr. }
+  { rewrite rfe_in_rf. by apply rf_irr. }
+  rewrite wf_rfeD; [| done]. do 2 rewrite <- seqA. rewrite acyclic_rotl.
+  cdes TSO. red. red in GHB. eapply irreflexive_mori; [| by apply GHB]. 
+  red. rewrite <- (ct_of_ct hb). apply clos_trans_mori.
+  rewrite <- ct_unit. rewrite <- seqA. apply seq_mori; [| unfold hb; basic_solver].
+  rewrite <- ct_step. repeat apply inclusion_union_r1_search. 
+  unfold ppo. unfolder. ins. desc. splits; vauto. intros [? ?]. type_solver.  
+Qed.
+
 
 End TSO.

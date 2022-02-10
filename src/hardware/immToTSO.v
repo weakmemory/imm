@@ -11,6 +11,9 @@ Require Import imm_bob.
 Require Import imm_ppo.
 Require Import imm_hb.
 Require Import imm.
+Require Import FairExecution.
+Require Import ImmFair. 
+Require Import ThreadBoundedExecution.
 
 Set Implicit Arguments.
 
@@ -475,6 +478,7 @@ Qed.
 (*   all: basic_solver 10. *)
 (* Qed. *)
 
+  
 Lemma C_EXT : acyc_ext G.
 Proof using CON.
   generalize (@sb_trans G); ins.
@@ -901,30 +905,30 @@ apply C_EXT.
 by apply C_SC.
 Qed.
 
-Lemma TSO_fsupp_ar_ct
-      (SCF : E ∩₁ MFENCE ⊆₁ ∅) :
-  fsupp (ar G)⁺.
+
+
+Lemma TSO_fsupp_ar_ct b
+      (SCF : E ∩₁ MFENCE ⊆₁ ∅)
+      (TB: threads_bound G b):
+  imm_fair G.
 Proof using CON.
-  unfold ar.
-  rewrite (ar_int_in_sb WF), rfe_in_rf.
-  arewrite (psc ⊆ ∅₂).
+  red. unfold ar.
+  arewrite (psc ⊆ ∅₂); [| rewrite union_false_l]. 
   { rewrite (dom_l (wf_pscE WF)).
     rewrite (dom_l (wf_pscD G)).
     rewrite <- seqA, <- id_inter.
     rewrite SCF.
     clear; basic_solver 1. }
-  rewrite union_false_l.
-  arewrite (rf ∪ sb ⊆ (sb ∪ rf)⁺).
-  rewrite ct_of_ct.
-  (* TODO: move a lemma from `fairness`, which uses `bounded_threads` *)
-  apply fsupp_ct with (s:=E).
-  { admit. }
-  { rewrite wf_sbE, (wf_rfE WF). basic_solver. }
-  (* TODO: move a lemma from `fairness`, which uses `bounded_threads` *)
-  { admit. }
-  apply fsupp_union.
-  { admit. }
-  admit.
-Admitted.
+  pose proof WF as WF. 
+  rewrite rfe_in_rf. rewrite ar_int_in_sb; auto. 
+  eapply thread_bounds_fsupp_ninit_ct; eauto.  
+  { basic_solver. }
+  { rewrite unionC. by apply TSO_sb_rf_acyclic. }
+  { rewrite no_rf_to_init, no_sb_to_init; auto. basic_solver. }
+  { rewrite wf_rfE, wf_sbE; auto. basic_solver. }
+  rewrite seq_union_r. apply fsupp_union.
+  { rewrite inclusion_seq_eqv_l. by apply fsupp_rf. }
+  by apply fsupp_sb.
+Qed. 
 
 End immToTSO.
