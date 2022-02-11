@@ -188,12 +188,15 @@ Proof using WF WFSC.
 Qed.
 
 Lemma wf_ar_rf_ppo_loc_ct
-      (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
-  well_founded (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+      (FSUPP : fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺)) :
+  well_founded (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
 Proof using WF COM IMMCON.
   apply fsupp_well_founded; auto.
-  { now apply ar_rf_ppo_loc_acyclic. }
-  now apply transitive_ct.
+  { eapply irreflexive_mori. 
+    2: { now apply ar_rf_ppo_loc_acyclic. }
+    red. basic_solver 10. }
+  red. ins. apply seq_eqv_l. apply seq_eqv_l in H, H0. desc.
+  split; auto. eapply transitive_ct; eauto. 
 Qed.
 
 Lemma ar_rf_ppo_loc_in_sb_rf_no_f_sc
@@ -216,17 +219,28 @@ Qed.
 
 Lemma fsupp_sb_rf_implies_fsupp_ar_rf_ppo_loc
       (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅)
-      (FSUPP : fsupp (sb ∪ rf)⁺) :
-  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+      (FSUPP : fsupp (⦗set_compl is_init⦘ ⨾ (sb ∪ rf)⁺)) :
+  fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
 Proof using WF WFSC.
   rewrite ar_rf_ppo_loc_in_sb_rf_no_f_sc; auto.
   now rewrite ct_of_ct.
 Qed.
 
+(* TODO: move to hahn *)
+Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMB_S: domb r s):
+  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
+Proof using.
+  rewrite <- seqA. apply domb_helper.
+  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
+  erewrite (@domb_rewrite _ r); eauto.
+  rewrite ct_end. basic_solver.
+Qed.
+
 Lemma fsupp_ar_implies_fsupp_ar_rf_ppo_loc
       (FSUPPCO : fsupp co)
-      (FSUPP   : fsupp ar⁺) :
-  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
+      (FSUPP   : fsupp (⦗set_compl is_init⦘ ⨾ ar⁺)) :
+  fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
 Proof using WF COM IMMCON.
   rewrite ct_unionE.
   arewrite (ar ⨾ (rf ⨾ ppo ∩ same_loc)＊ ⊆ ar⁺).
@@ -234,15 +248,22 @@ Proof using WF COM IMMCON.
     rewrite ar_rf_ppo_loc_ct_in_ar_ct.
     eauto with hahn. }
   rewrite ct_of_ct.
-  enough (fsupp (rf ⨾ ppo ∩ same_loc)⁺) as AA.
-  { apply fsupp_union; auto.
-    apply fsupp_seq; auto.
-    now apply fsupp_ct_rt. }
-  rewrite ppo_loc_in_fr; auto.
-  2: { apply coherence_sc_per_loc. by apply IMMCON. }
-  rewrite rf_fr; auto. 
-  rewrite ct_of_trans; auto.
-  apply WF.
+  assert (fsupp (rf ⨾ ppo ∩ same_loc)⁺) as AA.
+  { rewrite ppo_loc_in_fr; auto.
+    2: { apply coherence_sc_per_loc. by apply IMMCON. }
+    rewrite rf_fr; auto. 
+    rewrite ct_of_trans; auto.
+    apply WF. }
+
+  rewrite seq_union_r. 
+  apply fsupp_union; auto.
+  { apply fsupp_seq; auto. apply fsupp_eqv. }
+  rewrite <- seqA, clos_refl_trans_domb_l.
+  2: { rewrite ppo_in_sb, no_sb_to_init; auto. basic_solver. }
+  rewrite !seqA. 
+  apply fsupp_seq; [by apply fsupp_eqv|].
+  apply fsupp_seq; auto. 
+  now apply fsupp_ct_rt. 
 Qed.
 
 End ImmRFRMWPPO.

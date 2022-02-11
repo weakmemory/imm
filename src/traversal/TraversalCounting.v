@@ -255,7 +255,8 @@ End Helpers.
     eapply trav_steps_left_nnull_ncov in HH; auto.
     desc. eapply exists_next in HH0; eauto. desc.
     eapply exists_trav_step in HH1; eauto.
-    2: now apply fsupp_ar_rf_ppo_loc.
+    2: { eapply fsupp_mori; [| apply fsupp_ar_rf_ppo_loc; by eauto].
+         red. basic_solver. }
     desc.
     apply exists_sim_trav_step in HH1; eauto. desc.
     clear T'. subst.

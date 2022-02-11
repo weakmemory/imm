@@ -9,6 +9,7 @@ Require Import Execution_eco.
 Require Import Arm.
 Require Import imm_bob.
 Require Import imm_s_ppo.
+Require Import imm_s_rfppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_ppo.
@@ -257,17 +258,6 @@ Proof using CON.
   split; [| basic_solver]. apply domb_helper.
   rewrite imm_s_ppo.ar_int_in_sb; [| by apply WF].
   erewrite no_sb_to_init. basic_solver.
-Qed.
-
-(* TODO: move to hahn *)
-Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
-      (DOMB_S: domb r s):
-  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
-Proof using.
-  rewrite <- seqA. apply domb_helper.
-  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
-  erewrite (@domb_rewrite _ r); eauto.
-  rewrite ct_end. basic_solver.
 Qed.
 
 Lemma IMM_s_fsupp

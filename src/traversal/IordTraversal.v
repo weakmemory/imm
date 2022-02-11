@@ -18,6 +18,7 @@ Import ListNotations.
 Require Import TraversalOrder.
 Require Import PropExtensionality.
 Require Import CountabilityHelpers.
+Require Import ImmFair.
 
 Set Implicit Arguments.
 
@@ -476,16 +477,19 @@ Module IordTraversal.
   Qed. 
 
   Lemma iord_enum_exists WF COMP WFSC CONS MF
-        (IMM_FAIR: fsupp ar⁺):
+        (IMM_FAIR: imm_fair G):
     exists (steps: nat -> t),
       enumerates steps graph_steps /\
       respects_rel steps iord⁺ graph_steps. 
   Proof using.
-    edestruct countable_ext with (s := graph_steps) (r := iord⁺)
+    edestruct countable_ext with (s := graph_steps) (r := ⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺)
       as [| [steps [ENUM RESP]]].
     { eapply countable_subset; [| by apply set_subset_full_r].
       apply trav_label_countable. }
-    { red. split; [apply iord_acyclic | apply transitive_ct]; auto. }
+    { red. split.
+      { rewrite inclusion_seq_eqv_l. by apply iord_acyclic. }
+      red. intros ? ? ? ?%seq_eqv_l  ?%seq_eqv_l. desc.
+      apply seq_eqv_l. split; auto. eapply transitive_ct; eauto. }
     { apply iord_ct_fsupp; auto.      
       apply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; auto. apply MF. }
     { edestruct H. constructor. econstructor; vauto. }

@@ -14,6 +14,8 @@ Require Import TraversalConfigAlt.
 Require Import AuxDef.
 Require Import SetSize.
 Require Import FairExecution.
+Require Import ImmFair.
+Require Import AuxRel2.
 Import ListNotations.
 
 Set Implicit Arguments.
@@ -403,12 +405,19 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     now apply fsupp_cr.
   Qed.
   
-  Lemma AR_fsupp (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
-    fsupp AR.
+  Lemma AR_fsupp WF WFSC MF CONS COMP
+        (* (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) : *)
+        (IMM_FAIR: imm_s_fair G sc):
+    fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ AR).
   Proof using.
-    repeat (apply fsupp_seq); try now apply fsupp_eqv.
+    unfold AR. seq_rewrite seq_eqvC. rewrite seqA. 
+    rewrite <- seqA with (r2 := event ↓ _).
+    rewrite map_rel_eqv with (f := event), map_rel_seq.  
+    repeat apply fsupp_seq; try now apply fsupp_eqv.
     apply fsupp_map_rel; auto with lbase.
-    arewrite_id ⦗W⦘. now rewrite !seq_id_l, !seq_id_r.
+    eapply fsupp_mori.
+    2: { eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. apply MF. }
+    red. basic_solver 10. 
   Qed.
   
   Lemma FWBOB_fsupp WF : fsupp (restr_rel (event ↓₁ (E \₁ is_init)) FWBOB).
@@ -431,24 +440,97 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Qed.
 
   Local Hint Resolve SB_fsupp RF_fsupp FWBOB_fsupp AR_fsupp : lbase.
-  
-  Lemma iord_fsupp WF WFSC MF CONS
-        (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
-    fsupp iord.
+
+  (* TODO: move to ImmFair *)
+  Lemma imm_s_fair_fsupp_sc WF WFSC (IMM_FAIR: imm_s_fair G sc):
+    fsupp sc. 
+  Proof. 
+    eapply fsupp_mori; [| by apply IMM_FAIR].
+    red. rewrite <- ct_step. unfold "ar". do 2 rewrite <- inclusion_union_r1.
+    apply doma_helper. inversion WFSC. rewrite wf_scD.
+    red. intros ? ? ?%seq_eqv_lr.
+    eapply read_or_fence_is_not_init; eauto. type_solver. 
+  Qed. 
+
+  Lemma iord_fsupp WF WFSC MF CONS COMP
+        (* (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺)  *)
+        (IMM_FAIR: imm_s_fair G sc):
+    fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord).
   Proof using.
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
-    { now arewrite (sc ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺). }
-    unfold iord. rewrite !restr_union.
-    repeat (apply fsupp_union); auto using SB_fsupp, FWBOB_fsupp.
-    all: apply fsupp_restr; auto using RF_fsupp, AR_fsupp.
+    { by apply imm_s_fair_fsupp_sc. }
+    unfold iord. rewrite !restr_union, !seq_union_r. 
+    repeat (apply fsupp_union).
+    4: { eapply fsupp_mori; [| apply AR_fsupp]; auto. red. basic_solver. }
+    all: apply fsupp_seq; [by apply fsupp_eqv| ].
+    1, 3: by auto using SB_fsupp, FWBOB_fsupp. 
+    apply fsupp_restr. by apply RF_fsupp. 
+  Qed.
+
+  (* TODO: move to hahn / AuxRel2 *)
+  Lemma clos_trans_domb_l_strong {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMB_S: domb (⦗s⦘ ⨾ r) s):
+  ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
+  Proof.
+    red. intros x y TT. apply seq_eqv_l in TT as [Sx R'xy].
+    apply ctEE in R'xy as [n [_ Rnxy]].
+    generalize dependent y. induction n.
+    { ins. apply ct_step. apply seq_eqv_l in Rnxy as [_ Rnxy].
+      apply seq_eqv_lr. splits; auto.
+      eapply DOMB_S. basic_solver. }
+    ins. destruct Rnxy as [z [Rnxz Rzy]]. specialize (IHn _ Rnxz).
+    apply ct_unit. eexists. split; eauto.
+    eapply same_relation_exp in IHn.
+    2: { rewrite <- restr_relE. reflexivity. }
+    apply clos_trans_restrD in IHn. desc. 
+    apply seq_eqv_lr. splits; auto.
+    eapply DOMB_S. basic_solver.
+  Qed.
+
+  Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
+    r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
+  Proof.
+    split; [basic_solver 10| ]; intros ->. basic_solver.
+    Unshelve. all: eauto.
+  Qed.
+
+  Lemma no_RF_to_init_weak WF:
+    ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ≡ ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ⨾ ⦗event ↓₁ set_compl is_init⦘. 
+  Proof.
+    split; [| basic_solver]. rewrite <- seqA. apply domb_helper. 
+    unfold RF. rewrite crE. repeat case_union _ _.
+    rewrite map_rel_union. repeat case_union _ _.
+    apply union_domb.
+    { unfolder. ins. desc. congruence. }
+    rewrite no_rf_to_init; auto. basic_solver.
+  Qed. 
+
+  Lemma no_AR_to_init WF CONS:
+    AR ≡ AR ⨾ ⦗event ↓₁ set_compl is_init⦘. 
+  Proof.
+    split; [| basic_solver]. apply domb_helper. 
+    forward eapply no_ar_rf_ppo_loc_to_init as AR'_NI; eauto.
+    apply seq_eqv_compl in AR'_NI. unfold AR. rewrite AR'_NI.
+    rewrite ct_end. basic_solver.
+  Qed. 
+
+  Lemma seq_eqv_l_trans {A: Type} (r: relation A) (s: A -> Prop)
+        (TRANS: transitive r):
+    transitive (⦗s⦘ ⨾ r).
+  Proof.
+    red. intros ? ? ? ?%seq_eqv_l ?%seq_eqv_l. desc.
+    apply seq_eqv_l. split; auto. eapply TRANS; eauto.
   Qed.
 
   Lemma iord_ct_fsupp WF WFSC COMP MF CONS
-        (FSUPP : fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) :
-    fsupp iord⁺.
+        (FAIR: mem_fair G)
+        (IMM_FAIR: imm_s_fair G sc):
+    fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺).
   Proof using.
+    forward eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc as FS_AR_RFPPOL; eauto.
+    { apply FAIR. }
     assert (transitive sb) as SBTRANS.
     { apply sb_trans. }
     assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
@@ -456,7 +538,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
-    { now arewrite (sc ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺). }
+    { by apply imm_s_fair_fsupp_sc. }
 
     unfold iord.
     rewrite !restr_union.
@@ -544,46 +626,82 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       rewrite !seq_false_l, !seq_false_r.
       now rewrite !union_false_r. }
 
-    assert (fsupp AR^?) as FARCR.
-    { apply fsupp_cr; auto with lbase. }
+    assert (fsupp (⦗event ↓₁ set_compl is_init⦘ ⨾ AR^?)) as FARCR.
+    { rewrite crE, seq_union_r.
+      apply fsupp_union; [rewrite <- id_inter; by apply fsupp_eqv| ].
+      auto with lbase. }
 
     assert (rSB ⊆ SB) as RSBIN.
     { subst rSB. apply inclusion_restr. }
     assert (rFWBOB ⊆ FWBOB) as RFWBOBIN.
     { subst rFWBOB. apply inclusion_restr. }
 
-    assert (fsupp (rSB ∪ RF ∪ rFWBOB)⁺) as FSRFW.
-    { apply fsupp_rt_ct.
+    assert (rFWBOB ⊆ rFWBOB ⨾ ⦗event ↓₁ set_compl is_init⦘) as FWB_NI.
+    { subst rFWBOB. basic_solver. }
+
+    assert (fsupp (⦗event ↓₁ set_compl is_init⦘ ⨾ (rSB ∪ RF ∪ rFWBOB))⁺) as FSRFW.
+    { rewrite !seq_union_r.
+      rewrite inclusion_seq_eqv_l with (r := RF), inclusion_seq_eqv_l with (r := rFWBOB).
+      apply fsupp_rt_ct.      
       rewrite path_ut; auto.
-      repeat apply fsupp_seq; auto.
-      2: now apply fsupp_cr.
+      repeat apply fsupp_seq.
+      3: now apply fsupp_cr.
+      { eapply fsupp_mori; [| by apply SRA]. red.
+        apply clos_refl_trans_mori. basic_solver. }
+      rewrite inclusion_seq_eqv_l. 
+      
       rewrite FWBOBSBRF.
       apply fsupp_ct_rt.
       rewrite ct_rotl, !seqA.
+      rewrite rtE. repeat case_union _ _. apply fsupp_union.
+      { repeat (apply fsupp_seq; auto with lbase). apply fsupp_eqv. } 
+      rewrite FWB_NI, seqA at 1. rewrite <- seqA with (r1 := ⦗_⦘).
+      rewrite clos_trans_domb_l; [| rewrite FWB_NI; basic_solver].
       repeat (apply fsupp_seq; auto with lbase).
       rewrite RSBIN, RFWBOBIN.
       rewrite RFSBFWBOBINAR; auto.
-      rewrite rt_of_trans; auto with lbase. }
+      eapply fsupp_mori; [| by apply FARCR].
+      red. rewrite ct_of_trans; [basic_solver| ].
+      rewrite <- restr_relE. apply transitive_restr, AR_trans.}
     
     assert (RF ⨾ rSB^? ⨾ rFWBOB ⊆ AR) as RRFSBFWBOBINAR.
     { rewrite RSBIN, RFWBOBIN; auto with lbase. }
 
-    apply fsupp_rt_ct.
+    rewrite clos_trans_domb_l_strong. 
+    2: { subst rSB rFWBOB. rewrite !seq_union_r.
+         repeat apply union_domb; try basic_solver. 
+         { rewrite no_RF_to_init_weak; auto. basic_solver. }
+         rewrite no_AR_to_init; auto. basic_solver. }  
+                  
+    apply fsupp_rt_ct. 
+    rewrite <- seqA. rewrite inclusion_seq_eqv_r. repeat case_union _ _ . 
+
     rewrite path_ut; auto with lbase.
+    rewrite <- !seq_union_r. 
     repeat apply fsupp_seq.
     3: now apply fsupp_cr; auto with lbase.
-    { now apply fsupp_ct_rt. }
+    { by apply fsupp_ct_rt. }
+    2: { apply seq_eqv_l_trans; auto with lbase. } 
     apply fsupp_ct_rt.
     rewrite ct_rotl.
     repeat (apply fsupp_seq; auto with lbase).
     rewrite ct_end, !seqA.
+    rewrite inclusion_seq_eqv_l with (r := AR). 
     arewrite ((rSB ∪ RF ∪ rFWBOB) ⨾ AR ⊆ rFWBOB ⨾ AR).
     { rewrite !seq_union_l.
       rewrite RSBIN, SBAR, RFAR.
       now rewrite !union_false_l. }
+    repeat case_union _ _. remember (event ↓₁ set_compl is_init) as ENI.
+
     rewrite path_ut; auto.
+    2: { apply seq_eqv_l_trans; auto with lbase. }
     rewrite !seqA.
-    sin_rewrite rewrite_trans_seq_cr_l; auto.
+    rewrite <- seqA with (r3 := AR). sin_rewrite rewrite_trans_seq_cr_l; auto.
+    2: { apply seq_eqv_l_trans; auto with lbase. }
+    rewrite inclusion_seq_eqv_l with (r := rSB) at 2. 
+    rewrite inclusion_seq_eqv_l with (r := RF) at 2.
+    rewrite <- seqA with (r2 := rFWBOB). 
+    rewrite !inclusion_seq_eqv_l with (r := rFWBOB). 
     rewrite FWBOBSBRF.
     arewrite ((rFWBOB ⨾ RF ⨾ rSB^?)＊ ⨾ rFWBOB ⨾ AR ⊆ rFWBOB ⨾ AR).
     { rewrite rtE with (r:=rFWBOB ⨾ RF ⨾ rSB^?).
@@ -592,6 +710,13 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       sin_rewrite !RRFSBFWBOBINAR.
       hahn_frame_l. seq_rewrite <- ct_end.
       rewrite ct_unit. apply ct_of_trans; auto with lbase. }
+
+    eapply fsupp_mori.
+    { red. apply clos_refl_trans_mori. apply doma_rewrite with (d := ENI).
+      rewrite rtE. repeat case_union _ _. apply union_doma.
+      { subst rFWBOB. basic_solver. }
+      rewrite ct_begin. basic_solver. }
+    rewrite (@inclusion_seq_eqv_l _ rSB). rewrite (@inclusion_seq_eqv_l _ RF).
 
     arewrite ((rSB ∪ RF)＊ ⨾ rFWBOB ⊆ RF^? ;; rSB^? ;; rFWBOB).
     { rewrite SBRFT. rewrite rt_of_trans; auto.
@@ -602,9 +727,13 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     rewrite crE, !seq_union_l, seq_id_l.
     sin_rewrite RRFSBFWBOBINAR.
     rewrite rewrite_trans; auto with lbase.
-    rewrite rt_of_trans with (r:=rSB^? ⨾ rFWBOB ⨾ AR ∪ AR).
-    { apply fsupp_cr, fsupp_union; auto with lbase.
-      repeat (apply fsupp_seq; auto with lbase). }
+    rewrite rt_of_trans.
+    { case_union _ _. subst ENI. 
+      apply fsupp_cr, fsupp_union; auto with lbase.
+      rewrite FWB_NI. rewrite seqA. rewrite <- seqA with (r2 := rSB^?). 
+      repeat (apply fsupp_seq; auto with lbase). apply fsupp_eqv. }
+
+    apply seq_eqv_l_trans. 
 
     assert (AR ⨾ rFWBOB ⊆ ∅₂) as ARFWBOB.
     { subst. unfold AR, FWBOB. iord_dom_solver. }

@@ -247,7 +247,7 @@ ins; desc; subst.
   
   Lemma exists_trav_step T (TCCOH : tc_coherent G sc T)
         e (N_FIN : next G (covered T) e)
-        (FSUPP : fsupp (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺) :
+        (FSUPP : fsupp (⦗set_compl is_init⦘ ⨾ (ar G sc ∪ rf ⨾ ppo ∩ same_loc)⁺)) :
     exists T', trav_step T T'.
   Proof using WF IMMCON.
     assert (wf_sc G sc) as WFSC by apply IMMCON.
@@ -286,7 +286,12 @@ ins; desc; subst.
       unfolder in H0. unfold dom_rel in H0.
       apply not_all_ex_not in H0; desf.
       apply not_all_ex_not in H0; desf.
-      eapply H; eauto. 
+      eapply H; eauto.
+      { apply seq_eqv_l. split; auto.
+        apply wf_ar_rf_ppo_loc_ctE, seq_eqv_lr in n3; auto.   
+        intros Iz0. forward eapply init_issued with (x := z0); eauto.
+        basic_solver 10. }
+
       cdes IMMCON.
       apply wf_ar_rf_ppo_loc_ctE in n3; auto. by destruct_seq_l n3 as AA. }
 
@@ -304,8 +309,11 @@ ins; desc; subst.
       apply not_all_ex_not in H0; desf.
       apply imply_to_and in H0; desf.
       eapply H; eauto.
+      2: { apply wf_ar_rf_ppo_loc_ctE, seq_eqv_lr in H2; auto. by desc. }
       cdes IMMCON.
-      apply wf_ar_rf_ppo_loc_ctE in H2; auto. by destruct_seq_l H2 as AA. }
+      (* apply wf_ar_rf_ppo_loc_ctE in H2; auto. *)
+      apply seq_eqv_l. split; auto. eapply read_or_fence_is_not_init; eauto.
+      type_solver. }
 
     assert (forall n, next G (covered T) n ->
                       R n \/ (F∩₁Sc) n) as RorF.
