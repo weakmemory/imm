@@ -1,7 +1,11 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
 Require Import AuxDef Events Execution.
-Require Import Execution_eco imm_s_hb imm_s imm_bob imm_s_ppo.
+Require Import Execution_eco imm_s_hb imm_bob imm_s_ppo imm_s. 
+Require Import FinExecution. 
+Require Import ImmFair.
+Require Import AuxRel2.
+Require Import FairExecution.
 
 Set Implicit Arguments.
 
@@ -174,17 +178,60 @@ Proof using WF IMMCON.
   rewrite ct_step with (r:=ar) at 1. by apply ar_ct_rf_ppo_loc_ct_in_ar_ct.
 Qed.
 
-Lemma fsupp_ar_rf_ppo_loc (FINDOM : set_finite E) :
-  fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
-Proof using WF WFSC.
-  rewrite (dom_l (wf_arE WF WFSC)).
-  rewrite (dom_l (wf_rfE WF)). rewrite !seqA.
-  rewrite <- seq_union_r.
-  rewrite inclusion_ct_seq_eqv_l.
-  red. ins.
-  cdes FINDOM.
-  exists findom. ins. apply FINDOM0.
-  generalize REL. basic_solver.
+(* TODO: move to hahn / AuxRel2 *)
+Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
+  r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
+Proof using.
+  split; [basic_solver 10| ]; intros ->. basic_solver.
+  Unshelve. all: eauto.
+Qed.
+
+(* TODO: move to hahn *)
+Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMB_S: domb r s):
+  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
+Proof using.
+  rewrite <- seqA. apply domb_helper.
+  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
+  erewrite (@domb_rewrite _ r); eauto.
+  rewrite ct_end. basic_solver.
+Qed.
+
+Lemma fsupp_ar_implies_fsupp_ar_rf_ppo_loc
+      (FAIR : mem_fair G)
+      (IMM_FAIR   : imm_s_fair G sc) :
+  fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
+Proof using WF COM IMMCON.  
+  rewrite ct_unionE.
+  arewrite (ar ⨾ (rf ⨾ ppo ∩ same_loc)＊ ⊆ ar⁺).
+  { rewrite rtE, seq_union_r, seq_id_r.
+    rewrite ar_rf_ppo_loc_ct_in_ar_ct.
+    eauto with hahn. }
+  rewrite ct_of_ct.
+  assert (fsupp (rf ⨾ ppo ∩ same_loc)⁺) as AA.
+  { rewrite ppo_loc_in_fr; auto.
+    2: { apply coherence_sc_per_loc. by apply IMMCON. }
+    rewrite rf_fr; auto. 
+    rewrite ct_of_trans; [apply FAIR| apply WF]. }
+
+  rewrite seq_union_r. 
+  apply fsupp_union; auto.
+  { apply fsupp_seq; auto. apply fsupp_eqv. }
+  rewrite <- seqA, clos_refl_trans_domb_l.
+  2: { rewrite ppo_in_sb, no_sb_to_init; auto. basic_solver. }
+  rewrite !seqA. 
+  apply fsupp_seq; [by apply fsupp_eqv|].
+  apply fsupp_seq; auto. 
+  now apply fsupp_ct_rt. 
+Qed.
+
+(* Lemma fsupp_ar_rf_ppo_loc (FINDOM : set_finite E) : *)
+(*   fsupp (ar ∪ rf ⨾ ppo ∩ same_loc)⁺. *)
+Lemma fsupp_ar_rf_ppo_loc_fin (FIN : fin_exec G):
+  fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
+Proof using WFSC WF IMMCON COM.
+  apply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; 
+    auto using fin_exec_fair, fin_exec_imm_s_fair. 
 Qed.
 
 Lemma wf_ar_rf_ppo_loc_ct
@@ -226,44 +273,19 @@ Proof using WF WFSC.
   now rewrite ct_of_ct.
 Qed.
 
-(* TODO: move to hahn *)
-Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
-      (DOMB_S: domb r s):
-  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
-Proof using.
-  rewrite <- seqA. apply domb_helper.
-  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
-  erewrite (@domb_rewrite _ r); eauto.
-  rewrite ct_end. basic_solver.
-Qed.
 
-Lemma fsupp_ar_implies_fsupp_ar_rf_ppo_loc
-      (FSUPPCO : fsupp co)
-      (FSUPP   : fsupp (⦗set_compl is_init⦘ ⨾ ar⁺)) :
-  fsupp (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺).
+Lemma wf_ar_rf_ppo_loc_ct_inf_imm_s
+      (FAIR: mem_fair G)
+      (IMM_CONS: imm_s.imm_consistent G sc)
+      (IMM_FAIR: imm_s_fair G sc):
+  well_founded (⦗set_compl is_init⦘ ⨾ (ar ∪ rf ;; ppo ∩ same_loc)⁺).
 Proof using WF COM IMMCON.
-  rewrite ct_unionE.
-  arewrite (ar ⨾ (rf ⨾ ppo ∩ same_loc)＊ ⊆ ar⁺).
-  { rewrite rtE, seq_union_r, seq_id_r.
-    rewrite ar_rf_ppo_loc_ct_in_ar_ct.
-    eauto with hahn. }
-  rewrite ct_of_ct.
-  assert (fsupp (rf ⨾ ppo ∩ same_loc)⁺) as AA.
-  { rewrite ppo_loc_in_fr; auto.
-    2: { apply coherence_sc_per_loc. by apply IMMCON. }
-    rewrite rf_fr; auto. 
-    rewrite ct_of_trans; auto.
-    apply WF. }
-
-  rewrite seq_union_r. 
-  apply fsupp_union; auto.
-  { apply fsupp_seq; auto. apply fsupp_eqv. }
-  rewrite <- seqA, clos_refl_trans_domb_l.
-  2: { rewrite ppo_in_sb, no_sb_to_init; auto. basic_solver. }
-  rewrite !seqA. 
-  apply fsupp_seq; [by apply fsupp_eqv|].
-  apply fsupp_seq; auto. 
-  now apply fsupp_ct_rt. 
-Qed.
+  apply wf_ar_rf_ppo_loc_ct_inf_helper; auto. 
+  { by apply ar_rf_ppo_loc_acyclic. }
+  { by apply no_ar_rf_ppo_loc_to_init. }
+  { by apply imm_s_ppo.ppo_in_sb. }
+  { by apply ar_rf_ppo_loc_ct_in_ar_ct. }
+  cdes IMM_CONS. by apply imm_s_hb.coherence_sc_per_loc.
+Qed. 
 
 End ImmRFRMWPPO.

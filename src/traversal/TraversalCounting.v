@@ -11,6 +11,7 @@ Require Import SimTraversal.
 Require Import SimTraversalProperties.
 Require Import AuxDef.
 Require Import imm_s_rfppo.
+Require Import FinExecution.
 
 Set Implicit Arguments.
 
@@ -40,6 +41,7 @@ Section TraversalCounting.
   Variable sc : relation actid.
   Variable WF : Wf G.
   Variable WFsc : wf_sc G sc.
+  Variable COMP : complete G.
   
   Notation "'E'" := (acts_set G).
   Notation "'lab'" := (lab G).
@@ -49,6 +51,8 @@ Section TraversalCounting.
   
 Section Helpers.
   Variable findom : list actid.
+  (* TODO: this is too strict (fin_exec should be sufficient),
+     but since the file seems unused, we'll keep it as is *)
   Hypothesis AFINDOM : forall x (EX : E x), In x findom.
 
   Definition trav_steps_left (T : trav_config) :=
@@ -230,7 +234,7 @@ End Helpers.
         (RELCOV :  W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w (RMW : rmw r w), covered T r <-> covered T w) :
     exists T', (sim_trav_step G sc)＊ T T' /\ ((acts_set G) ⊆₁ covered T').
-  Proof using WF WFsc.
+  Proof using WF WFsc COMP.
     cdes FINDOM.
     assert
       (exists T' : trav_config, (sim_trav_step G sc)＊ T T' /\
@@ -255,7 +259,8 @@ End Helpers.
     eapply trav_steps_left_nnull_ncov in HH; auto.
     desc. eapply exists_next in HH0; eauto. desc.
     eapply exists_trav_step in HH1; eauto.
-    2: { eapply fsupp_mori; [| apply fsupp_ar_rf_ppo_loc; by eauto].
+    2: { apply fsupp_ar_rf_ppo_loc_fin; auto.
+         eapply set_finite_mori; [| by apply FINDOM].
          red. basic_solver. }
     desc.
     apply exists_sim_trav_step in HH1; eauto. desc.
@@ -273,7 +278,7 @@ End Helpers.
 
   Lemma sim_traversal (FINDOM : set_finite E) (IMMCON : imm_consistent G sc) :
     exists T, (sim_trav_step G sc)＊ (init_trav G) T /\ (G.(acts_set) ⊆₁ covered T).
-  Proof using WF WFsc.
+  Proof using WF WFsc COMP.
     apply sim_traversal_helper; auto.
     { by apply init_trav_coherent. }
     { unfold init_trav. simpls. basic_solver. }
@@ -312,7 +317,7 @@ End Helpers.
         (RELCOV : W ∩₁ Rel ∩₁ issued T ⊆₁ covered T)
         (RMWCOV : forall r w : actid, rmw r w -> covered T r <-> covered T w) : 
     exists T', (isim_trav_step G sc thread)＊ T T' /\ ((acts_set G) ⊆₁ covered T').
-  Proof using WF WFsc.
+  Proof using WF WFsc COMP.
     edestruct sim_traversal_helper as [T']; eauto.
     desc. exists T'. splits; auto.
     clear H0.
@@ -332,4 +337,5 @@ End Helpers.
     { eapply sim_trav_steps_rel_covered; eauto. }
     eapply sim_trav_steps_rmw_covered; eauto.
   Qed.
+
 End TraversalCounting.

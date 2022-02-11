@@ -416,7 +416,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     repeat apply fsupp_seq; try now apply fsupp_eqv.
     apply fsupp_map_rel; auto with lbase.
     eapply fsupp_mori.
-    2: { eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. apply MF. }
+    2: { eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. }
     red. basic_solver 10. 
   Qed.
   
@@ -489,13 +489,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     eapply DOMB_S. basic_solver.
   Qed.
 
-  Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
-    r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
-  Proof.
-    split; [basic_solver 10| ]; intros ->. basic_solver.
-    Unshelve. all: eauto.
-  Qed.
-
   Lemma no_RF_to_init_weak WF:
     ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ≡ ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ⨾ ⦗event ↓₁ set_compl is_init⦘. 
   Proof.
@@ -530,7 +523,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺).
   Proof using.
     forward eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc as FS_AR_RFPPOL; eauto.
-    { apply FAIR. }
     assert (transitive sb) as SBTRANS.
     { apply sb_trans. }
     assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).

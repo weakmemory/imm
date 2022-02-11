@@ -12,6 +12,7 @@ Require Import Power.
 Require Import imm_bob.
 Require Import imm_ppo.
 Require Import imm_hb.
+Require Import imm_rfppo. 
 Require Import imm.
 Require Import ImmFair.
 Require Import FairExecution.
