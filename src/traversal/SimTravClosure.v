@@ -21,6 +21,8 @@ Require Import CountabilityHelpers.
 Require Import IordTraversal.
 Require Import SimTraversal.
 Require Import SimTraversalProperties.
+Require Import ImmFair.
+
 
 Section SimTravClosure.
   Variable (G: execution) (sc: relation actid). 
@@ -839,9 +841,8 @@ Module STCTraversal.
           
   End Traversal.
 
-
   Lemma sim_traversal_inf WF COMP WFSC CONS MF
-        (IMM_FAIR: fsupp ar⁺):
+        (IMM_FAIR: imm_s_fair G sc):
     exists (sim_enum: nat -> trav_config),
       ⟪DOM_TC: forall i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)),
           covered (sim_enum i) ⊆₁ E /\ issued (sim_enum i) ⊆₁ E ⟫ /\

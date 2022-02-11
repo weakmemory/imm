@@ -477,7 +477,7 @@ Module IordTraversal.
   Qed. 
 
   Lemma iord_enum_exists WF COMP WFSC CONS MF
-        (IMM_FAIR: imm_fair G):
+        (IMM_FAIR: imm_s_fair G sc):
     exists (steps: nat -> t),
       enumerates steps graph_steps /\
       respects_rel steps iord⁺ graph_steps. 
@@ -490,12 +490,14 @@ Module IordTraversal.
       { rewrite inclusion_seq_eqv_l. by apply iord_acyclic. }
       red. intros ? ? ? ?%seq_eqv_l  ?%seq_eqv_l. desc.
       apply seq_eqv_l. split; auto. eapply transitive_ct; eauto. }
-    { apply iord_ct_fsupp; auto.      
-      apply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; auto. apply MF. }
+    { apply iord_ct_fsupp; auto. }
     { edestruct H. constructor. econstructor; vauto. }
     exists steps. splits; eauto.
     red. ins. apply RESP; auto.
-    all: by apply set_lt_size. 
-  Qed.             
+    1, 2: by apply set_lt_size.
+    apply seq_eqv_l. split; auto.
+    apply enumeratesE' in ENUM. desc. apply INSET in DOMi.
+    red in DOMi. destruct DOMi as [T | T]; apply T. 
+  Qed.
   
 End IordTraversal. 

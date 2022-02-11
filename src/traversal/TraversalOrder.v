@@ -662,7 +662,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       rewrite RFSBFWBOBINAR; auto.
       eapply fsupp_mori; [| by apply FARCR].
       red. rewrite ct_of_trans; [basic_solver| ].
-      rewrite <- restr_relE. apply transitive_restr, AR_trans.}
+      rewrite <- restr_relE. apply transitive_restr, AR_trans. }
     
     assert (RF ⨾ rSB^? ⨾ rFWBOB ⊆ AR) as RRFSBFWBOBINAR.
     { rewrite RSBIN, RFWBOBIN; auto with lbase. }
