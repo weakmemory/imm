@@ -46,7 +46,7 @@ Proof using. vauto. Qed.
 (* TODO: move to TraversalConfig? *)
 Lemma same_tc_extensionality tc1 tc2 (SAME: same_trav_config tc1 tc2):
   tc1 = tc2.
-Proof.
+Proof using.
   destruct SAME.
   destruct tc1, tc2. ins. apply set_extensionality in H, H0.   
   congruence. 
@@ -62,7 +62,7 @@ Section TravConfigUnion.
   Lemma tcu_same_equiv (tc1 tc2 tc1' tc2': trav_config)
         (SAME1: same_trav_config tc1 tc1') (SAME2: same_trav_config tc2 tc2'):
     tc1 ⊔ tc2 = tc1' ⊔ tc2'.
-  Proof.
+  Proof using.
     apply same_tc_extensionality.
     unfold trav_config_union. 
     destruct SAME1 as [-> ->], SAME2 as [-> ->]. reflexivity. 
@@ -72,7 +72,7 @@ Section TravConfigUnion.
 
   Lemma tcu_empty_l (tc: trav_config):
     tc ⊔ empty_tc = tc.
-  Proof.
+  Proof using.
     apply same_tc_extensionality. 
     unfold trav_config_union, empty_tc. simpl.
     rewrite !set_union_empty_r. by destruct tc.  
@@ -80,14 +80,14 @@ Section TravConfigUnion.
   
   Lemma tcu_assoc (tc1 tc2 tc3: trav_config):
      (tc1 ⊔ tc2) ⊔ tc3 = tc1 ⊔ (tc2 ⊔ tc3).
-  Proof.
+  Proof using.
     apply same_tc_extensionality. 
     unfold trav_config_union. split; simpl; basic_solver. 
   Qed.
 
   Lemma tcu_symm (tc1 tc2: trav_config):
     tc1 ⊔ tc2 = tc2 ⊔ tc1. 
-  Proof.
+  Proof using.
     apply same_tc_extensionality. 
     unfold trav_config_union. split; simpl; basic_solver. 
   Qed.
@@ -100,7 +100,7 @@ Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10).
 (* TODO: move to hahn *)
 Lemma set_split_complete {A: Type} (s s': A -> Prop):
   s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
-Proof.
+Proof using.
   rewrite <- set_inter_union_r. rewrite <- AuxRel2.set_full_split. basic_solver. 
 Qed.
 
@@ -138,7 +138,7 @@ Module IordTraversal.
     (r
      ⨾ ⦗(event ↑₁ (action ↓₁ eq a1 ∩₁ S) ∩₁ D1 \₁ is_init ∪₁ is_init) ∩₁ E⦘)
     ⊆₁ (event ↑₁ (action ↓₁ eq a2 ∩₁ S) ∩₁ D2 \₁ is_init ∪₁ is_init) ∩₁ E.
-  Proof.
+  Proof using.
     unfolder. intros x [y REL]. desc. des.
     2: { apply RELNINIT, seq_eqv_r in REL. basic_solver. }
     destruct y0 as [a y_]. simpl in *. subst a y_.
@@ -276,7 +276,7 @@ Module IordTraversal.
     Lemma trav_prefix_iord_closed WF COMP WFSC CONS
           i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)):
       dom_rel (iord⁺ ⨾ ⦗trav_prefix i⦘) ⊆₁ trav_prefix i.
-    Proof. 
+    Proof using ENUM RESP.
       unfold trav_prefix. 
       red. intros e' [e DOMe']. apply seq_eqv_r in DOMe' as [REL ENUMe].
       red in ENUMe. destruct ENUMe as [j [LTji STEPje]].
@@ -459,12 +459,12 @@ Module IordTraversal.
     := (action tl, event tl).
 
   Lemma ae_tl_isomorphic: isomorphism ae2tl tl2ae.
-  Proof. split; ins; [destruct a | destruct b]; auto. Qed.
+  Proof using. split; ins; [destruct a | destruct b]; auto. Qed.
 
    
   
   Lemma ae_countable: countable (@set_full (TravAction.t * actid)).
-  Proof.
+  Proof using.
     apply countable_prod.
     { apply finite_countable. exists [TravAction.cover; TravAction.issue].
       ins. destruct x; tauto. }
@@ -472,7 +472,7 @@ Module IordTraversal.
   Qed. 
     
   Lemma trav_label_countable: @countable t (@set_full t).
-  Proof.
+  Proof using.
     eapply countable_isomorphic; [apply ae_tl_isomorphic| apply ae_countable].
   Qed. 
 

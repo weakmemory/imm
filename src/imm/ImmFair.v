@@ -14,10 +14,12 @@ Definition imm_s_fair G sc := fsupp (⦗set_compl is_init⦘ ⨾ (imm_s.ar G sc)
 
 Section ImmFairProperties.
 
-  Variables (G: execution) (sc: relation actid).
-  Hypotheses (WF: Wf G) (WFSC: wf_sc G sc).
-  Hypotheses (COM: complete G). 
-  Hypotheses (FAIR: mem_fair G).
+  Variables G : execution.
+  Variables sc : relation actid.
+  Hypothesis WF: Wf G.
+  Hypothesis WFSC: wf_sc G sc.
+  Hypothesis COM: complete G. 
+  Hypothesis FAIR: mem_fair G.
 
   Notation "'E'" := (acts_set G).
   Notation "'R'" := (fun x => is_true (is_r (lab G) x)).
@@ -50,7 +52,7 @@ Section ImmFairProperties.
   Lemma clos_trans_domb_begin {A: Type} (r: relation A) (s: A -> Prop)
         (DOMB_S: domb r s):
     ⦗s⦘ ⨾ r⁺ ≡ (⦗s⦘ ⨾ r)⁺.
-  Proof.
+  Proof using.
     split; [| by apply inclusion_ct_seq_eqv_l].    
     erewrite domb_rewrite with (r := r) at 1; eauto.
     rewrite ct_rotl. rewrite <- seqA. seq_rewrite <- ct_begin. 
@@ -101,7 +103,7 @@ End ImmFairProperties.
 Lemma fin_exec_imm_s_fair G sc (WF: Wf G) (WFSC: wf_sc G sc)
       (FIN: fin_exec G):
   imm_s_fair G sc. 
-Proof. 
+Proof using. 
   red. red in FIN.
   eapply fsupp_mori.
   2: { eapply fsupp_cross with (s' := set_full); eauto. }
@@ -111,7 +113,7 @@ Qed.
 Lemma fin_exec_imm_fair G (WF: Wf G)
       (FIN: fin_exec G):
   imm_fair G. 
-Proof. 
+Proof using. 
   red. red in FIN.
   eapply fsupp_mori.
   2: { eapply fsupp_cross with (s' := set_full); eauto. }

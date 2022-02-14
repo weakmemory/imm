@@ -806,7 +806,6 @@ Qed.
   
 
 Lemma IMM_fair
-      (* NEXT TODO: note that here we use boba' instead of original Arm.bob *)
       (FSUPP : fsupp (⦗set_compl is_init⦘ ⨾ hbp⁺)) 
       (NOSC : E ∩₁ F ∩₁ Sc ⊆₁ ∅) :
   imm_fair G. 

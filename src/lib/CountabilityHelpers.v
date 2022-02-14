@@ -11,7 +11,7 @@ Definition isomorphism {A B: Type} (fab: A -> B) (fba: B -> A) :=
 Lemma isomorphism_sym {A B: Type} (fab: A -> B) (fba: B -> A)
       (ISO: isomorphism fab fba):
   isomorphism fba fab.
-Proof. unfold isomorphism in *. tauto. Qed. 
+Proof using. unfold isomorphism in *. tauto. Qed. 
 
 
 Lemma isomorphism_fin_inf {A B: Type} (fab: A -> B) (fba: B -> A)
@@ -19,7 +19,7 @@ Lemma isomorphism_fin_inf {A B: Type} (fab: A -> B) (fba: B -> A)
       (FINA: set_finite (@set_full A))
       (INFB: ~ set_finite (@set_full B)):
   False.
-Proof. 
+Proof using. 
   destruct INFB. destruct FINA as [la LA]. 
   exists (map fab la). ins.
   apply in_map_iff. exists (fba x). split; auto. apply ISO.
@@ -27,7 +27,7 @@ Qed.
 
 Lemma filterP_set_full {A: Type} (l: list A):
   filterP set_full l = l.
-Proof.
+Proof using.
   induction l; vauto. simpl.
   destruct excluded_middle_informative; [congruence | by destruct n]. 
 Qed.
@@ -38,7 +38,7 @@ Lemma isomorphism_dom_len_helper {A B: Type} (fab: A -> B) (fba: B -> A)
       (LA: forall x : A, set_full x -> In x la)                                
       (LB: forall x : B, set_full x -> In x lb):
   length (undup la) <= length (undup lb).
-Proof.
+Proof using.
   rewrite <- map_length with (f := fab).
   apply NoDup_incl_length.
   2: { red. intros b INb. apply in_undup_iff. intuition. } 
@@ -52,7 +52,7 @@ Qed.
 Lemma set_size_full_isomorphic {A B: Type} (fab: A -> B) (fba: B -> A)
       (ISO: isomorphism fab fba):
   set_size (@set_full A) = set_size (@set_full B).
-Proof.
+Proof using.
   unfold set_size. do 2 destruct excluded_middle_informative; auto; cycle 1.
   { destruct constructive_indefinite_description as [la LA]. simpl.
     edestruct @isomorphism_fin_inf; eauto. }
@@ -74,7 +74,7 @@ Lemma countable_isomorphic {A B: Type} (fab: A -> B) (fba: B -> A)
       (ISO: isomorphism fab fba)
       (CNT: countable (@set_full A)):
   countable (@set_full B).
-Proof.
+Proof using.
   unfold countable in *. des.
   { left. intros BB. destruct CNT. inversion BB.
     eauto. }
@@ -95,7 +95,7 @@ Qed.
 Lemma countable_prod {A B: Type}
       (CNTA: countable (@set_full A)) (CNTB: countable (@set_full B)):
   countable (@set_full (A * B)).
-Proof.
+Proof using.
   unfold countable in *. des. 
   2: left; intros [INH]; apply CNTB; econstructor; apply INH.
   1, 2: left; intros [INH]; apply CNTA; econstructor; apply INH.
@@ -112,7 +112,7 @@ Qed.
 
 Lemma empty_sum_isomorphism_l {A B: Type} (NB: ~ inhabited B):
   exists (fab: A -> A + B) fba, isomorphism fab fba.
-Proof.
+Proof using.
   exists (fun a => inl a).
   exists (fun ab => match ab with | inl a => a
                      | inr b => False_rect A (NB (inhabits b)) end).
@@ -122,7 +122,7 @@ Qed.
 Lemma countable_sum {A B: Type}
       (CNTA: countable (@set_full A)) (CNTB: countable (@set_full B)):
   countable (@set_full (A + B)).
-Proof.
+Proof using.
   unfold countable in *. des. 
   { left. intros [INH]. destruct INH; auto. }
   { apply surjection_countable with (f := fun i => inl (nu i)).
@@ -152,10 +152,10 @@ Qed.
 
 
 Lemma pos_countable: countable (@set_full BinNums.positive).
-Proof.
+Proof using.
   apply surjection_countable with (f := BinPos.Pos.of_nat). 
   ins. exists (BinPos.Pos.to_nat a). apply Pnat.Pos2Nat.id.
 Qed. 
 
 Lemma nat_countable: countable (@set_full nat).
-Proof. apply surjection_countable with (f := id). vauto. Qed.     
+Proof using. apply surjection_countable with (f := id). vauto. Qed.     

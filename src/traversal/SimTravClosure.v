@@ -42,7 +42,7 @@ Section SimTravClosure.
   Lemma codom_I_rmw_empty WF WFSC
         (tc: trav_config) (COH: tc_coherent G sc tc):
     codom_rel (⦗(issued tc) ∩₁ is_rel (lab G)⦘ ⨾ (rmw G)) ≡₁ ∅.
-  Proof.
+  Proof using.
     rewrite wf_rmwD; auto. repeat seq_rewrite <- id_inter.
     forward eapply tc_I_in_W as IW; eauto.
     { apply tc_coherent_implies_tc_coherent_alt; eauto. }
@@ -53,7 +53,7 @@ Section SimTravClosure.
   Lemma set_union_strict {A: Type}
         (s1 s2: A -> Prop):
     s1 ∪₁ s2 ≡₁ s1 ∪₁ s2 \₁ s1.
-  Proof.
+  Proof using.
     split; [| basic_solver].
     intros x Sx. destruct (classic (s1 x)); [basic_solver| ].
     destruct Sx; [done| ]. basic_solver. 
@@ -61,7 +61,7 @@ Section SimTravClosure.
 
   Lemma sb_invrmw_sbclos WF:
     sb G ⨾ (rmw G)⁻¹ ⊆ (sb G)^?.
-  Proof.
+  Proof using.
     red. ins. destruct (classic (x = y)); [by left| ].
     right. red in H. destruct H as [w [SB RMW]]. red in RMW.
     forward eapply (wf_rmwi WF _ _ RMW) as [SByw IMMyw]. 
@@ -75,7 +75,7 @@ Section SimTravClosure.
         (tc: trav_config)
         (COH: tc_coherent G sc tc):
     tc_coherent G sc (sim_trav_closure tc).
-  Proof.
+  Proof using.
     apply tc_coherent_alt_implies_tc_coherent.
     pose proof COH as COH'. apply tc_coherent_implies_tc_coherent_alt in COH'; auto.
     inversion COH'.
@@ -171,7 +171,7 @@ Section SimTravClosure.
         (COH: tc_coherent G sc tc):
    covered (sim_trav_closure tc) ⊆₁ acts_set G /\
    issued (sim_trav_closure tc) ⊆₁ acts_set G.
-  Proof.
+  Proof using.
     unfold sim_trav_closure. 
     destruct tc. simpl in *.
     unfold Cclos, Iclos. simpl.
@@ -180,7 +180,7 @@ Section SimTravClosure.
 
   Global Add Parametric Morphism: sim_trav_closure with signature
       same_trav_config ==> same_trav_config as stc_more. 
-  Proof.
+  Proof using.
     ins. destruct x as [C1 I1], y as [C2 I2]. destruct H. simpl in *.
     unfold sim_trav_closure, Cclos, Iclos. simpl.
     red. split; simpl; rewrite !H, !H0; reflexivity. 
@@ -202,7 +202,7 @@ Module STCTraversal.
           (itrav_step G sc e)^?
                              (mkTC (C1 ∪₁ C') (I1 ∪₁ I'))
                              (mkTC (C2 ∪₁ C') (I2 ∪₁ I')).
-  Proof.
+  Proof using.
     red in STEP. desf; simpl in *. 
 
     { destruct (classic (C' e)).
@@ -224,14 +224,14 @@ Module STCTraversal.
 
   Add Parametric Morphism thread: (isim_trav_step G sc thread) with signature
       same_trav_config ==> same_trav_config ==> iff as isim_trav_step_more.
-  Proof. ins. apply same_tc_extensionality in H, H0. by subst. Qed.           
+  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.           
 
 
   Lemma functional_codom {A: Type} (r: relation A) (a: A)
         (FUN: functional r)
         (DOMa: dom_rel r a):
     exists a', codom_rel (⦗eq a⦘ ⨾ r) ≡₁ eq a'.
-  Proof.
+  Proof using.
     destruct DOMa as [a' Raa']. exists a'. split; [| basic_solver].  
     intros x [a_ Ra_x%seq_eqv_l]. desc. subst.
     eapply FUN; eauto.
@@ -242,7 +242,7 @@ Module STCTraversal.
     set_disjoint (eq r)
                  ((issued tc ∩₁ (is_rel lab) ∪₁
                           codom_rel (⦗covered tc⦘ ⨾ rmw)) \₁ covered tc).
-  Proof.
+  Proof using.
     rewrite set_minus_union_l. apply set_disjoint_union_r. split. 
     { rewrite issuedW; eauto. type_solver. }
     rewrite wf_rmwD; eauto. type_solver.
@@ -250,12 +250,12 @@ Module STCTraversal.
 
   Lemma set_eq_helper {A: Type} (s1 s2: A -> Prop) (EQ: s1 = s2):
     s1 ≡₁ s2.
-  Proof. by rewrite EQ. Qed.
+  Proof using. by rewrite EQ. Qed.
 
   Lemma set_minus_disjoint {A: Type} (s1 s2: A -> Prop)
         (DISJ: set_disjoint s1 s2):
     s1 \₁ s2 ≡₁ s1.
-  Proof. basic_solver. Qed.
+  Proof using. basic_solver. Qed.
 
 
   (* TODO: move upper *)
@@ -266,7 +266,7 @@ Module STCTraversal.
         (EQC1: Cu1 ≡₁ C1 ∪₁ C') (EQI1: Iu1 ≡₁ I1 ∪₁ I')
         (EQC2: Cu2 ≡₁ C2 ∪₁ C') (EQI2: Iu2 ≡₁ I2 ∪₁ I'):
     (itrav_step G sc e)^? (mkTC Cu1 Iu1) (mkTC Cu2 Iu2).
-  Proof.
+  Proof using.
     forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto.
     destruct STEP'.
     { left. apply same_tc_extensionality. rewrite EQC1, EQC2, EQI1, EQI2.
@@ -277,11 +277,11 @@ Module STCTraversal.
 
   Add Parametric Morphism thread: (isim_trav_step G sc thread)^? with signature
       same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_more.
-  Proof. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
+  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
     
   Add Parametric Morphism thread: (isim_trav_step G sc thread)^* with signature
       same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_trans_more.
-  Proof. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
+  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
 
   Lemma itrav_step_mon_ext_cover e
         (C I C' I': actid -> Prop)
@@ -290,7 +290,7 @@ Module STCTraversal.
           (itrav_step G sc e)
                              (mkTC (C ∪₁ C') (I ∪₁ I'))
                              (mkTC (C ∪₁ C' ∪₁ eq e) (I ∪₁ I')).
-  Proof.
+  Proof using.
     forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
     red in STEP. desf; simpl in *. 
     2: { destruct (NEW e); auto. left. apply COVEQ. basic_solver. }
@@ -306,7 +306,7 @@ Module STCTraversal.
           (itrav_step G sc e)
                              (mkTC (C ∪₁ C') (I ∪₁ I'))
                              (mkTC (C ∪₁ C') (I ∪₁ I' ∪₁ eq e)).
-  Proof.
+  Proof using.
     forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
     red in STEP. desf; simpl in *. 
     { destruct (NEW e); auto. left. apply ISSEQ. basic_solver. }
@@ -318,7 +318,7 @@ Module STCTraversal.
   (* TODO: move to hahn *)
   Lemma set_disjoint_not_eq_r {A: Type} (a : A) (s : A -> Prop):
     ~ set_disjoint s (eq a) <-> s a.
-  Proof.
+  Proof using.
     pose proof (set_disjoint_eq_r a s) as EQ. apply not_iff_compat in EQ. tauto.
   Qed.
 
@@ -345,7 +345,7 @@ Module STCTraversal.
       same_trav_config (mkTC (C ∪₁ eq e ∪₁ ((irel_crmw \₁ eq e) \₁ C ∪₁ codom_rel (⦗eq e⦘ ⨾ rmw) \₁ (C ∪₁ eq e)))
                              (I ∪₁ (codom_rel (⦗C⦘ ⨾ rmw) \₁ I ∪₁ codom_rel (⦗eq e⦘ ⨾ rmw) \₁ I))) stc' ->
       (isim_trav_step G sc (tid e))＊ stc stc'. 
-    Proof.
+    Proof using COH COH' COV NEXT TRAV_STEP irel_crmw.
       (* We keep same_trav_config hypotheses in goal to both:
          - be able to rewrite without adding '.. in HYP' 
          - remember that the given TC, even after rewrites, 
@@ -511,8 +511,7 @@ Module STCTraversal.
             rewrite DC_SBw. basic_solver. }
           repeat left. split; auto. simpl. basic_solver. }
         { basic_solver. }
-        { basic_solver. }
-      }
+        basic_solver. }
       
       destruct (classic (I w)) as [Iw | NIw].
       { apply rtE. left. red. split; auto.
@@ -532,44 +531,43 @@ Module STCTraversal.
       3, 4: basic_solver. 
       { intros [? | [CRMW ?]]; [done| ].
         apply DISJW in CRMW; auto. }
-      { (* TODO: can it be simplified? *)
-        red. split.
-        { split; [basic_solver| ]. simpl.
-          red in DC_SBw.
-          unfold "fwbob". 
-          red. intros x [w_ DOMx%seq_eqv_r]. desc. subst w_.
-          unfolder in DOMx. des; [by vauto| ..]. 
-          { specialize (DC_SBw x). specialize_full DC_SBw.
-            { exists w. basic_solver. }
-            destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
-            type_solver. }
-          { type_solver. }
-          { specialize (DC_SBw x). specialize_full DC_SBw.
-            { exists w. basic_solver. }
-            destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
-            type_solver. }
-        }
+      (* TODO: can it be simplified? *)
+      red. split.
+      { split; [basic_solver| ]. simpl.
+        red in DC_SBw.
+        unfold "fwbob". 
+        red. intros x [w_ DOMx%seq_eqv_r]. desc. subst w_.
+        unfolder in DOMx. des; [by vauto| ..]. 
+        { specialize (DC_SBw x). specialize_full DC_SBw.
+          { exists w. basic_solver. }
+          destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
+          type_solver. }
+        { type_solver. }
+        specialize (DC_SBw x). specialize_full DC_SBw.
+        { exists w. basic_solver. }
+        destruct DC_SBw as [| ->]; [repeat left; basic_solver| ].
+        type_solver. }
         
-        simpl. red. 
-        forward eapply ar_rf_ppo_loc_ct_I_in_I as AR_CLOS_INCL.
-        { eapply stc_coherent; eauto. }
-        fold stc' in AR_CLOS_INCL. 
-        erewrite issued_more in AR_CLOS_INCL.
-        2: { symmetry. eauto. }
-        simpl in AR_CLOS_INCL.
-        
-        rewrite !id_union, !seq_union_r, !dom_union in AR_CLOS_INCL.
-        do 2 apply set_subset_union_l, proj2 in AR_CLOS_INCL.
-        rewrite set_minus_disjoint in AR_CLOS_INCL; [| basic_solver].
-        rewrite <- set_unionA in AR_CLOS_INCL.
-        red. intros e DOMe.
-        specialize (AR_CLOS_INCL e). specialize_full AR_CLOS_INCL. 
-        { red in DOMe. desc. apply seq_eqv_r in DOMe. desc. subst y.
-          apply seq_eqv_l in DOMe. desc. 
-          exists w. apply seq_eqv_lr. splits; vauto. }
-        destruct AR_CLOS_INCL; auto. subst e. 
-        edestruct ar_rf_ppo_loc_acyclic with (x := w); eauto.
-        generalize DOMe. basic_solver 10. }
+      simpl. red. 
+      forward eapply ar_rf_ppo_loc_ct_I_in_I as AR_CLOS_INCL.
+      { eapply stc_coherent; eauto. }
+      fold stc' in AR_CLOS_INCL. 
+      erewrite issued_more in AR_CLOS_INCL.
+      2: { symmetry. eauto. }
+      simpl in AR_CLOS_INCL.
+      
+      rewrite !id_union, !seq_union_r, !dom_union in AR_CLOS_INCL.
+      do 2 apply set_subset_union_l, proj2 in AR_CLOS_INCL.
+      rewrite set_minus_disjoint in AR_CLOS_INCL; [| basic_solver].
+      rewrite <- set_unionA in AR_CLOS_INCL.
+      red. intros e DOMe.
+      specialize (AR_CLOS_INCL e). specialize_full AR_CLOS_INCL. 
+      { red in DOMe. desc. apply seq_eqv_r in DOMe. desc. subst y.
+        apply seq_eqv_l in DOMe. desc. 
+        exists w. apply seq_eqv_lr. splits; vauto. }
+      destruct AR_CLOS_INCL; auto. subst e. 
+      edestruct ar_rf_ppo_loc_acyclic with (x := w); eauto.
+      generalize DOMe. basic_solver 10.
     Qed.
 
     Lemma trav_step_closures_isim_cover_write WF WFSC CONS COMP
@@ -582,7 +580,7 @@ Module STCTraversal.
            (I ∪₁ (codom_rel (⦗C⦘ ⨾ rmw) \₁ I ∪₁ codom_rel (⦗eq e⦘ ⨾ rmw) \₁ I)))
         stc' ->
       (isim_trav_step G sc (tid e))＊ stc stc'.
-    Proof. 
+    Proof using TRAV_STEP NEXT COV COH'.
       rename e into w. 
       assert (I w) as Iw. 
       { replace I with (issued tc') by vauto. 
@@ -646,7 +644,7 @@ Module STCTraversal.
            (I ∪₁ (codom_rel (⦗C⦘ ⨾ rmw) \₁ I ∪₁ codom_rel (⦗eq e⦘ ⨾ rmw) \₁ I)))
         stc' ->
       (isim_trav_step G sc (tid e))＊ stc stc'.
-    Proof.
+    Proof using TRAV_STEP NEXT COV COH' COH.
       rename e into f.
       assert (codom_rel (⦗eq f⦘ ⨾ rmw) ≡₁ ∅) as NOFRMW.
       { rewrite wf_rmwD; auto. type_solver. }
@@ -688,7 +686,7 @@ Module STCTraversal.
         |} (sim_trav_closure G tc') ->
       (isim_trav_step G sc (tid e))＊ (sim_trav_closure G tc)
                                    (sim_trav_closure G tc').
-    Proof.
+    Proof using TRAV_STEP NEXT COV COH' COH.
       rewrite !id_union, !seq_union_l, !codom_union.
       rewrite <- set_unionA with (s' := codom_rel (⦗C⦘ ⨾ rmw)).
       rewrite !set_minus_union_l with (s' := codom_rel (⦗eq e⦘ ⨾ rmw)).
@@ -733,7 +731,7 @@ Module STCTraversal.
           issued := I ∪₁ eq e ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ (I ∪₁ eq e)
         |} (sim_trav_closure G tc') ->
       (isim_trav_step G sc (tid e))＊ (sim_trav_closure G tc) (sim_trav_closure G tc').
-    Proof.
+    Proof using TRAV_STEP NISS ISS COH' COH.
       rename e into w. 
       assert (is_w lab w) as Ww.
       { eapply issuedW; [by apply COH'| ]. subst tc'. basic_solver. }
@@ -792,7 +790,6 @@ Module STCTraversal.
       simpl. apply coverable_add_eq_iff; auto.
       simpl. apply covered_in_coverable; [| simpl; basic_solver].
       rewrite STC'. apply stc_coherent; auto. 
-      
     Qed. 
 
   End IssueClosure.
@@ -803,7 +800,7 @@ Module STCTraversal.
         (COH': tc_coherent G sc tc')
         (TRAV_STEP: trav_step G sc tc tc'):
     (sim_trav_step G sc)^* (sim_trav_closure G tc) (sim_trav_closure G tc').
-  Proof.    
+  Proof using.    
     red in TRAV_STEP. desc. 
     enough ((isim_trav_step G sc (tid e))^* (sim_trav_closure G tc) (sim_trav_closure G tc')) as ISIM.
     { apply rtE in ISIM as [[-> _] | ?]; [apply rt_refl| ]. 
@@ -831,7 +828,7 @@ Module STCTraversal.
     Lemma sim_traversal_next WF COMP WFSC CONS MF:
       forall i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)),
         (sim_trav_step G sc)^* (tc_enum i) (tc_enum (1 + i)).
-    Proof.
+    Proof using RESP ENUM.
       ins.
       unfold tc_enum. apply trav_step_closures_isim; auto.
       1, 2: apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. 
@@ -851,7 +848,7 @@ Module STCTraversal.
       ⟪STEPS: forall i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)),
           (sim_trav_step G sc)^* (sim_enum i) (sim_enum (1 + i)) ⟫ /\
       ⟪ENUM: forall e (Ee: (E \₁ is_init) e), exists i, covered (sim_enum i) e⟫.
-  Proof.
+  Proof using.
     destruct iord_enum_exists as [steps_enum [ENUM RESP]]; auto.
     exists (tc_enum steps_enum). splits.
     3: { apply sim_traversal_next; auto. }

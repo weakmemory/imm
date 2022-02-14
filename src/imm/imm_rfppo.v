@@ -10,9 +10,9 @@ Require Import FairExecution.
 
 Section ImmRfPpo.
   (* TODO: unify with lemmas for imm_s *)
-  Variables (G: execution).
-  Hypotheses (WF: Wf G).
-  Hypotheses (COM: complete G). 
+  Variable G: execution.
+  Hypothesis WF: Wf G.
+  Hypothesis COM: complete G. 
 
 
   Lemma IMM_ar_int_rfe_rf_ppo_loc_in_ar_int_rfe_ct :

@@ -25,7 +25,7 @@ Qed.
 
 Lemma set_lt_size {A: Type} (S: A -> Prop) i:
   NOmega.lt_nat_l i (set_size S) <-> lt_size i S.
-Proof.
+Proof using.
   unfold set_size. destruct (excluded_middle_informative _).
   2: { simpl. split; auto. ins. by apply lt_size_infinite. }
   destruct (constructive_indefinite_description _).
@@ -38,7 +38,7 @@ Lemma enumeratesE' {A : Type} (f : nat -> A) (s : A -> Prop):
   ⟪INSET: forall i : nat, dom i -> s (f i)⟫ /\
   ⟪INJ: forall i : nat, dom i -> forall j : nat, dom j -> f i = f j -> i = j⟫ /\
   ⟪IND: forall a : A, s a -> exists i : nat, dom i /\ f i = a⟫.
-Proof.
+Proof using.
   etransitivity.
   { apply enumeratesE. }
   pose proof (set_lt_size s) as EQUIV. 
@@ -57,7 +57,7 @@ Qed.
 
 Lemma set_size_equiv {A: Type} (S1 S2: A -> Prop) (EQ: S1 ≡₁ S2):
   set_size S1 = set_size S2.
-Proof.
+Proof using.
   cut (S1 = S2); [congruence| ].  
   extensionality a. apply propositional_extensionality.
   by apply set_equiv_exp. 

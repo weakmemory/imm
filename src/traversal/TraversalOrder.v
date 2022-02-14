@@ -444,7 +444,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   (* TODO: move to ImmFair *)
   Lemma imm_s_fair_fsupp_sc WF WFSC (IMM_FAIR: imm_s_fair G sc):
     fsupp sc. 
-  Proof. 
+  Proof using. 
     eapply fsupp_mori; [| by apply IMM_FAIR].
     red. rewrite <- ct_step. unfold "ar". do 2 rewrite <- inclusion_union_r1.
     apply doma_helper. inversion WFSC. rewrite wf_scD.
@@ -473,7 +473,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Lemma clos_trans_domb_l_strong {B: Type} (r: relation B) (s: B -> Prop)
       (DOMB_S: domb (⦗s⦘ ⨾ r) s):
   ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
-  Proof.
+  Proof using.
     red. intros x y TT. apply seq_eqv_l in TT as [Sx R'xy].
     apply ctEE in R'xy as [n [_ Rnxy]].
     generalize dependent y. induction n.
@@ -491,7 +491,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Lemma no_RF_to_init_weak WF:
     ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ≡ ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ⨾ ⦗event ↓₁ set_compl is_init⦘. 
-  Proof.
+  Proof using.
     split; [| basic_solver]. rewrite <- seqA. apply domb_helper. 
     unfold RF. rewrite crE. repeat case_union _ _.
     rewrite map_rel_union. repeat case_union _ _.
@@ -502,7 +502,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Lemma no_AR_to_init WF CONS:
     AR ≡ AR ⨾ ⦗event ↓₁ set_compl is_init⦘. 
-  Proof.
+  Proof using.
     split; [| basic_solver]. apply domb_helper. 
     forward eapply no_ar_rf_ppo_loc_to_init as AR'_NI; eauto.
     apply seq_eqv_compl in AR'_NI. unfold AR. rewrite AR'_NI.
@@ -512,7 +512,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Lemma seq_eqv_l_trans {A: Type} (r: relation A) (s: A -> Prop)
         (TRANS: transitive r):
     transitive (⦗s⦘ ⨾ r).
-  Proof.
+  Proof using.
     red. intros ? ? ? ?%seq_eqv_l ?%seq_eqv_l. desc.
     apply seq_eqv_l. split; auto. eapply TRANS; eauto.
   Qed.

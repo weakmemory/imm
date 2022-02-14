@@ -690,10 +690,10 @@ Section EventsCountability.
                         | inl l => InitEvent l
                         | inr (t, i) => ThreadEvent t i
                         end).
-  Proof. split; ins; [destruct a | destruct b as [? | [? ?]]]; auto. Qed.   
+  Proof using. split; ins; [destruct a | destruct b as [? | [? ?]]]; auto. Qed.   
   
   Lemma actid_countable: countable (@set_full actid).
-  Proof.
+  Proof using.
     eapply countable_isomorphic.
     { eapply isomorphism_sym, actid_alt_isomorphic. }
     apply countable_sum.
