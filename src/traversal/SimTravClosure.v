@@ -838,19 +838,58 @@ Module STCTraversal.
           
   End Traversal.
 
+  Lemma sim_trav_closure_init WF:
+    sim_trav_closure G (init_trav G) = init_trav G.
+  Proof using.
+    unfold sim_trav_closure. simpl. apply same_tc_extensionality.
+    red. unfold Cclos, Iclos. splits; simpl.
+    { split; [| basic_solver 10]. apply set_subset_union_l.
+      split; try basic_solver. etransitivity; [| by apply set_subset_empty_l].
+      rewrite set_minus_union_l. apply set_subset_union_l. split; [basic_solver|].
+      unfolder. ins. desc. apply wf_rmwD, seq_eqv_lr in H1; auto. desc.
+      generalize (@read_or_fence_is_not_init _ WF x0). tauto. } 
+    split; [| basic_solver 10]. apply set_subset_union_l.
+    split; try basic_solver. etransitivity; [| by apply set_subset_empty_l]. 
+    unfolder. ins. desc. apply wf_rmwD, seq_eqv_lr in H1; auto. desc.
+    generalize (@read_or_fence_is_not_init _ WF x0). tauto.
+  Qed. 
+
+  (* TODO: move to IordTraversal *)
+  Global Add Parametric Morphism: set2trav_config with signature
+      (@set_equiv t) ==> same_trav_config as set2trav_config_more. 
+  Proof using.
+    ins. unfold set2trav_config. split; rewrite H; simpl; basic_solver. 
+  Qed.
+    
+  (* TODO: move to IordTraversal *)
+  Lemma set2trav_config_empty:
+    set2trav_config ∅ = init_trav G.
+  Proof using.
+    unfold set2trav_config. apply same_tc_extensionality. unfold init_trav.
+    split; basic_solver. 
+  Qed. 
+
   Lemma sim_traversal_inf WF COMP WFSC CONS MF
         (IMM_FAIR: imm_s_fair G sc):
     exists (sim_enum: nat -> trav_config),
+      ⟪INIT: sim_enum 0 = init_trav G ⟫ /\
       ⟪DOM_TC: forall i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)),
           covered (sim_enum i) ⊆₁ E /\ issued (sim_enum i) ⊆₁ E ⟫ /\
       ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)),
           tc_coherent G sc (sim_enum i) ⟫ /\
       ⟪STEPS: forall i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)),
           (sim_trav_step G sc)^* (sim_enum i) (sim_enum (1 + i)) ⟫ /\
-      ⟪ENUM: forall e (Ee: (E \₁ is_init) e), exists i, covered (sim_enum i) e⟫.
+      ⟪ENUM: forall e (Ee: (E \₁ is_init) e), exists i,
+          NOmega.le (NOnum i) (set_size graph_steps) /\
+          covered (sim_enum i) e⟫.
   Proof using.
     destruct iord_enum_exists as [steps_enum [ENUM RESP]]; auto.
     exists (tc_enum steps_enum). splits.
+    { unfold tc_enum, trav_prefix. rewrite <- sim_trav_closure_init; auto. f_equal.
+      apply same_tc_extensionality.
+      arewrite ((fun i => i < 0) ≡₁ (@set_empty nat)).
+      { split; [red; ins; lia| basic_solver]. }
+      rewrite set_bunion_empty. by rewrite set2trav_config_empty. }      
     3: { apply sim_traversal_next; auto. }
     2: { ins. unfold tc_enum. apply stc_coherent; auto.
          apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
@@ -860,7 +899,7 @@ Module STCTraversal.
     intros e Ee.
     pose proof ENUM as ENUM'. apply enumeratesE' in ENUM. desc.
     specialize (IND (mkTL TravAction.cover e)). specialize_full IND; [by vauto| ].
-    desc. exists (S i).
+    desc. exists (S i). split; [by vauto| ]. 
     unfold tc_enum, sim_trav_closure. 
     unfold trav_config_union. simpl. left. split; [| by apply Ee].
     left. split; [| by apply Ee].
