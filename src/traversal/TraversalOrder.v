@@ -20,23 +20,21 @@ Import ListNotations.
 
 Set Implicit Arguments.
 
-Module TravAction.
-  Inductive t := cover | issue.
+Inductive trav_action := ta_cover | ta_issue.
 
-  Definition get (TC : trav_config) ta :=
-    match ta with
-    | cover => covered TC
-    | issue => issued TC
-    end.
-End TravAction. 
+Definition get (TC : trav_config) ta :=
+  match ta with
+  | ta_cover => covered TC
+  | ta_issue => issued TC
+  end.
 
-Module TravLabel.
-  Record t :=
-    mkTL {
-        action : TravAction.t;
-        event  : actid;
-      }.
+Record trav_label :=
+  mkTL {
+      action : trav_action;
+      event  : actid;
+    }.
 
+Section TravLabel. 
   Context (G : execution) (sc : relation actid).
   Implicit Types (WF : Wf G) (COMP : complete G)
            (WFSC : wf_sc G sc) (CONS : imm_consistent G sc)
@@ -80,27 +78,27 @@ Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Definition SB :=
-    ⦗action ↓₁ (eq TravAction.cover)⦘
+    ⦗action ↓₁ (eq ta_cover)⦘
       ⨾ (event ↓ (sb ∪ sc)⁺)
-      ⨾ ⦗action ↓₁ (eq TravAction.cover)⦘.
+      ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
          
   Definition RF :=
-    ⦗action ↓₁ (eq TravAction.issue)⦘
+    ⦗action ↓₁ (eq ta_issue)⦘
       ⨾ (event ↓ (⦗W⦘ ⨾ rf^?))
-      ⨾ ⦗action ↓₁ (eq TravAction.cover)⦘.
+      ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
 
   Definition FWBOB :=
-    ⦗action ↓₁ (eq TravAction.cover)⦘
+    ⦗action ↓₁ (eq ta_cover)⦘
       ⨾ (event ↓ (fwbob ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ (eq TravAction.issue)⦘.
+      ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
 
   Definition AR :=
-    ⦗action ↓₁ (eq TravAction.issue)⦘
+    ⦗action ↓₁ (eq ta_issue)⦘
       ⨾ (event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ (eq TravAction.issue)⦘.
+      ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
   
   (* Essentially, it is an alternative representation of a part of tc_coherent *)
-  Definition iord : relation t :=
+  Definition iord : relation trav_label :=
     restr_rel (event ↓₁ (E \₁ is_init))
               (SB ∪ RF ∪ FWBOB ∪ AR).
 
@@ -158,7 +156,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     unfold SB, RF, FWBOB, AR;
     clear; unfolder; intros [a b] [c d]; ins; desc;
     (try match goal with
-        | z : t |- _ => destruct z; desf; ins; desf
+        | z : trav_label |- _ => destruct z; desf; ins; desf
         end);
     desf.
   
@@ -245,14 +243,14 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Lemma event_finite_inj y : set_finite (fun x => y = event x).
   Proof using.
-    ins. exists [mkTL TravAction.issue y;
-                 mkTL TravAction.cover y].
+    ins. exists [mkTL ta_issue y;
+                 mkTL ta_cover y].
     ins. subst. destruct x as [[]]; ins; auto.
   Qed.
 
   Lemma event_surj y : exists x, y = event x.
   Proof using.
-    ins. exists (mkTL TravAction.cover y); ins.
+    ins. exists (mkTL ta_cover y); ins.
   Qed.
 
   Local Hint Resolve RFSB_trans FWBOBSB event_finite_inj event_surj : lbase.
@@ -269,7 +267,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     unfold AR, RF, FWBOB, SB.
     rewrite !seqA.
     hahn_frame.
-    arewrite_id ⦗action ↓₁ eq TravAction.cover⦘. rewrite !seq_id_l, !seq_id_r.
+    arewrite_id ⦗action ↓₁ eq ta_cover⦘. rewrite !seq_id_l, !seq_id_r.
     rewrite <- !map_rel_seq2; auto with lbase.
     rewrite !seqA.
     hahn_frame.
@@ -425,8 +423,8 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
     { now apply fsupp_sb. }
     unfold FWBOB.
-    arewrite_id ⦗action ↓₁ eq TravAction.cover⦘.
-    arewrite_id ⦗action ↓₁ eq TravAction.issue⦘.
+    arewrite_id ⦗action ↓₁ eq ta_cover⦘.
+    arewrite_id ⦗action ↓₁ eq ta_issue⦘.
     arewrite_id ⦗W⦘.
     rewrite !seq_id_l, !seq_id_r.
     rewrite restr_relE, <- !seqA.
@@ -743,11 +741,5 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { sin_rewrite ARSBFW. clear; basic_solver 1. }
     all: rewrite rewrite_trans; eauto with hahn lbase.
   Qed.
-
-  Lemma iord_wf : well_founded iord.
-  Proof using.
-    
-  Admitted.
-  
         
 End TravLabel.

@@ -105,29 +105,70 @@ Proof using.
 Qed.
 
 
-Module IordTraversal. 
-  Include TraversalOrder.TravLabel.
+Section IordTraversal. 
   (* TODO: have to repeat this? *)
+  Variable (G: execution) (sc: relation actid). 
   Implicit Types (WF : Wf G) (COMP : complete G)
          (WFSC : wf_sc G sc) (CONS : imm_consistent G sc)
          (MF : mem_fair G).
 
-  
-  Definition graph_steps: t -> Prop :=
-    (action ↓₁ (eq TravAction.cover) ∩₁ event ↓₁ (E \₁ is_init)) ∪₁
-    (action ↓₁ (eq TravAction.issue) ∩₁ event ↓₁ ((E \₁ is_init) ∩₁ W)). 
-  
-  Definition set2trav_config (S: t -> Prop) :=
-    mkTC
-      ((event ↑₁ (action ↓₁ (eq TravAction.cover) ∩₁ S) \₁ is_init ∪₁ is_init) ∩₁ E)
-      ((event ↑₁ (action ↓₁ (eq TravAction.issue) ∩₁ S) ∩₁ W \₁ is_init ∪₁ is_init) ∩₁ E).
-  
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
 
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'ar'" := (ar G sc).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+
+  Notation "'lab'" := (lab G).
+  Notation "'loc'" := (loc lab).
+  Notation "'val'" := (val lab).
+  Notation "'mod'" := (Events.mod lab).
+  Notation "'same_loc'" := (same_loc lab).
+  
+  Notation "'E'" := (acts_set G).
+  Notation "'R'" := (fun x => is_true (is_r lab x)).
+  Notation "'W'" := (fun x => is_true (is_w lab x)).
+  Notation "'F'" := (fun x => is_true (is_f lab x)).
+  Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
+  Notation "'RW'" := (R ∪₁ W).
+  Notation "'FR'" := (F ∪₁ R).
+  Notation "'FW'" := (F ∪₁ W).
+  Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
+  Notation "'W_ex'" := (W_ex G).
+  Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
+
+  Notation "'iord'" := (iord G sc). 
+  Notation "'SB'" := (SB G sc). 
+  Notation "'RF'" := (RF G). 
+  Notation "'AR'" := (AR G sc). 
+  Notation "'FWBOB'" := (FWBOB G). 
+
+  Definition graph_steps: trav_label -> Prop :=
+    (action ↓₁ (eq ta_cover) ∩₁ event ↓₁ (E \₁ is_init)) ∪₁
+    (action ↓₁ (eq ta_issue) ∩₁ event ↓₁ ((E \₁ is_init) ∩₁ W)). 
+  
+  Definition set2trav_config (S: trav_label -> Prop) :=
+    mkTC
+      ((event ↑₁ (action ↓₁ (eq ta_cover) ∩₁ S) \₁ is_init ∪₁ is_init) ∩₁ E)
+      ((event ↑₁ (action ↓₁ (eq ta_issue) ∩₁ S) ∩₁ W \₁ is_init ∪₁ is_init) ∩₁ E).
+  
   Lemma s2tc_coherence_helper WF COMP WFSC CONS
-        (a1 a2: TravAction.t)
+        (a1 a2: trav_action)
         (D1 D2: actid -> Prop)
         (r: relation actid)
-        (S: t -> Prop)
+        (S: trav_label -> Prop)
         (D2R: r ⊆ ⦗D2⦘ ⨾ r)
         (RELNINIT: r ⊆ r ⨾ ⦗set_compl is_init⦘)
         (RELE: r ⊆ restr_rel E r)
@@ -149,11 +190,10 @@ Module IordTraversal.
     apply PREF_CLOS. red. eexists. apply seq_eqv_r. split; [| by apply REL5].
     apply ct_step. do 2 red. splits; try by basic_solver.
     apply REL_IORD. basic_solver.
-  Qed. 
-    
+  Qed.     
   
   Lemma s2tc_closed_coherent_alt WF COMP WFSC CONS
-        (S: t -> Prop)
+        (S: trav_label -> Prop)
         (PREF_CLOS: dom_rel (iord⁺ ;; ⦗S⦘) ⊆₁ S):
     tc_coherent_alt G sc (set2trav_config S).
   Proof using.
@@ -162,45 +202,45 @@ Module IordTraversal.
     { basic_solver. }
     { forward eapply s2tc_coherence_helper
         with (r := sb) (D1 := fun _ => True) (D2 := fun _ => True)
-             (a1 := TravAction.cover) (a2 := TravAction.cover) as HELPER; eauto.
+             (a1 := ta_cover) (a2 := ta_cover) as HELPER; eauto.
       5: { rewrite set_inter_full_r in HELPER. auto. }
       { basic_solver. } 
       { rewrite no_sb_to_init. basic_solver. }
       { rewrite wf_sbE. basic_solver. }
-      repeat apply inclusion_union_r1_search. unfold SB.
+      repeat apply inclusion_union_r1_search. unfold "SB".
       hahn_frame. apply map_rel_mori; [done| ]. by rewrite <- ct_step. }
     { unfolder. intros e De. desc. splits; auto. desf; auto. left. splits; auto.
       destruct y as [a_ e]. simpl in *. subst a_. 
-      exists (mkTL TravAction.issue e). splits; auto.
-      apply PREF_CLOS. red. exists (mkTL TravAction.cover e).
+      exists (mkTL ta_issue e). splits; auto.
+      apply PREF_CLOS. red. exists (mkTL ta_cover e).
       apply seq_eqv_r. split; auto.
       apply ct_step. do 2 red. splits; try by (unfolder; vauto).
       do 2 left. right. red. basic_solver 10. }
     { forward eapply s2tc_coherence_helper
         with (r := rf) (D1 := fun _ => True) (D2 := W)
-             (a1 := TravAction.cover) (a2 := TravAction.issue) as HELPER; eauto.
+             (a1 := ta_cover) (a2 := ta_issue) as HELPER; eauto.
       5: { rewrite set_inter_full_r in HELPER. auto. }
       { rewrite wf_rfD; basic_solver. }
       { rewrite no_rf_to_init; basic_solver. }
       { rewrite wf_rfE; basic_solver. }
       do 2 apply inclusion_union_r1_search. apply inclusion_union_r2_search.
-      unfold RF. hahn_frame. apply map_rel_mori; [done| ].
+      unfold "RF". hahn_frame. apply map_rel_mori; [done| ].
       rewrite wf_rfD; [| done]. basic_solver. }
     { forward eapply s2tc_coherence_helper
         with (r := sc) (D1 := fun _ => True) (D2 := fun _ => True)
-             (a1 := TravAction.cover) (a2 := TravAction.cover) as HELPER; eauto.
+             (a1 := ta_cover) (a2 := ta_cover) as HELPER; eauto.
       5: { rewrite set_inter_full_r in HELPER. auto. }
       { basic_solver. }
       { rewrite no_sc_to_init; basic_solver. }
       { rewrite wf_scE; basic_solver. }
-      repeat apply inclusion_union_r1_search. unfold SB. hahn_frame.
+      repeat apply inclusion_union_r1_search. unfold "SB". hahn_frame.
       apply map_rel_mori; [done| ]. by rewrite <- ct_step. }      
     { basic_solver. }
     { rewrite set_inter_union_l. apply set_subset_union_l. split; [basic_solver| ].
       rewrite init_w; basic_solver. }
     { forward eapply s2tc_coherence_helper
         with (r := fwbob ⨾ ⦗W⦘) (D1 := W) (D2 := fun _ => True)
-             (a1 := TravAction.issue) (a2 := TravAction.cover) as HELPER; eauto.
+             (a1 := ta_issue) (a2 := ta_cover) as HELPER; eauto.
       5: { rewrite set_inter_full_r in HELPER.
            rewrite <- HELPER. apply dom_rel_mori. rewrite seqA.
            rewrite <- id_inter. hahn_frame. apply eqv_rel_mori.
@@ -213,10 +253,10 @@ Module IordTraversal.
         rewrite no_sb_to_init; basic_solver. }
       { rewrite wf_fwbobE; basic_solver. }
       apply inclusion_union_r1_search, inclusion_union_r2_search.
-      unfold FWBOB. basic_solver. }
+      unfold "FWBOB". basic_solver. }
     { forward eapply s2tc_coherence_helper
         with (r := ⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗W⦘) (D1 := W) (D2 := W)
-             (a1 := TravAction.issue) (a2 := TravAction.issue) as HELPER; eauto.
+             (a1 := ta_issue) (a2 := ta_issue) as HELPER; eauto.
       5: { etransitivity; [| apply HELPER].
            apply dom_rel_mori. rewrite !seqA. do 2 hahn_frame_l.
            (* TODO: unify with previous case *)
@@ -233,7 +273,7 @@ Module IordTraversal.
         apply (NOI z y). basic_solver. }
       { rewrite wf_ar_rf_ppo_locE; auto. rewrite <- !restr_relE. split; auto.
         red in H. desc. apply restr_ct in H. red in H. by desc. }
-      { apply inclusion_union_r2_search. unfold AR. hahn_frame. basic_solver. }
+      { apply inclusion_union_r2_search. unfold "AR". hahn_frame. basic_solver. }
     }
   Qed. 
 
@@ -241,13 +281,13 @@ Module IordTraversal.
     iord ≡ restr_rel graph_steps iord.
   Proof using.
     split; [| basic_solver].
-    unfold iord, graph_steps. unfolder. intros x y REL. desc.
+    unfold "iord", graph_steps. unfolder. intros x y REL. desc.
     destruct x as [ax ex], y as [ay ey]. simpl in *.    
-    assert (TravAction.cover = ax \/ TravAction.issue = ax /\ is_w lab ex) as AX.
+    assert (ta_cover = ax \/ ta_issue = ax /\ is_w lab ex) as AX.
     { destruct ax; auto. right. split; auto.
       des; apply seq_eqv_lr in REL; desc; try by vauto. 
       all: apply seq_eqv_l in REL4; desc; vauto. }
-    assert (TravAction.cover = ay \/ TravAction.issue = ay /\ is_w lab ey) as AY.
+    assert (ta_cover = ay \/ ta_issue = ay /\ is_w lab ey) as AY.
     { destruct ay; auto. right. split; auto.
       des; apply seq_eqv_lr in REL; desc; try by vauto.
       { apply seq_eqv_r in REL4; desc; vauto. }
@@ -255,7 +295,7 @@ Module IordTraversal.
     tauto.
   Qed. 
 
-  Lemma set2trav_config_union (S1 S2: t -> Prop):
+  Lemma set2trav_config_union (S1 S2: trav_label -> Prop):
     set2trav_config (S1 ∪₁ S2) =
     (set2trav_config S1) ⊔ (set2trav_config S2).
   Proof using.
@@ -266,11 +306,11 @@ Module IordTraversal.
   
   Section StepsEnum.
     
-    Variable (steps: nat -> t).
+    Variable (steps: nat -> trav_label).
     Hypothesis (ENUM: enumerates steps graph_steps).
     Hypothesis (RESP: respects_rel steps iord⁺ graph_steps).
 
-    Definition trav_prefix (i: nat) : t -> Prop :=
+    Definition trav_prefix (i: nat) : trav_label -> Prop :=
       ⋃₁ j < i, eq (steps j).
 
     Lemma trav_prefix_iord_closed WF COMP WFSC CONS
@@ -314,7 +354,7 @@ Module IordTraversal.
 
     Lemma step_event_dom i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)):
       (E \₁ is_init) (event (steps i)) /\
-      (action (steps i) = TravAction.issue -> W (event (steps i))). 
+      (action (steps i) = ta_issue -> W (event (steps i))). 
     Proof using ENUM. 
       apply enumeratesE' in ENUM. cdes ENUM.
       specialize_full INSET; eauto. red in INSET.
@@ -402,8 +442,8 @@ Module IordTraversal.
       red. destruct (steps i) as [a e] eqn:I.
       assert (~ (event ↑₁ (action ↓₁ eq a ∩₁ trav_prefix i)) e) as NOPREF.
       { intros PREFe. 
-        red in PREFe. desc. destruct y. simpl in PREFe0. subst event0.
-        destruct (classic (action0 = a)) as [-> | ?].
+        red in PREFe. desc. destruct y. simpl in PREFe0. subst event.
+        destruct (classic (action = a)) as [-> | ?].
         2: { generalize PREFe; basic_solver. }
           rewrite <- I in PREFe. red in PREFe. 
           desc. eapply prefix_border; eauto. }
@@ -453,32 +493,31 @@ Module IordTraversal.
     
   End StepsEnum.
 
-  Definition ae2tl (ae: TravAction.t * actid): TravLabel.t
+  Definition ae2tl (ae: trav_action * actid): trav_label
     := mkTL (fst ae) (snd ae). 
-  Definition tl2ae (tl: TravLabel.t): TravAction.t * actid
+  Definition tl2ae (tl: trav_label): trav_action * actid
     := (action tl, event tl).
 
   Lemma ae_tl_isomorphic: isomorphism ae2tl tl2ae.
   Proof using. split; ins; [destruct a | destruct b]; auto. Qed.
 
-   
-  
-  Lemma ae_countable: countable (@set_full (TravAction.t * actid)).
+     
+  Lemma ae_countable: countable (@set_full (trav_action * actid)).
   Proof using.
     apply countable_prod.
-    { apply finite_countable. exists [TravAction.cover; TravAction.issue].
+    { apply finite_countable. exists [ta_cover; ta_issue].
       ins. destruct x; tauto. }
     apply actid_countable. 
   Qed. 
     
-  Lemma trav_label_countable: @countable t (@set_full t).
+  Lemma trav_label_countable: @countable _ (@set_full trav_label).
   Proof using.
     eapply countable_isomorphic; [apply ae_tl_isomorphic| apply ae_countable].
   Qed. 
 
   Lemma iord_enum_exists WF COMP WFSC CONS MF
         (IMM_FAIR: imm_s_fair G sc):
-    exists (steps: nat -> t),
+    exists (steps: nat -> trav_label),
       enumerates steps graph_steps /\
       respects_rel steps iord⁺ graph_steps. 
   Proof using.
