@@ -68,6 +68,46 @@ Proof using.
   ins. apply in_flat_map.
   exists (f x). splits; auto.
   subst g. unfold proj1_sig. desf.
+  apply i. splits; auto.
+Qed.
+
+Lemma fsupp_dom_map_rel {A B} (f : B -> A)
+      r (FSUPP : fsupp r) 
+      (FININJ : forall y, set_finite (fun x => y = f x /\ dom_rel r y)) :
+  fsupp (f ↓ r).
+Proof using.
+  unfolder. ins. red in FSUPP.
+  specialize (FSUPP (f y)). desf.
+  set (g :=
+         fun (a : A) =>
+           proj1_sig
+             (constructive_indefinite_description _ (FININJ a))
+      ).
+  exists (flat_map g findom).
+  ins. apply in_flat_map.
+  exists (f x). splits; auto.
+  subst g. unfold proj1_sig. desf.
+  apply i. splits; auto.
+  red; eauto.
+Qed.
+
+Lemma fsupp_seq_l_map_rel {A B} (f : B -> A) (s : B -> Prop)
+      r (FSUPP : fsupp r)
+      (FININJ : forall y, set_finite (fun x => y = f x /\ s x)) :
+  fsupp (<|s|> ;; (f ↓ r)).
+Proof using.
+  unfolder. ins. red in FSUPP.
+  specialize (FSUPP (f y)). desf.
+  set (g :=
+         fun (a : A) =>
+           proj1_sig
+             (constructive_indefinite_description _ (FININJ a))
+      ).
+  exists (flat_map g findom).
+  ins. apply in_flat_map.
+  desf.
+  exists (f x). splits; auto.
+  subst g. unfold proj1_sig. desf.
   intuition.
 Qed.
 
