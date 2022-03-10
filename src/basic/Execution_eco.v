@@ -233,6 +233,13 @@ eby apply (loceq_co WF) in H0; eapply init_same_loc.
 eby subst; eapply (co_irr WF).
 Qed.
 
+Lemma no_co_cr_to_init WF SC_PER_LOC :
+  ⦗set_compl is_init⦘ ⨾ co^? ⊆ ⦗set_compl is_init⦘ ⨾ co^? ⨾ ⦗set_compl is_init⦘.
+Proof using.
+  rewrite no_co_to_init at 1; auto.
+  clear. basic_solver.
+Qed.
+
 Lemma no_fr_to_init WF SC_PER_LOC : fr ⊆ fr ⨾  ⦗fun x => ~ is_init x⦘.
 Proof using.
 unfold Execution.fr.

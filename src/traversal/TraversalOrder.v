@@ -4,6 +4,7 @@ Require Import Lia.
 
 Require Import Events.
 Require Import Execution.
+Require Import Execution_eco.
 Require Import imm_bob.
 Require Import imm_s.
 Require Import imm_s_ppo.
@@ -19,14 +20,6 @@ Require Import AuxRel2.
 Import ListNotations.
 
 Set Implicit Arguments.
-
-(* TODO: move to AuxRel2.v *)
-Lemma empty_ct {A} : (fun _ _ : A => False)⁺ ≡ (fun _ _ : A => False).
-Proof using. rewrite ct_begin. basic_solver 10. Qed.
-
-(* TODO: move to AuxRel2.v *)
-Lemma empty_rt {A} : (fun _ _ : A => False)＊ ≡ <|fun _ : A => True|>.
-Proof using. rewrite rtE, empty_ct. rewrite union_false_r. basic_solver. Qed.
 
 Inductive trav_action :=
 | ta_cover
@@ -119,37 +112,6 @@ Notation "'FW'" := (F ∪₁ W).
 Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
 Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
-
-  (* TODO: move to Execution.v *)
-  Lemma no_sb_cr_is_init :
-    ⦗set_compl is_init⦘ ⨾ sb^? ⊆ ⦗set_compl is_init⦘ ⨾ sb^? ⨾ ⦗set_compl is_init⦘.
-  Proof using. rewrite no_sb_to_init at 1. clear. basic_solver. Qed.
-
-  (* TODO: move to Execution.v *)
-  Lemma no_co_cr_is_init WF
-        (SPL : Execution_eco.sc_per_loc G) :
-    ⦗set_compl is_init⦘ ⨾ co^? ⊆ ⦗set_compl is_init⦘ ⨾ co^? ⨾ ⦗set_compl is_init⦘.
-  Proof using.
-    rewrite Execution_eco.no_co_to_init at 1; auto.
-    clear. basic_solver.
-  Qed.
-
-  (* TODO: move to ar_rfppo.v *)
-  Lemma no_ar_rfppo_is_init WF CONS :
-    ⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)＊
-    ⊆ ⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)＊ ⨾ ⦗set_compl is_init⦘.
-  Proof using. 
-    rewrite !rtE, !seq_union_r, !seq_union_l, !seq_union_r.
-    apply union_mori.
-    { clear; basic_solver. }
-    rewrite !ct_end.
-    hahn_frame_l. hahn_frame_l.
-    transitivity ((ar ∪ rf ⨾ ppo ∩ same_loc) ;; <|is_init ∪₁ set_compl is_init|>).
-    { rewrite <- set_full_split. clear; basic_solver. }
-    rewrite id_union, seq_union_r.
-    rewrite no_ar_rf_ppo_loc_to_init; auto.
-    now unionL.
-  Qed.
 
   Definition SB :=
     ⦗action ↓₁ (eq ta_cover)⦘
@@ -575,24 +537,13 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     apply fsupp_seq_l_map_rel; auto with lbase.
     rewrite <- !seqA. apply fsupp_seq.
     2: { apply fsupp_cr. apply MF. }
-    sin_rewrite no_sb_cr_is_init.
+    sin_rewrite no_sb_cr_to_init.
     rewrite !seqA, <- seqA. apply fsupp_seq; auto.
-    sin_rewrite no_ar_rfppo_is_init; auto.
+    sin_rewrite no_ar_rfppo_rt_to_init; auto.
     rewrite !seqA, <- seqA. apply fsupp_seq; auto.
   Qed.
 
   Local Hint Resolve SB_fsupp RF_fsupp FWBOB_fsupp AR_fsupp IPROP_fsupp PROP_fsupp : lbase.
-
-  (* TODO: move to ImmFair *)
-  Lemma imm_s_fair_fsupp_sc WF WFSC (IMM_FAIR: imm_s_fair G sc):
-    fsupp sc. 
-  Proof using. 
-    eapply fsupp_mori; [| by apply IMM_FAIR].
-    red. rewrite <- ct_step. unfold "ar". do 2 rewrite <- inclusion_union_r1.
-    apply doma_helper. inversion WFSC. rewrite wf_scD.
-    red. intros ? ? ?%seq_eqv_lr.
-    eapply read_or_fence_is_not_init; eauto. type_solver. 
-  Qed. 
 
   Lemma iord_fsupp WF WFSC MF CONS COMP
         (IMM_FAIR: imm_s_fair G sc):
@@ -601,7 +552,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
-    { by apply imm_s_fair_fsupp_sc. }
+    { eapply imm_s_fair_fsupp_sc; eauto. }
     unfold iord. rewrite !restr_union, !seq_union_r. 
     repeat (apply fsupp_union).
     6: { eapply fsupp_mori; [| apply PROP_fsupp]; auto. red. basic_solver. }
@@ -609,26 +560,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     all: apply fsupp_seq; [by apply fsupp_eqv| ].
     1, 3: by auto using SB_fsupp, FWBOB_fsupp. 
     all: apply fsupp_restr; auto using RF_fsupp, IPROP_fsupp.
-  Qed.
-
-  (* TODO: move to hahn / AuxRel2 *)
-  Lemma clos_trans_domb_l_strong {B: Type} (r: relation B) (s: B -> Prop)
-      (DOMB_S: domb (⦗s⦘ ⨾ r) s):
-  ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
-  Proof using.
-    red. intros x y TT. apply seq_eqv_l in TT as [Sx R'xy].
-    apply ctEE in R'xy as [n [_ Rnxy]].
-    generalize dependent y. induction n.
-    { ins. apply ct_step. apply seq_eqv_l in Rnxy as [_ Rnxy].
-      apply seq_eqv_lr. splits; auto.
-      eapply DOMB_S. basic_solver. }
-    ins. destruct Rnxy as [z [Rnxz Rzy]]. specialize (IHn _ Rnxz).
-    apply ct_unit. eexists. split; eauto.
-    eapply same_relation_exp in IHn.
-    2: { rewrite <- restr_relE. reflexivity. }
-    apply clos_trans_restrD in IHn. desc. 
-    apply seq_eqv_lr. splits; auto.
-    eapply DOMB_S. basic_solver.
   Qed.
 
   Lemma no_RF_to_init_weak WF:
@@ -665,14 +596,14 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     arewrite_id ⦗W⦘.
     rewrite !seq_id_l, !seq_id_r.
     rewrite map_rel_eqv, map_rel_seq.
-    sin_rewrite no_sb_cr_is_init. rewrite !seqA.
-    sin_rewrite no_ar_rfppo_is_init; auto. rewrite !seqA.
+    sin_rewrite no_sb_cr_to_init. rewrite !seqA.
+    sin_rewrite no_ar_rfppo_rt_to_init; auto. rewrite !seqA.
     arewrite_id ⦗set_compl (fun a : actid => is_init a)⦘ at 1.
-    sin_rewrite no_sb_cr_is_init. rewrite !seqA.
+    sin_rewrite no_sb_cr_to_init. rewrite !seqA.
 
     assert (SPL : Execution_eco.sc_per_loc G).
     { apply imm_s_hb.coherence_sc_per_loc. apply CONS. }
-    sin_rewrite no_co_cr_is_init; auto.
+    sin_rewrite no_co_cr_to_init; auto.
     rewrite <- !map_rel_seq2; auto using event_surj.
     repeat apply seq_domb.
     iord_dom_solver.
@@ -699,7 +630,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
-    { by apply imm_s_fair_fsupp_sc. }
+    { eapply imm_s_fair_fsupp_sc; eauto. }
 
     unfold iord.
     rewrite !restr_union.

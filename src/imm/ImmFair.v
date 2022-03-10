@@ -97,7 +97,16 @@ Section ImmFairProperties.
     2: { apply inclusion_ct_seq_eqv_l. } 
     apply clos_trans_mori. basic_solver. 
   Qed.
-      
+
+  Lemma imm_s_fair_fsupp_sc (IMM_FAIR: imm_s_fair G sc):
+    fsupp sc. 
+  Proof using WF WFSC. 
+    eapply fsupp_mori; [| by apply IMM_FAIR].
+    red. rewrite <- ct_step. unfold ar. do 2 rewrite <- inclusion_union_r1.
+    apply doma_helper. inversion WFSC. rewrite wf_scD.
+    red. intros ? ? ?%seq_eqv_lr.
+    eapply read_or_fence_is_not_init; eauto. type_solver. 
+  Qed. 
 End ImmFairProperties.
 
 Lemma fin_exec_imm_s_fair G sc (WF: Wf G) (WFSC: wf_sc G sc)

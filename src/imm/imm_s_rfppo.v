@@ -178,23 +178,20 @@ Proof using WF IMMCON.
   rewrite ct_step with (r:=ar) at 1. by apply ar_ct_rf_ppo_loc_ct_in_ar_ct.
 Qed.
 
-(* TODO: move to hahn / AuxRel2 *)
-Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
-  r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
-Proof using.
-  split; [basic_solver 10| ]; intros ->. basic_solver.
-  Unshelve. all: eauto.
-Qed.
-
-(* TODO: move to hahn *)
-Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
-      (DOMB_S: domb r s):
-  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
-Proof using.
-  rewrite <- seqA. apply domb_helper.
-  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
-  erewrite (@domb_rewrite _ r); eauto.
-  rewrite ct_end. basic_solver.
+Lemma no_ar_rfppo_rt_to_init :
+  ⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)＊
+  ⊆ ⦗set_compl is_init⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)＊ ⨾ ⦗set_compl is_init⦘.
+Proof using WF IMMCON. 
+  rewrite !rtE, !seq_union_r, !seq_union_l, !seq_union_r.
+  apply union_mori.
+  { clear; basic_solver. }
+  rewrite !ct_end.
+  hahn_frame_l. hahn_frame_l.
+  transitivity ((ar ∪ rf ⨾ ppo ∩ same_loc) ;; <|is_init ∪₁ set_compl is_init|>).
+  { rewrite <- set_full_split. clear; basic_solver. }
+  rewrite id_union, seq_union_r.
+  rewrite no_ar_rf_ppo_loc_to_init; auto.
+  now unionL.
 Qed.
 
 Lemma fsupp_ar_implies_fsupp_ar_rf_ppo_loc

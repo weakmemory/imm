@@ -379,6 +379,10 @@ split; [|basic_solver].
 unfold sb; rewrite ext_sb_to_non_init at 1; basic_solver.
 Qed.
 
+Lemma no_sb_cr_to_init :
+  ⦗set_compl is_init⦘ ⨾ sb^? ⊆ ⦗set_compl is_init⦘ ⨾ sb^? ⨾ ⦗set_compl is_init⦘.
+Proof using. rewrite no_sb_to_init at 1. clear. basic_solver. Qed.
+
 Lemma no_rf_to_init WF : rf ≡ rf ⨾  ⦗fun x => ~ is_init x⦘.
 Proof using.
 split; [|basic_solver].

@@ -4,6 +4,12 @@ Require Import Setoid.
 
 Set Implicit Arguments.
 
+Lemma empty_ct {A} : (fun _ _ : A => False)⁺ ≡ (fun _ _ : A => False).
+Proof using. rewrite ct_begin. basic_solver 10. Qed.
+
+Lemma empty_rt {A} : (fun _ _ : A => False)＊ ≡ <|fun _ : A => True|>.
+Proof using. rewrite rtE, empty_ct. rewrite union_false_r. basic_solver. Qed.
+
 Lemma dom_eqv_seq {A} a (r r' : relation A) (NE : exists b, r' a b) :
   dom_rel (r ⨾ ⦗eq a⦘ ) ≡₁ dom_rel (r ⨾ ⦗eq a⦘ ⨾ r').
 Proof using.
@@ -127,3 +133,42 @@ Proof using.
   rewrite <- seq_eqvK at 2. rewrite <- seqA. rewrite ct_rotl.
   do 2 rewrite <- seqA. rewrite <- ct_begin. basic_solver. 
 Qed.
+
+(* TODO: move to hahn *)
+Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMB_S: domb r s):
+  ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.
+Proof using.
+  rewrite <- seqA. apply domb_helper.
+  rewrite rtE, seq_union_r. apply union_domb; [basic_solver| ].
+  erewrite (@domb_rewrite _ r); eauto.
+  rewrite ct_end. basic_solver.
+Qed.
+
+Lemma clos_trans_domb_l_strong {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMB_S: domb (⦗s⦘ ⨾ r) s):
+  ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
+Proof using.
+  red. intros x y TT. apply seq_eqv_l in TT as [Sx R'xy].
+  apply ctEE in R'xy as [n [_ Rnxy]].
+  generalize dependent y. induction n.
+  { ins. apply ct_step. apply seq_eqv_l in Rnxy as [_ Rnxy].
+    apply seq_eqv_lr. splits; auto.
+    eapply DOMB_S. basic_solver. }
+  ins. destruct Rnxy as [z [Rnxz Rzy]]. specialize (IHn _ Rnxz).
+  apply ct_unit. eexists. split; eauto.
+  eapply same_relation_exp in IHn.
+  2: { rewrite <- restr_relE. reflexivity. }
+  apply clos_trans_restrD in IHn. desc. 
+  apply seq_eqv_lr. splits; auto.
+  eapply DOMB_S. basic_solver.
+Qed.
+
+(* TODO: move to hahn / AuxRel2 *)
+Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
+  r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
+Proof using.
+  split; [basic_solver 10| ]; intros ->. basic_solver.
+  Unshelve. all: eauto.
+Qed.
+

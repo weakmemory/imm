@@ -189,7 +189,7 @@ Section IordTraversal.
     exists (mkTL a2 x). splits; auto.
     apply PREF_CLOS. red. eexists. apply seq_eqv_r. split; [| by apply REL5].
     apply ct_step. do 2 red. splits; try by basic_solver.
-    apply REL_IORD. basic_solver.
+    do 2 left. apply REL_IORD. basic_solver.
   Qed.     
   
   Lemma s2tc_closed_coherent_alt WF COMP WFSC CONS
@@ -215,7 +215,8 @@ Section IordTraversal.
       apply PREF_CLOS. red. exists (mkTL ta_cover e).
       apply seq_eqv_r. split; auto.
       apply ct_step. do 2 red. splits; try by (unfolder; vauto).
-      do 2 left. right. red. basic_solver 10. }
+      do 2 left. do 2 left.
+      right. red. basic_solver 10. }
     { forward eapply s2tc_coherence_helper
         with (r := rf) (D1 := fun _ => True) (D2 := W)
              (a1 := ta_cover) (a2 := ta_issue) as HELPER; eauto.
