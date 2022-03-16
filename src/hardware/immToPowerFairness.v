@@ -23,6 +23,7 @@ Require Import Lia.
 Require Import ClassicalChoice.
 Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
+Require Import AuxRel2.
 
 
 Set Implicit Arguments.
@@ -130,7 +131,7 @@ Qed.
 Import ListNotations.
 
 (* TODO: move to lib *)
-Lemma set_finite_set_collect_inj {A B: Type} (f: A -> B) (S: A -> Prop)
+Lemma set_finite_set_collect_inv_inj {A B: Type} (f: A -> B) (S: A -> Prop)
       (FIN_MAP: set_finite (f ↑₁ S))
       (INJ_S: forall (x y: A) (Sx: S x) (Sy: S y), f x = f y -> x = y)
 :
@@ -214,9 +215,9 @@ Qed.
   
 Lemma enum_steps {A: Type} (r: relation A) (f: nat -> A)
       (STEPS: forall i : nat, r (f i) (f (i + 1))):
-  forall i j (LT: i < j), r^+ (f i) (f j). 
+  ⟪STEPS: forall i j (LT: i < j), r^+ (f i) (f j) ⟫. 
 Proof using.
-  ins. apply PeanoNat.Nat.le_exists_sub in LT. desc. subst j.
+  red. ins. apply PeanoNat.Nat.le_exists_sub in LT. desc. subst j.
   apply ctEE. exists p. split; auto.
   rewrite NPeano.Nat.add_comm, PeanoNat.Nat.add_succ_comm.
   apply enum_exact_steps. auto. 
@@ -232,17 +233,22 @@ Proof using.
 Qed.
 
 (* TODO: move to lib *)
-Lemma fin_dom_rel_fsupp {A: Type} (r: relation A) (S: A -> Prop)
-      (FINS: set_finite S) (FSUPPr: fsupp r):
-  set_finite (dom_rel (r ⨾ ⦗S⦘)).
+Lemma fin_dom_rel_fsupp {A: Type} (r: relation A):
+  (forall S (FINS: set_finite S), set_finite (dom_rel (r ⨾ ⦗S⦘))) <-> fsupp r.
 Proof.
+  split. 
+  2: { intros FSUPPr S FINS.  
   red in FSUPPr. apply functional_choice in FSUPPr as [supp_map FSUPPr].
   destruct FINS as [Sl DOMS]. 
   exists (concat (map supp_map Sl)).
   intros a [s DOM%seq_eqv_r]. desc.
   apply in_concat_iff. eexists. split.
   - eapply FSUPPr; eauto.
-  - apply in_map. intuition.
+  - apply in_map. intuition. }
+  ins. red. ins. 
+  specialize (H (eq y)). specialize_full H; [by exists [y]; vauto|].
+  destruct H as [findom FIN]. exists findom. ins. apply FIN.
+  red. eexists. apply seq_eqv_r. eauto.  
 Qed.
 
 Lemma In_gt_list_max (l: list nat) (n: nat)
@@ -254,6 +260,211 @@ Proof using.
   specialize_full IMPL; [lia| ].
   eapply Forall_in in IMPL; eauto. lia.
 Qed.  
+
+(* TODO: move to lib *)
+Lemma same_relation_exp_iff {A: Type} (r r': relation A):
+  r ≡ r' <-> (forall x y, r x y <-> r' x y).
+Proof.
+  red. split.
+  { apply same_relation_exp. }
+  ins. red. split.
+  all: red; ins; apply H; auto.
+Qed.  
+
+Lemma excluded_middle_or (A B: Prop)
+      (OR: A \/ B):
+  A \/ (~ A) /\ B.
+Proof. tauto. Qed. 
+
+Lemma orders_contradiction {A: Type} (r1 r2: relation A) (S: A -> Prop)
+      (ORD1: is_total S r1) (ORD2: is_total S r2):
+  restr_rel S (r1 \ eq) ≡ restr_rel S (r2 \ eq) \/
+  exists x y, S x /\ S y /\ r1 x y /\ r2 y x. 
+Proof using.
+  destruct (classic (restr_rel S (r1 \ eq) ≡ restr_rel S (r2 \ eq)))
+    as [| NEQ]; [tauto| right]. 
+  contra AGREE. destruct NEQ.
+  apply same_relation_exp_iff. ins.
+  destruct (classic (S x /\ S y)) as [[Sx Sy] |].
+  2: { unfold restr_rel. split; ins; desc; by destruct H. }
+  destruct (classic (x = y)) as [| NEQ].
+  { subst. vauto. unfolder. tauto. }
+  specialize (ORD1 x Sx y Sy NEQ). specialize (ORD2 x Sx y Sy NEQ).
+  apply excluded_middle_or in ORD1, ORD2. 
+  des; try by vauto.
+  all: try by (edestruct AGREE; do 2 eexists; eauto). 
+  pose proof not_ex_all_not. specialize (H _ _ AGREE).
+  unfolder. tauto. 
+Qed.
+
+Lemma enum_inj {A: Type} (f: nat -> A) (r: relation A)
+      (STEPS: forall i, r (f i) (f (i + 1)))
+      (AC: acyclic r):
+  forall x y, f x = f y -> x = y. 
+Proof. 
+  ins. forward eapply enum_steps as STEPS'; eauto.
+  pose proof (NPeano.Nat.lt_trichotomy x y) as LT.
+  des; auto;
+    destruct (AC (f x)); [rewrite H at 2| rewrite H at 1]; 
+    specialize (STEPS' _ _ LT); auto.
+Qed. 
+
+Lemma acyclic_transp {A: Type} (r: relation A)
+      (AC: acyclic r):
+  acyclic (transp r). 
+Proof. red. rewrite <- transp_ct. vauto. Qed.   
+
+
+(* Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r r': relation A) *)
+(*       (STEPS: forall i, r (f (i + 1)) (f i)) *)
+(*       (AC: acyclic r) *)
+(*       (INCL: r' ⊆ r) *)
+(*       (FSUPP: fsupp r'^+): *)
+(*   False. *)
+(* Proof.  *)
+(*   apply fin_dom_rel_fsupp with (S := eq (f 0)) in FSUPP; [| by exists [f 0]; vauto]. *)
+(*   eapply set_finite_mori in FSUPP. *)
+(*   2: { red. apply set_collect_map with (f := f). } *)
+(*   apply set_finite_set_collect_inv_inj in FSUPP.  *)
+(*   2: { ins. eapply enum_inj with (r0 := transp r); eauto.  *)
+(*        by apply acyclic_transp. } *)
+(*   destruct FSUPP as [inds FSUPP]. *)
+(*   specialize (FSUPP (list_max inds + 1)). specialize_full FSUPP. *)
+(*   { red. eexists. apply seq_eqv_r. splits; [| reflexivity]. *)
+(*     apply enum_steps_inv; eauto. *)
+(*     2: lia. *)
+(*     ins. specialize (STEPS i). apply INCL in *)
+(*   } *)
+(*   apply In_gt_list_max in FSUPP; auto. lia. *)
+(* Qed.  *)
+
+Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
+      (INF: ~ set_finite S):
+  exists e, S e.
+Proof. contra NO. destruct INF. exists []. ins. edestruct NO; vauto. Qed. 
+
+
+Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Prop)
+      (* (STEPS': forall i j (LT: i < j), r^+ (f j) (f i)) *)
+      (STEPS: forall i, r (f (i + 1)) (f i))
+      (AC: acyclic r)
+      (* (FSUPP: fsupp (restr_rel S r^+)) *)
+      (FSUPP: fsupp (restr_rel (S ∩₁ f ↑₁ set_full) r^+))
+      (* (INF_S: ~ set_finite (S ∩₁ f ↑₁ set_full)): *)
+      (INF_S': ~ set_finite (f ↓₁ S)):
+  False.
+Proof.
+  pose proof (proj2 (fin_dom_rel_fsupp _) FSUPP) as FSUPP'.
+
+  (* assert (~ set_finite (S ∩₁ f ↑₁ set_full)) as INF_S. *)
+  (* { intros FIN. destruct INF_S'. red in FIN. *)
+  forward eapply (set_infinite_has_element INF_S') as [ie1 Ie1].
+  specialize (FSUPP' (eq (f ie1))). specialize_full FSUPP'; [by exists [f ie1]; vauto| ].
+
+  eapply set_finite_mori in FSUPP'.
+  2: { red. apply set_collect_map with (f := f). }
+  apply set_finite_set_collect_inv_inj in FSUPP'.
+  2: { ins. eapply enum_inj with (r0 := transp r); eauto.
+       by apply acyclic_transp. }
+
+  destruct INF_S'.
+  rewrite <- set_inter_full_r with (s := _ ↓₁ _). 
+  rewrite set_full_split with (S0 := ge ie1), set_inter_union_r.
+  apply set_finite_union. split.
+  { exists (List.seq 0 (ie1 + 1)). ins. unfolder in IN. desc. 
+    apply in_seq. lia. }
+
+  eapply set_finite_mori; [| by apply FSUPP'].
+  red. red. ins. unfolder in H. desc.
+  red. eexists. apply seq_eqv_r. split; eauto.
+  red. splits; try by vauto.
+  eapply enum_steps_inv; eauto. lia.
+Qed. 
+
+Lemma set_finite_set_collect {A B: Type} (S: A -> Prop) (f: A -> B)
+      (FIN: set_finite S):
+  set_finite (f ↑₁ S). 
+Proof. 
+  red in FIN. desc. exists (map f findom). 
+  ins. apply in_map_iff. red in IN. desc. vauto.
+  eexists. split; eauto. 
+Qed. 
+
+Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r: relation A)
+      (STEPS: forall i, r (f (i + 1)) (f i))
+      (AC: acyclic r)
+      (FSUPP: fsupp r^+):
+  False.
+Proof. 
+  eapply fsupp_dom_enum_general with (S := set_full); eauto.
+  { eapply fsupp_mori; eauto. red. basic_solver. }
+  intros FIN. eapply set_infinite_nat.
+  eapply set_finite_mori; eauto. basic_solver. 
+Qed. 
+
+(* TODO: move to lib *)
+Lemma rel_collect_map {A: Type} (f: nat -> A) r:
+  f ↑ (f ↓ r) ⊆ r.
+Proof. basic_solver. Qed.
+
+Lemma fsupp_inv_inj {A B: Type} (f: A -> B) (r: relation A)
+      (FSUPP: fsupp (f ↑ r))
+      (INJ_S: forall (x y: A) (Rx: dom_rel r x) (Ry: dom_rel r y),
+          f x = f y -> x = y):
+  fsupp r.
+Proof. 
+  apply fin_dom_rel_fsupp. ins. 
+  pose proof (proj2 (fin_dom_rel_fsupp (f ↑ r)) FSUPP).
+  eapply set_finite_set_collect_inv_inj.
+  2: { ins. eapply INJ_S; eauto; generalize Sx, Sy; basic_solver. }
+  rewrite set_collect_dom. eapply set_finite_mori.
+  { red. apply dom_rel_mori. apply collect_rel_seq. }
+  rewrite collect_rel_eqv. apply H. by apply set_finite_set_collect. 
+Qed.
+
+(* TODO: rename? *)
+Lemma enum_order_contradiction {A: Type} (f: nat -> A) (r r': relation A) (S: A -> Prop)
+      (STEPS: forall i, r (f (i + 1)) (f i))
+      (INF_S: ~ set_finite (f ↓₁ S))
+      (TOTAL': is_total S r')
+      (AC: acyclic r)
+      (* (FS': fsupp r'^+) *)
+      (FS': fsupp r')
+      (SEQ: r^+ ⨾ r' ⊆ r^+):
+  False.
+Proof.
+  forward eapply enum_steps_inv as STEPS'; eauto.  
+  forward eapply orders_contradiction with (r1 := r^+) (r2 := r') (S0 := S ∩₁ (f ↑₁ set_full)).  
+  { red. ins. unfolder in IWa. unfolder in IWb. desc. subst. rename y0 into x.
+    pose proof (NPeano.Nat.lt_trichotomy x y). 
+    des; (try by vauto); [right | left]; eauto. }
+  { eapply is_total_mori; eauto; [red| ]; basic_solver. }
+
+  intros [EQUIV | CYCLE].
+  2: { desc. apply (AC x). apply SEQ. vauto. }
+
+  eapply fsupp_mori in FS'.
+  2: { red. etransitivity.
+       { apply proj1 in EQUIV. apply EQUIV. }
+       basic_solver. }
+
+  eapply fsupp_dom_enum_general; eauto.
+  eapply fsupp_mori; eauto. red.
+  eapply restr_rel_mori; [reflexivity| ].
+  red. ins. split; auto. intros ->. edestruct AC; eauto. 
+Qed. 
+
+(* TODO: move to Execution *)
+Lemma sb_total t:
+  is_total ((E \₁ is_init) ∩₁ Tid_ t) sb. 
+Proof.
+  red. ins. unfolder in IWa. unfolder in IWb. desc. subst. 
+  destruct a, b; try by vauto. simpl in *. subst.
+  pose proof (NPeano.Nat.lt_trichotomy index index0) as LT. 
+  des; [left | congruence | right]. 
+  all: red; apply seq_eqv_lr; splits; vauto. 
+Qed. 
+
 
 Lemma fin_threads_locs_power_hb_ct_fsupp 
       (FINLOCS: exists locs, forall e (ENIe: (E \₁ is_init) e), In (loc e) locs)
@@ -286,7 +497,7 @@ Proof using.
   set (enum_evs := f ↑₁ @set_full nat).
   assert (~ set_finite enum_evs) as INF_ENUM.
   { intros FIN. 
-    apply set_finite_set_collect_inj in FIN; auto. by destruct set_infinite_nat. }
+    apply set_finite_set_collect_inv_inj in FIN; auto. by destruct set_infinite_nat. }
 
   assert (enum_evs ⊆₁ E \₁ is_init) as ENUM_E.
   { subst enum_evs. intros e [i [_ Fie]].
@@ -294,7 +505,7 @@ Proof using.
     2: { rewrite no_hbp_to_init, wf_hbpE; auto. }
     generalize DECR. subst e. basic_solver. }
 
-
+  (* TODO: no need to restrict to writes here? *)
   assert (~ set_finite (f ↓₁ W)) as INFW'.
   { intros [iws FINW].
     set (wb := list_max iws + 1).
@@ -306,22 +517,18 @@ Proof using.
       specialize (FINW (j + 1)). specialize_full FINW.
       { apply wf_rfeD, seq_eqv_lr in H; auto. desc. vauto. }
       apply In_gt_list_max in FINW; vauto. lia. }
-    forward eapply (enum_steps_inv sb  (fun k => f (wb + k))) as SB_STEPS'.
-    { ins. rewrite PeanoNat.Nat.add_assoc. apply SB_STEPS. lia. }
-    forward eapply fsupp_sb as FSUPP_SB; eauto.
-    apply fin_dom_rel_fsupp with (S := eq (f wb)) in FSUPP_SB.
-    2: { exists [f wb]. vauto. }
-    eapply set_finite_mori in FSUPP_SB.
-    2: { red. apply set_collect_map with (f := f). }
-    apply set_finite_set_collect_inj in FSUPP_SB; auto.
-    destruct FSUPP_SB as [sb_inds FSUPP_SB].
-    specialize (FSUPP_SB (wb + (list_max sb_inds + 1))). specialize_full FSUPP_SB.
-    { red. eexists. apply seqA, seq_eqv_lr. splits; eauto.
+    
+    forward eapply fsupp_dom_enum with (f0 := fun k => f (wb + k))
+                                       (r := ⦗set_compl is_init⦘ ⨾ sb) as []. 
+    { ins. apply seq_eqv_l. split.
       { apply ENUM_E. vauto. }
-      apply ct_of_trans; [by apply sb_trans| ].
-      rewrite (plus_n_O wb) at 2. apply SB_STEPS'. lia. }
-    apply In_gt_list_max in FSUPP_SB; auto. lia. }
-           
+      rewrite PeanoNat.Nat.add_assoc. apply SB_STEPS. lia. }
+    { eapply acyclic_mori; [| by apply sb_acyclic]. red. basic_solver. }
+    eapply fsupp_mori; [| by apply fsupp_sb; eauto]. 
+    red. rewrite inclusion_ct_seq_eqv_l.
+    rewrite ct_of_trans; vauto. apply sb_trans. }
+  
+
   red in FINTHREADS. 
   forward eapply set_infinite_bunion 
     with (As := flip BinPos.Pos.lt b) (ABs := fun t => f ↓₁ (W ∩₁ Tid_ t)).
@@ -351,7 +558,22 @@ Proof using.
   intros [ol [Ll INFtl]].
   destruct ol.
   2: { destruct INFtl. exists []. unfolder. ins. desc.
-       forward eapply is_w_loc; eauto. ins. desc. vauto. }  
+       forward eapply is_w_loc; eauto. ins. desc. vauto. }
+
+  eapply enum_order_contradiction with (r' := sb ∩ same_loc)
+                                       (S := (E \₁ is_init) ∩₁ (W ∩₁ Tid_ t ∩₁ Loc_ (Some l))); eauto.
+  { intros FIN. destruct INFtl. eapply set_finite_mori; eauto.
+    red. rewrite set_map_inter with (d := _ \₁ _).
+    apply set_subset_inter_r. split; [| basic_solver].
+    red. ins. red. red in H. apply ENUM_E. vauto. }
+  { red. ins. forward eapply (@sb_total t) with (a := a) (b := b0) as SB;
+      try by (generalize IWa; generalize IWb; vauto || basic_solver). 
+    unfolder in IWa. unfolder in IWb. desc. 
+    des; [left | right]; split; congruence. }
+  { apply CON. }
+  { by apply fsupp_sb_loc. }
+  unfold "hbp", "ppop". unfold "hbp", "ppop".
+  
   
 Admitted.   
   
