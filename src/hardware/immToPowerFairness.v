@@ -361,11 +361,6 @@ Proof.
   eapply set_finite_mori; eauto. basic_solver. 
 Qed. 
 
-(* TODO: move to lib *)
-Lemma rel_collect_map {A: Type} (f: nat -> A) r:
-  f ↑ (f ↓ r) ⊆ r.
-Proof. basic_solver. Qed.
-
 Lemma fsupp_inv_inj {A B: Type} (f: A -> B) (r: relation A)
       (FSUPP: fsupp (f ↑ r))
       (INJ_S: forall (x y: A) (Rx: dom_rel r x) (Ry: dom_rel r y),
@@ -429,6 +424,42 @@ Lemma hb_po_loc_hb:
 Proof using CON. 
 Admitted. 
 
+Lemma exists_inf_thread (f: nat -> actid) (S: actid -> Prop) b 
+      (IN_E: f ↑₁ set_full ⊆₁ E \₁ is_init)
+      (INF: ~ set_finite (f ↓₁ S))
+      (FINTHREADS : threads_bound G b):
+    exists t, BinPos.Pos.lt t b /\ ~ set_finite (f ↓₁ (S ∩₁ Tid_ t)).
+Proof using. 
+  apply set_infinite_bunion.
+  { exists (mk_list (Datatypes.S (BinPos.Pos.to_nat b)) BinPos.Pos.of_nat). intros.
+    apply in_mk_list_iff. eexists. split.
+    2: { symmetry. apply Pnat.Pos2Nat.id. }
+    red in IN. apply Pnat.Pos2Nat.inj_lt in IN. lia. }
+  intros FIN. destruct INF.
+  rewrite AuxRel2.set_bunion_separation with (fab := tid).
+  rewrite set_map_bunion. 
+  rewrite AuxRel2.set_full_split with (S0 := flip BinPos.Pos.lt b).
+  rewrite set_bunion_union_l, set_finite_union. split; auto. 
+  exists []. ins. unfolder in IN. desc. destruct IN. red. 
+  rewrite <- IN1. apply FINTHREADS. apply IN_E. vauto.
+Qed. 
+
+Lemma exists_inf_loc (f: nat -> actid) (S: actid -> Prop) locs
+      (IN_E: f ↑₁ set_full ⊆₁ E \₁ is_init)
+      (INF: ~ set_finite (f ↓₁ S))
+      (FINLOCS: forall e (ENIe: (E \₁ is_init) e), In (loc e) locs):
+    exists l, In l locs /\ ~ set_finite (f ↓₁ (S ∩₁ Loc_ l)).
+Proof using.
+  eapply set_infinite_bunion; [by vauto| ]. 
+  intros FIN. destruct INF.
+  rewrite AuxRel2.set_bunion_separation with (fab := loc).
+  rewrite set_map_bunion.
+  rewrite AuxRel2.set_full_split with (S0 := fun l => In l locs).
+  rewrite set_bunion_union_l, set_finite_union. split; auto.
+  exists []. ins. unfolder in IN. desc.    
+  destruct IN. rewrite <- IN1. apply FINLOCS. apply IN_E. vauto.
+Qed.
+  
 
 Lemma fin_threads_locs_power_hb_ct_fsupp 
       (FINLOCS: exists locs, forall e (ENIe: (E \₁ is_init) e), In (loc e) locs)
@@ -443,26 +474,18 @@ Proof using CON.
        rewrite Power_ppo.ppo_in_sb, fence_in_sb, unionK, rfe_in_rf; auto.
        rewrite seq_union_r. apply fsupp_union.
        { by apply fsupp_sb. }
-       eapply fsupp_mori; [| by apply fsupp_rf; eauto]. red. basic_solver. } 
+       eapply fsupp_mori; [| by apply fsupp_rf; eauto]. red. basic_solver. }
 
   contra NWF. apply not_wf_inf_decr_enum in NWF as [f DECR].
   assert (forall i, (transp hbp) (f i) (f (i + 1))) as DECR'.
   { ins. red. eapply seq_eqv_l. eauto. }
 
-  pose proof (enum_steps_inv _ _ DECR') as STEPS'. 
-
-  set (enum_evs := f ↑₁ @set_full nat).
-  assert (~ set_finite enum_evs) as INF_ENUM.
-  { intros FIN. apply set_finite_set_collect_inv_inj in FIN; auto.
-    { by destruct set_infinite_nat. }
-    ins. eapply enum_inj; eauto. apply acyclic_transp. apply CON. } 
-
-  assert (enum_evs ⊆₁ E \₁ is_init) as ENUM_E.
-  { subst enum_evs. intros e [i [_ Fie]].
+  assert (f ↑₁ set_full ⊆₁ E \₁ is_init) as ENUM_E.
+  { intros e [i [_ Fie]].
     specialize (DECR i). eapply same_relation_exp in DECR.
     2: { rewrite no_hbp_to_init, wf_hbpE; auto. }
     generalize DECR. subst e. basic_solver. }
-
+  
   assert (~ set_finite (f ↓₁ W)) as INFW'.
   { intros [iws FINW].
     set (wb := list_max iws + 1).
@@ -485,34 +508,9 @@ Proof using CON.
     red. rewrite inclusion_ct_seq_eqv_l.
     rewrite ct_of_trans; vauto. apply sb_trans. }
   
+  eapply exists_inf_thread in INFW' as [t [TBt INFt]]; eauto.
 
-  red in FINTHREADS. 
-  forward eapply set_infinite_bunion 
-    with (As := flip BinPos.Pos.lt b) (ABs := fun t => f ↓₁ (W ∩₁ Tid_ t)).
-  { exists (mk_list (Datatypes.S (BinPos.Pos.to_nat b)) BinPos.Pos.of_nat). intros.
-    apply in_mk_list_iff. eexists. split.
-    2: { symmetry. apply Pnat.Pos2Nat.id. }
-    red in IN. apply Pnat.Pos2Nat.inj_lt in IN. lia. }
-  { intros FIN. destruct INFW'.
-    rewrite AuxRel2.set_bunion_separation with (fab := tid). 
-    rewrite set_map_bunion.
-    rewrite AuxRel2.set_full_split with (S := flip BinPos.Pos.lt b).
-    rewrite set_bunion_union_l, set_finite_union. split; auto. 
-    exists []. ins. unfolder in IN. desc. destruct IN. red. 
-    rewrite <- IN1. apply FINTHREADS. apply ENUM_E. vauto. }
-  intros [t [TBt INFt]]. red in TBt.
-  
-  forward eapply set_infinite_bunion 
-    with (As := fun l => In l locs) (ABs := fun l => f ↓₁ (W ∩₁ Tid_ t ∩₁ Loc_ l)).
-  { vauto. }
-  { intros FIN. destruct INFt.
-    rewrite AuxRel2.set_bunion_separation with (fab := loc).
-    rewrite set_map_bunion.
-    rewrite AuxRel2.set_full_split with (S := fun l => In l locs).
-    rewrite set_bunion_union_l, set_finite_union. split; auto.
-    exists []. ins. unfolder in IN. desc.    
-    destruct IN. rewrite <- IN1. apply FINLOCS. apply ENUM_E. vauto. }
-  intros [ol [Ll INFtl]].
+  eapply exists_inf_loc in INFt as [ol [Ll INFtl]]; eauto. 
   destruct ol.
   2: { destruct INFtl. exists []. unfolder. ins. desc.
        forward eapply is_w_loc; eauto. ins. desc. vauto. }
@@ -527,10 +525,10 @@ Proof using CON.
       try by (generalize IWa; generalize IWb; vauto || basic_solver). 
     unfolder in IWa. unfolder in IWb. desc. 
     des; [left | right]; split; congruence. }
-  { apply CON. }
+  { by apply CON. }
   { by apply fsupp_sb_loc. }
 
-  apply hb_po_loc_hb.   
+  apply hb_po_loc_hb.
 Qed.
 
 
