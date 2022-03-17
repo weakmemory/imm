@@ -56,6 +56,8 @@ Notation "'val'" := (val lab).
 Notation "'mod'" := (mod lab).
 Notation "'same_loc'" := (same_loc lab).
 
+Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
 
 Ltac contra name := 
   match goal with

@@ -26,6 +26,7 @@ Require Import IndefiniteDescription.
 Require Import AuxRel2.
 Require Import Program.Basics.
 Require Import HardwareFairness.
+Import ListNotations. 
 
 Set Implicit Arguments.
 
@@ -62,6 +63,13 @@ Notation "'RW'" := (R ∪₁ W).
 Notation "'FR'" := (F ∪₁ R).
 Notation "'FW'" := (F ∪₁ W).
 Notation "'W_ex'" := (W_ex G).
+Notation "'Pln'" := (fun a => is_true (is_only_pln lab a)).
+Notation "'Rlx'" := (fun a => is_true (is_rlx lab a)).
+Notation "'Rel'" := (fun a => is_true (is_rel lab a)).
+Notation "'Acq'" := (fun a => is_true (is_acq lab a)).
+Notation "'Acqrel'" := (fun a => is_true (is_acqrel lab a)).
+Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
+Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Notation "'loc'" := (loc lab).
 Notation "'val'" := (val lab).
@@ -211,7 +219,7 @@ Proof using CON.
     red. rewrite set_map_inter with (d := _ \₁ _).
     apply set_subset_inter_r. split; [| basic_solver].
     red. ins. red. red in H. apply ENUM_E. vauto. }
-  { red. ins. forward eapply (@sb_total t) with (a := a) (b := b0) as SB;
+  { red. ins. forward eapply sb_total with (a := a) (b := b0) (t := t) as SB;
       try by (generalize IWa; generalize IWb; vauto || basic_solver). 
     unfolder in IWa. unfolder in IWb. desc. 
     des; [left | right]; split; congruence. }
