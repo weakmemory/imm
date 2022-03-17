@@ -24,6 +24,7 @@ Require Import ClassicalChoice.
 Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
 Require Import AuxRel2.
+Require Import Program.Basics.
 
 
 Set Implicit Arguments.
@@ -174,26 +175,12 @@ Qed.
 Lemma set_infinite_bunion {A B: Type} (As: A -> Prop) (ABs: A -> B -> Prop)
       (FINa: set_finite As)
       (INF: ~ set_finite (⋃₁ a ∈ As, ABs a)):
-      (* (INF: ~ set_finite (⋃₁ a ∈ As, ABs a)): *)
   exists a, As a /\ ~ set_finite (ABs a).
 Proof using. 
   contra FIN_ALL. destruct INF. apply set_finite_bunion; auto.
   ins. contra INF. destruct FIN_ALL. eauto.
 Qed. 
 
-(* (* TODO: move to ThreadBoundedExecution *) *)
-(* Lemma threads_bound_separation G b (TB: threads_bound G b): *)
-
-(* Lemma BinPos_Pos_lt_ge x y: *)
-(*   BinPos.Pos.lt x y <-> BinPos.Pos.ge y x. *)
-(* Proof using. *)
-(*   etransitivity; [apply Pnat.Pos2Nat.inj_lt| ].  *)
-(*   etransitivity; [| symmetry; apply Pnat.Pos2Nat.inj_ge]. *)
-  
-(*   unfold BinPos.Pos.lt, BinPos.Pos.ge. *)
-(*   destruct (BinPos.Pos.compare x y). *)
-
-Require Import Program.Basics.
 
 Lemma wf_hbpE:
   hbp ≡ ⦗E⦘ ⨾ hbp ⨾ ⦗E⦘.
@@ -315,29 +302,6 @@ Lemma acyclic_transp {A: Type} (r: relation A)
 Proof. red. rewrite <- transp_ct. vauto. Qed.   
 
 
-(* Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r r': relation A) *)
-(*       (STEPS: forall i, r (f (i + 1)) (f i)) *)
-(*       (AC: acyclic r) *)
-(*       (INCL: r' ⊆ r) *)
-(*       (FSUPP: fsupp r'^+): *)
-(*   False. *)
-(* Proof.  *)
-(*   apply fin_dom_rel_fsupp with (S := eq (f 0)) in FSUPP; [| by exists [f 0]; vauto]. *)
-(*   eapply set_finite_mori in FSUPP. *)
-(*   2: { red. apply set_collect_map with (f := f). } *)
-(*   apply set_finite_set_collect_inv_inj in FSUPP.  *)
-(*   2: { ins. eapply enum_inj with (r0 := transp r); eauto.  *)
-(*        by apply acyclic_transp. } *)
-(*   destruct FSUPP as [inds FSUPP]. *)
-(*   specialize (FSUPP (list_max inds + 1)). specialize_full FSUPP. *)
-(*   { red. eexists. apply seq_eqv_r. splits; [| reflexivity]. *)
-(*     apply enum_steps_inv; eauto. *)
-(*     2: lia. *)
-(*     ins. specialize (STEPS i). apply INCL in *)
-(*   } *)
-(*   apply In_gt_list_max in FSUPP; auto. lia. *)
-(* Qed.  *)
-
 Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
       (INF: ~ set_finite S):
   exists e, S e.
@@ -345,19 +309,14 @@ Proof. contra NO. destruct INF. exists []. ins. edestruct NO; vauto. Qed.
 
 
 Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Prop)
-      (* (STEPS': forall i j (LT: i < j), r^+ (f j) (f i)) *)
       (STEPS: forall i, r (f (i + 1)) (f i))
       (AC: acyclic r)
-      (* (FSUPP: fsupp (restr_rel S r^+)) *)
       (FSUPP: fsupp (restr_rel (S ∩₁ f ↑₁ set_full) r^+))
-      (* (INF_S: ~ set_finite (S ∩₁ f ↑₁ set_full)): *)
       (INF_S': ~ set_finite (f ↓₁ S)):
   False.
 Proof.
   pose proof (proj2 (fin_dom_rel_fsupp _) FSUPP) as FSUPP'.
 
-  (* assert (~ set_finite (S ∩₁ f ↑₁ set_full)) as INF_S. *)
-  (* { intros FIN. destruct INF_S'. red in FIN. *)
   forward eapply (set_infinite_has_element INF_S') as [ie1 Ie1].
   specialize (FSUPP' (eq (f ie1))). specialize_full FSUPP'; [by exists [f ie1]; vauto| ].
 
@@ -465,12 +424,17 @@ Proof.
   all: red; apply seq_eqv_lr; splits; vauto. 
 Qed. 
 
+Lemma hb_po_loc_hb:
+  hbp⁺ ⨾ sb ∩ same_loc ⊆ hbp⁺. 
+Proof using CON. 
+Admitted. 
+
 
 Lemma fin_threads_locs_power_hb_ct_fsupp 
       (FINLOCS: exists locs, forall e (ENIe: (E \₁ is_init) e), In (loc e) locs)
       (FINTHREADS: exists b, threads_bound G b):
   fsupp (⦗set_compl is_init⦘ ⨾ hbp^+). 
-Proof using. 
+Proof using CON. 
   forward eapply WF as WF; eauto. desc.
   rewrite clos_trans_domb_begin.
   2: { rewrite no_hbp_to_init; basic_solver. }
@@ -487,17 +451,11 @@ Proof using.
 
   pose proof (enum_steps_inv _ _ DECR') as STEPS'. 
 
-  assert (forall x y, f x = f y -> x = y) as F_INJ. 
-  { ins. cdes CON.    
-    pose proof (NPeano.Nat.lt_trichotomy x y) as LT.
-    des; auto;
-      destruct (NO_THIN_AIR (f x)); [rewrite H at 1| rewrite H at 2]; 
-      specialize (STEPS' _ _ LT); auto.  }
-
   set (enum_evs := f ↑₁ @set_full nat).
   assert (~ set_finite enum_evs) as INF_ENUM.
-  { intros FIN. 
-    apply set_finite_set_collect_inv_inj in FIN; auto. by destruct set_infinite_nat. }
+  { intros FIN. apply set_finite_set_collect_inv_inj in FIN; auto.
+    { by destruct set_infinite_nat. }
+    ins. eapply enum_inj; eauto. apply acyclic_transp. apply CON. } 
 
   assert (enum_evs ⊆₁ E \₁ is_init) as ENUM_E.
   { subst enum_evs. intros e [i [_ Fie]].
@@ -505,7 +463,6 @@ Proof using.
     2: { rewrite no_hbp_to_init, wf_hbpE; auto. }
     generalize DECR. subst e. basic_solver. }
 
-  (* TODO: no need to restrict to writes here? *)
   assert (~ set_finite (f ↓₁ W)) as INFW'.
   { intros [iws FINW].
     set (wb := list_max iws + 1).
@@ -572,11 +529,9 @@ Proof using.
     des; [left | right]; split; congruence. }
   { apply CON. }
   { by apply fsupp_sb_loc. }
-  unfold "hbp", "ppop". unfold "hbp", "ppop".
-  
-  
-Admitted.   
-  
+
+  apply hb_po_loc_hb.   
+Qed.
 
 
 End immToPowerFairness.
