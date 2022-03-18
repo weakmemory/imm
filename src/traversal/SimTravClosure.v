@@ -49,16 +49,6 @@ Section SimTravClosure.
     simpl in IW. split; [| basic_solver]. rewrite IW. type_solver.
   Qed. 
 
-  (* TODO: move to hahn *)
-  Lemma set_union_strict {A: Type}
-        (s1 s2: A -> Prop):
-    s1 ∪₁ s2 ≡₁ s1 ∪₁ s2 \₁ s1.
-  Proof using.
-    split; [| basic_solver].
-    intros x Sx. destruct (classic (s1 x)); [basic_solver| ].
-    destruct Sx; [done| ]. basic_solver. 
-  Qed.
-
   Lemma sb_invrmw_sbclos WF:
     sb G ⨾ (rmw G)⁻¹ ⊆ (sb G)^?.
   Proof using.
@@ -350,13 +340,6 @@ Section STCTraversal.
     destruct STEP'.
     { inversion H. destruct (NEW e); auto. rewrite H1. basic_solver. }
     rewrite set_unionA, set_unionC with (s := I'), <- set_unionA. auto. 
-  Qed.
-
-  (* TODO: move to hahn *)
-  Lemma set_disjoint_not_eq_r {A: Type} (a : A) (s : A -> Prop):
-    ~ set_disjoint s (eq a) <-> s a.
-  Proof using.
-    pose proof (set_disjoint_eq_r a s) as EQ. apply not_iff_compat in EQ. tauto.
   Qed.
 
   Section CoverClosure.
@@ -889,21 +872,6 @@ Section STCTraversal.
     split; try basic_solver. etransitivity; [| by apply set_subset_empty_l]. 
     unfolder. ins. desc. apply wf_rmwD, seq_eqv_lr in H1; auto. desc.
     generalize (@read_or_fence_is_not_init _ WF x0). tauto.
-  Qed. 
-
-  (* TODO: move to IordTraversal *)
-  Global Add Parametric Morphism: (set2trav_config G) with signature
-      (@set_equiv trav_label) ==> same_trav_config as set2trav_config_more. 
-  Proof using.
-    ins. unfold set2trav_config. split; rewrite H; simpl; basic_solver. 
-  Qed.
-    
-  (* TODO: move to IordTraversal *)
-  Lemma set2trav_config_empty:
-    set2trav_config G ∅ = init_trav G.
-  Proof using.
-    unfold set2trav_config. apply same_tc_extensionality. unfold init_trav.
-    split; basic_solver. 
   Qed. 
 
   Lemma sim_traversal_inf WF COMP WFSC CONS MF

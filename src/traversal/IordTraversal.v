@@ -54,6 +54,7 @@ Section TravConfigUnion.
 End TravConfigUnion.   
 
 Local Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
+
     
 Section IordTraversal. 
   (* TODO: have to repeat this? *)
@@ -113,6 +114,19 @@ Section IordTraversal.
     mkTC
       ((event ↑₁ (action ↓₁ (eq ta_cover) ∩₁ S) \₁ is_init ∪₁ is_init) ∩₁ E)
       ((event ↑₁ (action ↓₁ (eq ta_issue) ∩₁ S) ∩₁ W \₁ is_init ∪₁ is_init) ∩₁ E).
+
+  Global Add Parametric Morphism: set2trav_config with signature
+      (@set_equiv trav_label) ==> same_trav_config as set2trav_config_more. 
+  Proof using.
+    ins. unfold set2trav_config. split; rewrite H; simpl; basic_solver. 
+  Qed.
+    
+  Lemma set2trav_config_empty:
+    set2trav_config ∅ = init_trav G.
+  Proof using.
+    unfold set2trav_config. apply same_tc_extensionality. unfold init_trav.
+    split; basic_solver. 
+  Qed. 
   
   Lemma s2tc_coherence_helper WF COMP WFSC CONS
         (a1 a2: trav_action)

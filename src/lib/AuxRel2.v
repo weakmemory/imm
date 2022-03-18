@@ -183,3 +183,18 @@ Lemma set_split_complete {A: Type} (s s': A -> Prop):
 Proof using.
   rewrite <- set_inter_union_r. rewrite <- AuxRel2.set_full_split. basic_solver. 
 Qed.
+
+Lemma set_union_strict {A: Type}
+      (s1 s2: A -> Prop):
+  s1 ∪₁ s2 ≡₁ s1 ∪₁ s2 \₁ s1.
+Proof using.
+  split; [| basic_solver].
+  intros x Sx. destruct (classic (s1 x)); [basic_solver| ].
+  destruct Sx; [done| ]. basic_solver. 
+Qed.
+
+Lemma set_disjoint_not_eq_r {A: Type} (a : A) (s : A -> Prop):
+  ~ set_disjoint s (eq a) <-> s a.
+Proof using.
+  pose proof (set_disjoint_eq_r a s) as EQ. apply not_iff_compat in EQ. tauto.
+Qed.
