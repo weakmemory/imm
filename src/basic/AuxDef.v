@@ -1,8 +1,10 @@
 From hahn Require Import Hahn.
-Require Import Events.
 Require Import Classical.
 Require Import Lia.
 Require Import IndefiniteDescription.
+Require Import PropExtensionality.
+
+Require Import Events.
 
 Lemma false_acyclic {A} : acyclic (∅₂ : relation A).
 Proof using.
@@ -224,4 +226,13 @@ Lemma dom_cond_to_rel {A} r (s t : A -> Prop) :
 Proof using.
   unfold dom_cond; unfolder.
   intro H; ins; desf; eapply H; eauto.
+Qed.
+
+Lemma set_extensionality {A} (s s' : A -> Prop)
+      (IN : s ≡₁ s') :
+  s = s'.
+Proof using.
+  ins; extensionality x.
+  apply propositional_extensionality.
+  split; apply IN.
 Qed.

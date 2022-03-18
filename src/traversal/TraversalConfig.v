@@ -1,5 +1,6 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
+
 Require Import AuxDef Events Execution.
 Require Import Execution_eco imm_s_hb imm_s imm_bob.
 Require Import imm_s_ppo CombRelations.
@@ -139,6 +140,16 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
       symmetry proved by same_trav_config_sym
       transitivity proved by same_trav_config_trans
         as same_tc.
+
+  Lemma same_tc_extensionality tc1 tc2 (SAME: same_trav_config tc1 tc2):
+    tc1 = tc2.
+  Proof using.
+    destruct SAME.
+    destruct tc1, tc2. ins.
+    apply set_extensionality in H, H0.   
+    congruence. 
+  Qed. 
+
   
   Global Add Parametric Morphism : covered with signature
       same_trav_config ==> set_equiv as covered_more.
@@ -176,6 +187,10 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
     all: try erewrite issued_more; eauto.
     all: erewrite issuable_more; eauto.
   Qed.
+
+  Global Add Parametric Morphism : mkTC with signature
+         (@set_equiv actid) ==> (@set_equiv actid) ==> same_trav_config as mkTC_more.
+  Proof using. vauto. Qed.  
 
 (******************************************************************************)
 (** **   *)

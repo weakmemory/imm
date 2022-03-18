@@ -12,52 +12,21 @@ Require Import TraversalConfig.
 Require Import Traversal.
 Require Import TraversalConfigAlt.
 Require Import AuxDef.
-Require Import SetSize.
 Require Import FairExecution.
-Import ListNotations.
 Require Import TraversalOrder.
-Require Import PropExtensionality.
 Require Import CountabilityHelpers.
 Require Import ImmFair.
 
+Import ListNotations.
 Set Implicit Arguments.
 
-Definition respects_rel {A: Type} (enum: nat -> A) (r: relation A) (S: A -> Prop) :=
-  forall i j (DOMi: NOmega.lt_nat_l i (set_size S))
-    (DOMj: NOmega.lt_nat_l j (set_size S))
-    (Rij: r (enum i) (enum j)),
-    i < j.
-
-(* TODO: move to lib, or, better, to hahn *)
-Lemma set_extensionality A (s s' : A -> Prop) :
-  s ≡₁ s' -> s = s'.
-Proof using.
-  ins; extensionality x.
-  apply propositional_extensionality; split; apply H.
-Qed.
-
-(* TODO: move into TraversalConfig *)
-(* TODO: rename? *)
-Global Add Parametric Morphism : mkTC with signature
-    (@set_equiv actid) ==> (@set_equiv actid) ==> same_trav_config as mkTC_more.
-Proof using. vauto. Qed.  
-
-
-(* TODO: move to TraversalConfig? *)
-Lemma same_tc_extensionality tc1 tc2 (SAME: same_trav_config tc1 tc2):
-  tc1 = tc2.
-Proof using.
-  destruct SAME.
-  destruct tc1, tc2. ins. apply set_extensionality in H, H0.   
-  congruence. 
-Qed. 
-
+(* TODO: move the section somewhere *)
 Section TravConfigUnion.
 
   Definition trav_config_union (tc1 tc2: trav_config) : trav_config :=
     mkTC (covered tc1 ∪₁ covered tc2) (issued tc1 ∪₁ issued tc2).
 
-  Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10).
+  Local Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10).
   
   Lemma tcu_same_equiv (tc1 tc2 tc1' tc2': trav_config)
         (SAME1: same_trav_config tc1 tc1') (SAME2: same_trav_config tc2 tc2'):
@@ -68,16 +37,6 @@ Section TravConfigUnion.
     destruct SAME1 as [-> ->], SAME2 as [-> ->]. reflexivity. 
   Qed.
 
-  Definition empty_tc := mkTC ∅ ∅.
-
-  Lemma tcu_empty_l (tc: trav_config):
-    tc ⊔ empty_tc = tc.
-  Proof using.
-    apply same_tc_extensionality. 
-    unfold trav_config_union, empty_tc. simpl.
-    rewrite !set_union_empty_r. by destruct tc.  
-  Qed.
-  
   Lemma tcu_assoc (tc1 tc2 tc3: trav_config):
      (tc1 ⊔ tc2) ⊔ tc3 = tc1 ⊔ (tc2 ⊔ tc3).
   Proof using.
@@ -94,17 +53,8 @@ Section TravConfigUnion.
   
 End TravConfigUnion.   
 
-Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
-
+Local Notation " tc1 '⊔' tc2 " := (trav_config_union tc1 tc2) (at level 10). 
     
-(* TODO: move to hahn *)
-Lemma set_split_complete {A: Type} (s s': A -> Prop):
-  s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
-Proof using.
-  rewrite <- set_inter_union_r. rewrite <- AuxRel2.set_full_split. basic_solver. 
-Qed.
-
-
 Section IordTraversal. 
   (* TODO: have to repeat this? *)
   Variable (G: execution) (sc: relation actid). 

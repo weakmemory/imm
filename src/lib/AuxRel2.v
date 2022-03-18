@@ -1,6 +1,7 @@
 Require Import Lia.
 From hahn Require Import Hahn.
 Require Import Setoid.
+Require Import SetSize.
 
 Set Implicit Arguments.
 
@@ -164,7 +165,6 @@ Proof using.
   eapply DOMB_S. basic_solver.
 Qed.
 
-(* TODO: move to hahn / AuxRel2 *)
 Lemma seq_eqv_compl {A: Type} (r: relation A) (s: A -> Prop):
   r ⨾ ⦗s⦘ ≡ ∅₂ <-> r ≡ r ⨾ ⦗set_compl s⦘.
 Proof using.
@@ -172,3 +172,14 @@ Proof using.
   Unshelve. all: eauto.
 Qed.
 
+Definition respects_rel {A: Type} (enum: nat -> A) (r: relation A) (S: A -> Prop) :=
+  forall i j (DOMi: NOmega.lt_nat_l i (set_size S))
+    (DOMj: NOmega.lt_nat_l j (set_size S))
+    (Rij: r (enum i) (enum j)),
+    i < j.
+
+Lemma set_split_complete {A: Type} (s s': A -> Prop):
+  s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
+Proof using.
+  rewrite <- set_inter_union_r. rewrite <- AuxRel2.set_full_split. basic_solver. 
+Qed.
