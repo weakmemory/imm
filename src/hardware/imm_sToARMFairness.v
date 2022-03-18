@@ -21,6 +21,8 @@ Require Import ImmFair.
 Require Import FairExecution.
 Require Import imm_sToARM.
 Require Import HardwareFairness. 
+Require Import Lia.
+Import ListNotations. 
 
 Set Implicit Arguments.
 
@@ -110,6 +112,8 @@ Notation "'A'" := (R ∩₁ (fun a => is_true (is_sc  lab a))).
 Notation "'F^ld'" := (F ∩₁ (fun a => is_true (is_acq lab a))).
 Notation "'F^sy'" := (F ∩₁ (fun a => is_true (is_rel lab a))).
 
+Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
+
 Hypothesis RMW_DEPS : rmw ⊆ ctrl ∪ data.
 Hypothesis W_EX_ACQ_SB : ⦗W_ex_acq⦘ ⨾ sb ⊆ sb ⨾ ⦗F^ld⦘ ⨾  sb^?.
 Hypothesis DEPS_RMW_SB : rmw_dep ⨾ sb ⊆ ctrl.
@@ -147,10 +151,9 @@ Proof.
   rewrite wf_rfeE, wf_coE, wf_frE, wf_sbE; basic_solver. 
 Qed.
 
+
 Lemma fin_locs_arm_hb_ct_fsupp 
       (FINLOCS: exists locs, forall e (ENIe: (E \₁ is_init) e), In (loc e) locs)
-      (* (FINTHREADS: exists b, threads_bound G b): *)
-  (* fsupp (⦗set_compl is_init⦘ ⨾ hbp^+).  *)
       (FAIR: mem_fair G)
       :
       fsupp (⦗set_compl is_init⦘ ⨾ ob'^+). 
@@ -182,11 +185,15 @@ Proof using CON.
     assert (forall j (GE: j >= wb), sb (f (j + 1)) (f j)) as SB_STEPS.
     { intros. specialize (DECR j). apply seq_eqv_l in DECR. desc.
       unfold ob' in DECR0. eapply hahn_inclusion_exp in DECR0.
-      2: { rewrite Power_ppo.ppo_in_sb, fence_in_sb, unionK; auto. reflexivity. }
+      2: { unfold "obs'". rewrite dob_in_sb, aob_in_sb, bob'_in_sb; auto.
+           rewrite !unionA, !unionK, <- !unionA.
+           eapply union_mori with (y := W × set_full ∪ set_full × W); [| reflexivity].
+           rewrite wf_rfeD, wf_coD, wf_frD; auto. basic_solver. }      
       destruct DECR0; auto.
-      specialize (FINW (j + 1)). specialize_full FINW.
-      { apply wf_rfeD, seq_eqv_lr in H; auto. desc. vauto. }
-      apply In_gt_list_max in FINW; vauto. lia. }
+      destruct H; red in H; desc;
+        [specialize (FINW (j + 1)) | specialize (FINW j)];
+        specialize_full FINW; try basic_solver. 
+      all: apply In_gt_list_max in FINW; vauto; lia. }
     
     forward eapply fsupp_dom_enum with (f0 := fun k => f (wb + k))
                                        (r := ⦗set_compl is_init⦘ ⨾ sb) as []. 
@@ -198,28 +205,26 @@ Proof using CON.
     red. rewrite inclusion_ct_seq_eqv_l.
     rewrite ct_of_trans; vauto. apply sb_trans. }
   
-  eapply exists_inf_thread in INFW' as [t [TBt INFt]]; eauto.
-
-  eapply exists_inf_loc in INFt as [ol [Ll INFtl]]; eauto. 
+  eapply exists_inf_loc in INFW' as [ol [Ll INFtl]]; eauto. 
   destruct ol.
   2: { destruct INFtl. exists []. unfolder. ins. desc.
        forward eapply is_w_loc; eauto. ins. desc. vauto. }
 
-  eapply enum_order_contradiction with (r' := sb ∩ same_loc)
-                                       (S := (E \₁ is_init) ∩₁ (W ∩₁ Tid_ t ∩₁ Loc_ (Some l))); eauto.
+  eapply enum_order_contradiction with (r' := co)
+                                       (S0 := (E \₁ is_init) ∩₁ (W ∩₁ Loc_ (Some l))); eauto.
   { intros FIN. destruct INFtl. eapply set_finite_mori; eauto.
     red. rewrite set_map_inter with (d := _ \₁ _).
     apply set_subset_inter_r. split; [| basic_solver].
     red. ins. red. red in H. apply ENUM_E. vauto. }
-  { red. ins. forward eapply sb_total with (a := a) (b := b0) (t := t) as SB;
-      try by (generalize IWa; generalize IWb; vauto || basic_solver). 
-    unfolder in IWa. unfolder in IWb. desc. 
-    des; [left | right]; split; congruence. }
-  { by apply CON. }
-  { by apply fsupp_sb_loc. }
+  { red. ins. forward eapply wf_co_total with (a := a) (b := b);  
+      try by (generalize IWa; generalize IWb; (vauto || basic_solver)).
+    unfolder in IWa. unfolder in IWb. unfolder. desc. splits; congruence. }
+  { by apply external_alt. }
+  { apply FAIR. }
 
-  apply hb_po_loc_hb.
-
+  rewrite <- ct_unit at 2. apply seq_mori; [reflexivity| ].
+  unfold ob', "obs'". basic_solver 10. 
+Qed. 
 
 
 End immToARMFairness. 
