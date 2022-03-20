@@ -14,6 +14,7 @@ Require Import SetSize.
 Require Import FairExecution.
 Require Import ImmFair.
 Require Import AuxRel2.
+Require Import CountabilityHelpers.
 Import ListNotations.
 
 Set Implicit Arguments.
@@ -47,6 +48,36 @@ Definition trav_label : Set := trav_action * actid.
 Definition action : trav_label -> trav_action := fst.
 Definition event  : trav_label -> actid       := snd.
 Definition mkTL ta e : trav_label := (ta, e).
+
+Lemma trav_label_countable: countable (@set_full trav_label).
+Proof using.
+  apply countable_prod.
+  2: now apply actid_countable. 
+  apply countable_subset with
+    (s':=eq ta_cover ∪₁ eq ta_issue ∪₁ eq ta_reserve ∪₁ (fun ta => exists tid, ta = ta_propagate tid)).
+  2: { unfolder. ins. destruct x; eauto. }
+  apply countable_union.
+  { apply finite_countable. exists [ta_cover; ta_issue; ta_reserve].
+    clear; basic_solver. }
+  pose pos_countable as AA. destruct AA as [AA|AA].
+  { exfalso. apply AA. repeat constructor. }
+  desf. right. exists (fun n => ta_propagate (nu n)).
+  destruct AA; desf.
+  { left. splits; ins.
+    { now exists (nu i). }
+    { inv EQ. now apply INJ. }
+    desf; eauto.
+    destruct (SUR tid) as [y].
+    { clear; basic_solver. }
+    now exists y; subst. }
+  right. exists n. splits; ins.
+  { now exists (nu i). }
+  { inv EQ. now apply INJ. }
+  desf; eauto.
+  destruct (SUR tid) as [y [HH DD]].
+  { clear; basic_solver. }
+  exists y. now splits; auto; subst. 
+Qed.
 
 Lemma event_surj y : exists x, y = event x.
 Proof using.
@@ -110,6 +141,12 @@ Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
 Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
+  Definition is_ta_propagate_to_G ta : Prop :=
+    match ta with 
+    | ta_propagate t => exists e, (E \₁ is_init) e /\ tid e = t
+    | _              => false
+    end.
+
   Definition SB :=
     ⦗action ↓₁ (eq ta_cover)⦘
       ⨾ (event ↓ (sb ∪ sc)⁺)
@@ -133,7 +170,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Definition IPROP :=
     ⦗action ↓₁ (eq ta_issue)⦘
       ⨾ (event ↓ (eq ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ is_ta_propagate⦘.
+      ⨾ ⦗action ↓₁ is_ta_propagate_to_G⦘.
 
   Definition PROP : relation trav_label :=
     ⦗action ↓₁ (eq ta_cover)⦘ ;;
@@ -141,7 +178,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
        ∩ (fun ta1 ta2 =>
             tid (event ta1) = ta_propagate_tid (action ta2))
     ) ;;
-    ⦗action ↓₁ is_ta_propagate⦘.
+    ⦗action ↓₁ is_ta_propagate_to_G⦘.
 
   (* Essentially, it is an alternative representation of a part of tc_coherent *)
   Definition iord : relation trav_label :=
@@ -874,3 +911,11 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Qed.
         
 End TravLabel.
+
+Global Ltac iord_dom_solver :=
+  unfold SB, RF, FWBOB, AR, PROP, IPROP;
+  clear; unfolder; intros [a b] [c d]; ins; desc;
+  (try match goal with
+       | z : trav_label |- _ => destruct z; desf; ins; desf
+       end);
+  desf.
