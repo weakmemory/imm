@@ -563,7 +563,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     unfold PROP.
     rewrite inclusion_inter_l1.
     arewrite_id ⦗W⦘.
-    arewrite_id ⦗action ↓₁ (fun ta => is_ta_propagate ta)⦘.
+    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G⦘.
     rewrite !seq_id_r.
     rewrite <- !seqA.
     rewrite seq_eqvC, !seqA.
@@ -626,7 +626,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     unfold PROP.
     rewrite inclusion_inter_l1.
     arewrite_id ⦗action ↓₁ eq ta_cover⦘.
-    arewrite_id ⦗action ↓₁ (fun ta => is_ta_propagate ta)⦘.
+    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G⦘.
     arewrite_id ⦗W⦘.
     rewrite !seq_id_l, !seq_id_r.
     rewrite map_rel_eqv, map_rel_seq.
