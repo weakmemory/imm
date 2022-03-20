@@ -9,9 +9,6 @@ Require Import imm_bob.
 Require Import imm_s.
 Require Import imm_s_ppo.
 Require Import imm_s_rfppo.
-Require Import TraversalConfig.
-Require Import Traversal.
-Require Import TraversalConfigAlt.
 Require Import AuxDef.
 Require Import SetSize.
 Require Import FairExecution.
@@ -25,6 +22,7 @@ Inductive trav_action :=
 | ta_cover
 | ta_issue
 | ta_propagate (tid : thread_id)
+| ta_reserve
 .
 
 Definition is_ta_propagate ta :=
@@ -45,11 +43,10 @@ Definition ta_propagate_tid ta :=
 (*   | ta_issue => issued TC *)
 (*   end. *)
 
-Record trav_label :=
-  mkTL {
-      action : trav_action;
-      event  : actid;
-    }.
+Definition trav_label : Set := trav_action * actid.
+Definition action : trav_label -> trav_action := fst.
+Definition event  : trav_label -> actid       := snd.
+Definition mkTL ta e : trav_label := (ta, e).
 
 Lemma event_surj y : exists x, y = event x.
 Proof using.
