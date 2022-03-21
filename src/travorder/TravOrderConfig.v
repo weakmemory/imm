@@ -127,7 +127,9 @@ Definition sim_clos_step :=
 Lemma iord_step_implies_sim_clos_step :
   iord_step ⊆ sim_clos ↓ sim_clos_step^*.
 Proof using.
-  unfolder; ins.
+  unfolder; intros x y STEP.
+  red in STEP. desf.
+
   (* use trav_step_closures_isim from SimTravClosure.v  *)
 Admitted.
 

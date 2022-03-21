@@ -125,6 +125,78 @@ Notation "'Acq/Rel'" := (fun a => is_true (is_ra lab a)).
       eauto 20.
   Qed.
 
+  Lemma itrav_step_mon_ext e
+        (C1 I1 C2 I2 C' I': actid -> Prop)
+        (STEP: itrav_step e (mkTC C1 I1) (mkTC C2 I2)):
+          (itrav_step e)^?
+                        (mkTC (C1 ∪₁ C') (I1 ∪₁ I'))
+                        (mkTC (C2 ∪₁ C') (I2 ∪₁ I')).
+  Proof using.
+    red in STEP. desf; simpl in *. 
+
+    { destruct (classic (C' e)).
+      { left. f_equal; apply set_extensionality;
+                (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
+      right. red. left. splits; simpl. 
+      { intros [? | ?]; done. }
+      { eapply traversal_mon; [.. | apply COV]; simpl; basic_solver. }
+      all: (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
+
+    destruct (classic (I' e)).
+    { left. f_equal; apply set_extensionality;
+              (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
+    right. red. right. splits; simpl. 
+    { intros [? | ?]; done. }
+    { eapply traversal_mon; [| | apply ISS]; simpl; basic_solver. }
+    all: (rewrite COVEQ || rewrite ISSEQ); basic_solver.
+  Qed.
+
+  Lemma itrav_step_mon_ext_equiv e 
+        (C1 I1 C2 I2 C' I' Cu1 Iu1 Cu2 Iu2: actid -> Prop)
+        (STEP: itrav_step e {| covered := C1; issued := I1 |}
+                            {| covered := C2; issued := I2 |})
+        (EQC1: Cu1 ≡₁ C1 ∪₁ C') (EQI1: Iu1 ≡₁ I1 ∪₁ I')
+        (EQC2: Cu2 ≡₁ C2 ∪₁ C') (EQI2: Iu2 ≡₁ I2 ∪₁ I'):
+    (itrav_step e)^? (mkTC Cu1 Iu1) (mkTC Cu2 Iu2).
+  Proof using.
+    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto.
+    destruct STEP'.
+    { left. apply same_tc_extensionality. rewrite EQC1, EQC2, EQI1, EQI2.
+      inversion H. rewrite H1, H2. reflexivity. }
+    right. eapply itrav_step_more; [done| .. | by apply H].
+    all: red; split; simpl; auto.
+  Qed. 
+
+  Lemma itrav_step_mon_ext_cover e
+        (C I C' I': actid -> Prop)
+        (STEP: itrav_step e (mkTC C I) (mkTC (C ∪₁ eq e) I))
+        (NEW: set_disjoint (C ∪₁ C') (eq e)):
+    itrav_step e (mkTC (C ∪₁ C') (I ∪₁ I'))
+                 (mkTC (C ∪₁ C' ∪₁ eq e) (I ∪₁ I')).
+  Proof using.
+    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
+    red in STEP. desf; simpl in *. 
+    2: { destruct (NEW e); auto. left. apply COVEQ. basic_solver. }
+    destruct STEP'.
+    { inversion H. destruct (NEW e); auto. rewrite H1. basic_solver. }
+    rewrite set_unionA, set_unionC with (s := C'), <- set_unionA. auto. 
+  Qed. 
+    
+  Lemma itrav_step_mon_ext_issue e
+        (C I C' I': actid -> Prop)
+        (STEP: itrav_step e (mkTC C I) (mkTC C (I ∪₁ eq e)))
+        (NEW: set_disjoint (I ∪₁ I') (eq e)):
+          itrav_step e (mkTC (C ∪₁ C') (I ∪₁ I'))
+                       (mkTC (C ∪₁ C') (I ∪₁ I' ∪₁ eq e)).
+  Proof using.
+    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
+    red in STEP. desf; simpl in *. 
+    { destruct (NEW e); auto. left. apply ISSEQ. basic_solver. }
+    destruct STEP'.
+    { inversion H. destruct (NEW e); auto. rewrite H1. basic_solver. }
+    rewrite set_unionA, set_unionC with (s := I'), <- set_unionA. auto. 
+  Qed.
+
   Definition trav_step T T' := exists e, itrav_step e T T'.
 
   Definition traverse := clos_trans trav_step.

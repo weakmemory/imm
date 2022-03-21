@@ -236,3 +236,22 @@ Proof using.
   apply propositional_extensionality.
   split; apply IN.
 Qed.
+
+Lemma functional_codom {A: Type} (r: relation A) (a: A)
+      (FUN: functional r)
+      (DOMa: dom_rel r a):
+  exists a', codom_rel (⦗eq a⦘ ⨾ r) ≡₁ eq a'.
+Proof using.
+  destruct DOMa as [a' Raa']. exists a'. split; [| basic_solver].  
+  intros x [a_ Ra_x%seq_eqv_l]. desc. subst.
+  eapply FUN; eauto.
+Qed.
+
+Lemma set_eq_helper {A: Type} (s1 s2: A -> Prop) (EQ: s1 = s2):
+  s1 ≡₁ s2.
+Proof using. by rewrite EQ. Qed.
+
+Lemma set_minus_disjoint {A: Type} (s1 s2: A -> Prop)
+      (DISJ: set_disjoint s1 s2):
+  s1 \₁ s2 ≡₁ s1.
+Proof using. basic_solver. Qed.

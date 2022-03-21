@@ -307,4 +307,16 @@ Lemma sim_trav_step_to_step T T' thread
   exists e T'', itrav_step G sc e T T'' /\ tid e = thread.
 Proof using. destruct TS; eauto. Qed.
 
+Add Parametric Morphism thread: (isim_trav_step thread) with signature
+    same_trav_config ==> same_trav_config ==> iff as isim_trav_step_more.
+Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
+
+Add Parametric Morphism thread: (isim_trav_step thread)^? with signature
+    same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_more.
+Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
+    
+Add Parametric Morphism thread: (isim_trav_step thread)^* with signature
+    same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_trans_more.
+Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
+
 End SimTraversal.

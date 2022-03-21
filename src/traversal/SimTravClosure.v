@@ -12,6 +12,7 @@ Require Import TraversalConfig.
 Require Import Traversal.
 Require Import TraversalConfigAlt.
 Require Import AuxDef.
+Require Import AuxRel2.
 Require Import SetSize.
 Require Import FairExecution.
 Import ListNotations.
@@ -39,28 +40,6 @@ Section SimTravClosure.
     mkTC (covered tc ∪₁ (Cclos tc \₁ covered tc))
          (issued tc ∪₁ (Iclos tc \₁ issued tc)). 
 
-  Lemma codom_I_rmw_empty WF WFSC
-        (tc: trav_config) (COH: tc_coherent G sc tc):
-    codom_rel (⦗(issued tc) ∩₁ is_rel (lab G)⦘ ⨾ (rmw G)) ≡₁ ∅.
-  Proof using.
-    rewrite wf_rmwD; auto. repeat seq_rewrite <- id_inter.
-    forward eapply tc_I_in_W as IW; eauto.
-    { apply tc_coherent_implies_tc_coherent_alt; eauto. }
-    simpl in IW. split; [| basic_solver]. rewrite IW. type_solver.
-  Qed. 
-
-  Lemma sb_invrmw_sbclos WF:
-    sb G ⨾ (rmw G)⁻¹ ⊆ (sb G)^?.
-  Proof using.
-    red. ins. destruct (classic (x = y)); [by left| ].
-    right. red in H. destruct H as [w [SB RMW]]. red in RMW.
-    forward eapply (wf_rmwi WF _ _ RMW) as [SByw IMMyw]. 
-    eapply sb_semi_total_r in SByw; eauto.
-    2: { eapply read_or_fence_is_not_init; eauto. left.
-         apply wf_rmwD, seq_eqv_lr in RMW; auto. by desc. }
-    des; auto. edestruct IMMyw; eauto. 
-  Qed. 
-
   Lemma stc_coherent WF WFSC CONS
         (tc: trav_config)
         (COH: tc_coherent G sc tc):
@@ -70,7 +49,6 @@ Section SimTravClosure.
     pose proof COH as COH'. apply tc_coherent_implies_tc_coherent_alt in COH'; auto.
     inversion COH'.
     unfold sim_trav_closure. 
-    forward eapply codom_I_rmw_empty as CIR; eauto.
     destruct tc as [C I] eqn:TC. simpl in *. 
     assert ((sb G)^? ⨾ ⦗C⦘ ⊆ ⦗C⦘ ⨾ (sb G)^? ⨾ ⦗C⦘) as COV_SB'.
     { apply dom_rel_helper_in. 
@@ -90,7 +68,7 @@ Section SimTravClosure.
         2: { eapply dom_sb_W_rel_issued; eauto. rewrite TC. apply COH. }
         rewrite TC. simpl. rewrite <- id_inter. apply dom_rel_mori. basic_solver. }
       rewrite dom_rel_eqv_codom_rel. rewrite transp_seq, transp_eqv_rel. 
-      rewrite <- seqA, sb_invrmw_sbclos; auto.
+      rewrite <- seqA, sb_transp_rmw; auto.
       rewrite COV_SB'. basic_solver. }
     { rewrite <- !set_union_strict.
       rewrite set_inter_union_l. rewrite tc_W_C_in_I.
@@ -120,40 +98,39 @@ Section SimTravClosure.
       unfold Iclos, Cclos. simpl.
       rewrite fwbob_in_sb.
       rewrite dom_rel_eqv_codom_rel. rewrite transp_seq, transp_eqv_rel.
-      rewrite <- seqA. rewrite sb_invrmw_sbclos; auto.
+      rewrite <- seqA. rewrite sb_transp_rmw; auto.
       rewrite COV_SB'. basic_solver. }
-    { rewrite <- !set_union_strict.
-      rewrite id_union, !seq_union_r, dom_union, tc_I_ar_rf_ppo_loc_I.      
-      
-      unfold Iclos. simpl.
-      rewrite ct_end, seqA. unfold ar at 2. 
-      rewrite !seq_union_l.
-      arewrite (sc ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw G)⦘ ⊆ ∅₂).
-      { rewrite (wf_scD WFSC), (wf_rmwD WF). type_solver. }
-      arewrite (rfe G ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw G)⦘ ⊆ ∅₂).
-      { rewrite wf_rfeD, wf_rmwD; auto. type_solver. }
-      rewrite !union_false_l.
-      
-      rewrite ar_int_in_sb; auto.
-      arewrite (ppo G ∩ same_loc (lab G) ⊆ sb G) at 2 by (generalize ppo_in_sb; basic_solver).
-      rewrite !seq_union_r. rewrite dom_union.
-      repeat (apply set_subset_union_l; split).
-      { basic_solver. }
-      { rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
-        rewrite transp_seq, transp_eqv_rel.
-        rewrite !seqA. rewrite <- seqA with (r3 := ⦗C⦘).
-        seq_rewrite sb_invrmw_sbclos; auto. 
-        rewrite COV_SB'. do 2 rewrite <- seqA. rewrite dom_seq.
-        forward eapply ar_rf_ppo_loc_rt_CI_in_I as IN; eauto. simpl in IN.
-        generalize IN. basic_solver 10. }
-      (* TODO: refactor by unifying with case above? *)
-      rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
-      rewrite transp_seq, transp_eqv_rel. rewrite seqA.
-      rewrite <- seqA with (r1 := sb G). seq_rewrite sb_invrmw_sbclos; auto.
-      rewrite COV_SB'. do 2 rewrite <- seqA. do 2 rewrite dom_seq.
-      rewrite seqA. rewrite <- dom_rel_eqv_dom_rel. rewrite tc_rf_C.
-      generalize tc_I_ar_rf_ppo_loc_I. basic_solver 10.  
-    }
+    rewrite <- !set_union_strict.
+    rewrite id_union, !seq_union_r, dom_union, tc_I_ar_rf_ppo_loc_I.      
+    
+    unfold Iclos. simpl.
+    rewrite ct_end, seqA. unfold ar at 2. 
+    rewrite !seq_union_l.
+    arewrite (sc ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw G)⦘ ⊆ ∅₂).
+    { rewrite (wf_scD WFSC), (wf_rmwD WF). type_solver. }
+    arewrite (rfe G ⨾ ⦗codom_rel (⦗C⦘ ⨾ rmw G)⦘ ⊆ ∅₂).
+    { rewrite wf_rfeD, wf_rmwD; auto. type_solver. }
+    rewrite !union_false_l.
+    
+    rewrite ar_int_in_sb; auto.
+    arewrite (ppo G ∩ same_loc (lab G) ⊆ sb G) at 2 by (generalize ppo_in_sb; basic_solver).
+    rewrite !seq_union_r. rewrite dom_union.
+    repeat (apply set_subset_union_l; split).
+    { basic_solver. }
+    { rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
+      rewrite transp_seq, transp_eqv_rel.
+      rewrite !seqA. rewrite <- seqA with (r3 := ⦗C⦘).
+      seq_rewrite sb_transp_rmw; auto. 
+      rewrite COV_SB'. do 2 rewrite <- seqA. rewrite dom_seq.
+      forward eapply ar_rf_ppo_loc_rt_CI_in_I as IN; eauto. simpl in IN.
+      generalize IN. basic_solver 10. }
+    (* TODO: refactor by unifying with case above? *)
+    rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
+    rewrite transp_seq, transp_eqv_rel. rewrite seqA.
+    rewrite <- seqA with (r1 := sb G). seq_rewrite sb_transp_rmw; auto.
+    rewrite COV_SB'. do 2 rewrite <- seqA. do 2 rewrite dom_seq.
+    rewrite seqA. rewrite <- dom_rel_eqv_dom_rel. rewrite tc_rf_C.
+    generalize tc_I_ar_rf_ppo_loc_I. basic_solver 10.  
   Qed. 
 
  Lemma stc_domE WF COMP WFSC CONS MF
@@ -222,48 +199,7 @@ Section STCTraversal.
   Notation "'W_ex'" := (W_ex G).
   Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
-  Lemma itrav_step_mon_ext e
-        (C1 I1 C2 I2 C' I': actid -> Prop)
-        (STEP: (itrav_step G sc) e (mkTC C1 I1) (mkTC C2 I2)):
-          (itrav_step G sc e)^?
-                             (mkTC (C1 ∪₁ C') (I1 ∪₁ I'))
-                             (mkTC (C2 ∪₁ C') (I2 ∪₁ I')).
-  Proof using.
-    red in STEP. desf; simpl in *. 
-
-    { destruct (classic (C' e)).
-      { left. f_equal; apply set_extensionality;
-                (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
-      right. red. left. splits; simpl. 
-      { intros [? | ?]; done. }
-      { eapply traversal_mon; [.. | apply COV]; simpl; basic_solver. }
-      all: (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
-
-    destruct (classic (I' e)).
-    { left. f_equal; apply set_extensionality;
-              (rewrite COVEQ || rewrite ISSEQ); basic_solver. }
-    right. red. right. splits; simpl. 
-    { intros [? | ?]; done. }
-    { eapply traversal_mon; [| | apply ISS]; simpl; basic_solver. }
-    all: (rewrite COVEQ || rewrite ISSEQ); basic_solver.
-  Qed.
-
-  Add Parametric Morphism thread: (isim_trav_step G sc thread) with signature
-      same_trav_config ==> same_trav_config ==> iff as isim_trav_step_more.
-  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
-
-
-
-  Lemma functional_codom {A: Type} (r: relation A) (a: A)
-        (FUN: functional r)
-        (DOMa: dom_rel r a):
-    exists a', codom_rel (⦗eq a⦘ ⨾ r) ≡₁ eq a'.
-  Proof using.
-    destruct DOMa as [a' Raa']. exists a'. split; [| basic_solver].  
-    intros x [a_ Ra_x%seq_eqv_l]. desc. subst.
-    eapply FUN; eauto.
-  Qed.
-
+  (* TODO: rename and move *)
   Lemma ext_r_helper WF tc r
         (Rr: is_r lab r) (COH: tc_coherent G sc tc):
     set_disjoint (eq r)
@@ -273,73 +209,6 @@ Section STCTraversal.
     rewrite set_minus_union_l. apply set_disjoint_union_r. split. 
     { rewrite issuedW; eauto. type_solver. }
     rewrite wf_rmwD; eauto. type_solver.
-  Qed.
-
-  Lemma set_eq_helper {A: Type} (s1 s2: A -> Prop) (EQ: s1 = s2):
-    s1 ≡₁ s2.
-  Proof using. by rewrite EQ. Qed.
-
-  Lemma set_minus_disjoint {A: Type} (s1 s2: A -> Prop)
-        (DISJ: set_disjoint s1 s2):
-    s1 \₁ s2 ≡₁ s1.
-  Proof using. basic_solver. Qed.
-
-
-  (* TODO: move upper *)
-  Lemma itrav_step_mon_ext_equiv (e: actid)
-        (C1 I1 C2 I2 C' I' Cu1 Iu1 Cu2 Iu2: actid -> Prop)
-        (STEP: itrav_step G sc e {| covered := C1; issued := I1 |}
-                          {| covered := C2; issued := I2 |})
-        (EQC1: Cu1 ≡₁ C1 ∪₁ C') (EQI1: Iu1 ≡₁ I1 ∪₁ I')
-        (EQC2: Cu2 ≡₁ C2 ∪₁ C') (EQI2: Iu2 ≡₁ I2 ∪₁ I'):
-    (itrav_step G sc e)^? (mkTC Cu1 Iu1) (mkTC Cu2 Iu2).
-  Proof using.
-    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto.
-    destruct STEP'.
-    { left. apply same_tc_extensionality. rewrite EQC1, EQC2, EQI1, EQI2.
-      inversion H. rewrite H1, H2. reflexivity. }
-    right. eapply itrav_step_more; [done| .. | by apply H].
-    all: red; split; simpl; auto.
-  Qed. 
-
-  Add Parametric Morphism thread: (isim_trav_step G sc thread)^? with signature
-      same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_more.
-  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
-    
-  Add Parametric Morphism thread: (isim_trav_step G sc thread)^* with signature
-      same_trav_config ==> same_trav_config ==> iff as isim_trav_step_refl_trans_more.
-  Proof using. ins. apply same_tc_extensionality in H, H0. by subst. Qed.
-
-  Lemma itrav_step_mon_ext_cover e
-        (C I C' I': actid -> Prop)
-        (STEP: (itrav_step G sc) e (mkTC C I) (mkTC (C ∪₁ eq e) I))
-        (NEW: set_disjoint (C ∪₁ C') (eq e)):
-          (itrav_step G sc e)
-                             (mkTC (C ∪₁ C') (I ∪₁ I'))
-                             (mkTC (C ∪₁ C' ∪₁ eq e) (I ∪₁ I')).
-  Proof using.
-    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
-    red in STEP. desf; simpl in *. 
-    2: { destruct (NEW e); auto. left. apply COVEQ. basic_solver. }
-    destruct STEP'.
-    { inversion H. destruct (NEW e); auto. rewrite H1. basic_solver. }
-    rewrite set_unionA, set_unionC with (s := C'), <- set_unionA. auto. 
-  Qed. 
-    
-  Lemma itrav_step_mon_ext_issue e
-        (C I C' I': actid -> Prop)
-        (STEP: (itrav_step G sc) e (mkTC C I) (mkTC C (I ∪₁ eq e)))
-        (NEW: set_disjoint (I ∪₁ I') (eq e)):
-          (itrav_step G sc e)
-                             (mkTC (C ∪₁ C') (I ∪₁ I'))
-                             (mkTC (C ∪₁ C') (I ∪₁ I' ∪₁ eq e)).
-  Proof using.
-    forward eapply itrav_step_mon_ext with (C' := C') (I' := I') as STEP'; eauto. 
-    red in STEP. desf; simpl in *. 
-    { destruct (NEW e); auto. left. apply ISSEQ. basic_solver. }
-    destruct STEP'.
-    { inversion H. destruct (NEW e); auto. rewrite H1. basic_solver. }
-    rewrite set_unionA, set_unionC with (s := I'), <- set_unionA. auto. 
   Qed.
 
   Section CoverClosure.
