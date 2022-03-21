@@ -29,6 +29,7 @@
 ### Requirements
 * [Coq 8.14.1](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
+* [Coq formalization of Zorn's lemma](https://github.com/coq-community/zorns-lemma) (`coq-zorns-lemma`)
 * [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib) (`coq-promising-lib`)
 
 ### Building Manually
