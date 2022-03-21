@@ -255,3 +255,10 @@ Lemma set_minus_disjoint {A: Type} (s1 s2: A -> Prop)
       (DISJ: set_disjoint s1 s2):
   s1 \₁ s2 ≡₁ s1.
 Proof using. basic_solver. Qed.
+
+Definition set_pair {A B} (s : A -> Prop) (t : B -> Prop) : A * B -> Prop := 
+  fun ab =>
+    match ab with
+    | (a, b) => s a /\ t b
+    end.
+Global Notation "s <*> t" := (set_pair s t) (at level 40, left associativity).

@@ -80,14 +80,6 @@ Definition tl_issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)
 Definition tl_covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
 Definition tl_reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
   
-(* TODO: move to hahn *)
-Definition pair_rel {A B} (s : A -> Prop) (t : B -> Prop) : A * B -> Prop := 
-  fun ab =>
-    match ab with
-    | (a, b) => s a /\ t b
-    end.
-Notation "s <*> t" := (pair_rel s t) (at level 40, left associativity).
-  
 Definition rmw_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
   (eq ta_cover ∪₁ eq ta_issue) <*> codom_rel (<|tl_covered tc|> ;; rmw).
 

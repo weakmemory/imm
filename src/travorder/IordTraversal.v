@@ -72,13 +72,13 @@ Section IordTraversal.
   Notation "'FWBOB'" := (FWBOB G). 
 
   Definition graph_steps: trav_label -> Prop :=
-    (action ↓₁ (eq ta_cover) ∩₁ event ↓₁ (E \₁ is_init)) ∪₁
-    (action ↓₁ (fun a =>
-                  match a with
-                  | ta_propagate t => exists e, (E \₁ is_init) e /\ tid e = t
-                  | ta_issue       => True
-                  | _ => False
-                  end) ∩₁ event ↓₁ ((E \₁ is_init) ∩₁ W)). 
+    ((eq ta_cover) <*> (E \₁ is_init)) ∪₁
+    ((fun a =>
+        match a with
+        | ta_propagate t => exists e, (E \₁ is_init) e /\ tid e = t
+        | ta_issue       => True
+        | _ => False
+        end) <*> ((E \₁ is_init) ∩₁ W)). 
   
   Lemma s2tc_coherence_helper WF COMP WFSC CONS
         (a1 a2: trav_action)
