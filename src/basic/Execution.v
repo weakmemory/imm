@@ -531,6 +531,16 @@ apply immediate_adjacent.
 - apply sb_irr.
 Qed.
 
+Lemma sb_total t:
+  is_total ((E \₁ is_init) ∩₁ Tid_ t) sb. 
+Proof.
+  red. ins. unfolder in IWa. unfolder in IWb. desc. subst. 
+  destruct a, b; try by vauto. simpl in *. subst.
+  pose proof (NPeano.Nat.lt_trichotomy index index0) as LT. 
+  des; [left | congruence | right]. 
+  all: red; apply seq_eqv_lr; splits; vauto. 
+Qed. 
+
 Lemma sb_transp_rmw  WF : sb ⨾ rmw ^{-1} ⊆ sb^?.
 Proof using.
 rewrite (rmw_from_non_init WF).

@@ -418,6 +418,15 @@ Proof using.
 apply (r_r_loc_r_in_fr_rf WF (@wf_sbE G) SC_PER_LOC COMP).
 Qed.
 
+Lemma rmw_sb_loc_in_rmw_coi WF SC_PER_LOC :
+  rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ⨾ coi^?.
+Proof using.
+  rewrite !crE, !seq_union_r, !seq_id_r.
+  apply union_mori; [done|].
+  rewrite (dom_r (wf_rmwD WF)) at 1. rewrite !seqA.
+    by rewrite (w_sb_loc_w_in_coi WF).
+Qed.
+
 Lemma rmw_in_fri WF SC_PER_LOC COMP : rmw ⊆ fri.
 Proof using.
 rewrite (wf_rmwD WF), (rmw_in_sb_loc WF).

@@ -226,16 +226,6 @@ Proof using.
   apply inclusion_t_t; basic_solver 21.
 Qed.
 
-(* TODO: move to a more appropriate place. *)
-Lemma rmw_sb_loc_in_rmw_coi WF (SPL : sc_per_loc G) :
-  rmw ⨾ (sb ∩ same_loc ⨾ ⦗W⦘)^? ⊆ rmw ⨾ coi^?.
-Proof using.
-  rewrite !crE, !seq_union_r, !seq_id_r.
-  apply union_mori; [done|].
-  rewrite (dom_r (wf_rmwD WF)) at 1. rewrite !seqA.
-    by rewrite (w_sb_loc_w_in_coi WF).
-Qed.
-
 (* Lemma ppo_alt WF  *)
 (*   (RMW_DEPS : rmw ⊆ deps) *)
 (*   (DEPS_RMW_FAIL : rmw_dep ⨾ sb ⊆ ctrl) :  *)

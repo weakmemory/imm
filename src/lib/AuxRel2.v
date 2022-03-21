@@ -2,6 +2,8 @@ Require Import Lia.
 From hahn Require Import Hahn.
 Require Import Setoid.
 Require Import SetSize.
+Import ListNotations.
+Require Import IndefiniteDescription.
 
 Set Implicit Arguments.
 
@@ -198,3 +200,91 @@ Lemma set_disjoint_not_eq_r {A: Type} (a : A) (s : A -> Prop):
 Proof using.
   pose proof (set_disjoint_eq_r a s) as EQ. apply not_iff_compat in EQ. tauto.
 Qed.
+
+Lemma set_finite_set_collect_inv_inj {A B: Type} (f: A -> B) (S: A -> Prop)
+      (FIN_MAP: set_finite (f ↑₁ S))
+      (INJ_S: forall (x y: A) (Sx: S x) (Sy: S y), f x = f y -> x = y):
+  set_finite S.
+Proof using.
+  red in FIN_MAP. desc.
+  rewrite AuxRel2.set_bunion_separation with (fab := f).
+  rewrite AuxRel2.set_full_split with (S0 := (fun b => In b findom)).
+  rewrite set_bunion_union_l. apply set_finite_union. split.
+  2: { exists []. ins. red in IN. desc. red in IN0. desc.
+       destruct IN. apply FIN_MAP. basic_solver. }
+  apply set_finite_bunion.
+  { by vauto. }
+  intros b INb. 
+  destruct (classic (exists a, S a /\ f a = b)).
+  2: { exists []. ins. destruct H. exists x. apply IN. }
+  desc. exists [a]. ins. unfolder in IN. desc.  left. apply INJ_S; congruence.
+Qed.  
+
+Lemma set_infinite_nat:
+  ~ set_finite (@set_full nat).
+Proof using.
+  intros [findom FIN].
+  specialize (FIN (list_max findom + 1)). specialize_full FIN; [done| ].
+  forward eapply (list_max_le findom (list_max findom)) as [CONTRA _].
+  specialize_full CONTRA; [lia| ].
+  eapply Forall_in in CONTRA; eauto. lia.
+Qed. 
+
+Lemma set_infinite_minus_finite {A: Type} (S S': A -> Prop)
+      (INF: ~ set_finite S) (FIN': set_finite S'):
+  ~ set_finite (S \₁ S'). 
+Proof using.
+  intros [findom FIN]. destruct FIN' as [findom' FIN']. 
+  destruct INF. exists (findom ++ findom'). ins. apply in_or_app.
+  destruct (classic (S' x)); intuition. 
+Qed.
+
+Ltac contra name := 
+  match goal with
+  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
+  end. 
+
+Lemma set_infinite_bunion {A B: Type} (As: A -> Prop) (ABs: A -> B -> Prop)
+      (FINa: set_finite As)
+      (INF: ~ set_finite (⋃₁ a ∈ As, ABs a)):
+  exists a, As a /\ ~ set_finite (ABs a).
+Proof using. 
+  contra FIN_ALL. destruct INF. apply set_finite_bunion; auto.
+  ins. contra INF. destruct FIN_ALL. eauto.
+Qed. 
+
+Lemma fin_dom_rel_fsupp {A: Type} (r: relation A):
+  (forall S (FINS: set_finite S), set_finite (dom_rel (r ⨾ ⦗S⦘))) <-> fsupp r.
+Proof.
+  split. 
+  2: { intros FSUPPr S FINS.  
+  red in FSUPPr. apply functional_choice in FSUPPr as [supp_map FSUPPr].
+  destruct FINS as [Sl DOMS]. 
+  exists (concat (map supp_map Sl)).
+  intros a [s DOM%seq_eqv_r]. desc.
+  apply in_concat_iff. eexists. split.
+  - eapply FSUPPr; eauto.
+  - apply in_map. intuition. }
+  ins. red. ins. 
+  specialize (H (eq y)). specialize_full H; [by exists [y]; vauto|].
+  destruct H as [findom FIN]. exists findom. ins. apply FIN.
+  red. eexists. apply seq_eqv_r. eauto.  
+Qed.
+
+Lemma set_finite_set_collect {A B: Type} (S: A -> Prop) (f: A -> B)
+      (FIN: set_finite S):
+  set_finite (f ↑₁ S). 
+Proof. 
+  red in FIN. desc. exists (map f findom). 
+  ins. apply in_map_iff. red in IN. desc. vauto.
+  eexists. split; eauto. 
+Qed. 
+
+Lemma same_relation_exp_iff {A: Type} (r r': relation A):
+  r ≡ r' <-> (forall x y, r x y <-> r' x y).
+Proof.
+  red. split.
+  { apply same_relation_exp. }
+  ins. red. split.
+  all: red; ins; apply H; auto.
+Qed.  

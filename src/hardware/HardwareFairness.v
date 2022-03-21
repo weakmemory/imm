@@ -76,59 +76,6 @@ Proof.
 Qed. 
 
 
-(* TODO: move to lib *)
-Lemma set_finite_set_collect_inv_inj {A B: Type} (f: A -> B) (S: A -> Prop)
-      (FIN_MAP: set_finite (f ↑₁ S))
-      (INJ_S: forall (x y: A) (Sx: S x) (Sy: S y), f x = f y -> x = y):
-  set_finite S.
-Proof using.
-  red in FIN_MAP. desc.
-  rewrite AuxRel2.set_bunion_separation with (fab := f).
-  rewrite AuxRel2.set_full_split with (S0 := (fun b => In b findom)).
-  rewrite set_bunion_union_l. apply set_finite_union. split.
-  2: { exists []. ins. red in IN. desc. red in IN0. desc.
-       destruct IN. apply FIN_MAP. basic_solver. }
-  apply set_finite_bunion.
-  { by vauto. }
-  intros b INb. 
-  destruct (classic (exists a, S a /\ f a = b)).
-  2: { exists []. ins. destruct H. exists x. apply IN. }
-  desc. exists [a]. ins. unfolder in IN. desc.  left. apply INJ_S; congruence.
-Qed.  
-
-(* TODO: move to lib *)
-Lemma set_infinite_nat:
-  ~ set_finite (@set_full nat).
-Proof using.
-  intros [findom FIN].
-  specialize (FIN (list_max findom + 1)). specialize_full FIN; [done| ].
-  forward eapply (list_max_le findom (list_max findom)) as [CONTRA _].
-  specialize_full CONTRA; [lia| ].
-  eapply Forall_in in CONTRA; eauto. lia.
-Qed. 
-
-(* TODO: move to lib *)
-Lemma set_infinite_minus_finite {A: Type} (S S': A -> Prop)
-      (INF: ~ set_finite S) (FIN': set_finite S'):
-  ~ set_finite (S \₁ S'). 
-Proof using.
-  intros [findom FIN]. destruct FIN' as [findom' FIN']. 
-  destruct INF. exists (findom ++ findom'). ins. apply in_or_app.
-  destruct (classic (S' x)); intuition. 
-Qed.
-
-
-(* TODO: move to lib *)
-Lemma set_infinite_bunion {A B: Type} (As: A -> Prop) (ABs: A -> B -> Prop)
-      (FINa: set_finite As)
-      (INF: ~ set_finite (⋃₁ a ∈ As, ABs a)):
-  exists a, As a /\ ~ set_finite (ABs a).
-Proof using. 
-  contra FIN_ALL. destruct INF. apply set_finite_bunion; auto.
-  ins. contra INF. destruct FIN_ALL. eauto.
-Qed. 
-
-
 Lemma enum_exact_steps {A: Type} (r: relation A) (f: nat -> A)
       (STEPS: forall i : nat, r (f i) (f (i + 1))):
   forall i d, r ^^ d (f i) (f (i + d)). 
@@ -159,25 +106,6 @@ Proof using.
   apply enum_steps; auto. 
 Qed.
 
-(* TODO: move to lib *)
-Lemma fin_dom_rel_fsupp {A: Type} (r: relation A):
-  (forall S (FINS: set_finite S), set_finite (dom_rel (r ⨾ ⦗S⦘))) <-> fsupp r.
-Proof.
-  split. 
-  2: { intros FSUPPr S FINS.  
-  red in FSUPPr. apply functional_choice in FSUPPr as [supp_map FSUPPr].
-  destruct FINS as [Sl DOMS]. 
-  exists (concat (map supp_map Sl)).
-  intros a [s DOM%seq_eqv_r]. desc.
-  apply in_concat_iff. eexists. split.
-  - eapply FSUPPr; eauto.
-  - apply in_map. intuition. }
-  ins. red. ins. 
-  specialize (H (eq y)). specialize_full H; [by exists [y]; vauto|].
-  destruct H as [findom FIN]. exists findom. ins. apply FIN.
-  red. eexists. apply seq_eqv_r. eauto.  
-Qed.
-
 Lemma In_gt_list_max (l: list nat) (n: nat)
       (GT_MAX: n > list_max l):
   ~ In n l. 
@@ -186,16 +114,6 @@ Proof using.
   forward eapply (list_max_le l (list_max l)) as [IMPL _].
   specialize_full IMPL; [lia| ].
   eapply Forall_in in IMPL; eauto. lia.
-Qed.  
-
-(* TODO: move to lib *)
-Lemma same_relation_exp_iff {A: Type} (r r': relation A):
-  r ≡ r' <-> (forall x y, r x y <-> r' x y).
-Proof.
-  red. split.
-  { apply same_relation_exp. }
-  ins. red. split.
-  all: red; ins; apply H; auto.
 Qed.  
 
 Lemma excluded_middle_or (A B: Prop)
@@ -280,16 +198,6 @@ Proof.
   eapply enum_steps_inv; eauto. lia.
 Qed. 
 
-(* TODO: move to lib *)
-Lemma set_finite_set_collect {A B: Type} (S: A -> Prop) (f: A -> B)
-      (FIN: set_finite S):
-  set_finite (f ↑₁ S). 
-Proof. 
-  red in FIN. desc. exists (map f findom). 
-  ins. apply in_map_iff. red in IN. desc. vauto.
-  eexists. split; eauto. 
-Qed. 
-
 Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r: relation A)
       (STEPS: forall i, r (f (i + 1)) (f i))
       (AC: acyclic r)
@@ -346,17 +254,6 @@ Proof.
   eapply fsupp_mori; eauto. red.
   eapply restr_rel_mori; [reflexivity| ].
   red. ins. split; auto. intros ->. edestruct AC; eauto. 
-Qed. 
-
-(* TODO: move to Execution *)
-Lemma sb_total t:
-  is_total ((E \₁ is_init) ∩₁ Tid_ t) sb. 
-Proof.
-  red. ins. unfolder in IWa. unfolder in IWb. desc. subst. 
-  destruct a, b; try by vauto. simpl in *. subst.
-  pose proof (NPeano.Nat.lt_trichotomy index index0) as LT. 
-  des; [left | congruence | right]. 
-  all: red; apply seq_eqv_lr; splits; vauto. 
 Qed. 
 
 Lemma exists_inf_thread (f: nat -> actid) (S: actid -> Prop) b 
