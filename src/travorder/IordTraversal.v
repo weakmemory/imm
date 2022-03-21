@@ -115,11 +115,12 @@ Section IordTraversal.
     apply dom_codom_rel_helper.
     { unfold "iord", graph_steps.
       unfold "SB", "RF", "FWBOB", "AR", IPROP, PROP.
-      clear; basic_solver 10. }
+      unfold set_pair. clear; basic_solver 10. }
     unfold "iord", graph_steps.
     unfold "SB", "RF", "FWBOB", "AR", IPROP, PROP.
+    unfold set_pair.
     unfolder; ins; desf; eauto 10.
-    right. destruct z; ins. destruct x; ins; subst.
+    right. destruct z; ins; subst.
     splits; eauto 10.
   Qed.
 
@@ -204,7 +205,7 @@ Section IordTraversal.
     1, 2: by apply set_lt_size.
     apply seq_eqv_l. split; auto.
     apply enumeratesE' in ENUM. desc. apply INSET in DOMi.
-    red in DOMi. clear -DOMi. unfolder in DOMi. desf.
+    red in DOMi. clear -DOMi. unfold set_pair in *. unfolder in DOMi. desf; desf.
   Qed.
   
 End IordTraversal. 
