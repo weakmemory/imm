@@ -141,11 +141,16 @@ Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
 Notation "'W_ex'" := (W_ex G).
 Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
-  Definition is_ta_propagate_to_G ta : Prop :=
-    match ta with 
-    | ta_propagate t => exists e, (E \₁ is_init) e /\ tid e = t
-    | _              => false
-    end.
+  Definition graph_threads: thread_id -> Prop :=
+    tid ↑₁ (E \₁ is_init). 
+
+  (* Definition is_ta_propagate_to_G ta : Prop := *)
+  (*   match ta with  *)
+  (*   | ta_propagate t => graph_threads t *)
+  (*   | _              => false *)
+  (*   end. *)
+  Definition is_ta_propagate_to_G: trav_action -> Prop := 
+    ⋃₁ t ∈ graph_threads, eq (ta_propagate t). 
 
   Definition SB :=
     ⦗action ↓₁ (eq ta_cover)⦘
@@ -195,13 +200,15 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     unfold iord, SB, RF, FWBOB, AR, IPROP, PROP.
     apply irreflexive_restr.
     repeat (apply irreflexive_union; splits).
-    2-4,5-6: unfolder; intros [y z]; ins; desf; eauto.
-    2: now eapply ar_rf_ppo_loc_acyclic; eauto.
-    rewrite <- restr_relE.
-    apply irreflexive_restr.
-    apply map_rel_irr.
-    apply sb_sc_acyclic; auto.
-    apply CONS.
+    all: try by (unfolder; intros [y z]; ins; desf; eauto).
+    { rewrite <- restr_relE.
+      apply irreflexive_restr.
+      apply map_rel_irr.
+      apply sb_sc_acyclic; auto.
+      apply CONS. }
+    { unfolder; intros [y z]; ins; desf; eauto. 
+      eapply ar_rf_ppo_loc_acyclic; eauto. }
+    all: unfolder; intros [y z]; ins; desf; eauto; inversion H1; by desc. 
   Qed.
   
   Lemma AR_trans : transitive AR.
@@ -237,6 +244,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
   Local Ltac iord_dom_solver :=
     unfold SB, RF, FWBOB, AR, PROP, IPROP;
+    unfold is_ta_propagate_to_G in *;
     clear; unfolder; intros [a b] [c d]; ins; desc;
     (try match goal with
         | z : trav_label |- _ => destruct z; desf; ins; desf
@@ -914,6 +922,7 @@ End TravLabel.
 
 Global Ltac iord_dom_solver :=
   unfold SB, RF, FWBOB, AR, PROP, IPROP;
+  unfold is_ta_propagate_to_G in *;
   clear; unfolder; intros [a b] [c d]; ins; desc;
   (try match goal with
        | z : trav_label |- _ => destruct z; desf; ins; desf

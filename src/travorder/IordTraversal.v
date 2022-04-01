@@ -13,7 +13,7 @@ Require Import Traversal.
 Require Import TraversalConfigAlt.
 Require Import AuxDef.
 Require Import FairExecution.
-Require Import TraversalOrder.
+Require Import travorder.TraversalOrder.
 Require Import ImmFair.
 Require Import AuxRel2.
 Require Import SetSize.
@@ -69,16 +69,14 @@ Section IordTraversal.
   Notation "'SB'" := (SB G sc). 
   Notation "'RF'" := (RF G). 
   Notation "'AR'" := (AR G sc). 
-  Notation "'FWBOB'" := (FWBOB G). 
+  Notation "'FWBOB'" := (FWBOB G).
 
-  Definition graph_steps: trav_label -> Prop :=
-    ((eq ta_cover) <*> (E \₁ is_init)) ∪₁
-    ((fun a =>
-        match a with
-        | ta_propagate t => exists e, (E \₁ is_init) e /\ tid e = t
-        | ta_issue       => True
-        | _ => False
-        end) <*> ((E \₁ is_init) ∩₁ W)). 
+  Definition init_tls :=
+    (eq ta_cover ∪₁ eq ta_issue ∪₁ is_ta_propagate_to_G G) <*> (E ∩₁ is_init). 
+
+  Definition exec_tls: trav_label -> Prop :=
+   (eq ta_cover) <*> (E \₁ is_init) ∪₁
+   (eq ta_issue ∪₁ is_ta_propagate_to_G G) <*> ((E \₁ is_init) ∩₁ W). 
   
   Lemma s2tc_coherence_helper WF COMP WFSC CONS
         (a1 a2: trav_action)
@@ -106,35 +104,41 @@ Section IordTraversal.
     apply PREF_CLOS. red. eexists. apply seq_eqv_r. split; [| by apply REL5].
     apply ct_step. do 2 red. splits; try by basic_solver.
     do 2 left. apply REL_IORD. basic_solver.
-  Qed.     
+  Qed.
 
-  Lemma iord_graph_steps:
-    iord ≡ restr_rel graph_steps iord.
+  Lemma set_pair_alt {A B: Type} (Sa: A -> Prop) (Sb: B -> Prop ):
+    Sa <*> Sb ≡₁ (fst ↓₁ Sa) ∩₁ (snd ↓₁ Sb). 
+  Proof. unfold set_pair. basic_solver. Qed.
+
+  Lemma restr_rel_cross_inter {A: Type} (d1 d2 d: A -> Prop):
+    (d1 ∩₁ d) × (d2 ∩₁ d) ≡ restr_rel d (d1 × d2).
+  Proof. basic_solver. Qed.  
+
+  Lemma iord_exec_tls:
+    iord ≡ restr_rel exec_tls iord.
   Proof using.
-    rewrite restr_relE.
-    apply dom_codom_rel_helper.
-    { unfold "iord", graph_steps.
-      unfold "SB", "RF", "FWBOB", "AR", IPROP, PROP.
-      unfold set_pair. clear; basic_solver 10. }
-    unfold "iord", graph_steps.
+    rewrite restr_relE. apply dom_helper_3.
+    unfold "iord", exec_tls.
+    rewrite !set_pair_alt.
+    rewrite set_interC with (s' := W), set_map_inter, <- set_interA.
+    rewrite <- set_inter_union_l. rewrite restr_rel_cross_inter.
+    apply restr_rel_mori; [basic_solver| ].
     unfold "SB", "RF", "FWBOB", "AR", IPROP, PROP.
-    unfold set_pair.
-    unfolder; ins; desf; eauto 10.
-    right. destruct z; ins; subst.
-    splits; eauto 10.
+    repeat apply inclusion_union_l; try basic_solver.
+    all: unfolder; ins; destruct x, y; ins; desc; subst; intuition. 
   Qed.
 
   Section StepsEnum.
     
     Variable (steps: nat -> trav_label).
-    Hypothesis (ENUM: enumerates steps graph_steps).
-    Hypothesis (RESP: respects_rel steps iord⁺ graph_steps).
+    Hypothesis (ENUM: enumerates steps exec_tls).
+    Hypothesis (RESP: respects_rel steps iord⁺ exec_tls).
 
     Definition trav_prefix (i: nat) : trav_label -> Prop :=
       ⋃₁ j < i, eq (steps j).
 
     Lemma trav_prefix_iord_closed WF COMP WFSC CONS
-          i (DOMi: NOmega.le (NOnum i) (set_size graph_steps)):
+          i (DOMi: NOmega.le (NOnum i) (set_size exec_tls)):
       dom_rel (iord⁺ ⨾ ⦗trav_prefix i⦘) ⊆₁ trav_prefix i.
     Proof using ENUM RESP.
       unfold trav_prefix. 
@@ -143,7 +147,7 @@ Section IordTraversal.
       apply enumeratesE' in ENUM. cdes ENUM.
       specialize (IND e'). specialize_full IND.
       { eapply clos_trans_more in REL.
-        2: { symmetry. apply iord_graph_steps. }
+        2: { symmetry. apply iord_exec_tls. }
         apply restr_ct in REL. apply REL. }
         
       destruct IND as [k [DOMk STEPke']].
@@ -151,11 +155,11 @@ Section IordTraversal.
       etransitivity; [| apply LTji].
       red in RESP. apply RESP with (j := j); eauto.
       2: congruence.
-      destruct (set_size graph_steps); auto; simpl in *; lia. 
+      destruct (set_size exec_tls); auto; simpl in *; lia. 
     Qed. 
 
     (* TODO: generalize to arbitrary enumerations? *)
-    Lemma prefix_border i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)):
+    Lemma prefix_border i (DOMi: NOmega.lt_nat_l i (set_size exec_tls)):
       ~ trav_prefix i (steps i).
     Proof using ENUM.
       unfold trav_prefix. intros [j [LT EQ]]. 
@@ -164,7 +168,7 @@ Section IordTraversal.
       eapply NOmega.lt_lt_nat; eauto.
     Qed.
 
-    Lemma step_event_dom i (DOMi: NOmega.lt_nat_l i (set_size graph_steps)):
+    Lemma step_event_dom i (DOMi: NOmega.lt_nat_l i (set_size exec_tls)):
       (E \₁ is_init) (event (steps i)) /\
       (action (steps i) = ta_issue -> W (event (steps i))). 
     Proof using ENUM. 
@@ -174,7 +178,7 @@ Section IordTraversal.
     Qed. 
 
     Lemma trav_prefix_ext i
-          (DOMi: NOmega.lt_nat_l i (set_size graph_steps)):
+          (DOMi: NOmega.lt_nat_l i (set_size exec_tls)):
       trav_prefix (S i) ≡₁ trav_prefix i ∪₁ eq (steps i).
     Proof using. 
       unfold trav_prefix.
@@ -187,10 +191,10 @@ Section IordTraversal.
   Lemma iord_enum_exists WF COMP WFSC CONS MF
         (IMM_FAIR: imm_s_fair G sc):
     exists (steps: nat -> trav_label),
-      enumerates steps graph_steps /\
-      respects_rel steps iord⁺ graph_steps. 
+      enumerates steps exec_tls /\
+      respects_rel steps iord⁺ exec_tls. 
   Proof using.
-    edestruct countable_ext with (s := graph_steps) (r := ⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺)
+    edestruct countable_ext with (s := exec_tls) (r := ⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺)
       as [| [steps [ENUM RESP]]].
     { eapply countable_subset; [| by apply set_subset_full_r].
       apply trav_label_countable. }
@@ -209,3 +213,4 @@ Section IordTraversal.
   Qed.
   
 End IordTraversal. 
+
