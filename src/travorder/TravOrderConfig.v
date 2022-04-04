@@ -258,6 +258,154 @@ Definition sim_clos_step :=
   restr_rel sim_coherent 
             (fun tc tc' => exists tll, isim_clos_step tll tc tc').
 
+Lemma rmw_clos_dist (tc1 tc2: trav_label -> Prop):
+  rmw_clos (tc1 ∪₁ tc2) ≡₁ rmw_clos tc1 ∪₁ rmw_clos tc2. 
+Proof. 
+  unfold rmw_clos. rewrite !set_pair_alt. unfold tl_covered. basic_solver 10.
+Qed. 
+
+Lemma rel_clos_dist (tc1 tc2: trav_label -> Prop):
+  rel_clos (tc1 ∪₁ tc2) ≡₁ rel_clos tc1 ∪₁ rel_clos tc2. 
+Proof. 
+  unfold rel_clos. rewrite !set_pair_alt. unfold tl_issued. basic_solver 10.
+Qed. 
+
+Lemma sim_clos_dist (tc1 tc2: trav_label -> Prop):
+  sim_clos (tc1 ∪₁ tc2) ≡₁ sim_clos tc1 ∪₁ sim_clos tc2. 
+Proof. 
+  unfold sim_clos. rewrite rel_clos_dist, rmw_clos_dist. basic_solver. 
+Qed. 
+
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_equiv A ==> @set_equiv B ==> @set_equiv (A * B) as set_pair_more.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_subset A ==> @set_subset B ==> @set_subset (A * B) as set_pair_mori.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+Lemma rmw_clos_once WF (tc: trav_label -> Prop):
+  rmw_clos (rmw_clos tc) ⊆₁ ∅.
+Proof using. 
+  unfold rmw_clos.
+  unfold tl_covered. rewrite !set_pair_alt. unfolder. ins. desc.
+  destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3].
+  ins. subst x0 x1 z. subst.
+  eapply wf_rmwD, seq_eqv_lr in H5, H1; eauto. type_solver. 
+Qed.
+
+Lemma rmw_rel_clos_none WF (tc: trav_label -> Prop) (TCOH: tls_coherent G tc):
+  rmw_clos (rel_clos tc) ⊆₁ ∅.
+Proof using.
+  unfold rmw_clos, rel_clos. unfold tl_covered, tl_issued.
+  rewrite !set_pair_alt. unfolder. ins. desc.
+  destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3]. ins. subst x0. subst.
+  forward eapply tlsc_I_in_W with (x := (ta_issue, e1)); eauto; [basic_solver| ].
+  intros [=We1]. apply wf_rmwD, seq_eqv_lr in H1; eauto. type_solver.
+Qed. 
+
+Lemma rel_rmw_clos_rmw WF (tc: trav_label -> Prop)
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  rel_clos (rmw_clos tc) ⊆₁ rmw_clos tc. 
+Proof using.
+  unfold rmw_clos, rel_clos. unfold tl_covered, tl_issued.
+  rewrite !set_pair_alt. unfolder. ins. desc.
+  destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3]. ins. subst x0. subst.
+  splits; [by vauto| ]. repeat (eexists; eauto). 
+Qed. 
+
+Lemma rel_clos_idemp WF (tc: trav_label -> Prop):
+  rel_clos (rel_clos tc) ⊆₁ rel_clos tc.
+Proof using. 
+  unfold rel_clos.
+  unfold tl_issued. rewrite !set_pair_alt. unfolder. ins. desc.
+  destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3].
+  ins. subst. splits; eauto. 
+Qed.
+
+Lemma sim_clos_sim_coherent WF (tc: trav_label -> Prop)
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  sim_coherent (sim_clos tc). 
+Proof using.
+  unfold sim_coherent.
+  unfold sim_clos. split; [basic_solver 10| ].
+  rewrite !rmw_clos_dist, !rel_clos_dist. 
+  repeat (apply set_subset_union_l; split; try basic_solver).
+  { rewrite rmw_clos_once; basic_solver. }
+  { rewrite rmw_rel_clos_none; basic_solver. }
+  { rewrite rel_rmw_clos_rmw; basic_solver. }
+  rewrite rel_clos_idemp; basic_solver. 
+Qed. 
+
+Lemma map_rel_seq_ext {A B : Type} (f : A -> B) (r r' : relation B)
+      (SUR: forall b, exists a, f a = b):
+  f ↓ r ⨾ f ↓ r' ≡ f ↓ (r ⨾ r'). 
+Proof. 
+  split; [apply map_rel_seq| ].
+  unfolder. ins. desc. specialize (SUR z). desc.
+  exists a. vauto. 
+Qed.
+
+Lemma set_map_codom_ext {A B : Type} (f : A -> B) (rr : relation B)
+      (SUR: forall b, exists a, f a = b):
+  codom_rel (f ↓ rr) ≡₁ f ↓₁ codom_rel rr. 
+Proof. 
+  split; [apply set_map_codom| ].
+  unfolder. ins. desc. specialize (SUR x0). desc.
+  exists a. congruence. 
+Qed.  
+
+Lemma event_sur:
+  forall y : actid, exists x : trav_label, y = event x. 
+Proof. ins. exists (mkTL ta_cover y). vauto. Qed.
+
+Lemma action_sur:
+  forall y : trav_action, exists x : trav_label, y = action x. 
+Proof. ins. exists (mkTL y (InitEvent tid_init)). vauto. Qed.
+
+Lemma sim_clos_iord_coherent WF WFSC (tc: trav_label -> Prop)
+      (ICOH: iord_coherent G sc tc)
+      :
+      iord_coherent G sc (sim_clos tc). 
+Proof using.
+  unfold sim_clos, iord_coherent.
+  rewrite !id_union, !seq_union_r, !dom_union.
+  repeat (apply set_subset_union_l; split).
+  { red in ICOH. rewrite ICOH. basic_solver. }
+  { unfold rmw_clos at 1. unfold iord.
+    rewrite restr_relE. rewrite set_pair_alt.
+    rewrite !seqA, <- id_inter.
+    repeat case_union _ _. rewrite !dom_union.
+    repeat (apply set_subset_union_l; split).
+    { unfold SB.
+      rewrite ct_end. erewrite <- map_rel_seq2; [| apply event_sur]. 
+      rewrite map_rel_union. rewrite !seqA, seq_union_l.
+      etransitivity.
+      { apply dom_rel_mori.
+        do 3 (apply seq_mori; [reflexivity| ]).
+        apply union_mori; [reflexivity| ]. Unshelve. 2: exact (fun _ _ => False).
+        rewrite wf_scD, wf_rmwD; eauto. unfold event, action. type_solver 10. }
+      rewrite union_false_r. rewrite <- id_inter.
+      
+      (* ??  *)
+      do 3 (erewrite eqv_rel_mori with (x := _ ↓₁ _ ∩₁ _); [| red; intro; apply proj2]). 
+      (* ?? *)
+
+      fold event action.
+      rewrite <- set_map_codom_ext.
+      2: { ins. pose proof (event_sur b). desc. eauto. }
+      rewrite <- !seqA. rewrite dom_rel_eqv_codom_rel.
+      rewrite <- map_rel_transp, transp_seq, transp_eqv_rel.
+      rewrite !seqA. rewrite map_rel_seq_ext.
+      (* TODO: add to db / list of hyps *)
+      2: { ins. pose proof (event_sur b). desc. eauto. }
+      sin_rewrite sb_transp_rmw; auto.
+      foobar. 
+Admitted.       
 
 
 Section IssueClosure.
@@ -277,24 +425,7 @@ Section IssueClosure.
   (* Hypothesis (ISS: issuable G sc tc e). *)
   
   (* Let irel_crmw := I ∩₁ (is_rel lab) ∪₁ codom_rel (⦗C⦘ ⨾ rmw). *)
-  Lemma rel_clos_dist (tc1 tc2: trav_label -> Prop):
-    rel_clos (tc1 ∪₁ tc2) ≡₁ rel_clos tc1 ∪₁ rel_clos tc2. 
-  Proof. 
-    unfold rel_clos. rewrite !set_pair_alt. unfold tl_issued. basic_solver 10.
-  Qed. 
     
-  Lemma rmw_clos_dist (tc1 tc2: trav_label -> Prop):
-    rmw_clos (tc1 ∪₁ tc2) ≡₁ rmw_clos tc1 ∪₁ rmw_clos tc2. 
-  Proof. 
-    unfold rmw_clos. rewrite !set_pair_alt. unfold tl_covered. basic_solver 10.
-  Qed. 
-
-  Lemma sim_clos_dist (tc1 tc2: trav_label -> Prop):
-    sim_clos (tc1 ∪₁ tc2) ≡₁ sim_clos tc1 ∪₁ sim_clos tc2. 
-  Proof. 
-    unfold sim_clos. rewrite rel_clos_dist, rmw_clos_dist. basic_solver. 
-  Qed. 
-
   Global Add Parametric Morphism : sim_clos with signature
       set_equiv ==> set_equiv as sim_clos_more.
   Proof using.
@@ -358,7 +489,7 @@ Section IssueClosure.
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
     rewrite rmw_clos_dist, rel_clos_dist. rewrite NO_RMWC, set_union_empty_r.
-    rewrite set_unionA with (s'' := _ ∪₁ _), set_unionC with (s := rmw_clos tc).
+    rewrite set_unionA with (s'' := _ ∪₁ _), set_unionC with (s := rmw_clos _).
     rewrite set_unionA with (s' := rel_clos _).
 
     (***)
@@ -366,7 +497,7 @@ Section IssueClosure.
     { unfold rel_clos, tl_issued. rewrite set_pair_alt.
       red. subst lbl. split; unfolder; ins; desc; destruct x; ins. 
       { subst. vauto. }
-      inversion H0. subst. splits; vauto. }
+      inv H0. splits; vauto. }
     (***)
         
     destruct (classic (codom_rel (⦗tl_covered tc⦘ ⨾ rmw) w)) as [CRMWw | NCRMWw].
@@ -385,12 +516,15 @@ Section IssueClosure.
     2: { erewrite (proj1 (set_disjointE _ _)), set_union_empty_l; [|basic_solver].
          (* rewrite (proj1 (set_disjointE (eq w) Rel)); [| basic_solver]. *)
          (* rewrite set_union_empty_r. *)
-      
-         foobar. 
-         fold irel_crmw.
-         rewrite set_unionC with (s := eq w), <- set_unionA.
-         intros <- <-.
-         apply rt_step. apply rlx_write_promise_step; auto.
+         
+         (* rewrite set_unionA with (s' := eq _), set_unionC with (s := eq _). *)
+         (* rewrite <- !set_unionA.  *)
+         intros STC STC'. 
+         apply rt_step. red. red. splits.
+         2, 3: subst stc stc'; by apply sim_clos_sim_coherent.
+         exists [lbl]. simpl. red. red. 
+
+         apply rlx_write_promise_step; auto.
          { simpl. intros [? | [?]]; basic_solver. }
          simpl. apply itrav_step_mon_ext_issue.
          { by fold tc tc'. }
