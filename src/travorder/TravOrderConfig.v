@@ -362,11 +362,11 @@ Qed.
 (* Lemma map_rel_eqv_ext [A B : Type] [f : A -> B] [d : B -> Prop] *)
 (*       (SUR: forall b, exists a, f a = b): *)
 (*   ⦗f ↓₁ d⦘ ≡ f ↓ ⦗d⦘. *)
-(* Proof.  *)
+(* Proof. *)
 (*   split; [apply map_rel_eqv| ]. *)
 (*   unfolder. ins. desc. specialize (SUR x0). desc. *)
-(*   exists a. congruence.  *)
-(* Qed.   *)
+(*   exists a. congruence. *)
+(* Qed. *)
 
 Lemma event_sur:
   forall y : actid, exists x : trav_label, event x = y. 
@@ -375,6 +375,16 @@ Proof. ins. exists (mkTL ta_cover y). vauto. Qed.
 Lemma action_sur:
   forall y : trav_action, exists x : trav_label, action x = y. 
 Proof. ins. exists (mkTL y (InitEvent tid_init)). vauto. Qed.
+
+(* Lemma rmw_cover_simpl WF tc *)
+(*       (* (ICOH: iord_coherent G sc tc): *) *)
+(*       : *)
+(*       (* action ↓₁ eq ta_cover ∩₁ *) *)
+(*              codom_rel (⦗tl_covered tc⦘ ⨾ rmw) ⊆₁ *)
+(*       codom_rel (⦗event ↑₁ (tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ rmw).  *)
+(* Proof.  *)
+(*   unfolder. ins.  *)
+(* Qed.   *)
 
 Lemma rmw_cover_simpl WF tc
       (* (ICOH: iord_coherent G sc tc): *)
@@ -400,6 +410,18 @@ Qed.
 (*   destruct x as [a2 e2], x0 as [a1 e1], y as [a3 e3]. red in H3. ins. subst. *)
 (*   eexists. splits; eauto.  *)
 (* Qed.   *)
+
+Lemma eqv_rel_alt {A: Type} (S: A -> Prop):
+  ⦗S⦘ ≡ S × S ∩ eq.
+Proof. basic_solver. Qed.
+
+Lemma icoh_clos_refl tc (ICOH: iord_coherent G sc tc):
+  dom_rel ((iord G sc)^? ⨾ ⦗tc⦘) ⊆₁ tc. 
+Proof.
+  rewrite crE, seq_union_l, seq_id_l, dom_union.
+  red in ICOH. rewrite ICOH. basic_solver.
+Qed. 
+
 
 Lemma sim_clos_iord_coherent WF WFSC (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
@@ -468,6 +490,57 @@ Proof using.
       unfold rmw_clos. rewrite set_pair_alt.
       unfold action, event. unfolder. ins. desc. destruct x, y. ins. desf; subst.
       split; vauto. }
+    { do 2 (apply set_subset_union_r; left).
+      erewrite eqv_rel_mori with (x := _ ∩₁ _); [| red; intro; apply proj2]. 
+      fold event action. rewrite <- set_map_codom_ext; [| apply event_sur].
+      rewrite rmw_cover_simpl; auto.  
+      rewrite dom_rel_eqv_codom_rel.
+      rewrite transp_seq, transp_eqv_rel, <- map_rel_transp. 
+      
+      (* red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori. *)
+      etransitivity; [| apply icoh_clos_refl; auto]. apply dom_rel_mori.
+      unfold iord. rewrite restr_relE. 
+      repeat rewrite unionA. rewrite !seqA. etransitivity.
+      2: { apply seq_mori; [| reflexivity]. apply clos_refl_mori.
+           apply seq_mori; [reflexivity| ]. apply seq_mori; [| reflexivity].
+           apply inclusion_union_r1. }
+      unfold FWBOB, SB. rewrite fwbob_in_sb. 
+      rewrite inclusion_seq_eqv_r with (dom := W).
+      rewrite inclusion_seq_eqv_r with (dom := action ↓₁ _) at 1.
+      rewrite inclusion_seq_eqv_l with (r := event ↓ _ ⨾ _).
+      rewrite seqA. seq_rewrite map_rel_seq_ext; [| apply event_sur].
+      rewrite sb_transp_rmw; auto.
+      rewrite crE, map_rel_union. repeat case_union _ _. apply inclusion_union_l.
+      { rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r1].
+        unfolder. ins. desc. destruct x, y; ins; subst; vauto. }
+      rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r2].
+      do 2 hahn_frame_l.
+
+      rewrite <- seqA with (r3 := ⦗tc⦘), seq_eqvC, seqA.
+      rewrite seq_eqvC, <- id_inter. hahn_frame_r.
+      rewrite <- ct_step, <- inclusion_union_r1. apply domb_helper.
+      rewrite (wf_sbE G), (no_sb_to_init G). basic_solver. }
+    { unfold AR.
+      rewrite ct_end, !seqA. unfold "ar" at 2.
+      repeat rewrite seq_union_l with (r := ⦗W⦘).
+      arewrite (sc ⨾ ⦗W⦘ ∪ rfe ⨾ ⦗W⦘ ⊆ ∅₂); [| rewrite union_false_l]. 
+      { rewrite (wf_scD WFSC), wf_rfeD; eauto. type_solver. }
+
+      rewrite ar_int_in_sb; auto. arewrite (ppo ∩ same_loc ⊆ sb) at 2.
+      { rewrite ppo_in_sb; basic_solver. }
+      rewrite <- seqA with (r1 := ⦗W⦘). rewrite <- map_rel_seq_ext; [| by apply event_sur].
+      rewrite map_rel_union. repeat case_union _ _.
+      rewrite dom_union. apply set_subset_union_l. split.
+      { fold event action.
+        rewrite <- set_map_codom_ext, rmw_cover_simpl; auto; [|by apply event_sur].
+        rewrite id_inter with (s := action ↓₁ _).
+        rewrite <- !seqA, dom_rel_eqv_codom_rel.
+        do 3 rewrite inclusion_seq_eqv_r.
+        rewrite transp_seq, transp_eqv_rel, <- map_rel_transp.
+        foobar. 
+
+      
+      
 Admitted.
 
 
