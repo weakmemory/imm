@@ -420,7 +420,177 @@ Lemma icoh_clos_refl tc (ICOH: iord_coherent G sc tc):
 Proof.
   rewrite crE, seq_union_l, seq_id_l, dom_union.
   red in ICOH. rewrite ICOH. basic_solver.
+Qed.
+
+Lemma set_compl_set_mapC {A B: Type} (d: B -> Prop) (f: A -> B):
+  set_compl (f ↓₁ d) ≡₁  (f ↓₁ set_compl d).
+Proof. basic_solver. Qed. 
+
+Lemma doma_alt {A: Type} (r: relation A) (d: A -> Prop):
+  doma r d <-> dom_rel r ⊆₁ d. 
+Proof. unfolder. split; ins; basic_solver. Qed. 
+
+Lemma sb_cr_tc_cover (tc: trav_label -> Prop)
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  ⦗action ↓₁ eq ta_cover⦘ ⨾ event ↓ sb^? ⨾ ⦗tc ∩₁ action ↓₁ eq ta_cover⦘ ⊆
+  ⦗tc ∩₁ action ↓₁ eq ta_cover⦘ ⨾ event ↓ sb^? ⨾ ⦗tc ∩₁ action ↓₁ eq ta_cover⦘.
+Proof.
+  rewrite crE, map_rel_union, seq_union_l. repeat case_union _ _.
+  apply union_mori.
+  { unfolder. ins. desc. destruct x, y. ins. vauto. }
+  rewrite id_inter, seqA. apply doma_helper, doma_alt.
+  rewrite set_split_complete with (s' := action ↓₁ _) (s := event ↓₁ is_init)at 1.
+  rewrite id_union. repeat case_union _ _.
+  rewrite dom_union. apply set_subset_union_l. split.
+  { rewrite wf_sbE. rewrite <- map_rel_seq_ext; [| by apply event_sur].
+    rewrite <- !seqA. do 3 rewrite dom_seq. 
+    destruct TCOH. rewrite <- tls_coh_init0. unfold init_tls.
+    rewrite set_pair_alt. unfolder. ins. desc. splits; vauto. }
+
+  red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori.
+  rewrite seq_eqvC. hahn_frame_r. unfold iord.
+  rewrite !unionA, restr_union. etransitivity; [| apply inclusion_union_r1].
+  rewrite id_inter. rewrite set_compl_set_mapC.
+  rewrite seqA. rewrite <- seqA with (r2 := _ ↓ sb).   
+  unfold SB. rewrite <- !restr_relE. rewrite restrC. apply restr_rel_mori; [done|].
+  rewrite <- ct_step, <- inclusion_union_r1.
+  rewrite wf_sbE, no_sb_to_init at 1. rewrite restr_relE. basic_solver. 
 Qed. 
+
+
+(* Lemma clos_trans_restr_sur {A B: Type} (r: relation B) (d: A -> Prop) (f: A -> B) *)
+(*       (SUR_D: forall b, exists a, f a = b /\ d a): *)
+(*   (* f ↓₁ r^* ≡ (f ↓₁ r)^*.  *) *)
+(*   f ↓ r^* ≡ (f ↓ r)^*. *)
+(* Proof.  *)
+(*   split. *)
+(*   2: { rewrite rtEE. apply inclusion_bunion_l. ins. induction x. *)
+(*        { simpl. basic_solver. } *)
+(*        rewrite pow_S_end, IHx. rewrite map_rel_seq, rt_unit. reflexivity. } *)
+(*   rewrite rtEE. apply inclusion_bunion_l. ins. induction x. *)
+(*   { unfolder. ins. red in H0. desc.  *)
+
+(* map_rel *)
+(* Lemma map_rel_dom_exact {A B: Type} (f: A -> B) (r: relation B) (d: A -> Prop) *)
+(*       (SUR_D: forall b, exists a, f a = b /\ d a): *)
+(*   f ↓ r ≡ restr_rel d (f ↓ r).  *)
+(* Proof.  *)
+(*   split; [| basic_solver 10].  *)
+(*   unfolder. ins.  *)
+  
+
+(* Lemma map_rel_dom_exact {A B: Type} (f: A -> B) (r: relation B): *)
+(*   @set_full A ≡₁ f ↓₁ (@set_full B). *)
+(* Proof. basic_solver. Qed. *)
+  
+Lemma map_rel_seq_insert_exact {A B: Type} (r1 r2: relation B)
+      (f: A -> B) (d: A -> Prop)
+      (SUR_D: forall b, exists a, f a = b /\ d a):
+  f ↓ (r1 ⨾ r2) ⊆ f ↓ r1 ⨾ ⦗d⦘ ⨾ f ↓ r2. 
+Proof.
+  unfolder. ins. desc.
+  specialize (SUR_D z). desc. eexists. splits; eauto; congruence. 
+Qed. 
+
+
+(* Lemma ar_rf_ppo_loc_ct_coverable_issuable_in_I  : *)
+    (* dom_rel (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗coverable T ∪₁ issuable T⦘) ⊆₁ issued T. *)
+(* Lemma ar_rf_ppo_loc_ct_tls_cov_tls_iss tc: *)
+(*   dom_rel (event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺) ⨾ ⦗tc ∩₁ action ↓₁ eq ta_cover⦘) ⊆₁ tc ∩₁ action ↓₁ eq ta_issue. *)
+(* Proof. *)
+(*   rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_issue). *)
+(*   2: { ins. exists (mkTL ta_issue b). vauto. } *)
+(*   intros [a1 e1] [[a2 e2] REL%seq_eqv_r]. desc. *)
+(*   destruct REL0 as [TC2 [=<-]]. *)
+(*   red in REL. apply seq_eqv_l in REL as [We1 REL_CT]. ins.  *)
+
+Lemma rel_map_bunionC {A B C: Type} (f: A -> B)
+      (cdom: C -> Prop) (ss: C -> relation B):
+  f ↓ (⋃ c ∈ cdom, ss c) ≡ (⋃ c ∈ cdom, f ↓ (ss c)).
+Proof. basic_solver. Qed. 
+
+Lemma dom_rel_bunion {B C: Type}
+      (cdom: C -> Prop) (ss: C -> relation B):
+  dom_rel (⋃ c ∈ cdom, ss c) ≡₁ (⋃₁ c ∈ cdom, dom_rel (ss c)).
+Proof. basic_solver. Qed.
+
+(* Lemma dom_rel_restr_relC {A: Type} (r: relation A) (d: A -> Prop): *)
+(*   dom_rel (restr_rel d r) ≡ restr_rel d (d *)
+
+Lemma restr_rel_seq_same {A: Type} (r1 r2: relation A) (d: A -> Prop)
+      (DOMB1: domb (⦗d⦘ ⨾ r1) d):
+  restr_rel d (r1 ⨾ r2) ≡ restr_rel d r1 ⨾ restr_rel d r2. 
+Proof.
+  split; [| apply restr_seq].
+  unfolder. unfolder in DOMB1. ins. desc.
+  eexists. splits; eauto.
+Qed. 
+
+
+Lemma iord_coherent_AR_ext_cover WF tc
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  dom_rel ((restr_rel (event ↓₁ (acts_set G \₁ is_init))
+  (* dom_rel ( *)
+              (⦗action ↓₁ eq ta_issue⦘ ⨾ event ↓ (⦗W⦘ ⨾
+                (ar ∪ rf ⨾ ppo ∩ same_loc)^*) ⨾ ⦗action ↓₁ eq ta_cover⦘)) ⨾ ⦗tc⦘) 
+             ⊆₁ tc.
+Proof.
+  rewrite <- restr_seq_eqv_r. 
+  rewrite rtEE. rewrite seq_bunion_r, rel_map_bunionC.
+  repeat seq_rewrite seq_bunion_r. repeat seq_rewrite seq_bunion_l.
+  rewrite restr_bunion. rewrite dom_rel_bunion.
+  apply set_subset_bunion_l. intros n _. induction n.
+  { simpl. unfolder. ins. desc. destruct x, y; ins; vauto.
+    forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+    { basic_solver. }
+    unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. } 
+  
+  rewrite pow_S_end.
+  (* unfold "ar" at 2. *)
+  rewrite <- seqA. rewrite <- map_rel_seq_ext.
+  2: { admit. }
+  rewrite !seqA.
+  (* rewrite <- id_inter.  *)
+  assert (doma (event ↓ (ar ∪ rf ⨾ ppo ∩ same_loc) ⨾ ⦗action ↓₁ eq ta_cover⦘ ⨾ ⦗tc⦘) ((action ↓₁ eq ta_cover ∪₁ action ↓₁ eq ta_issue) ∩₁ tc)) as DOMA.  
+  2: { apply doma_helper in DOMA. rewrite DOMA.
+       rewrite <- seqA with (r2 := event ↓ _). rewrite restr_rel_seq_same.
+       { rewrite restr_relE with (r := _ ⨾ _ ⨾ _). rewrite <- !seqA.
+         do 4 rewrite dom_seq. rewrite seqA, seq_eqvC. rewrite <- seqA, dom_seq.
+         rewrite id_inter, id_union. repeat case_union _ _.
+         rewrite dom_union. apply set_subset_union_l. split.
+         { rewrite <- IHn at 2. apply dom_rel_mori. basic_solver. }
+         clear IHn DOMA. 
+         destruct n.
+         { simpl. unfolder. ins. desc. destruct x, y,z; ins; vauto. }
+
+         assert (doma (⦗action ↓₁ eq ta_issue⦘ ⨾ ⦗tc⦘) (event ↓₁ W)) as DOMA.
+         { apply doma_alt. rewrite <- tlsc_I_in_W; eauto.
+           rewrite <- id_inter, dom_eqv. basic_solver. }
+         apply doma_helper in DOMA. rewrite DOMA. 
+           
+         red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori.
+         hahn_frame. rewrite <- id_inter. rewrite <- restr_seq_eqv_r.
+         unfold iord. apply restr_rel_mori; [reflexivity| ].
+         transitivity (AR G sc); [| basic_solver].
+         rewrite id_inter. 
+         unfold AR. hahn_frame.
+         rewrite <- !map_rel_seq_ext; try by apply event_sur. hahn_frame.   
+         rewrite pow_ct; [| lia]. basic_solver. }
+       destruct n.
+       { simpl. unfolder. ins. desc. destruct x, y; ins; vauto. }
+       rewrite <- !map_rel_seq_ext; [| by apply event_sur]. 
+       rewrite pow_S_end. do 3 apply seq_domb. 
+       rewrite <- !map_rel_seq_ext; [| by apply event_sur]. apply seq_domb.
+       admit. }
+
+  unfold "ar".
+  arewrite (sc ∪ rfe ∪ ar_int G ∪ rf ⨾ ppo ∩ same_loc ⊆ 
+               rf^? ⨾ (sb ∪ sc)^?).
+  { rewrite rfe_in_rf, ppo_in_sb, ar_int_in_sb; auto. basic_solver 10. }
+  rewrite <- !map_rel_seq_ext; [| by apply event_sur]. rewrite seqA.
+  foobar. 
+         
+  
 
 
 Lemma sim_clos_iord_coherent WF WFSC (tc: trav_label -> Prop)
@@ -520,23 +690,50 @@ Proof using.
       rewrite seq_eqvC, <- id_inter. hahn_frame_r.
       rewrite <- ct_step, <- inclusion_union_r1. apply domb_helper.
       rewrite (wf_sbE G), (no_sb_to_init G). basic_solver. }
-    { unfold AR.
+    { unfold AR. fold event action.
       rewrite ct_end, !seqA. unfold "ar" at 2.
       repeat rewrite seq_union_l with (r := ⦗W⦘).
       arewrite (sc ⨾ ⦗W⦘ ∪ rfe ⨾ ⦗W⦘ ⊆ ∅₂); [| rewrite union_false_l]. 
       { rewrite (wf_scD WFSC), wf_rfeD; eauto. type_solver. }
 
       rewrite ar_int_in_sb; auto. arewrite (ppo ∩ same_loc ⊆ sb) at 2.
-      { rewrite ppo_in_sb; basic_solver. }
-      rewrite <- seqA with (r1 := ⦗W⦘). rewrite <- map_rel_seq_ext; [| by apply event_sur].
+      { rewrite ppo_in_sb; basic_solver. }      
+      rewrite <- seqA with (r1 := ⦗W⦘).
+      (* rewrite <- map_rel_seq_ext; [| by apply event_sur]. *)
+      rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover).
+      2: { ins. by exists (mkTL ta_cover b). } 
       rewrite map_rel_union. repeat case_union _ _.
       rewrite dom_union. apply set_subset_union_l. split.
-      { fold event action.
+      { 
         rewrite <- set_map_codom_ext, rmw_cover_simpl; auto; [|by apply event_sur].
         rewrite id_inter with (s := action ↓₁ _).
         rewrite <- !seqA, dom_rel_eqv_codom_rel.
+
         do 3 rewrite inclusion_seq_eqv_r.
         rewrite transp_seq, transp_eqv_rel, <- map_rel_transp.
+        rewrite inclusion_seq_eqv_r with (dom := W). rewrite seqA.
+        seq_rewrite map_rel_seq_ext; [| apply event_sur]. rewrite sb_transp_rmw; auto.
+        rewrite seqA, sb_cr_tc_cover; auto.
+        rewrite <- !seqA. do 2 rewrite dom_seq. rewrite !seqA. 
+        rewrite rtE. case_union _ _. rewrite map_rel_union.
+        repeat case_union _ _. rewrite dom_union.
+        
+        etransitivity; [| rewrite set_unionA; apply set_subset_union_r1].
+        apply set_subset_union_l. split.
+        { unfolder. ins. desc. destruct x, y. ins. subst.  
+          forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+          { basic_solver. }
+          unfold tlsI. unfolder. ins. desc. destruct y. ins. vauto. }
+        red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori.
+        rewrite id_inter, seq_eqvC. hahn_frame_r.
+        unfold iord, AR.
+        
+        erewrite union_more; [rewrite union_false_l| | reflexivity].
+        2: { split; [| basic_solver].
+             unfolder. ins. desc. destruct x, y; ins; subst; vauto.  
+             
+        
+        
         foobar. 
 
       
