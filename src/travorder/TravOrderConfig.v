@@ -628,6 +628,146 @@ Proof.
   apply doma_rewrite. rewrite IS_DOM. basic_solver.
 Qed. 
 
+Definition RF' :=
+  ⦗action ↓₁ eq ta_issue⦘ ⨾ event ↓ (rf^?) ⨾ ⦗action ↓₁ eq ta_cover⦘.
+
+(* Lemma iord_coh_RF'_clos WF WFSC CONS tc *)
+(*       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc): *)
+(*   dom_rel (RF' ⨾ ⦗tc⦘) ⊆₁ tc. *)
+(* Proof. *)
+(*   unfold RF'. rewrite crE, map_rel_union. repeat case_union _ _. *)
+(*   rewrite dom_union. apply set_subset_union_l. split. *)
+(*   { unfolder. ins. desc. destruct x, y; ins; vauto.  *)
+  
+
+
+Lemma iord_coherent_AR_ext_cover WF CONS tc
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  dom_rel (((⦗action ↓₁ eq ta_issue⦘ ⨾ event ↓ (⦗W⦘ ⨾
+                (ar ∪ rf ⨾ ppo ∩ same_loc)^*) ⨾ ⦗action ↓₁ eq ta_cover⦘)) ⨾ ⦗tc⦘)
+             ⊆₁ tc.
+Proof.
+  rewrite rtE. case_union _ _ . rewrite map_rel_union. repeat case_union _ _.
+  rewrite dom_union. apply set_subset_union_l. split. 
+  { (* TODO: refactor? *)
+    unfolder. ins. desc. destruct x, y; ins; vauto.
+    forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+    { basic_solver. }
+    unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. }
+  rewrite ct_end. rewrite <- seqA with (r3 := _ ∪ _). 
+  rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_issue).
+  2: { ins. exists (mkTL ta_issue b). vauto. }
+  rewrite !seqA.
+  apply iord_coh_simpl in ICOH; auto; [| by apply CONS].
+  erewrite dom_rel_mori.
+  2: { do 2 (apply seq_mori; [reflexivity| ]). apply doma_rewrite with (d := tc). 
+       arewrite (ar ∪ rf ⨾ ppo ∩ same_loc ⊆ rfe^? ⨾ (sb ∪ sc)^?). 
+       { unfold "ar". rewrite rfi_union_rfe, inclusion_inter_l1.
+         rewrite ppo_in_sb, ar_int_in_sb, rfi_in_sb; auto.
+         repeat (apply inclusion_union_l).
+         1, 3: unfolder; ins; exists x; split; try by vauto; by apply rt_step.
+         { unfolder. ins. eexists. splits; eauto. apply rt_refl. }
+           rewrite <- inclusion_t_rt. 
+       }
+       rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover).
+       2: { ins. exists (mkTL ta_cover b). vauto. }
+       rewrite !seqA.
+       eapply doma_mori; [| reflexivity| ].
+       { red. do 2 (apply seq_mori; [reflexivity| ]). apply doma_rewrite with (d := tc).
+         rewrite crE, map_rel_union. repeat case_union _ _. apply union_doma.
+         { unfolder. ins. desc. destruct x, y; ins; vauto. }
+         apply doma_alt. erewrite dom_rel_mori; [by apply ICOH| ]. hahn_frame.
+         unfold iord_simpl. rewrite !unionA. apply inclusion_union_r1_search.
+         unfold SB. hahn_frame. apply map_rel_mori; [done| ]. apply ct_step. }
+       rewrite <- !seqA. do 3 apply seq_doma. rewrite !seqA, seq_eqvC. 
+       apply doma_alt.  erewrite dom_rel_mori; [by apply ICOH| ]. hahn_frame. 
+       unfold iord_simpl. unfold RF. ba
+       
+
+  
+
+    
+
+Lemma iord_coherent_AR_ext_cover WF tc
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
+  dom_rel (((⦗action ↓₁ eq ta_issue⦘ ⨾ event ↓ (⦗W⦘ ⨾
+                (ar ∪ rf ⨾ ppo ∩ same_loc)^*) ⨾ ⦗action ↓₁ eq ta_cover⦘)) ⨾ ⦗tc⦘)
+             ⊆₁ tc.
+Proof.
+  rewrite rtEE. rewrite seq_bunion_r, rel_map_bunionC.
+  repeat seq_rewrite seq_bunion_r. repeat seq_rewrite seq_bunion_l.
+  rewrite dom_rel_bunion.
+  apply set_subset_bunion_l. intros n _. induction n.
+  { simpl. unfolder. ins. desc. destruct x, y; ins; vauto.
+    forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+    { basic_solver. }
+    unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. } 
+  
+  rewrite pow_S_end.
+  (* unfold "ar" at 2. *)
+  rewrite <- seqA.
+  (* rewrite <- map_rel_seq_ext. *)
+  rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover ∪₁ action ↓₁ eq ta_issue ∩₁ event ↓₁ W).
+  2: { ins. exists (mkTL ta_cover b). vauto. } 
+  rewrite !seqA.
+  (* rewrite <- id_inter.  *)
+  assert (doma (⦗action ↓₁ eq ta_cover ∪₁ action ↓₁ eq ta_issue ∩₁ event ↓₁ W⦘ ⨾ event ↓ (ar ∪ rf ⨾ ppo ∩ same_loc) ⨾ ⦗action ↓₁ eq ta_cover⦘ ⨾ ⦗tc⦘) ((action ↓₁ eq ta_cover ∪₁ action ↓₁ eq ta_issue) ∩₁ tc)) as DOMA.  
+  2: { apply doma_helper in DOMA. rewrite DOMA.
+       rewrite <- seqA with (r2 := event ↓ _).
+       (* rewrite restr_rel_seq_same. *)
+       (* { rewrite restr_relE with (r := _ ⨾ _ ⨾ _). rewrite <- !seqA. *)
+       (*   do 5 rewrite dom_seq. rewrite seqA, seq_eqvC. rewrite <- seqA, dom_seq. *)
+       (*   rewrite id_inter, id_union. repeat case_union _ _. *)
+       (*   rewrite dom_union. apply set_subset_union_l. split. *)
+       (*   { rewrite <- IHn at 2. apply dom_rel_mori. basic_solver. } *)
+       (*   clear IHn DOMA.  *)
+       (*   destruct n. *)
+       (*   { simpl. unfolder. ins. desc. destruct x, y,z; ins; vauto. } *)
+
+       (*   assert (doma (⦗action ↓₁ eq ta_issue⦘ ⨾ ⦗tc⦘) (event ↓₁ W)) as DOMA. *)
+       (*   { apply doma_alt. rewrite <- tlsc_I_in_W; eauto. *)
+       (*     rewrite <- id_inter, dom_eqv. basic_solver. } *)
+       (*   apply doma_helper in DOMA. rewrite DOMA.  *)
+           
+       (*   red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori. *)
+       (*   hahn_frame. rewrite <- id_inter. rewrite <- restr_seq_eqv_r. *)
+       (*   unfold iord. apply restr_rel_mori; [reflexivity| ]. *)
+       (*   transitivity (AR G sc); [| basic_solver]. *)
+       (*   rewrite id_inter.  *)
+       (*   unfold AR. hahn_frame. *)
+       (*   rewrite <- !map_rel_seq_ext; try by apply event_sur. hahn_frame.    *)
+       (*   rewrite pow_ct; [| lia]. basic_solver. } *)
+       destruct n.
+       { simpl. unfolder. ins. desc.
+         (* TODO: simplify *)
+         destruct x, y, z; ins; desf; vauto.
+         { forward eapply tlsc_w_covered_issued with (x := (ta_cover, a1)); eauto.
+           { basic_solver. }
+           unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. }
+         { forward eapply tlsc_w_covered_issued with (x := (ta_cover, a1)); eauto.
+           { basic_solver. }
+           unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. }
+       }
+
+       rewrite <- !map_rel_seq_ext; [| by apply event_sur]. 
+       rewrite pow_S_end. do 2 apply seq_domb. 
+       rewrite <- !map_rel_seq_ext; [| by apply event_sur]. apply seq_domb.
+       admit. }
+
+  unfold "ar".
+  arewrite (sc ∪ rfe ∪ ar_int G ∪ rf ⨾ ppo ∩ same_loc ⊆ rf^? ⨾ (sb ∪ sc)^?).
+  { rewrite rfe_in_rf, ppo_in_sb, ar_int_in_sb; auto. basic_solver 10. }
+  rewrite <- !map_rel_seq_ext; [| by apply event_sur]. rewrite seqA.
+  rewrite (@dom_rel_helper_in _ (_ ⨾ _ ⨾ ⦗_⦘) (action ↓₁ eq ta_cover ∩₁ tc)).
+  { rewrite <- !seqA. do 3 apply seq_doma. rewrite seqA. 
+    rewrite crE. rewrite map_rel_union. repeat case_union _ _. apply union_doma.
+    { unfolder. ins. destruct x, y; ins; desf; vauto; desc; subst.
+      split; auto.
+      forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+      { basic_solver. }
+      unfold tlsI. unfolder. ins. desc. destruct y. ins. by subst. }
+    red in ICOH. 
+
 
 Lemma iord_coherent_AR_ext_cover WF tc
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
