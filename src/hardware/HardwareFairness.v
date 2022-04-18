@@ -1,3 +1,8 @@
+(******************************************************************************)
+(** * Helper lemmas for proving prefix-finiteness                             *)
+(** * of model-specific "hb" relations.                                       *)
+(******************************************************************************)
+
 From hahn Require Import Hahn.
 From ZornsLemma Require Classical_Wf. 
 Require Import Events.
@@ -16,6 +21,44 @@ Import ListNotations.
 
 
 Set Implicit Arguments.
+
+Section EnumProperties.
+  Context {A: Type} (r: relation A) (f: nat -> A). 
+
+Lemma enum_exact_steps
+      (STEPS: forall i : nat, r (f i) (f (i + 1))):
+  forall i d, r ^^ d (f i) (f (i + d)). 
+Proof using. 
+  intros. induction d. 
+  { simpl. rewrite PeanoNat.Nat.add_0_r. vauto. }
+  eexists. split; eauto.
+  rewrite NPeano.Nat.add_succ_r, <- NPeano.Nat.add_1_r.
+  apply STEPS. 
+Qed.   
+  
+Lemma enum_steps
+      (STEPS: forall i : nat, r (f i) (f (i + 1))):
+  ⟪STEPS: forall i j (LT: i < j), r^+ (f i) (f j) ⟫. 
+Proof using.
+  red. ins. apply PeanoNat.Nat.le_exists_sub in LT. desc. subst j.
+  apply ctEE. exists p. split; auto.
+  rewrite NPeano.Nat.add_comm, PeanoNat.Nat.add_succ_comm.
+  apply enum_exact_steps. auto. 
+Qed.
+
+Lemma enum_inj
+      (STEPS: forall i, r (f i) (f (i + 1)))
+      (AC: acyclic r):
+  forall x y, f x = f y -> x = y. 
+Proof using. 
+  ins. forward eapply enum_steps as STEPS'; eauto.
+  pose proof (NPeano.Nat.lt_trichotomy x y) as LT.
+  des; auto;
+    destruct (AC (f x)); [rewrite H at 2| rewrite H at 1]; 
+    specialize (STEPS' _ _ LT); auto.
+Qed. 
+
+End EnumProperties. 
 
 Section HardwareFairness.
 
@@ -59,53 +102,25 @@ Notation "'same_loc'" := (same_loc lab).
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
 
+(* TODO: move to lib and get rid of duplicates*)
 Ltac contra name := 
   match goal with
   | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
   end. 
 
 
+(* TODO: move to lib *)
 Lemma not_wf_inf_decr_enum {A: Type} (r: relation A)
       (NWF: ~ well_founded r):
   exists (f: nat -> A), forall i, r (f (i + 1)) (f i).
-Proof.
+Proof using.
   contra DECR. destruct NWF.
   apply Classical_Wf.DSP_implies_WF. red. apply not_ex_not_all. 
   intros [f DECR']. destruct DECR. exists f.
   ins. contra Nri. destruct DECR'. exists i. by rewrite <- PeanoNat.Nat.add_1_r. 
 Qed. 
 
-
-Lemma enum_exact_steps {A: Type} (r: relation A) (f: nat -> A)
-      (STEPS: forall i : nat, r (f i) (f (i + 1))):
-  forall i d, r ^^ d (f i) (f (i + d)). 
-Proof using. 
-  intros. induction d. 
-  { simpl. rewrite PeanoNat.Nat.add_0_r. vauto. }
-  eexists. split; eauto.
-  rewrite NPeano.Nat.add_succ_r, <- NPeano.Nat.add_1_r.
-  apply STEPS. 
-Qed.   
-  
-Lemma enum_steps {A: Type} (r: relation A) (f: nat -> A)
-      (STEPS: forall i : nat, r (f i) (f (i + 1))):
-  ⟪STEPS: forall i j (LT: i < j), r^+ (f i) (f j) ⟫. 
-Proof using.
-  red. ins. apply PeanoNat.Nat.le_exists_sub in LT. desc. subst j.
-  apply ctEE. exists p. split; auto.
-  rewrite NPeano.Nat.add_comm, PeanoNat.Nat.add_succ_comm.
-  apply enum_exact_steps. auto. 
-Qed.
-
-Lemma enum_steps_inv {A: Type} (r: relation A) (f: nat -> A)
-      (STEPS: forall i : nat, r (f (i + 1)) (f i)):
-  ⟪STEPS: forall i j (LT: i < j), r^+ (f j) (f i) ⟫.
-Proof using.
-  red. 
-  ins. fold (transp r⁺ (f i) (f j)). apply transp_ct.
-  apply enum_steps; auto. 
-Qed.
-
+(* TODO: move to lib *)
 Lemma In_gt_list_max (l: list nat) (n: nat)
       (GT_MAX: n > list_max l):
   ~ In n l. 
@@ -116,10 +131,20 @@ Proof using.
   eapply Forall_in in IMPL; eauto. lia.
 Qed.  
 
+(* TODO: move to lib *)
 Lemma excluded_middle_or (A B: Prop)
       (OR: A \/ B):
   A \/ (~ A) /\ B.
-Proof. tauto. Qed. 
+Proof using. tauto. Qed. 
+
+Lemma enum_steps_inv {A: Type} (r: relation A) (f: nat -> A)
+      (STEPS: forall i : nat, r (f (i + 1)) (f i)):
+  ⟪STEPS: forall i j (LT: i < j), r^+ (f j) (f i) ⟫.
+Proof using.
+  red. 
+  ins. fold (transp r⁺ (f i) (f j)). apply transp_ct.
+  apply enum_steps; auto. 
+Qed.
 
 Lemma orders_contradiction {A: Type} (r1 r2: relation A) (S: A -> Prop)
       (ORD1: is_total S r1) (ORD2: is_total S r2):
@@ -142,28 +167,18 @@ Proof using.
   unfolder. tauto. 
 Qed.
 
-Lemma enum_inj {A: Type} (f: nat -> A) (r: relation A)
-      (STEPS: forall i, r (f i) (f (i + 1)))
-      (AC: acyclic r):
-  forall x y, f x = f y -> x = y. 
-Proof. 
-  ins. forward eapply enum_steps as STEPS'; eauto.
-  pose proof (NPeano.Nat.lt_trichotomy x y) as LT.
-  des; auto;
-    destruct (AC (f x)); [rewrite H at 2| rewrite H at 1]; 
-    specialize (STEPS' _ _ LT); auto.
-Qed. 
-
+(* TODO: move to lib *)
 Lemma acyclic_transp {A: Type} (r: relation A)
       (AC: acyclic r):
   acyclic (transp r). 
-Proof. red. rewrite <- transp_ct. vauto. Qed.   
+Proof using. red. rewrite <- transp_ct. vauto. Qed.   
 
 
+(* TODO: move to lib *)
 Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
       (INF: ~ set_finite S):
   exists e, S e.
-Proof. contra NO. destruct INF. exists []. ins. edestruct NO; vauto. Qed. 
+Proof using. contra NO. destruct INF. exists []. ins. edestruct NO; vauto. Qed. 
 
 
 Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Prop)
@@ -172,7 +187,7 @@ Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Pr
       (FSUPP: fsupp (restr_rel (S ∩₁ f ↑₁ set_full) r^+))
       (INF_S': ~ set_finite (f ↓₁ S)):
   False.
-Proof.
+Proof using.
   pose proof (proj2 (fin_dom_rel_fsupp _) FSUPP) as FSUPP'.
 
   forward eapply (set_infinite_has_element INF_S') as [ie1 Ie1].
@@ -203,7 +218,7 @@ Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r: relation A)
       (AC: acyclic r)
       (FSUPP: fsupp r^+):
   False.
-Proof. 
+Proof using. 
   eapply fsupp_dom_enum_general with (S0 := set_full); eauto.
   { eapply fsupp_mori; eauto. red. basic_solver. }
   intros FIN. eapply set_infinite_nat.
@@ -215,7 +230,7 @@ Lemma fsupp_inv_inj {A B: Type} (f: A -> B) (r: relation A)
       (INJ_S: forall (x y: A) (Rx: dom_rel r x) (Ry: dom_rel r y),
           f x = f y -> x = y):
   fsupp r.
-Proof. 
+Proof using. 
   apply fin_dom_rel_fsupp. ins. 
   pose proof (proj2 (fin_dom_rel_fsupp (f ↑ r)) FSUPP).
   eapply set_finite_set_collect_inv_inj.
@@ -234,7 +249,7 @@ Lemma enum_order_contradiction {A: Type} (f: nat -> A) (r r': relation A) (S: A 
       (FS': fsupp r')
       (SEQ: r^+ ⨾ r' ⊆ r^+):
   False.
-Proof.
+Proof using.
   forward eapply enum_steps_inv as STEPS'; eauto.  
   forward eapply orders_contradiction with (r1 := r^+) (r2 := r') (S0 := S ∩₁ (f ↑₁ set_full)).  
   { red. ins. unfolder in IWa. unfolder in IWb. desc. subst. rename y0 into x.

@@ -108,11 +108,11 @@ Section IordTraversal.
 
   Lemma set_pair_alt {A B: Type} (Sa: A -> Prop) (Sb: B -> Prop ):
     Sa <*> Sb ≡₁ (fst ↓₁ Sa) ∩₁ (snd ↓₁ Sb). 
-  Proof. unfold set_pair. basic_solver. Qed.
+  Proof using. unfold set_pair. basic_solver. Qed.
 
   Lemma restr_rel_cross_inter {A: Type} (d1 d2 d: A -> Prop):
     (d1 ∩₁ d) × (d2 ∩₁ d) ≡ restr_rel d (d1 × d2).
-  Proof. basic_solver. Qed.  
+  Proof using. basic_solver. Qed.  
 
   Lemma iord_exec_tls:
     iord ≡ restr_rel exec_tls iord.

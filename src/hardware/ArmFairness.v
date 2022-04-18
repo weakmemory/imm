@@ -1,5 +1,6 @@
 (******************************************************************************)
-(** * Compilation correctness from the S_IMM memory model to the ARMv8.3 model *)
+(** * Proof of ARM fairness for Arm-consistent,                               *)
+(** * location-finite and memory-fair executions.                             *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
@@ -127,7 +128,7 @@ Definition ob' := obs' ∪ dob ∪ aob ∪ bob' G.
 
 Lemma no_ob'_to_init:
   ob' ≡ ob' ⨾ ⦗set_compl is_init⦘. 
-Proof. 
+Proof using CON. 
   forward eapply WF as WF; eauto. 
   split; [| basic_solver]. apply domb_rewrite.
   unfold ob', "obs'". rewrite dob_in_sb, aob_in_sb, bob'_in_sb; auto.
@@ -144,11 +145,11 @@ Ltac contra name :=
 
 Lemma wf_ob'E:
   ob' ≡ ⦗E⦘ ⨾ ob' ⨾ ⦗E⦘. 
-Proof. 
+Proof using CON. 
   split; [| basic_solver]. apply dom_helper_3.
-  forward eapply WF as WF; eauto. 
-  unfold ob', "obs'". rewrite dob_in_sb, aob_in_sb, bob'_in_sb; auto.
-  rewrite wf_rfeE, wf_coE, wf_frE, wf_sbE; basic_solver. 
+  unfold ob', "obs'". rewrite dob_in_sb, aob_in_sb, bob'_in_sb; try by apply CON.
+  rewrite wf_rfeE, wf_coE, wf_frE, wf_sbE; try by apply CON.
+  basic_solver. 
 Qed.
 
 

@@ -1,5 +1,6 @@
 (******************************************************************************)
-(** * Compilation correctness from the IMM memory model to the POWER model *)
+(** * Proof of Power fairness for Power-consistent,                           *)
+(** * location- and thread-finite executions.                                 *)
 (******************************************************************************)
 
 From hahn Require Import Hahn.
@@ -113,8 +114,9 @@ Ltac contra name :=
 Lemma wf_hbpE:
   hbp ≡ ⦗E⦘ ⨾ hbp ⨾ ⦗E⦘.
 Proof using CON.
-  forward eapply WF as WF; eauto. apply dom_helper_3. unfold "hbp".
-  rewrite Power_ppo.wf_ppoE, wf_fenceE, wf_rfeE; auto. basic_solver.
+  apply dom_helper_3. unfold "hbp".
+  rewrite Power_ppo.wf_ppoE, wf_fenceE, wf_rfeE; auto; try apply CON. 
+  basic_solver.
 Qed. 
 
 Lemma hb_po_loc_hb:
@@ -163,8 +165,9 @@ Lemma fin_threads_locs_power_hb_ct_fsupp
       (FINLOCS: exists locs, forall e (ENIe: (E \₁ is_init) e), In (loc e) locs)
       (FINTHREADS: exists b, threads_bound G b):
   fsupp (⦗set_compl is_init⦘ ⨾ hbp^+). 
-Proof using CON. 
-  forward eapply WF as WF; eauto. desc.
+Proof using CON.
+  desc. 
+  assert (Wf G) as WF by apply CON. 
   rewrite clos_trans_domb_begin.
   2: { rewrite no_hbp_to_init; basic_solver. }
   apply AuxDef.fsupp_wf_implies_fsupp_ct.

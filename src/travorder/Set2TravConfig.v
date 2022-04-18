@@ -1,3 +1,4 @@
+(* TODO: remove this file as traversal configs are not used anymore ? *)
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
 Require Import Lia.
@@ -215,11 +216,11 @@ Section Set2TravConfig.
   Section StepsEnum.
     
     Variable (steps: nat -> trav_label).
-    Hypothesis (ENUM: enumerates steps (graph_steps G)).
-    Hypothesis (RESP: respects_rel steps iord⁺ (graph_steps G)).
+    Hypothesis (ENUM: enumerates steps (exec_tls G)).
+    Hypothesis (RESP: respects_rel steps iord⁺ (exec_tls G)).
 
     Lemma trav_prefix_coherent_alt WF COMP WFSC CONS
-          (i : nat) (DOMi: NOmega.le (NOnum i) (set_size (graph_steps G))):
+          (i : nat) (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
       tc_coherent_alt G sc (set2trav_config (trav_prefix steps i)).
     Proof using RESP ENUM.
       apply s2tc_closed_coherent_alt; auto.
@@ -228,39 +229,46 @@ Section Set2TravConfig.
 
     (*Local lemma*)
     Lemma trav_prefix_extend i
-          (DOMsi: NOmega.lt_nat_l i (set_size (graph_steps G))):
+          (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
       let (a, e) := steps i in
       set2trav_config (trav_prefix steps (S i)) =
       (set2trav_config (trav_prefix steps i)) ⊔
-      (mkTC (if a then eq e else ∅) (if a then ∅ else eq e)).
+      match a with
+      | ta_cover => mkTC (eq e) ∅
+      | ta_issue => mkTC ∅ (eq e)
+      | _ => mkTC ∅ ∅
+      end. 
+      (* (mkTC (if a then eq e else ∅) (if a then ∅ else eq e)). *)
     Proof using ENUM.
       destruct (steps i) as [a e] eqn:I.
-      replace (trav_prefix (S i)) with (trav_prefix i ∪₁ eq (steps i)).
-      2: { apply set_extensionality. symmetry. by apply trav_prefix_ext. }
+      replace (trav_prefix steps (S i)) with (trav_prefix steps i ∪₁ eq (steps i)).
+      2: { apply set_extensionality. symmetry. eapply trav_prefix_ext; eauto. }
 
       assert (eq (steps i) ≡₁ (action ↓₁ eq a ∩₁ event ↓₁ eq e)) as EQ_ALT.
       { rewrite I. split; [basic_solver| ]. unfolder. ins. desc. 
         destruct x. simpl in *. by subst. }
-      forward eapply (step_event_dom i) as [[Ee NIe] W'e]; auto.
+      forward eapply step_event_dom with (i := i) as [[Ee NIe] W'e]; eauto.
       rewrite I in Ee, NIe. simpl in *.
 
       apply same_tc_extensionality. split. 
       { unfold set2trav_config. simpl. etransitivity.
         2: { eapply set_equiv_union; [reflexivity| ].
-             apply set_inter_absorb_r with (s' := E). basic_solver. }
+             apply set_inter_absorb_r with (s' := E).
+             destruct a; basic_solver. }
         rewrite <- set_inter_union_l. apply set_equiv_inter; [| basic_solver].
 
         rewrite set_inter_union_r, set_collect_union, set_minus_union_l.
         rewrite !set_unionA. apply set_equiv_union; [basic_solver| ].
 
         rewrite set_unionC.         
-        rewrite set_split_complete with (s' := if a then eq e else ∅) (s := is_init).
+        rewrite set_split_complete with (s' := covered _) (s := is_init). 
+        
         rewrite <- set_unionA. apply set_equiv_union; [basic_solver| ]. 
         rewrite <- set_minusE. apply set_equiv_minus; [| basic_solver].
 
         rewrite EQ_ALT, <- set_interA, <- set_map_inter.
         destruct a.
-        2: { split; [| basic_solver]. unfolder. ins. desc. congruence. }
+        all: try by split; [| basic_solver]; unfolder; ins; desc; congruence. 
         rewrite set_interK. split; [basic_solver| ].
         red. intros ? <-.
         red. exists (steps i). by rewrite I. }
@@ -268,7 +276,8 @@ Section Set2TravConfig.
       (* TODO: unify with 'covered' case? *)
       { unfold set2trav_config. simpl. etransitivity.
         2: { eapply set_equiv_union; [reflexivity| ].
-             apply set_inter_absorb_r with (s' := E). basic_solver. }
+             apply set_inter_absorb_r with (s' := E).
+             destruct a; basic_solver. }
         rewrite <- set_inter_union_l. apply set_equiv_inter; [| basic_solver].
 
         rewrite !set_inter_union_r, !set_collect_union.
@@ -277,13 +286,13 @@ Section Set2TravConfig.
         rewrite !set_unionA. apply set_equiv_union; [basic_solver| ].
 
         rewrite set_unionC.         
-        rewrite set_split_complete with (s' := if a then ∅ else eq e) (s := is_init).
+        rewrite set_split_complete with (s' := issued _) (s := is_init).
         rewrite <- set_unionA. apply set_equiv_union; [basic_solver| ]. 
         rewrite <- set_minusE. apply set_equiv_minus; [| basic_solver].
 
         rewrite EQ_ALT, <- set_interA, <- set_map_inter.
         destruct a.
-        { split; [| basic_solver]. unfolder. ins. desc. congruence. }
+        all: try by (split; [| basic_solver]; unfolder; ins; desc; congruence).
         rewrite set_interK. split; [basic_solver| ].
         red. intros ? <-.
         specialize_full W'e; [by rewrite I| ]. rewrite I in W'e. simpl in *. 
@@ -292,28 +301,32 @@ Section Set2TravConfig.
 
     (*Local lemma*)
     Lemma itrav_prefix_step WF COMP WFSC CONS
-          i (DOMsi: NOmega.lt_nat_l i (set_size graph_steps)):
-      itrav_step G sc (event (steps i)) (set2trav_config (trav_prefix i))
-                (set2trav_config (trav_prefix (S i))).
+          i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
+      itrav_step G sc (event (steps i)) (set2trav_config (trav_prefix steps i))
+                (set2trav_config (trav_prefix steps (S i))).
     Proof using RESP ENUM.
       red. destruct (steps i) as [a e] eqn:I.
-      assert (~ (event ↑₁ (action ↓₁ eq a ∩₁ trav_prefix i)) e) as NOPREF.
+      assert (~ (event ↑₁ (action ↓₁ eq a ∩₁ trav_prefix steps i)) e) as NOPREF.
       { intros PREFe. 
-        red in PREFe. desc. destruct y. simpl in PREFe0. subst event.
-        destruct (classic (action = a)) as [-> | ?].
-        2: { generalize PREFe; basic_solver. }
-          rewrite <- I in PREFe. red in PREFe. 
-          desc. eapply prefix_border; eauto. }
+        red in PREFe. desc. destruct y. simpl in PREFe0. subst a0.
+        destruct PREFe as [[=<-] PREFe]. 
+        (* destruct (classic (action = a)) as [-> | ?]. *)
+        (* 2: { generalize PREFe; basic_solver. } *)
+        rewrite <- I in PREFe. red in PREFe.
+        desc. eapply prefix_border; eauto. }
 
-      destruct a; [left | right].
+      destruct a.
 
-      { forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
+      3, 4: admit. 
+                      
+      { left.
+        forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
         splits.
         3, 4: rewrite EQs; simpl; basic_solver 10.
         { unfold set2trav_config. simpl.
           intros [[[PREFe NIe] | Ie] Ee].
           { by apply NOPREF. }
-          forward eapply (step_event_dom i); eauto.
+          forward eapply (step_event_dom ENUM i); eauto.
           rewrite I. basic_solver. }
         apply coverable_add_eq_iff; auto.
         apply covered_in_coverable; [| basic_solver].
@@ -323,13 +336,14 @@ Section Set2TravConfig.
         rewrite EQs. unfold trav_config_union.
         apply same_tc_extensionality; split; basic_solver. }
 
+      right. 
       forward eapply trav_prefix_extend as EQs; eauto. rewrite I in EQs.
       splits.
       3, 4: rewrite EQs; simpl; basic_solver 10.
       { unfold set2trav_config. simpl.
         intros [[[PREFe NIe] | Ie] Ee].
         { apply NOPREF. generalize PREFe. basic_solver. }
-        forward eapply (step_event_dom i); eauto.
+        forward eapply (step_event_dom ENUM i); eauto.
         rewrite I. basic_solver. }
       apply issuable_add_eq_iff; auto.
       apply issued_in_issuable; [| basic_solver].
@@ -338,12 +352,16 @@ Section Set2TravConfig.
       { eapply trav_prefix_coherent_alt; auto. apply DOMsi. }          
       rewrite EQs. unfold trav_config_union.
       apply same_tc_extensionality; split; basic_solver.
-    Qed.
+    Admitted. 
 
     Lemma trav_prefix_step WF COMP WFSC CONS
-          i (DOMsi: NOmega.lt_nat_l i (set_size graph_steps)):
-      trav_step G sc (set2trav_config (trav_prefix i))
-                (set2trav_config (trav_prefix (S i))).
+          i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
+      trav_step G sc (set2trav_config (trav_prefix steps i))
+                (set2trav_config (trav_prefix steps (S i))).
     Proof using RESP ENUM.
       forward eapply itrav_prefix_step; eauto. vauto.
     Qed. 
+
+  End StepsEnum. 
+
+End Set2TravConfig. 
