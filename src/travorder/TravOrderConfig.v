@@ -325,7 +325,7 @@ Proof using.
   unfold rel_clos. rewrite !set_pair_alt. unfold tl_issued. basic_solver 10.
 Qed. 
 
-Lemma sim_clos_dist (tc1 tc2: trav_label -> Prop):
+Lemma sim_clos_union (tc1 tc2: trav_label -> Prop):
   sim_clos (tc1 ∪₁ tc2) ≡₁ sim_clos tc1 ∪₁ sim_clos tc2. 
 Proof using. 
   unfold sim_clos. rewrite rel_clos_dist, rmw_clos_dist. basic_solver. 
@@ -1071,21 +1071,69 @@ Section IssueClosure.
   Admitted. 
   
 End IssueClosure.
-
-Lemma iord_step_implies_sim_clos_step WF CONS:
+            
+Lemma iord_step_implies_sim_clos_step WF WFSC CONS:
   iord_step ⊆ sim_clos ↓ sim_clos_step^*.
 Proof using.
   unfolder; intros tc tc' STEP.
   red in STEP. destruct STEP as [[a e] STEP]. 
-  do 2 red in STEP. desc. apply seq_eqv_l in STEP. desc.
-  rewrite STEP2 in *. clear dependent tc'.
+  remember STEP as AA. clear HeqAA.
+  do 2 red in AA. destruct AA as [AA [ICOHT ICOHT']].
+  apply seq_eqv_l in AA. destruct AA as [COMPL AA].
+  rewrite AA in *. clear dependent tc'.
+
+  assert (tls_coherent G tc) as TCOH.
+  { admit. }
+  assert (iord_coherent G sc (sim_clos tc)) as SIMCOH.
+  { apply sim_clos_iord_coherent; auto. }
+  assert (sim_coherent (sim_clos tc)) as SIMSIM.
+  { apply sim_clos_sim_coherent; auto. }
+
   destruct a.
   { admit. }
-  { eapply set_equiv_rel_more; eauto.
+  { eapply set_equiv_rel_more.
+    1,2: reflexivity.
     now apply trav_step_closures_isim_issue. }
-  { admit. }
 
+  { assert (tls_coherent G (tc ∪₁ eq (ta_propagate tid, e))) as TLS.
+    { (* TODO: introduce a lemma *) admit. }
+    apply rt_step.
+    do 2 red. splits; auto.
+    2: now apply sim_clos_sim_coherent.
+    exists [(ta_propagate tid, e)].
+    do 3 red. splits; auto.
+    2: now apply sim_clos_iord_coherent.
+    apply seq_eqv_l. splits.
+    { unfold sim_clos.
+      repeat (apply set_compl_union; split); auto.
+      all: unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+      all: clear; intros AA; desf; unfolder in AA; desf. }
+    rewrite sim_clos_union.
+    apply set_union_more; auto.
+    unfold sim_clos.
+    split; eauto with hahn.
+    unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+    clear. unfolder; ins; do 2 desf. }
+
+  assert (tls_coherent G (tc ∪₁ eq (ta_reserve, e))) as TLS.
+  { (* TODO: introduce a lemma *) admit. }
+  apply rt_step.
+  do 2 red. splits; auto.
+  2: now apply sim_clos_sim_coherent.
+  exists [(ta_reserve, e)].
+  do 3 red. splits; auto.
+  2: now apply sim_clos_iord_coherent.
+  apply seq_eqv_l. splits.
+  { unfold sim_clos.
+    repeat (apply set_compl_union; split); auto.
+    all: unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+    all: clear; intros AA; desf; unfolder in AA; desf. }
+  rewrite sim_clos_union.
+  apply set_union_more; auto.
+  unfold sim_clos.
+  split; eauto with hahn.
+  unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+  clear. unfolder; ins; do 2 desf.
 Admitted.
   
-
 End TravOrderConfig.
