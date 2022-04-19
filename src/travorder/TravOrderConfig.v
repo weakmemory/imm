@@ -440,7 +440,7 @@ Lemma sb_cr_tc_cover (tc: trav_label -> Prop)
 Proof using.
   rewrite crE, map_rel_union, seq_union_l. repeat case_union _ _.
   apply union_mori.
-  { unfolder. ins. desc. destruct x, y. ins. vauto. }
+  { iord_dom_solver. }
   rewrite id_inter, seqA. apply doma_helper, doma_alt.
   rewrite set_split_complete with (s' := action ↓₁ _) (s := event ↓₁ is_init)at 1.
   rewrite id_union. repeat case_union _ _.
@@ -674,9 +674,9 @@ Proof using.
        apply dom_rel_helper_in with (d := tc). 
        rewrite rtE, map_rel_union. repeat case_union _ _.
        rewrite dom_union. apply set_subset_union_l. split.  
-       2: { etransitivity; [| by apply ICOH].
-            unfold iord_simpl, SB. basic_solver 10. }
-       unfolder. ins. desc. destruct x, y; ins; vauto. }
+       { iord_dom_solver. }
+       etransitivity; [| by apply ICOH].
+       unfold iord_simpl, SB. basic_solver 10. }
   rewrite <- !seqA. do 3 rewrite dom_seq. rewrite !seqA.
   erewrite dom_rel_mori.
   2: { do 2 (apply seq_mori; [reflexivity| ]). rewrite seq_eqvC.
@@ -692,7 +692,7 @@ Proof using.
        apply pow_rt. }
   rewrite rtE. case_union _ _ . rewrite map_rel_union. repeat case_union _ _.
   rewrite dom_union. apply set_subset_union_l. split.
-  { unfolder. ins. desc. destruct x, y; ins; vauto. }
+  { iord_dom_solver. }
   rewrite <- id_inter, set_interC.
   erewrite <- set_inter_absorb_r with (s := _ ∩₁ _); [| apply tlsc_I_in_W; eauto].
   rewrite set_interA, set_interC, !id_inter. 
@@ -757,7 +757,7 @@ Proof using.
       rewrite <- rt_unit at 2. apply seq_mori; basic_solver. }
     rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union.
     apply set_subset_union_l. split.
-    { unfolder. ins. desc. destruct x, y; ins; vauto. }
+    { iord_dom_solver. }
     apply iord_coh_simpl in ICOH; auto. rewrite <- ICOH at 2. apply dom_rel_mori.
     rewrite set_interC, id_inter.
     unfold iord_simpl, SB. basic_solver 10. }
@@ -768,8 +768,7 @@ Proof using.
       rewrite wf_rfD, wf_rmwD; auto. unfold action, event. type_solver 10. }
     
     apply set_subset_union_r. left. apply set_subset_union_r. right.
-    unfold action, event. unfolder. ins. desc. destruct x, y. ins. desf; subst.
-    split; vauto. }
+    unfold action, event. iord_dom_solver. vauto. }
   { do 2 (apply set_subset_union_r; left).
     erewrite eqv_rel_mori with (x := _ ∩₁ _); [| red; intro; apply proj2].
     fold event action. rewrite <- set_map_codom_ext; [| apply event_sur].
@@ -789,7 +788,7 @@ Proof using.
     rewrite sb_transp_rmw; auto.
     rewrite crE, map_rel_union. repeat case_union _ _. apply inclusion_union_l.
     { rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r1].
-      unfolder. ins. desc. destruct x, y; ins; subst; vauto. }
+      iord_dom_solver; vauto. }
     rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r2].
     rewrite id_inter, seq_eqvC. hahn_frame.
     rewrite <- inclusion_union_r1. basic_solver. }
@@ -838,10 +837,8 @@ Proof using.
     
     etransitivity; [| apply iord_coherent_AR_ext_cover]; auto.
     basic_solver 10. }
-  { unfold IPROP, is_ta_propagate_to_G.
-    unfolder. ins. desc. destruct x, y; des; ins; vauto. }
-  { unfold PROP, is_ta_propagate_to_G.
-    unfolder. ins. desc. destruct x, y; des; ins; vauto. }
+  { iord_dom_solver. }
+  iord_dom_solver.
 Qed. 
 
 Lemma sim_clos_iord_simpl_rel_clos WF WFSC (tc: trav_label -> Prop)
