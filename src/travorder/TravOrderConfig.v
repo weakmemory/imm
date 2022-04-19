@@ -738,10 +738,7 @@ Proof using.
        unfold RF. hahn_frame. 
        rewrite rfe_in_rf, (dom_l (wf_rfD WF)). basic_solver. }
   rewrite <- !seqA. do 3 rewrite dom_seq. rewrite !seqA, seq_eqvC.
-  erewrite dom_rel_mori.
-  2: { apply seq_mori; [reflexivity| ]. apply seq_mori; [| reflexivity].
-       apply map_rel_mori; [done| ]. apply seq_mori; [reflexivity | ].
-       apply pow_rt. }
+  arewrite ((ar ∪ rf ⨾ ppo ∩ same_loc) ^^ n ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)^*).
   rewrite rtE. case_union _ _ . rewrite map_rel_union. repeat case_union _ _.
   rewrite dom_union. apply set_subset_union_l. split.
   { iord_dom_solver. }
