@@ -27,6 +27,58 @@ Set Implicit Arguments.
 Definition iord_coherent (G: execution) (sc: relation actid) (tc: trav_label -> Prop) 
   := dom_rel (iord G sc ;; <|tc|>) ⊆₁ tc.
 
+(* TODO: move to TraversalOrder.v *)
+Global Add Parametric Morphism : SB with signature
+       eq ==> same_relation ==> same_relation as SB_more.
+Proof using.
+  intros G r r' EQ.
+  unfold SB. rewrite EQ; eauto.
+Qed.
+
+(* TODO: move to ... *)
+Global Add Parametric Morphism : ar with signature
+       eq ==> same_relation ==> same_relation as ar_more.
+Proof using.
+  intros G r r' EQ.
+  now unfold ar; rewrite EQ.
+Qed.
+
+(* TODO: move to TraversalOrder.v *)
+Global Add Parametric Morphism : AR with signature
+       eq ==> same_relation ==> same_relation as AR_more.
+Proof using.
+  intros G r r' EQ.
+  unfold AR. now rewrite EQ.
+Qed.
+
+(* TODO: move to TraversalOrder.v *)
+Global Add Parametric Morphism : PROP with signature
+       eq ==> same_relation ==> same_relation as PROP_more.
+Proof using.
+  intros G r r' EQ.
+  unfold PROP. now rewrite EQ.
+Qed.
+
+(* TODO: move to TraversalOrder.v *)
+Global Add Parametric Morphism : iord with signature
+       eq ==> same_relation ==> same_relation as iord_more.
+Proof using.
+  intros G r r' EQ.
+  unfold iord.
+  apply restr_rel_more; eauto.
+  now rewrite EQ.
+Qed.
+
+Global Add Parametric Morphism : iord_coherent with signature
+       eq ==> same_relation ==> set_equiv ==> iff as iord_coherent_more.
+Proof using.
+  intros G sc sc' EQ s s' EQS.
+  unfold iord_coherent. 
+  split; intros HH.
+  { now rewrite <- EQS, <- EQ. }
+  now rewrite EQS, EQ.
+Qed.
+
 Record tls_coherent (G: execution) (tc: trav_label -> Prop): Prop :=
   {
     tls_coh_init: init_tls G ⊆₁ tc;
@@ -724,7 +776,8 @@ Lemma sim_clos_iord_simpl_rmw_clos WF WFSC CONS (tc: trav_label -> Prop)
 Proof using.
   unfold iord_simpl. repeat case_union _ _. rewrite !dom_union.
   unfold rmw_clos. rewrite !set_pair_alt. 
-  repeat (apply set_subset_union_l; split). 
+  repeat (apply set_subset_union_l; split).
+  5,6: iord_dom_solver.
   
   { etransitivity; [| do 2 (apply set_subset_union_r; left); reflexivity].
     fold action event. unfold SB.
@@ -792,53 +845,51 @@ Proof using.
     rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r2].
     rewrite id_inter, seq_eqvC. hahn_frame.
     rewrite <- inclusion_union_r1. basic_solver. }
-  { unfold AR. fold event action.
-    rewrite ct_end, !seqA. unfold "ar" at 2.
-    repeat rewrite seq_union_l with (r := ⦗W⦘).
-    arewrite (sc ⨾ ⦗W⦘ ∪ rfe ⨾ ⦗W⦘ ⊆ ∅₂); [| rewrite union_false_l].
-    { rewrite (wf_scD WFSC), wf_rfeD; eauto. type_solver. }
-    
-    rewrite ar_int_in_sb; auto. arewrite (ppo ∩ same_loc ⊆ sb) at 2.
-    { rewrite ppo_in_sb; basic_solver. }
-    rewrite <- cr_seq.
-    
-    arewrite (rf^? ⨾ sb ⊆ rfe^? ⨾ sb).
-    { rewrite rfi_union_rfe. rewrite crE. repeat case_union _ _.
-      rewrite rfi_in_sb, sb_sb. basic_solver. }
-    rewrite <- seqA with (r2 := rfe^?). 
-    erewrite inclusion_seq_trans with (r' := rfe^?); [| | reflexivity| ]. 
-    2: { apply transitive_rt. }
-    2: { rewrite <- inclusion_r_rt; [| reflexivity]. apply clos_refl_mori.
-         unfold "ar". basic_solver. }
-    
-    rewrite <- seqA with (r1 := ⦗W⦘).
-    rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover).
-    2: { ins. by exists (mkTL ta_cover b). }
-    
-    rewrite <- set_map_codom_ext, rmw_cover_simpl at 1; auto; [|by apply event_sur].
-    rewrite id_inter with (s := action ↓₁ _).
-    rewrite <- !seqA, dom_rel_eqv_codom_rel.
-    
-    do 2 rewrite inclusion_seq_eqv_r.
-    rewrite transp_seq, transp_eqv_rel, <- map_rel_transp.
-    rewrite inclusion_seq_eqv_r with (dom := W). rewrite seqA.
-    seq_rewrite map_rel_seq_ext; [| apply event_sur]. rewrite sb_transp_rmw; auto.
-    rewrite seqA, sb_cr_tc_cover; auto.
-    rewrite <- !seqA. do 2 rewrite dom_seq. rewrite !seqA.
-    rewrite rtE. case_union _ _. rewrite map_rel_union.
-    repeat case_union _ _. rewrite dom_union.
-    
-    etransitivity; [| rewrite set_unionA; apply set_subset_union_r1].
-    apply set_subset_union_l. split.
-    { unfolder. ins. desc. destruct x, y. ins. subst.
-      forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
-      { basic_solver. }
-      unfold tlsI. unfolder. ins. desc. destruct y. ins. vauto. }
-    
-    etransitivity; [| apply iord_coherent_AR_ext_cover]; auto.
-    basic_solver 10. }
-  { iord_dom_solver. }
-  iord_dom_solver.
+  unfold AR. fold event action.
+  rewrite ct_end, !seqA. unfold "ar" at 2.
+  repeat rewrite seq_union_l with (r := ⦗W⦘).
+  arewrite (sc ⨾ ⦗W⦘ ∪ rfe ⨾ ⦗W⦘ ⊆ ∅₂); [| rewrite union_false_l].
+  { rewrite (wf_scD WFSC), wf_rfeD; eauto. type_solver. }
+  
+  rewrite ar_int_in_sb; auto. arewrite (ppo ∩ same_loc ⊆ sb) at 2.
+  { rewrite ppo_in_sb; basic_solver. }
+  rewrite <- cr_seq.
+  
+  arewrite (rf^? ⨾ sb ⊆ rfe^? ⨾ sb).
+  { rewrite rfi_union_rfe. rewrite crE. repeat case_union _ _.
+    rewrite rfi_in_sb, sb_sb. basic_solver. }
+  rewrite <- seqA with (r2 := rfe^?). 
+  erewrite inclusion_seq_trans with (r' := rfe^?); [| | reflexivity| ]. 
+  2: { apply transitive_rt. }
+  2: { rewrite <- inclusion_r_rt; [| reflexivity]. apply clos_refl_mori.
+       unfold "ar". basic_solver. }
+  
+  rewrite <- seqA with (r1 := ⦗W⦘).
+  rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover).
+  2: { ins. by exists (mkTL ta_cover b). }
+  
+  rewrite <- set_map_codom_ext, rmw_cover_simpl at 1; auto; [|by apply event_sur].
+  rewrite id_inter with (s := action ↓₁ _).
+  rewrite <- !seqA, dom_rel_eqv_codom_rel.
+  
+  do 2 rewrite inclusion_seq_eqv_r.
+  rewrite transp_seq, transp_eqv_rel, <- map_rel_transp.
+  rewrite inclusion_seq_eqv_r with (dom := W). rewrite seqA.
+  seq_rewrite map_rel_seq_ext; [| apply event_sur]. rewrite sb_transp_rmw; auto.
+  rewrite seqA, sb_cr_tc_cover; auto.
+  rewrite <- !seqA. do 2 rewrite dom_seq. rewrite !seqA.
+  rewrite rtE. case_union _ _. rewrite map_rel_union.
+  repeat case_union _ _. rewrite dom_union.
+  
+  etransitivity; [| rewrite set_unionA; apply set_subset_union_r1].
+  apply set_subset_union_l. split.
+  { unfolder. ins. desc. destruct x, y. ins. subst.
+    forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
+    { basic_solver. }
+    unfold tlsI. unfolder. ins. desc. destruct y. ins. vauto. }
+  
+  etransitivity; [| apply iord_coherent_AR_ext_cover]; auto.
+  basic_solver 10.
 Qed. 
 
 Lemma sim_clos_iord_simpl_rel_clos WF WFSC (tc: trav_label -> Prop)
@@ -1027,12 +1078,13 @@ Proof using.
   unfolder; intros tc tc' STEP.
   red in STEP. destruct STEP as [[a e] STEP]. 
   do 2 red in STEP. desc. apply seq_eqv_l in STEP. desc.
-
+  rewrite STEP2 in *. clear dependent tc'.
   destruct a.
-  2: { eapply set_equiv_rel_more; [reflexivity | ..].
-       { rewrite STEP2. reflexivity. }
-       apply trav_step_closures_isim_issue; auto. }
-  all: admit. 
+  { admit. }
+  { eapply set_equiv_rel_more; eauto.
+    now apply trav_step_closures_isim_issue. }
+  { admit. }
+
 Admitted.
   
 
