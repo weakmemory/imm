@@ -887,14 +887,101 @@ Proof using.
   
   etransitivity; [| apply iord_coherent_AR_ext_cover]; auto.
   basic_solver 10.
-Qed. 
+Qed.
 
-Lemma sim_clos_iord_simpl_rel_clos WF WFSC (tc: trav_label -> Prop)
+Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
+      (SUR: forall b, exists a, f a = b):
+  f ↑₁ (f ↓₁ d) ≡₁ d. 
+Proof.
+  ins. split; [apply set_collect_map| ]. 
+  unfolder. ins.
+  specialize (SUR x) as [a Fa]. exists a. split; congruence. 
+Qed.
+ 
+(* Lemma set_map_collect_ext [A B : Type] (f : A -> B) (s : A -> Prop) *)
+(*       (SUR: forall b, exists a, f a = b): *)
+(*   s ≡₁ f ↓₁ (f ↑₁ s). *)
+(* Proof. *)
+(*   split; [apply set_map_collect| ]. *)
+(*   unfolder. ins. desc. *)
+
+(* Lemma dom_rel_set_map_collect_helper [A B : Type] (f1 f2: A -> B) (s : A -> Prop) (r: relation A) *)
+(*       (* (SUR: forall b, exists a, f a = b) *) *)
+(*       (* (SUR_D: forall b, exists a, f a = b /\ d a) *) *)
+(*   : *)
+(*   dom_rel ((f1 ↓ r) ⨾ ⦗f2 ↓₁ (f2 ↑₁ s)⦘) ≡₁ dom_rel (f1 ↓ r ⨾ ⦗s⦘). *)
+(* Proof. *)
+
+(* Lemma dom_rel_set_map_collect_helper [A B : Type] (f: A -> B) (s : A -> Prop) (r: relation A) *)
+(*       (* (SUR: forall b, exists a, f a = b) *) *)
+(*       (* (SUR_D: forall b, exists a, f a = b /\ d a) *) *)
+(*   : *)
+(*   dom_rel (r ⨾ ⦗f ↓₁ (f ↑₁ s)⦘) ≡₁ dom_rel (r ⨾ ⦗s⦘). *)
+(* Proof. *)
+(*   split. *)
+(*   2: { basic_solver 10. } *)
+(*   unfolder. ins. desc.  *)
+
+(* TODO: rename or adapt iord_dom_solver, since it doesn't always solve the goal *)
+Local Ltac iord_dom_unfolder :=
+  unfold SB, RF, FWBOB, AR, PROP, IPROP;
+  unfold is_ta_propagate_to_G in *;
+  (* clear; *)
+  unfolder; intros [a b] [c d]; ins; desc;
+  (try match goal with
+       | z : trav_label |- _ => destruct z; desf; ins; desf
+       end);
+  desf.
+
+Lemma sim_clos_iord_simpl_rel_clos WF CONS (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
       :
   dom_rel (iord_simpl ⨾ ⦗rel_clos tc⦘) ⊆₁ tc ∪₁ rmw_clos tc ∪₁ rel_clos tc.
-Proof using.
-Admitted. 
+Proof using.  
+  pose proof ICOH as ICOH'. apply iord_coh_simpl in ICOH; auto; [| apply CONS]. 
+  unfold rel_clos at 1. rewrite !set_pair_alt. unfold iord_simpl. fold action event.
+  repeat (case_union _ _; rewrite dom_union; apply set_subset_union_l; split).
+  all: try by iord_dom_solver. 
+  { 
+    unfold tl_issued, SB. unfolder. ins. desc. destruct x, y, y0; ins; vauto.
+    left. left. 
+    (* TODO: how to transform into this without unfolding? *)
+    enough (dom_rel (⦗action ↓₁ eq ta_cover⦘ ⨾ (event ↓ (sb ∪ sc)^+)⨾ ⦗event ↓₁ Rel⦘ ⨾ ⦗action ↓₁ eq ta_issue⦘⨾ ⦗tc⦘) ⊆₁ tc) as ALT.
+    { rewrite <- !id_inter in ALT. apply ALT.
+      eexists. apply seq_eqv_lr. splits; basic_solver. }
+    clear dependent a. clear dependent a0. clear H2.
+
+    rewrite ct_end.
+    rewrite map_rel_seq_insert_exact with (d := action ↓₁ eq ta_cover). 
+    2: { ins. by exists (mkTL ta_cover b). }
+    rewrite !seqA. 
+    rewrite map_rel_union. repeat case_union _ _.
+    erewrite union_mori with (y0 := ∅₂); [rewrite union_false_r| reflexivity| ].
+    2: { unfold tl_issued. rewrite <- !id_inter.
+         erewrite eqv_rel_mori with (x := _ ∩₁ _).
+         2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
+         cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_solver. type_solver. }
+    rewrite dom_rel_helper_in with (r := _ ⨾ _ ⨾ _ ⨾ _ ⨾ ⦗tc⦘) (d := tc).
+    2: { rewrite <- ICOH at 2. apply dom_rel_mori.
+         transitivity (FWBOB G ⨾ ⦗tc⦘); [| unfold iord_simpl; basic_solver 10].
+         unfold FWBOB. rewrite <- sb_to_w_rel_in_fwbob.
+         iord_dom_unfolder. splits; vauto.
+         forward eapply tlsc_I_in_W with (x := (ta_issue, d)) as I_W; eauto.
+         { basic_solver. }
+         eexists. splits; eauto. }
+    rewrite <- !seqA. do 4 rewrite dom_seq. rewrite !seqA. rewrite seq_eqvC.
+    rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union.
+    apply set_subset_union_l. split; [iord_dom_solver| ].
+    rewrite <- ICOH at 2. unfold iord_simpl, SB. basic_solver 10. }
+  { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _.
+    rewrite union_mori; [rewrite union_false_r| reflexivity| ].
+    2: { rewrite wf_rfD; auto.
+         unfold tl_issued. rewrite tlsc_I_in_W; eauto.
+         iord_dom_unfolder. type_solver. }
+    iord_dom_unfolder. left. left.
+    do 2 red in d4. desc. destruct y; ins; vauto.
+    unfolder in d4. desc. ins; vauto. } 
+Qed. 
 
 Lemma sim_clos_iord_coherent WF WFSC CONS (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
