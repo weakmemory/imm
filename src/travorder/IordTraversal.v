@@ -216,3 +216,116 @@ Section IordTraversal.
   
 End IordTraversal. 
 
+
+Record tls_coherent (G: execution) (tc: trav_label -> Prop): Prop :=
+  {
+    tls_coh_init: init_tls G ⊆₁ tc;
+    tls_coh_exec: tc ⊆₁ init_tls G ∪₁ exec_tls G
+  }.
+
+Definition tls_coherent_alt (G: execution) (tc: trav_label -> Prop) :=
+  exists tc', tc' ⊆₁ exec_tls G /\ tc ≡₁ init_tls G ∪₁ tc'. 
+
+Lemma tls_coherent_defs_equiv (G: execution) (tc: trav_label -> Prop):
+  tls_coherent G tc <-> tls_coherent_alt G tc. 
+Proof using. 
+  split; intros COH. 
+  2: { red in COH. desc. split; rewrite ?COH0, ?COH; basic_solver. }
+  destruct COH. red. exists (tc \₁ init_tls G). split.
+  { rewrite tls_coh_exec0. basic_solver. }
+  split; [| basic_solver]. 
+  rewrite (set_split_complete (init_tls G) tc) at 1. basic_solver.
+Qed.
+    
+
+Section CoherentConfigs. 
+  Variable (G: execution) (sc: relation actid). 
+  Variable (tc: trav_label -> Prop). 
+
+  (* Hypothesis (FITS: fits_graph G tc).  *)
+  (* Hypothesis (COH: iord_coherent G sc tc). *)
+  Notation "'sb'" := (sb G).
+  Notation "'rmw'" := (rmw G).
+  Notation "'data'" := (data G).
+  Notation "'addr'" := (addr G).
+  Notation "'ctrl'" := (ctrl G).
+  Notation "'rf'" := (rf G).
+  Notation "'co'" := (co G).
+  Notation "'coe'" := (coe G).
+  Notation "'fr'" := (fr G).
+
+  Notation "'fwbob'" := (fwbob G).
+  Notation "'ppo'" := (ppo G).
+  Notation "'ar'" := (ar G sc).
+  Notation "'fre'" := (fre G).
+  Notation "'rfi'" := (rfi G).
+  Notation "'rfe'" := (rfe G).
+  Notation "'deps'" := (deps G).
+  Notation "'detour'" := (detour G).
+
+  Notation "'lab'" := (lab G).
+  Notation "'loc'" := (loc lab).
+  Notation "'val'" := (val lab).
+  Notation "'mod'" := (Events.mod lab).
+  Notation "'same_loc'" := (same_loc lab).
+  
+  Notation "'E'" := (acts_set G).
+  Notation "'R'" := (fun x => is_true (is_r lab x)).
+  Notation "'W'" := (fun x => is_true (is_w lab x)).
+  Notation "'F'" := (fun x => is_true (is_f lab x)).
+  Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
+  Notation "'RW'" := (R ∪₁ W).
+  Notation "'FR'" := (F ∪₁ R).
+  Notation "'FW'" := (F ∪₁ W).
+  Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
+  Notation "'W_ex'" := (W_ex G).
+  Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).  
+  Notation "'Rel'" := (fun x => is_true (is_rel lab x)).
+
+  Implicit Types (WF : Wf G) (COMP : complete G)
+           (WFSC : wf_sc G sc) (CONS : imm_consistent G sc)
+           (* (SCPL: sc_per_loc G) *)
+           (TCOH: tls_coherent G tc)
+           (* (ICOH: iord_coherent G sc tc) *)
+  .
+  
+  Lemma tlsc_I_in_W WF TCOH:
+    tc ∩₁ (action ↓₁ eq ta_issue) ⊆₁ event ↓₁ W. 
+  Proof using .
+    apply tls_coherent_defs_equiv in TCOH as [tc' [INE TC']].
+    rewrite TC', set_inter_union_l. apply set_subset_union_l. split.
+    { etransitivity; [red; intro; apply proj1| ].
+      unfold init_tls. erewrite set_pair_alt, init_w; eauto. basic_solver. }
+    rewrite INE. unfold exec_tls. rewrite !set_pair_alt.
+    unfold action, event. unfolder. ins; desf; congruence.  
+  Qed.
+  
+  Lemma tlsc_P_in_W thread WF TCOH:
+    tc ∩₁ (action ↓₁ eq (ta_propagate thread)) ⊆₁ event ↓₁ W. 
+  Proof using. 
+    apply tls_coherent_defs_equiv in TCOH as [tc' [INE TC']].
+    rewrite TC', set_inter_union_l. apply set_subset_union_l. split.
+    { etransitivity; [red; intro; apply proj1| ].
+      unfold init_tls. erewrite set_pair_alt, init_w; eauto. basic_solver. }
+    rewrite INE. unfold exec_tls. rewrite !set_pair_alt.
+    unfold action, event. unfolder. ins; desf; congruence.  
+  Qed. 
+
+  Lemma exec_tls_ENI:
+    exec_tls G ⊆₁ event ↓₁ (E \₁ is_init).
+  Proof using. unfold exec_tls. rewrite !set_pair_alt. basic_solver. Qed.
+
+  Lemma init_tls_EI:
+    init_tls G ⊆₁ event ↓₁ (E ∩₁ is_init).
+  Proof using. unfold init_tls. rewrite !set_pair_alt. basic_solver. Qed.
+
+  Lemma tlsc_E WF TCOH:
+    tc ⊆₁ event ↓₁ E.
+  Proof using.
+    destruct TCOH. rewrite tls_coh_exec0, exec_tls_ENI, init_tls_EI. basic_solver.
+  Qed. 
+
+  Definition tlsI := tc ∩₁ (action ↓₁ eq ta_issue).
+  Definition tlsC := tc ∩₁ (action ↓₁ eq ta_cover).  
+
+End CoherentConfigs. 

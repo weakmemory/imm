@@ -928,3 +928,44 @@ Global Ltac iord_dom_solver :=
        | z : trav_label |- _ => destruct z; desf; ins; desf
        end);
   desf.
+
+(* TODO: move to TraversalOrder.v *)
+Global Add Parametric Morphism : SB with signature
+       eq ==> same_relation ==> same_relation as SB_more.
+Proof using.
+  intros G r r' EQ.
+  unfold SB. rewrite EQ; eauto.
+Qed.
+
+(* TODO: move to ... *)
+Global Add Parametric Morphism : ar with signature
+       eq ==> same_relation ==> same_relation as ar_more.
+Proof using.
+  intros G r r' EQ.
+  now unfold ar; rewrite EQ.
+Qed.
+
+Global Add Parametric Morphism : AR with signature
+       eq ==> same_relation ==> same_relation as AR_more.
+Proof using.
+  intros G r r' EQ.
+  unfold AR. now rewrite EQ.
+Qed.
+
+Global Add Parametric Morphism : PROP with signature
+       eq ==> same_relation ==> same_relation as PROP_more.
+Proof using.
+  intros G r r' EQ.
+  unfold PROP. now rewrite EQ.
+Qed.
+
+Global Add Parametric Morphism : iord with signature
+       eq ==> same_relation ==> same_relation as iord_more.
+Proof using.
+  intros G r r' EQ.
+  unfold iord.
+  apply restr_rel_more; eauto.
+  now rewrite EQ.
+Qed.
+
+  
