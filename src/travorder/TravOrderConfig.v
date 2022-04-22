@@ -150,6 +150,17 @@ Proof using.
   ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
 Qed.
 
+(* TODO: move to another place *)
+Global Add Parametric Morphism G_: (@tls_coherent G_) with signature
+       @set_equiv trav_label ==> iff as tls_coherent_more.
+Proof using.
+  ins.
+  etransitivity; [apply tls_coherent_defs_equiv| ].
+  etransitivity; [| symmetry; apply tls_coherent_defs_equiv].
+  split; ins; red; red in H0; desc; exists tc'; [rewrite <- H | rewrite H]; auto.
+Qed.
+
+
 Lemma rmw_clos_once WF (tc: trav_label -> Prop):
   rmw_clos (rmw_clos tc) ⊆₁ ∅.
 Proof using. 
@@ -672,6 +683,27 @@ Proof using.
   red. ins. by apply H. 
 Qed.  
 
+Lemma iord_coh_intermediate WF CONS tc s1 s2
+      (ICOH: iord_coherent G sc tc)
+      (ICOH2: iord_coherent G sc (tc ∪₁ s1 ∪₁ s2))
+      (TCOH: tls_coherent G tc)
+      (TCOH2: tls_coherent G (tc ∪₁ s1 ∪₁ s2))
+      (NO_INTER: dom_rel (iord_simpl G sc ⨾ ⦗s1⦘) ∩₁ s2 ⊆₁ ∅):
+  iord_coherent G sc (tc ∪₁ s1). 
+Proof using.
+  apply iord_simpl_coh_implies_iord_coh; auto.
+  
+  red. rewrite id_union, seq_union_r, dom_union.
+  apply set_subset_union_l. split.
+  { rewrite iord_coh_implies_iord_simpl_coh; auto using ICOH,TCOH. basic_solver. }
+  
+  apply iord_coh_implies_iord_simpl_coh in ICOH2; auto. 
+  rewrite <- set_subset_union_r1, <- set_subset_union_r2 in ICOH2 at 1.
+  rewrite set_subset_inter_exact in ICOH2. 
+  rewrite set_inter_union_r, NO_INTER, set_union_empty_r in ICOH2.
+  rewrite set_subset_inter_exact. auto. 
+Qed.
+
 (* TODO: wrap in an outer common section *)
 Section CoverClosure.
   Variable (tc: trav_label -> Prop). 
@@ -713,7 +745,7 @@ Section CoverClosure.
     unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
   Qed. 
   
-  Lemma sim_clos_steps_cover (READ: R e):
+  Lemma sim_clos_steps_cover_read (READ: R e):
     sim_clos_step＊ stc stc'.
   Proof using. 
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
@@ -773,6 +805,10 @@ Section CoverClosure.
     pose proof (proj2 RMWD) as RMW. red in RMW. specialize (RMW w eq_refl).
     red in RMW. desc. apply seq_eqv_l in RMW as [<- RMW].
     rewrite RMWD.
+
+    arewrite ((eq ta_cover ∪₁ eq ta_issue) <*> eq w ≡₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)).
+    { rewrite set_pair_alt. split; try basic_solver 10.
+      iord_dom_solver; intuition. }
       
     assert (~ tc (mkTL ta_cover w)) as NCw.
     { intros COVw. apply NCOV.
@@ -846,12 +882,28 @@ Section CoverClosure.
       (* { apply and_not_or. split; auto. *)
       (*   apply or_not_and. left. generalize DISJW. basic_solver. } *)
 
-      intros STC STC'. 
+      intros STC STC'.
+      assert (stc' ≡₁ stc ∪₁ eq lbl ∪₁ (eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w))) as STC'_ALT.
+      { rewrite STC, STC'. basic_solver 10. } 
 
       remember (stc ∪₁ eq lbl) as stc_r.
       assert (iord_coherent G sc stc_r) as ICOHsr.
-      { subst stc_r. rewrite STC.
-        foobar. 
+      { rename r into e. generalize ICOHs, ICOHs', TCOHs, TCOHs'. ins. 
+        rewrite STC'_ALT in *. subst stc_r. eapply iord_coh_intermediate; eauto.
+        rewrite set_interC, <- dom_eqv1, id_union.
+        unfold iord_simpl. repeat case_union _ _. repeat rewrite dom_union.
+        subst lbl. 
+        repeat (apply set_subset_union_l; split).
+        all: try by iord_dom_solver.
+        2: { cdes CONS. iord_dom_unfolder.
+          edestruct sb_sc_acyclic with (x := b); eauto.
+          apply ct_unit. exists a0. split; auto.
+          left. inv d. apply rmw_in_sb; auto. }
+        iord_dom_unfolder; [type_solver| ].
+        cdes CONS. apply imm_s_hb.coherence_sc_per_loc in Cint.
+        red in Cint. destruct (Cint a0). exists z. inv d. split.
+        { apply rmw_in_sb; auto. }
+        apply rf_in_eco; auto. }
       (* (**) *)
       (* remember (mkTC (C ∪₁ irel_crmw \₁ C) (I ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ I)) as tcc0. *)
       (* assert (tc_coherent G sc tcc0) as COHc0. *)
@@ -860,7 +912,22 @@ Section CoverClosure.
       (*   unfold sim_trav_closure. *)
       (*   unfold Cclos, Iclos. subst tc. simpl in *. *)
       (*   fold irel_crmw. subst tcc0. reflexivity. }   *)
-        
+      assert (tls_coherent G stc_r) as TCOHsr.
+      { admit. }
+
+      remember (stc_r ∪₁ eq (mkTL ta_issue w)) as stc_rw1.
+      assert (iord_coherent G sc stc_rw1) as ICOHsrw1.
+      { 
+        rename r into e. generalize ICOHs, ICOHs', TCOHs, TCOHs'. ins.
+        rewrite <- set_unionA in STC'_ALT. rewrite STC'_ALT in *. 
+        subst stc_rw1. eapply iord_coh_intermediate; eauto.
+        rewrite set_interC, <- dom_eqv1.
+        unfold iord_simpl. repeat case_union _ _. repeat rewrite dom_union.
+        repeat (apply set_subset_union_l; split).
+        all: try by iord_dom_solver.
+        iord_dom_unfolder. inv d. inv d2.
+        apply fwbob_in_sb in d0. edestruct sb_irr; eauto. }
+
       (* remember (mkTC (C ∪₁ irel_crmw \₁ C ∪₁ eq r) (I ∪₁ codom_rel (⦗C⦘ ⨾ rmw) \₁ I)) as tcc1.  *)
       (* assert (itrav_step G sc r tcc0 tcc1) as STEP1. *)
       (* { subst. apply itrav_step_mon_ext_cover; auto.  *)
@@ -881,26 +948,44 @@ Section CoverClosure.
       apply rt_step. do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent).
       exists [mkTL ta_cover r; mkTL ta_issue w; mkTL ta_cover w]. simpl.
       split; auto.
-      eexists. split.
-      { red. 
+      exists stc_r. split.
+      { do 2 red. splits; auto using ICOHs. apply seq_eqv_l. split; [|basic_solver].
+        eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
+        apply set_compl_union. split; auto. by apply set_disjoint_eq_r. }
       
-      do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent).
-         apply seq_eqv_l. split; [| rewrite STC, STC'; basic_solver]. 
-        rewrite Heqtcc0. apply rel_rmw_step; auto; simpl.
-        { congruence. }
-        { red. right. red. splits; simpl; auto.
-          rewrite <- Heqtcc1. 
-          apply issuable_next_w; auto. split; auto.
-          subst tcc1. simpl. red. unfold set_inter. splits; auto.
-          eapply dom_cond_mori; [red; reflexivity| ..| by apply DC_SBw].
-          basic_solver. }
-        
-        red. left. simpl. splits; auto. 
-        { apply coverable_add_eq_iff; auto. simpl.
-          apply covered_in_coverable; auto.
-          2: { simpl. basic_solver. }
-          rewrite STC'. subst stc'. apply stc_coherent; auto. }
-      }
+      (* do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent). *)
+      (*    apply seq_eqv_l. split; [| rewrite STC, STC'; basic_solver].  *)
+      (*   rewrite Heqtcc0. apply rel_rmw_step; auto; simpl. *)
+      (*   { congruence. } *)
+      (*   { red. right. red. splits; simpl; auto. *)
+      (*     rewrite <- Heqtcc1.  *)
+      (*     apply issuable_next_w; auto. split; auto. *)
+      (*     subst tcc1. simpl. red. unfold set_inter. splits; auto. *)
+      (*     eapply dom_cond_mori; [red; reflexivity| ..| by apply DC_SBw]. *)
+      (*     basic_solver. } *)
+
+      exists stc_rw1. split.
+      { do 2 red. splits; auto. apply seq_eqv_l. split.
+        2: { subst stc_rw1 stc_r. basic_solver. }
+        eapply set_equiv_compl; [rewrite Heqstc_r, STC; reflexivity| ].
+        subst lbl. repeat (apply set_compl_union; split); try by vauto.
+        2: { by intros [?]. }
+        apply set_disjoint_eq_l.
+        eapply set_disjoint_mori; [..| apply DISJW]; red; basic_solver. }
+      rename r into e. do 2 red. splits; auto using ICOHs'.
+      apply seq_eqv_l. split. 
+      2: { subst stc_rw1. rewrite STC'_ALT. basic_solver. }
+      eapply set_equiv_compl; [rewrite Heqstc_rw1, Heqstc_r, STC; reflexivity| ].
+      subst lbl. repeat (apply set_compl_union; split); try by vauto.
+      { apply set_disjoint_eq_l.
+        eapply set_disjoint_mori; [..| apply DISJW]; red; basic_solver. }
+      { unfold rel_clos, set_pair. unfolder. intros ?. desc.
+        do 2 red in H1. desc. apply NIw.
+        destruct H1, y. inv H1. ins. vauto. }
+      intros [=<-]. type_solver. } 
+      
+    
+      
       
       intros STC STC'.
       
