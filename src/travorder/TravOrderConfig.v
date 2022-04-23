@@ -760,6 +760,81 @@ Section CoverClosure.
     unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
   Qed.
   
+  Lemma sim_clos_steps_cover_fence (FENCE: F e):
+    sim_clos_step＊ stc stc'.
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS.
+    rename e into f.
+    generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
+    unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
+    rewrite rmw_clos_dist, rel_clos_dist. 
+    arewrite (rmw_clos (eq lbl) ≡₁ ∅).
+    { apply set_subset_empty_r.
+      unfold rmw_clos, tl_covered. subst lbl. 
+      rewrite wf_rmwD; auto. iord_dom_unfolder; type_solver. }
+    assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_LBL. 
+    { unfold rel_clos, tl_issued. subst lbl. iord_dom_solver. }
+    
+    intros STC STC'. apply rt_step.
+    do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent; auto).
+    exists [lbl]. simpl.
+    do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent; auto).
+    apply seq_eqv_l. split; [| rewrite STC, STC'; basic_solver].
+    eapply set_equiv_compl; [apply STC| ].
+    repeat (apply set_compl_union; split); try done.
+    { unfold rmw_clos. subst lbl. apply set_disjoint_eq_r.
+      rewrite wf_rmwD; auto. iord_dom_unfolder. type_solver. }
+    unfold rel_clos. subst lbl. apply set_disjoint_eq_r.
+    unfold tl_issued. rewrite tlsc_I_in_W; eauto.
+    iord_dom_unfolder. type_solver.  
+  Qed. 
+    
+  Lemma sim_clos_steps_cover_write (WRITE: W e):
+    sim_clos_step＊ stc stc'.
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS. 
+    rename e into w.
+    remember (stc ∪₁ eq (mkTL ta_issue w)) as stc_w.
+
+    assert (tc (mkTL ta_issue w)) as Iw.
+    { apply iord_coh_implies_iord_simpl_coh in ICOH'; auto.
+      specialize (@ICOH' (mkTL ta_issue w)). specialize_full ICOH'.
+      { exists (mkTL ta_cover w). apply seq_eqv_r. split; [| red; basic_solver].
+        apply hahn_inclusion_exp with (r := RF G); [unfold iord_simpl; basic_solver 10| ].
+        red. apply seq_eqv_lr. splits; try by vauto. red. simpl.
+        apply seq_eqv_l; auto. }
+      do 2 red in ICOH'. destruct ICOH'; done. }
+    
+    generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
+    unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
+    
+    rewrite rmw_clos_dist, rel_clos_dist.
+    assert (rmw_clos (eq lbl) ≡₁ ∅) as NOWRMW.
+    { unfold rmw_clos. rewrite wf_rmwD; auto. subst lbl.
+      apply set_subset_empty_r. unfold tl_covered. iord_dom_unfolder; type_solver 10. }    
+    rewrite NOWRMW, set_union_empty_r.
+    assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_CLOS.
+    { unfold rel_clos. unfold tl_issued. subst lbl. iord_dom_solver. }
+    intros STC STC'. 
+    assert (stc' ≡₁ stc ∪₁ eq lbl) as STC'_ALT. 
+    { rewrite STC, STC'. split; [| basic_solver].
+      rewrite REL_CLOS. basic_solver. }
+    
+    destruct (classic (set_disjoint (rmw_clos tc ∪₁ rel_clos tc) (eq lbl))) as [NEWw | OLDw].
+    2: { rewrite STC, STC'. 
+         eapply set_equiv_rel_more; [reflexivity | | apply rt_refl].
+         split; [| basic_solver]. rewrite REL_CLOS.
+         edestruct @set_disjoint_not_eq_r as [SD _]. specialize (SD OLDw).
+         apply set_subset_eq in SD. rewrite !SD. basic_solver. } 
+    
+    apply rt_step.
+    do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent; auto).
+    exists [lbl]. simpl.
+    do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent; auto).
+    apply seq_eqv_l. split; [| done].
+    eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
+    apply set_compl_union; split; try done.
+    by apply set_disjoint_eq_r. 
+  Qed. 
+
   Lemma sim_clos_steps_cover_read (READ: R e):
     sim_clos_step＊ stc stc'.
   Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS. 
@@ -965,18 +1040,12 @@ Qed.
 
   Lemma sim_clos_steps_cover:
     sim_clos_step＊ stc stc'.
-  Proof using.
-    (* (* rewrite !id_union, !seq_union_l, !codom_union. *) *)
-    (* rewrite <- set_unionA with (s' := codom_rel (⦗C⦘ ⨾ rmw)). *)
-    (* rewrite !set_minus_union_l with (s' := codom_rel (⦗eq e⦘ ⨾ rmw)). *)
-    (* rewrite set_unionC with (s' := eq e) at 2. rewrite <- set_minus_minus_l.  *)
-      
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS.
     pose proof (lab_rwf lab e) as LABe.
     des; auto using sim_clos_steps_cover_read,
       sim_clos_steps_cover_write,
       sim_clos_steps_cover_fence. 
   Qed.
-
 
 End CoverClosure.
 
