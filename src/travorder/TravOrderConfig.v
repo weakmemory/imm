@@ -571,7 +571,7 @@ Local Ltac iord_dom_unfolder :=
   unfold SB, RF, FWBOB, AR, PROP, IPROP;
   unfold is_ta_propagate_to_G in *;
   (* clear; *)
-  unfolder; intros [a b] [c d]; ins; desc;
+  unfolder; intros [?a ?b] [?c ?d]; ins; desc;
   (try match goal with
        | z : trav_label |- _ => destruct z; desf; ins; desf
        end);
@@ -719,41 +719,43 @@ Proof using.
 Qed. 
   
 
-(* TODO: wrap in an outer common section *)
+Section ClosureSteps. 
+Variable (tc: trav_label -> Prop). 
+Variable (a: trav_action) (e: actid) .
+Let lbl := (a, e). 
+
+Let tc' := tc ∪₁ eq lbl. 
+Let stc := sim_clos tc.
+Let stc' := sim_clos tc'. 
+Hypothesis (ICOH: iord_coherent G sc tc). 
+Hypothesis (ICOH': iord_coherent G sc tc').
+Hypothesis (TCOH: tls_coherent G tc). 
+Hypothesis (TCOH': tls_coherent G tc'). 
+Hypothesis (NCOV: ~ tc lbl).
+
+Hypothesis (WF : Wf G)
+           (CONS : imm_consistent G sc).
+  
+Lemma ICOHs: iord_coherent G sc stc.
+Proof using WF TCOH ICOH CONS.
+  subst stc. apply sim_clos_iord_coherent; auto; apply CONS. 
+Qed. 
+Lemma ICOHs': iord_coherent G sc stc'.
+Proof using WF TCOH' ICOH' CONS.
+  subst stc'. apply sim_clos_iord_coherent; auto; apply CONS.
+Qed. 
+Lemma TCOHs: tls_coherent G stc.
+Proof using WF TCOH. 
+  subst stc. apply sim_clos_tls_coherent; auto; apply CONS. 
+Qed. 
+Lemma TCOHs': tls_coherent G stc'.
+Proof using WF TCOH'. 
+  subst stc'. apply sim_clos_tls_coherent; auto; apply CONS.
+Qed. 
+
 Section CoverClosure.
-  Variable (tc: trav_label -> Prop). 
-  Variable (e: actid).
-  Let lbl := (ta_cover, e). 
-  Let tc' := tc ∪₁ eq lbl. 
-  Let stc := sim_clos tc.
-  Let stc' := sim_clos tc'. 
+  Hypothesis COVER: a = ta_cover. 
   
-  Hypothesis (ICOH: iord_coherent G sc tc). 
-  Hypothesis (ICOH': iord_coherent G sc tc').
-  Hypothesis (TCOH: tls_coherent G tc). 
-  Hypothesis (TCOH': tls_coherent G tc'). 
-  Hypothesis (NCOV: ~ tc lbl).
-
-  Hypothesis (WF : Wf G)
-             (CONS : imm_consistent G sc).
-  
-  Lemma ICOHs: iord_coherent G sc stc.
-  Proof using WF TCOH ICOH CONS.
-    subst stc. apply sim_clos_iord_coherent; auto; apply CONS. 
-  Qed. 
-  Lemma ICOHs': iord_coherent G sc stc'.
-  Proof using WF TCOH' ICOH' CONS.
-    subst stc'. apply sim_clos_iord_coherent; auto; apply CONS.
-  Qed. 
-  Lemma TCOHs: tls_coherent G stc.
-  Proof using WF TCOH. 
-    subst stc. apply sim_clos_tls_coherent; auto; apply CONS. 
-  Qed. 
-  Lemma TCOHs': tls_coherent G stc'.
-  Proof using WF TCOH'. 
-    subst stc'. apply sim_clos_tls_coherent; auto; apply CONS.
-  Qed. 
-
   Lemma tl_covered_single e':
     tl_covered (eq (mkTL ta_cover e')) ≡₁ eq e'. 
   Proof.
@@ -762,7 +764,7 @@ Section CoverClosure.
   
   Lemma sim_clos_steps_cover_fence (FENCE: F e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS.
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER.
     rename e into f.
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
@@ -770,13 +772,13 @@ Section CoverClosure.
     arewrite (rmw_clos (eq lbl) ≡₁ ∅).
     { apply set_subset_empty_r.
       unfold rmw_clos, tl_covered. subst lbl. 
-      rewrite wf_rmwD; auto. iord_dom_unfolder; type_solver. }
+      rewrite wf_rmwD; auto. iord_dom_unfolder; try type_solver. }
     assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_LBL. 
-    { unfold rel_clos, tl_issued. subst lbl. iord_dom_solver. }
+    { unfold rel_clos, tl_issued. subst lbl. iord_dom_unfolder. }
     
     intros STC STC'. apply rt_step.
     do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent; auto).
-    exists [lbl]. simpl.
+    exists [lbl]. simpl. rewrite COVER. 
     do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent; auto).
     apply seq_eqv_l. split; [| rewrite STC, STC'; basic_solver].
     eapply set_equiv_compl; [apply STC| ].
@@ -790,7 +792,7 @@ Section CoverClosure.
     
   Lemma sim_clos_steps_cover_write (WRITE: W e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS. 
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER. 
     rename e into w.
     remember (stc ∪₁ eq (mkTL ta_issue w)) as stc_w.
 
@@ -801,7 +803,7 @@ Section CoverClosure.
         apply hahn_inclusion_exp with (r := RF G); [unfold iord_simpl; basic_solver 10| ].
         red. apply seq_eqv_lr. splits; try by vauto. red. simpl.
         apply seq_eqv_l; auto. }
-      do 2 red in ICOH'. destruct ICOH'; done. }
+      do 2 red in ICOH'. destruct ICOH'; try done. vauto. }
     
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
@@ -812,7 +814,7 @@ Section CoverClosure.
       apply set_subset_empty_r. unfold tl_covered. iord_dom_unfolder; type_solver 10. }    
     rewrite NOWRMW, set_union_empty_r.
     assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_CLOS.
-    { unfold rel_clos. unfold tl_issued. subst lbl. iord_dom_solver. }
+    { unfold rel_clos. unfold tl_issued. subst lbl. iord_dom_unfolder. }
     intros STC STC'. 
     assert (stc' ≡₁ stc ∪₁ eq lbl) as STC'_ALT. 
     { rewrite STC, STC'. split; [| basic_solver].
@@ -827,7 +829,7 @@ Section CoverClosure.
     
     apply rt_step.
     do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent; auto).
-    exists [lbl]. simpl.
+    exists [lbl]. simpl. rewrite COVER. 
     do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent; auto).
     apply seq_eqv_l. split; [| done].
     eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
@@ -837,7 +839,7 @@ Section CoverClosure.
 
   Lemma sim_clos_steps_cover_read (READ: R e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS. 
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER. 
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
     
@@ -849,14 +851,15 @@ Section CoverClosure.
         rewrite wf_rmwD; auto. subst lbl.
         unfolder. ins. subst. type_solver. }
       unfold rel_clos. unfold tl_issued. iord_dom_unfolder. subst lbl. inv IN'.
-      forward eapply tlsc_I_in_W with (x := (ta_issue, a0)) (tc := tc); eauto.
+      forward eapply tlsc_I_in_W with (x := (ta_issue, a1)) (tc := tc); eauto.
       all: type_solver. }
 
     rewrite rmw_clos_dist, rel_clos_dist.
     arewrite (rel_clos (eq lbl) ≡₁ ∅); [| rewrite set_union_empty_r]. 
-    { apply set_subset_empty_r. unfold rel_clos, tl_issued. iord_dom_solver. } 
+    { apply set_subset_empty_r. unfold rel_clos, tl_issued. iord_dom_unfolder. } 
 
-    unfold rmw_clos at 3. unfold lbl at 2. rewrite tl_covered_single. 
+    unfold rmw_clos at 3. unfold lbl at 2.
+    rename r into e. rewrite COVER, tl_covered_single. rename e into r.
 
     destruct (classic (dom_rel rmw r)) as [RMWr | NRMWr].
     2: { arewrite (codom_rel (⦗eq r⦘ ⨾ rmw) ≡₁ ∅). 
@@ -868,7 +871,9 @@ Section CoverClosure.
          do 2 red. splits; try by (subst stc stc'; apply sim_clos_iord_coherent).
          apply seq_eqv_l. split; [| rewrite STC, STC'; basic_solver].
          eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
-         apply set_compl_union. split; auto. by apply set_disjoint_eq_r. }
+         apply set_compl_union.
+         rewrite <- COVER. unfold mkTL. fold lbl. split; auto.
+         apply set_disjoint_eq_r; vauto. }
       
     forward eapply (functional_codom rmw r) as [w RMWD]; auto using wf_rmwf.
     pose proof (proj2 RMWD) as RMW. red in RMW. specialize (RMW w eq_refl).
@@ -898,7 +903,7 @@ Section CoverClosure.
       unfolder in RMW. desc. subst. vauto. }
 
     assert (set_disjoint (event ↓₁ eq w) (rmw_clos tc)) as DISJW.
-    { intros [a w_] [=<-] INTER. red in INTER. red in INTER. desc.
+    { intros [?a w_] [=<-] INTER. red in INTER. red in INTER. desc.
       red in INTER0. desc. apply seq_eqv_l in INTER0. desc.
       forward eapply (wf_rmw_invf WF w r x) as ->; eauto.
       apply NCOV. red in INTER0. unfolder in INTER0. desc.
@@ -914,16 +919,16 @@ Section CoverClosure.
       rewrite STC'_ALT in *. subst stc_r. eapply iord_coh_intermediate; eauto.
       rewrite set_interC, <- dom_eqv1, id_union.
       unfold iord_simpl. repeat case_union _ _. repeat rewrite dom_union.
-      subst lbl. 
+      subst lbl. rewrite COVER. 
       repeat (apply set_subset_union_l; split).
       all: try by iord_dom_solver.
       2: { cdes CONS. iord_dom_unfolder.
            edestruct sb_sc_acyclic with (x := b); eauto.
-           apply ct_unit. exists a0. split; auto.
+           apply ct_unit. exists a1. split; auto.
            left. inv d. apply rmw_in_sb; auto. }
       iord_dom_unfolder; [type_solver| ].
       cdes CONS. apply imm_s_hb.coherence_sc_per_loc in Cint.
-      red in Cint. destruct (Cint a0). exists z. inv d. split.
+      red in Cint. destruct (Cint a1). exists z. inv d. split.
       { apply rmw_in_sb; auto. }
       apply rf_in_eco; auto. }
     assert (tls_coherent G stc_r) as TCOHsr.
@@ -958,7 +963,7 @@ Section CoverClosure.
         red. do 3 left. right. red. apply seq_eqv_lr. splits; try by vauto.
         red. simpl. apply seq_eqv_r. split; auto.
         apply sb_to_w_rel_in_fwbob. apply rmw_in_sb in RMW; basic_solver. }
-      intros [=<-]. type_solver. }
+      intros [=]. type_solver. }
 
     destruct (classic (Rel w)) as [RELw | NRELw].
     { assert (~ tc (mkTL ta_issue w)) as NIw.
@@ -977,7 +982,8 @@ Section CoverClosure.
       exists stc_r. split.
       { do 2 red. splits; auto using ICOHs. apply seq_eqv_l. split; [|basic_solver].
         eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
-        apply set_compl_union. split; auto. by apply set_disjoint_eq_r. }
+        apply set_compl_union. split; try by vauto.
+        rewrite <- COVER. by apply set_disjoint_eq_r. }
       
       exists stc_rw1. split; auto. 
       do 2 red. splits; auto. apply seq_eqv_l. split.
@@ -1009,9 +1015,9 @@ Section CoverClosure.
         red. right. split; [by vauto| ]. split; vauto. }
         
       rewrite set_interC, <- dom_eqv1. unfold iord_simpl.
-      repeat case_union _ _. rewrite !dom_union.
+      repeat case_union _ _. rewrite !dom_union. subst lbl a. 
       repeat (apply set_subset_union_l; split); try by iord_dom_solver.
-      unfold FWBOB. iord_dom_unfolder. subst lbl. inv d2.
+      unfold FWBOB. iord_dom_unfolder. inv d2.
       red in d0. unfold union in d0. des.
       all: (apply seq_eqv_r in d0 || apply seq_eqv_l in d0); mode_solver. }
                                       
@@ -1019,7 +1025,7 @@ Section CoverClosure.
     { eapply rt_unit. eexists. split; [by apply ISS_W_STEP| ].
       do 2 red. splits; eauto.
       2: { unfold stc'. apply sim_clos_sim_coherent; auto. }
-      exists [lbl; mkTL ta_cover w]. simpl. split; auto.
+      exists [lbl; mkTL ta_cover w]. simpl. rewrite COVER. split; auto.
       exists stc_rw1. split; auto. 
       do 2 red. splits; auto. apply seq_eqv_l. split.
       2: { subst stc_rw1 stc_w1 stc_r. basic_solver. }
@@ -1040,7 +1046,7 @@ Qed.
 
   Lemma sim_clos_steps_cover:
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS.
+  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER.
     pose proof (lab_rwf lab e) as LABe.
     des; auto using sim_clos_steps_cover_read,
       sim_clos_steps_cover_write,
@@ -1051,76 +1057,46 @@ End CoverClosure.
 
 
 Section IssueClosure.
-  Variable (tc: trav_label -> Prop). 
-  Variable (w: actid).
-  Let lbl := (ta_issue, w). 
-  Let tc' := tc ∪₁ eq lbl. 
-  Let stc := sim_clos tc.
-  Let stc' := sim_clos tc'. 
-  
-  Hypothesis (ICOH: iord_coherent G sc tc). 
-  Hypothesis (ICOH': iord_coherent G sc tc').
-  Hypothesis (TCOH: tls_coherent G tc). 
-  Hypothesis (TCOH': tls_coherent G tc'). 
-  Hypothesis (NISS: ~ tc lbl).
+  Hypothesis ISSUE: a = ta_issue. 
 
-  Hypothesis (WF : Wf G)
-             (CONS : imm_consistent G sc).
-  
-  Lemma ICOHs: iord_coherent G sc stc.
-  Proof using WF TCOH ICOH CONS.
-    subst stc. apply sim_clos_iord_coherent; auto; apply CONS. 
-  Qed. 
-  Lemma ICOHs': iord_coherent G sc stc'.
-  Proof using WF TCOH' ICOH' CONS.
-    subst stc'. apply sim_clos_iord_coherent; auto; apply CONS.
-  Qed. 
-  Lemma TCOHs: tls_coherent G stc.
-  Proof using WF TCOH. 
-    subst stc. apply sim_clos_tls_coherent; auto; apply CONS. 
-  Qed. 
-  Lemma TCOHs': tls_coherent G stc'.
-  Proof using WF TCOH'. 
-    subst stc'. apply sim_clos_tls_coherent; auto; apply CONS.
-  Qed. 
+  (* Lemma iord_coh_intermediate *)
+  (*       (STC': stc' ≡₁ stc ∪₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)): *)
+  (*   iord_coherent G sc (stc ∪₁ eq (mkTL ta_issue w)). *)
+  (* Proof using WF TCOH' TCOH NISS ICOH' ICOH CONS. *)
+  (*   apply iord_simpl_coh_implies_iord_coh; auto. *)
 
-  Lemma iord_coh_intermediate
-        (STC': stc' ≡₁ stc ∪₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)):
-    iord_coherent G sc (stc ∪₁ eq (mkTL ta_issue w)).
-  Proof using WF TCOH' TCOH NISS ICOH' ICOH CONS.
-    (* assert (wf_sc G sc) as WFSC by apply CONS. *)
-    apply iord_simpl_coh_implies_iord_coh; auto.
+  (*   red. rewrite id_union, seq_union_r, dom_union. *)
+  (*   apply set_subset_union_l. split. *)
+  (*   { rewrite iord_coh_implies_iord_simpl_coh; auto using ICOHs, TCOHs.  *)
+  (*     basic_solver. } *)
 
-    red. rewrite id_union, seq_union_r, dom_union.
-    apply set_subset_union_l. split.
-    { rewrite iord_coh_implies_iord_simpl_coh; auto using ICOHs, TCOHs. 
-      basic_solver. }
+  (*   pose proof ICOHs' as ICOHs'%iord_coh_implies_iord_simpl_coh; auto using TCOHs'. *)
+  (*   rewrite STC' in ICOHs'. *)
+  (*   rewrite <- set_subset_union_r1, <- set_subset_union_r2 in ICOHs' at 1. *)
+  (*   rewrite set_subset_inter_exact in ICOHs'. rewrite set_subset_inter_exact. *)
+  (*   rewrite set_inter_union_r, set_subset_union in ICOHs'. *)
+  (*   { rewrite set_union_empty_r in ICOHs'. apply ICOHs'. } *)
+  (*   { reflexivity. } *)
 
-    pose proof ICOHs' as ICOHs'%iord_coh_implies_iord_simpl_coh; auto using TCOHs'.
-    rewrite STC' in ICOHs'.
-    rewrite <- set_subset_union_r1, <- set_subset_union_r2 in ICOHs' at 1.
-    rewrite set_subset_inter_exact in ICOHs'. rewrite set_subset_inter_exact.
-    rewrite set_inter_union_r, set_subset_union in ICOHs'.
-    { rewrite set_union_empty_r in ICOHs'. apply ICOHs'. }
-    { reflexivity. }
-
-    rewrite set_interC, <- dom_eqv1. unfold iord_simpl.
-    repeat case_union _ _. rewrite !dom_union.
-    repeat (apply set_subset_union_l; split); try by iord_dom_solver.
-    unfold FWBOB. rewrite fwbob_in_sb.
-    iord_dom_unfolder. inv d. inv d2. edestruct sb_irr; eauto. 
-  Qed.  
+  (*   rewrite set_interC, <- dom_eqv1. unfold iord_simpl. *)
+  (*   repeat case_union _ _. rewrite !dom_union. *)
+  (*   repeat (apply set_subset_union_l; split); try by iord_dom_solver. *)
+  (*   unfold FWBOB. rewrite fwbob_in_sb. *)
+  (*   iord_dom_unfolder. inv d. inv d2. edestruct sb_irr; eauto.  *)
+  (* Qed.   *)
 
   Lemma sim_clos_steps_issue:
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NISS ICOH' ICOH CONS.
+  Proof using WF TCOH' TCOH ICOH' ICOH CONS ISSUE NCOV.
+    (* TODO: replace NCOV with more general name  *)
+    rename e into w. 
     assert (W w) as Ww.
     { replace w with (event lbl); auto. eapply (@tlsc_I_in_W _ tc'); eauto. 
       subst tc'. basic_solver. }
     assert (~ tc (mkTL ta_cover w)) as NCw.
     { intros Cw.
       forward eapply (@tlsc_w_covered_issued tc) as WCI; eauto.
-      destruct NISS. specialize (WCI (mkTL ta_cover w)). specialize_full WCI.
+      destruct NCOV. specialize (WCI (mkTL ta_cover w)). specialize_full WCI.
       { basic_solver. }
       unfolder in WCI. desc. subst lbl. destruct y. simpl in *. subst.
       red in WCI. unfolder in WCI. desc. simpl in *. congruence. }
@@ -1160,13 +1136,13 @@ Section IssueClosure.
       repeat (apply set_compl_union; split); try basic_solver.
       { intros RMWC. eapply set_subset_empty_r; [apply NO_RMWC| ]; basic_solver. }
       unfold rel_clos, tl_issued, set_pair.
-      red. intuition discriminate. Unshelve. econstructor; vauto. }
+      red. rewrite ISSUE. intuition discriminate. Unshelve. econstructor; vauto. }
       
     destruct (classic (Rel w)) as [RELw | NRELw].
     2: { erewrite (proj1 (set_disjointE _ _)), set_union_empty_l in STC'; [|basic_solver].
          apply rt_step. red. red. splits.
          2, 3: subst stc stc'; by apply sim_clos_sim_coherent.
-         exists [lbl]. simpl. do 2 red. splits.
+         exists [lbl]. simpl. rewrite ISSUE. do 2 red. splits.
          2, 3: by apply sim_clos_iord_coherent; auto; apply CONS.
 
          apply seq_eqv_l. split; auto. 
@@ -1178,8 +1154,16 @@ Section IssueClosure.
     exists [mkTL ta_issue w; mkTL ta_cover w]. simpl.
     split; [by vauto| ]. exists (stc ∪₁ eq (mkTL ta_issue w)).
 
-    forward eapply iord_coh_intermediate as ICOHs_; eauto.
-    { rewrite STC, STC'. basic_solver 10. }
+    assert (stc' ≡₁ stc ∪₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)) as STC'_ALT.
+    { rewrite STC, STC'. basic_solver 10. } 
+
+    forward eapply iord_coh_intermediate with (tc := stc) as ICOHs_; eauto using TCOHs, ICOHs. 
+    1, 2: rewrite <- STC'_ALT; rename w into e; auto using TCOHs', ICOHs'.
+    { rewrite set_interC, <- dom_eqv1. unfold iord_simpl.
+      repeat case_union _ _. rewrite !dom_union.
+      repeat (apply set_subset_union_l; split); try by iord_dom_solver.
+      iord_dom_unfolder. inv d. inv d2.
+      edestruct sb_irr. eapply fwbob_in_sb; eauto. } 
 
     unfold iiord_step. split; red; splits; auto.
     all: try by subst stc stc'; apply sim_clos_iord_coherent; auto; apply CONS.
@@ -1193,9 +1177,10 @@ Section IssueClosure.
     { basic_solver. }
     unfold tlsI. unfolder. ins. desc. destruct y; ins; vauto.
 Qed.  
-    
-  
+      
 End IssueClosure.
+
+End ClosureSteps. 
             
 Lemma iord_step_implies_sim_clos_step WF CONS:
   iord_step ⊆ sim_clos ↓ sim_clos_step^*.
@@ -1215,10 +1200,8 @@ Proof using.
   { apply sim_clos_sim_coherent; auto. }
 
   destruct a.
-  { admit. }
-  { eapply set_equiv_rel_more.
-    1,2: reflexivity.
-    now apply sim_clos_steps_issue. }
+  { now apply sim_clos_steps_cover. }
+  { now apply sim_clos_steps_issue. }
 
   { assert (tls_coherent G (tc ∪₁ eq (ta_propagate tid, e))) as TLS.
     { (* TODO: introduce a lemma *) admit. }
