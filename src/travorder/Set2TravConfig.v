@@ -18,8 +18,9 @@ Require Import TraversalOrder.
 Require Import ImmFair.
 Require Import AuxRel2.
 Require Import SetSize.
-Require Import IordTraversal.
-Require Import TravOrderConfig.
+Require Import travorder.IordTraversal.
+Require Import IordCoherency.
+(* Require Import TravOrderConfig. *)
 
 Import ListNotations.
 Set Implicit Arguments.
@@ -220,48 +221,6 @@ Section Set2TravConfig.
     Hypothesis (RESP: respects_rel steps iord⁺ (exec_tls G)).
 
 
-    Lemma trav_prefix_init:
-      trav_prefix steps 0 ≡₁ ∅. 
-    Proof.
-      unfold trav_prefix. apply set_subset_empty_r, set_subset_bunion_l.
-      ins. lia. 
-    Qed.
-
-    Ltac liaW no := destruct no; [done| ins; lia]. 
-
-    Lemma trav_prefix_iord_coherent WF COMP WFSC CONS
-          (i : nat) (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
-      IordCoherency.iord_coherent G sc (trav_prefix steps i).
-    Proof using RESP ENUM.
-      induction i.
-      { rewrite trav_prefix_init. red. basic_solver. }
-      rewrite trav_prefix_ext; eauto. red.
-      rewrite id_union, seq_union_r, dom_union.
-      apply set_subset_union_l. split. 
-      { unfold IordCoherency.iord_coherent in IHi. rewrite IHi; [basic_solver| ].
-        liaW (set_size (exec_tls G)). }
-      red. intros tlj. intros [tli IORD%seq_eqv_r]. desc.
-      apply iord_exec_tls in IORD. red in IORD. desc.
-      apply enumeratesE' in ENUM. cdes ENUM.
-      apply IND in IORD1, IORD2. desc. rename i1 into j.
-      assert (i0 = i) as -> by (apply INJ; auto; congruence).
-      subst. 
-      pose proof (Nat.lt_trichotomy i j) as LT. des; revgoals. 
-      { left. red. vauto. }
-      { subst. basic_solver. }
-      enough (j < i); [lia| ]. eapply RESP; eauto. 
-    Qed.     
-
-    Lemma trav_prefix_step WF COMP WFSC CONS
-          i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
-      iord_step G sc (trav_prefix steps i) (trav_prefix steps (S i)).
-    Proof using RESP ENUM.
-      red. exists (steps i). do 2 red.
-      splits; try by (apply trav_prefix_iord_coherent; liaW (set_size (exec_tls G))).
-      apply seq_eqv_l. split.
-      { eapply prefix_border; eauto. }
-      eapply trav_prefix_ext; eauto. 
-    Qed.
 
   End StepsEnum. 
 
