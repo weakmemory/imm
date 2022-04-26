@@ -1251,7 +1251,7 @@ Section Traversal.
   Hypothesis (RESP: respects_rel steps (iord G sc)⁺ (exec_tls G)).
   
   Definition tc_enum (i: nat): trav_label -> Prop  :=
-    sim_clos (trav_prefix steps i).
+    sim_clos (trav_prefix steps i) ∪₁ init_tls G. 
   
   Lemma trav_prefix_init:
     trav_prefix steps 0 ≡₁ ∅. 
@@ -1295,37 +1295,136 @@ Section Traversal.
     { eapply prefix_border; eauto. }
     eapply trav_prefix_ext; eauto. 
   Qed.
+
+  Lemma init_tls_sim_coh WF:
+    sim_coherent (init_tls G).
+  Proof. 
+    unfold sim_coherent, sim_clos. split; [basic_solver| ].
+    repeat (apply set_subset_union_l; split); try basic_solver.
+    { unfold rmw_clos. rewrite set_pair_alt. etransitivity.
+      { red. intro. apply proj2. }
+      iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
+      apply init_tls_EI in d. red in d.
+      apply rmw_non_init_lr, seq_eqv_lr in d0; auto. type_solver. }
+    { unfold rel_clos. rewrite set_pair_alt. etransitivity.
+      { red. intro. apply proj2. }
+      iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
+      apply init_tls_EI in d. do 2 red in d. desc.
+      destruct y, a0; try by vauto. ins. subst. 
+      forward eapply (wf_init_lab WF l) as ?.
+      unfold is_rel, Events.mod in c. rewrite H in c. vauto. }
+  Qed.
+
+  (* TODO: group similar lemmas about union with init_tls *)
+  Lemma trav_prefix_init_tls_iord_coherent i
+        (DOMi : NOmega.le (NOnum i) (set_size (exec_tls G))):
+    iord_coherent G sc (trav_prefix steps i ∪₁ init_tls G).
+  Proof.
+    red. unfold tc_enum. rewrite id_union, seq_union_r, dom_union.
+    apply set_subset_union_l. split.
+    { apply set_subset_union_r. left. apply trav_prefix_iord_coherent; auto. }
+    unfold iord. rewrite init_tls_EI at 1. basic_solver.
+  Qed. 
+
+  (* TODO: move upper *)
+  Lemma init_exec_tls_disjoint:
+    set_disjoint (init_tls G) (exec_tls G). 
+  Proof. unfold init_tls, exec_tls. iord_dom_unfolder. Qed. 
+
+  Lemma trav_prefix_in_exec_tls i
+        (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
+    trav_prefix steps i ⊆₁ exec_tls G. 
+  Proof. 
+    apply enumeratesE' in ENUM. cdes ENUM. 
+    unfold trav_prefix. apply set_subset_bunion_l. intros.
+    apply set_subset_single_l. apply INSET.
+    liaW (set_size (exec_tls G)). 
+  Qed.     
+
+  Lemma trav_prefix_step_ext
+        i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
+    iord_step (trav_prefix steps i ∪₁ init_tls G)
+    (trav_prefix steps (S i) ∪₁ init_tls G). 
+  Proof. 
+    forward eapply trav_prefix_step as [l STEP]; eauto.
+    red. exists l. do 2 red.
+    splits; try by (apply trav_prefix_init_tls_iord_coherent; liaW (set_size (exec_tls G))).
+    do 2 red in STEP. desc. apply seq_eqv_l in STEP. desc.  
+    apply seq_eqv_l. split.
+    2: { rewrite STEP2. basic_solver. }
+    apply set_compl_union. split; auto.
+    apply set_disjoint_eq_r. eapply set_disjoint_mori; [reflexivity| ..].
+    2: by apply init_exec_tls_disjoint.
+    red. rewrite <- (@trav_prefix_in_exec_tls (S i)); auto.
+    rewrite STEP2. basic_solver. 
+  Qed. 
   
   Lemma sim_traversal_next WF CONS:
     forall i (DOMi: NOmega.lt_nat_l i (set_size (exec_tls G))),
       (* (sim_trav_step G sc)^* (tc_enum i) (tc_enum (1 + i)). *)
       (sim_clos_step^*) (tc_enum i) (tc_enum (1 + i)). 
   Proof using RESP ENUM.
-    ins. unfold tc_enum. 
+    ins. unfold tc_enum.
+    forward eapply init_tls_sim_coh as INIT_SCOH; auto. red in INIT_SCOH.
+    rewrite INIT_SCOH, <- !sim_clos_dist; auto.  
     apply iord_step_implies_sim_clos_step; auto.
-    apply trav_prefix_step; auto. 
+    apply trav_prefix_step_ext; auto. 
   Qed.
 
-  (* Lemma init_tc_enum: *)
-  (*   tc_enum 0 = init_tls G.  *)
-  (* Proof.  *)
-  (*   unfold tc_enum, init_tls, sim_clos.  *)
+  (* TODO: move upper *)
+  Lemma exec_tls_sim_coh WF:
+    sim_coherent (exec_tls G).
+  Proof. 
+    unfold sim_coherent, sim_clos. split; [basic_solver| ].
+    repeat (apply set_subset_union_l; split; try basic_solver). 
+    { unfold rmw_clos, exec_tls, tl_covered, tl_issued.
+      repeat rewrite set_pair_alt.
+      rewrite wf_rmwE, wf_rmwD, rmw_non_init_lr; auto. 
+      iord_dom_unfolder; [by vauto| ]. 
+      right. eauto. }
+    { unfold rel_clos, exec_tls, tl_covered, tl_issued.
+      repeat rewrite set_pair_alt.
+      iord_dom_unfolder. left. vauto. }
+  Qed. 
 
+  (* TODO: move upper *)
+  Global Add Parametric Morphism : sim_clos with signature
+         set_subset ==> set_subset as sim_clos_mori.
+  Proof using.
+    unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
+    rewrite !set_pair_alt. rewrite H. basic_solver.
+  Qed.
+
+  Lemma tc_enum_tls_coherent WF i
+      (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
+    tls_coherent G (tc_enum i). 
+  Proof.
+    unfold tc_enum. split; [basic_solver| ].
+    apply set_subset_union_l. split; [| basic_solver].
+    erewrite sim_clos_mori.
+    2: { apply trav_prefix_in_exec_tls. auto. }
+    pose proof (exec_tls_sim_coh WF). red in H. rewrite <- H. basic_solver. 
+  Qed. 
 
 End Traversal.
 
+(* TODO: move upper *)
+Lemma sim_clos_empty:
+  sim_clos ∅ ≡₁ ∅. 
+Proof.
+  unfold sim_clos, rmw_clos, rel_clos, tl_issued, tl_covered.
+  rewrite !set_pair_alt. basic_solver.
+Qed. 
 
-(* TODO: rename *)
+  
+
+(* TODO: rename? *)
 Lemma sim_traversal_inf WF CONS
       (FAIR: mem_fair G)
       (IMM_FAIR: imm_s_fair G sc)
   :
   exists (sim_enum: nat -> (trav_label -> Prop)),
-    ⟪INIT: sim_enum 0 = init_tls G ⟫ /\
-      (* ⟪DOM_TC: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))), *)
-      (*     covered (sim_enum i) ⊆₁ E /\ issued (sim_enum i) ⊆₁ E ⟫ /\ *)
-      (* ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (graph_steps G))), *)
-      (*     tc_coherent G sc (sim_enum i) ⟫ /\ *)
+    ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
       ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))),
           tls_coherent G (sim_enum i)⟫ /\
       ⟪STEPS: forall i (DOMi: NOmega.lt_nat_l i (set_size (exec_tls G))),
@@ -1337,32 +1436,18 @@ Proof using.
   edestruct iord_enum_exists as [steps_enum [ENUM RESP]]; eauto.
   1, 2: by apply CONS.
   exists (tc_enum steps_enum). splits.
-  {p unfold tc_enum, init_tls. 
+  { unfold tc_enum. rewrite trav_prefix_init.
+    rewrite sim_clos_empty. basic_solver. }
+  { apply tc_enum_tls_coherent; auto. }
+  { apply sim_traversal_next; auto. }
 
-
-
-
-  
-  { unfold tc_enum, trav_prefix. rewrite <- sim_trav_closure_init; auto. f_equal.
-    apply same_tc_extensionality.
-    arewrite ((fun i => i < 0) ≡₁ (@set_empty nat)).
-    { split; [red; ins; lia| basic_solver]. }
-    rewrite set_bunion_empty. by rewrite set2trav_config_empty. }
-  3: { apply sim_traversal_next; auto. }
-  2: { ins. unfold tc_enum. apply stc_coherent; auto.
-       apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
-  { intros i DOM. unfold tc_enum. eapply stc_domE; eauto.
-    1, 2: unfold set2trav_config; simpl; basic_solver.
-    apply tc_coherent_alt_implies_tc_coherent, trav_prefix_coherent_alt; auto. }
   intros e Ee.
   pose proof ENUM as ENUM'. apply enumeratesE' in ENUM. desc.
   specialize (IND (mkTL ta_cover e)). specialize_full IND; [by vauto| ].
-  desc. exists (S i). split; [by vauto| ].
-  unfold tc_enum, sim_trav_closure.
-  unfold trav_config_union. simpl. left. split; [| by apply Ee].
-  left. split; [| by apply Ee].
-  exists (mkTL ta_cover e). split; auto. split; [by vauto| ].
-  rewrite <- IND0. eapply trav_prefix_ext; eauto. basic_solver.
+  desc. exists (S i). split; [by vauto| ].  
+  eapply set_equiv_exp. 
+  { unfold tc_enum. rewrite trav_prefix_ext; auto. apply IND. }
+  rewrite IND0. unfold sim_clos. basic_solver 10.  
 Qed.
 
 
