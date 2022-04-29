@@ -11,11 +11,9 @@ Require Import imm_s_ppo.
 Require Import imm_s_rfppo.
 Require Import AuxDef.
 Require Import SetSize.
-Require Import FairExecution.
-Require Import ImmFair.
 Require Import AuxRel2.
-Require Import TraversalOrder.
-Require Import travorder.IordTraversal.
+Require Import travorder.TraversalOrder.
+Require Import travorder.TLSCoherency. 
 Require Import AuxRel2.
 
 
@@ -87,10 +85,11 @@ Section IordCoherency.
   Notation "'Rel'" := (fun x => is_true (is_rel lab x)).
 
   Lemma tlsc_w_covered_issued ICOH:
-    tlsC tc ∩₁ (event ↓₁ W) ⊆₁ event ↓₁ (event ↑₁ tlsI tc).
+    (tc ∩₁ action ↓₁ eq ta_cover) ∩₁ (event ↓₁ W) ⊆₁
+    event ↓₁ (event ↑₁ (tc ∩₁ action ↓₁ eq ta_issue)).
   (* (fun ae => mkTL ta_issue (event ae)) ↓₁ (tlsC ∩₁ (event ↓₁ W)) ⊆₁ tlsI. *)
   Proof using TCOH.
-    destruct TCOH. unfold tlsC, tlsI.
+    destruct TCOH. 
     unfolder. ins. desc. destruct x as [a e]. ins. subst.
     
     exists (mkTL ta_issue e). splits; eauto.

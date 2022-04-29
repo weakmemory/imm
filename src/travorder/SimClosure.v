@@ -12,12 +12,11 @@ Require Import imm_s_rfppo.
 Require Import AuxDef.
 Require Import SetSize.
 Require Import FairExecution.
-Require Import ImmFair.
 Require Import AuxRel2.
-Require Import TraversalOrder.
-Require Import travorder.IordTraversal.
+Require Import travorder.TraversalOrder.
+Require Import travorder.TLSCoherency.
+Require Import travorder.IordCoherency.
 Require Import AuxRel2.
-Require Import IordCoherency.
 
 Import ListNotations.
 
@@ -25,7 +24,7 @@ Set Implicit Arguments.
 
 
 
-Section TravOrderConfig.
+Section SimClosure.
   Context (G : execution) (sc : relation actid).
   Implicit Types (WF : Wf G) (COMP : complete G)
            (CONS : imm_consistent G sc)
@@ -83,6 +82,15 @@ Definition iord_step (tc tc' : trav_label -> Prop) :=
 Definition tl_issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)).
 Definition tl_covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
 Definition tl_reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
+
+(* TODO: move upper *)
+Lemma tl_covered_single e:
+  tl_covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
+Proof.
+  unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
+Qed.
+  
+
   
 Definition rmw_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
   (eq ta_cover ∪₁ eq ta_issue) <*> codom_rel (<|tl_covered tc|> ;; rmw).
@@ -96,29 +104,20 @@ Definition sim_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
 Definition sim_coherent (tc : trav_label -> Prop) :=
   tc ≡₁ sim_clos tc.
 
-Definition isim_clos_step (tll : list trav_label)
-  : relation (trav_label -> Prop) :=
-  match tll with 
-  | [tl] => iiord_step tl
-  | [(ta_issue, e); (ta_cover, e')] =>
-      (fun _ _ => e = e' /\ Rel e) ∩
-      (iiord_step (ta_issue, e) ;; 
-       iiord_step (ta_cover, e'))
-  | [(ta_cover, e); (ta_cover, e')] =>
-      (fun _ _ => rmw e e') ∩
-      (iiord_step (ta_cover, e) ;; 
-       iiord_step (ta_cover, e'))
-  | [(ta_cover, e); (ta_issue, e'); (ta_cover, e'')] =>
-      (fun _ _ => rmw e e' /\ e' = e'' /\ Rel e') ∩
-      (iiord_step (ta_cover, e) ;; 
-       iiord_step (ta_issue, e') ;;
-       iiord_step (ta_cover, e''))
-  | _ => fun _ _ => False
-  end.
-  
-Definition sim_clos_step :=
-  restr_rel sim_coherent 
-            (fun tc tc' => exists tll, isim_clos_step tll tc tc').
+Global Add Parametric Morphism : sim_clos with signature
+       set_equiv ==> set_equiv as sim_clos_more.
+Proof using.
+  unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
+  rewrite !set_pair_alt. rewrite H. basic_solver.
+Qed.
+
+(* TODO: move upper *)
+Global Add Parametric Morphism : sim_clos with signature
+       set_subset ==> set_subset as sim_clos_mori.
+Proof using.
+  unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
+  rewrite !set_pair_alt. rewrite H. basic_solver.
+Qed.
 
 Lemma rmw_clos_dist (tc1 tc2: trav_label -> Prop):
   rmw_clos (tc1 ∪₁ tc2) ≡₁ rmw_clos tc1 ∪₁ rmw_clos tc2. 
@@ -138,27 +137,12 @@ Proof using.
   unfold sim_clos. rewrite rel_clos_dist, rmw_clos_dist. basic_solver. 
 Qed. 
 
-Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
-       @set_equiv A ==> @set_equiv B ==> @set_equiv (A * B) as set_pair_more.
-Proof using.
-  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
-Qed.
-
-Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
-       @set_subset A ==> @set_subset B ==> @set_subset (A * B) as set_pair_mori.
-Proof using.
-  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
-Qed.
-
-(* TODO: move to another place *)
-Global Add Parametric Morphism G_: (@tls_coherent G_) with signature
-       @set_equiv trav_label ==> iff as tls_coherent_more.
-Proof using.
-  ins.
-  etransitivity; [apply tls_coherent_defs_equiv| ].
-  etransitivity; [| symmetry; apply tls_coherent_defs_equiv].
-  split; ins; red; red in H0; desc; exists tc'; [rewrite <- H | rewrite H]; auto.
-Qed.
+Lemma sim_clos_empty:
+  sim_clos ∅ ≡₁ ∅. 
+Proof.
+  unfold sim_clos, rmw_clos, rel_clos, tl_issued, tl_covered.
+  rewrite !set_pair_alt. basic_solver.
+Qed. 
 
 
 Lemma rmw_clos_once WF (tc: trav_label -> Prop):
@@ -181,7 +165,7 @@ Proof using.
   intros [=We1]. apply wf_rmwD, seq_eqv_lr in H1; eauto. type_solver.
 Qed. 
 
-Lemma rel_rmw_clos_rmw WF (tc: trav_label -> Prop)
+Lemma rel_rmw_clos_rmw (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
   rel_clos (rmw_clos tc) ⊆₁ rmw_clos tc. 
 Proof using.
@@ -191,7 +175,7 @@ Proof using.
   splits; [by vauto| ]. repeat (eexists; eauto). 
 Qed. 
 
-Lemma rel_clos_idemp WF (tc: trav_label -> Prop):
+Lemma rel_clos_idemp (tc: trav_label -> Prop):
   rel_clos (rel_clos tc) ⊆₁ rel_clos tc.
 Proof using. 
   unfold rel_clos.
@@ -200,7 +184,7 @@ Proof using.
   ins. subst. splits; eauto. 
 Qed.
 
-Lemma sim_clos_dist WF (tc1 tc2: trav_label -> Prop):
+Lemma sim_clos_dist (tc1 tc2: trav_label -> Prop):
   sim_clos (tc1 ∪₁ tc2) ≡₁ sim_clos tc1 ∪₁ sim_clos tc2.
 Proof. 
   unfold sim_clos. rewrite rmw_clos_dist, rel_clos_dist. basic_solver. 
@@ -220,6 +204,7 @@ Proof using.
   rewrite rel_clos_idemp; basic_solver. 
 Qed. 
 
+(* TODO: move to lib *)
 Lemma map_rel_seq_ext {A B : Type} (f : A -> B) (r r' : relation B)
       (SUR: forall b, exists a, f a = b):
   f ↓ r ⨾ f ↓ r' ≡ f ↓ (r ⨾ r'). 
@@ -229,6 +214,7 @@ Proof using.
   exists a. vauto. 
 Qed.
 
+(* TODO: move to lib *)
 Lemma set_map_codom_ext {A B : Type} (f : A -> B) (rr : relation B)
       (SUR: forall b, exists a, f a = b):
   codom_rel (f ↓ rr) ≡₁ f ↓₁ codom_rel rr. 
@@ -238,65 +224,26 @@ Proof using.
   exists a. congruence. 
 Qed.  
 
-(* Lemma map_rel_eqv_ext [A B : Type] [f : A -> B] [d : B -> Prop] *)
-(*       (SUR: forall b, exists a, f a = b): *)
-(*   ⦗f ↓₁ d⦘ ≡ f ↓ ⦗d⦘. *)
-(* Proof using. *)
-(*   split; [apply map_rel_eqv| ]. *)
-(*   unfolder. ins. desc. specialize (SUR x0). desc. *)
-(*   exists a. congruence. *)
-(* Qed. *)
 
+(* TODO: add to auto lib *)
 Lemma event_sur:
   forall y : actid, exists x : trav_label, event x = y. 
 Proof using. ins. exists (mkTL ta_cover y). vauto. Qed.
 
+(* TODO: add to auto lib *)
 Lemma action_sur:
   forall y : trav_action, exists x : trav_label, action x = y. 
 Proof using. ins. exists (mkTL y (InitEvent tid_init)). vauto. Qed.
 
-(* Lemma rmw_cover_simpl WF tc *)
-(*       (* (ICOH: iord_coherent G sc tc): *) *)
-(*       : *)
-(*       (* action ↓₁ eq ta_cover ∩₁ *) *)
-(*              codom_rel (⦗tl_covered tc⦘ ⨾ rmw) ⊆₁ *)
-(*       codom_rel (⦗event ↑₁ (tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ rmw).  *)
-(* Proof using.  *)
-(*   unfolder. ins.  *)
-(* Qed.   *)
-
-Lemma rmw_cover_simpl WF tc
-      (* (ICOH: iord_coherent G sc tc): *)
-      :
-      (* action ↓₁ eq ta_cover ∩₁ *)
-             codom_rel (event ↓ (⦗tl_covered tc⦘ ⨾ rmw)) ⊆₁
-      codom_rel (⦗(tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ event ↓ rmw). 
+Lemma rmw_cover_simpl WF tc:
+  codom_rel (event ↓ (⦗tl_covered tc⦘ ⨾ rmw)) ⊆₁
+  codom_rel (⦗(tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ event ↓ rmw). 
 Proof using. 
   unfolder. ins. desc.
   do 2 red in H. desc. red in H. desc.
   destruct x as [a2 e2], x0 as [a1 e1], y as [a3 e3]. red in H2. ins. subst.
   eexists. splits; eauto. 
 Qed.  
-
-(* Lemma rmw_cover_simpl WF tc *)
-(*       (* (ICOH: iord_coherent G sc tc): *) *)
-(*       : *)
-(*       action ↓₁ eq ta_cover ∩₁ codom_rel (event ↓ (⦗tl_covered tc⦘ ⨾ rmw)) ⊆₁ *)
-(*       codom_rel (⦗(tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ event ↓ rmw).  *)
-(* Proof using.  *)
-(*   unfolder. ins. desc. *)
-(*   do 2 red in H0. desc. red in H0. desc. *)
-(*   destruct x as [a2 e2], x0 as [a1 e1], y as [a3 e3]. red in H3. ins. subst. *)
-(*   eexists. splits; eauto.  *)
-(* Qed.   *)
-
-Lemma eqv_rel_alt {A: Type} (S: A -> Prop):
-  ⦗S⦘ ≡ S × S ∩ eq.
-Proof using. basic_solver. Qed.
-
-Lemma doma_alt {A: Type} (r: relation A) (d: A -> Prop):
-  doma r d <-> dom_rel r ⊆₁ d. 
-Proof using. unfolder. split; ins; basic_solver. Qed. 
 
 Lemma sb_cr_tc_cover (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
@@ -324,40 +271,6 @@ Proof using.
   rewrite <- ct_step, <- inclusion_union_r1.
   rewrite wf_sbE, no_sb_to_init at 1. rewrite restr_relE. basic_solver. 
 Qed. 
-
-(* TODO: move to lib *)  
-Lemma map_rel_seq_insert_exact {A B: Type} (r1 r2: relation B)
-      (f: A -> B) (d: A -> Prop)
-      (SUR_D: forall b, exists a, f a = b /\ d a):
-  f ↓ (r1 ⨾ r2) ⊆ f ↓ r1 ⨾ ⦗d⦘ ⨾ f ↓ r2. 
-Proof using.
-  unfolder. ins. desc.
-  specialize (SUR_D z). desc. eexists. splits; eauto; congruence. 
-Qed. 
-
-
-(* TODO: move to lib *)  
-Lemma rel_map_bunionC {A B C: Type} (f: A -> B)
-      (cdom: C -> Prop) (ss: C -> relation B):
-  f ↓ (⋃ c ∈ cdom, ss c) ≡ (⋃ c ∈ cdom, f ↓ (ss c)).
-Proof using. basic_solver. Qed. 
-
-(* TODO: move to lib *)  
-Lemma dom_rel_bunion {B C: Type}
-      (cdom: C -> Prop) (ss: C -> relation B):
-  dom_rel (⋃ c ∈ cdom, ss c) ≡₁ (⋃₁ c ∈ cdom, dom_rel (ss c)).
-Proof using. basic_solver. Qed.
-
-(* TODO: move to lib *)  
-Lemma restr_rel_seq_same {A: Type} (r1 r2: relation A) (d: A -> Prop)
-      (DOMB1: domb (⦗d⦘ ⨾ r1) d):
-  restr_rel d (r1 ⨾ r2) ≡ restr_rel d r1 ⨾ restr_rel d r2. 
-Proof using.
-  split; [| apply restr_seq].
-  unfolder. unfolder in DOMB1. ins. desc.
-  eexists. splits; eauto.
-Qed. 
-
   
 Lemma iord_coherent_AR_ext_cover WF CONS tc
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
@@ -372,7 +285,7 @@ Proof using.
   { simpl. unfolder. ins. desc. destruct x, y; ins; vauto.
     forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
     { basic_solver. }
-    unfold event, action, tlsI. unfolder. ins. desc. destruct y; ins; vauto. } 
+    unfold event, action. unfolder. ins. desc. destruct y; ins; vauto. } 
   
   rewrite pow_S_end. rewrite <- seqA.
   arewrite (ar ∪ rf ⨾ ppo ∩ same_loc ⊆ (sb ∪ sc)^+ ∪ rfe ⨾ (sb ∪ sc)^*) at 2.
@@ -430,8 +343,7 @@ Proof using.
 Qed.
 
 Lemma sim_clos_iord_simpl_rmw_clos WF CONS (tc: trav_label -> Prop)
-      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
-      :
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
   dom_rel (iord_simpl G sc ⨾ ⦗rmw_clos tc⦘) ⊆₁ tc ∪₁ rmw_clos tc ∪₁ rel_clos tc.
 Proof using.
   unfold iord_simpl. repeat case_union _ _. rewrite !dom_union.
@@ -482,7 +394,7 @@ Proof using.
       rewrite wf_rfD, wf_rmwD; auto. unfold action, event. type_solver 10. }
     
     apply set_subset_union_r. left. apply set_subset_union_r. right.
-    unfold action, event. iord_dom_solver. vauto. }
+    unfold action, event. iord_dom_unfolder. vauto. }
   { do 2 (apply set_subset_union_r; left).
     erewrite eqv_rel_mori with (x := _ ∩₁ _); [| red; intro; apply proj2].
     fold event action. rewrite <- set_map_codom_ext; [| apply event_sur].
@@ -550,36 +462,14 @@ Proof using.
   { unfolder. ins. desc. destruct x, y. ins. subst.
     forward eapply tlsc_w_covered_issued with (x := (ta_cover, a0)); eauto.
     { basic_solver. }
-    unfold tlsI. unfolder. ins. desc. destruct y. ins. vauto. }
+    unfolder. ins. desc. destruct y. ins. vauto. }
   
   etransitivity; [| apply iord_coherent_AR_ext_cover]; auto.
   basic_solver 10.
 Qed.
 
-(* TODO: move to lib *)
-Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
-      (SUR: forall b, exists a, f a = b):
-  f ↑₁ (f ↓₁ d) ≡₁ d. 
-Proof.
-  ins. split; [apply set_collect_map| ]. 
-  unfolder. ins.
-  specialize (SUR x) as [a Fa]. exists a. split; congruence. 
-Qed.
- 
-(* TODO: rename or adapt iord_dom_solver, since it doesn't always solve the goal *)
-Local Ltac iord_dom_unfolder :=
-  unfold SB, RF, FWBOB, AR, PROP, IPROP;
-  unfold is_ta_propagate_to_G in *;
-  (* clear; *)
-  unfolder; intros [?a ?b] [?c ?d]; ins; desc;
-  (try match goal with
-       | z : trav_label |- _ => destruct z; desf; ins; desf
-       end);
-  desf.
-
 Lemma sim_clos_iord_simpl_rel_clos WF CONS (tc: trav_label -> Prop)
-      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
-      :
+      (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
   dom_rel (iord_simpl G sc ⨾ ⦗rel_clos tc⦘) ⊆₁ tc ∪₁ rmw_clos tc ∪₁ rel_clos tc.
 Proof using.  
   pose proof ICOH as ICOH'. apply iord_coh_implies_iord_simpl_coh in ICOH; auto.
@@ -604,7 +494,7 @@ Proof using.
     2: { unfold tl_issued. rewrite <- !id_inter.
          erewrite eqv_rel_mori with (x := _ ∩₁ _).
          2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
-         cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_solver. type_solver. }
+         cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_unfolder. type_solver. }
     rewrite dom_rel_helper_in with (r := _ ⨾ _ ⨾ _ ⨾ _ ⨾ ⦗tc⦘) (d := tc).
     2: { rewrite <- ICOH at 2. apply dom_rel_mori.
          transitivity (FWBOB G ⨾ ⦗tc⦘); [| unfold iord_simpl; basic_solver 10].
@@ -664,31 +554,6 @@ Proof.
   eintros INIT%init_pln; eauto. mode_solver. 
 Qed. 
 
-Global Add Parametric Morphism : sim_clos with signature
-       set_equiv ==> set_equiv as sim_clos_more.
-Proof using.
-  unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
-  rewrite !set_pair_alt. rewrite H. basic_solver.
-Qed.
-
-Global Add Parametric Morphism : sim_clos_step with signature
-       set_equiv ==> set_equiv ==> iff as sim_clos_step_more.
-Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
-
-Global Add Parametric Morphism
-       {A: Type} (r: relation (A -> Prop)):
-  r with signature
-       @set_equiv A ==> @set_equiv A ==> iff as set_equiv_rel_more. 
-Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
-
-(* TODO: move to lib? *)
-Lemma set_subset_inter_exact {A: Type} (s s': A -> Prop):
-  s ⊆₁ s' <-> s ⊆₁ s ∩₁ s'. 
-Proof using.
-  split; [basic_solver| ]. ins.
-  red. ins. by apply H. 
-Qed.  
-
 Lemma iord_coh_intermediate WF CONS tc s1 s2
       (ICOH: iord_coherent G sc tc)
       (ICOH2: iord_coherent G sc (tc ∪₁ s1 ∪₁ s2))
@@ -710,14 +575,35 @@ Proof using.
   rewrite set_subset_inter_exact. auto. 
 Qed.
 
-Lemma tls_coherent_ext tc lbl (TCOH: tls_coherent G tc)
-      (ENI: exec_tls G lbl):
-  tls_coherent G (tc ∪₁ eq lbl). 
-Proof using.
-  destruct TCOH. split; try basic_solver.
-  apply set_subset_union_l. split; auto. basic_solver.
-Qed. 
+Definition isim_clos_step (tll : list trav_label)
+  : relation (trav_label -> Prop) :=
+  match tll with 
+  | [tl] => iiord_step tl
+  | [(ta_issue, e); (ta_cover, e')] =>
+      (fun _ _ => e = e' /\ Rel e) ∩
+      (iiord_step (ta_issue, e) ;; 
+       iiord_step (ta_cover, e'))
+  | [(ta_cover, e); (ta_cover, e')] =>
+      (fun _ _ => rmw e e') ∩
+      (iiord_step (ta_cover, e) ;; 
+       iiord_step (ta_cover, e'))
+  | [(ta_cover, e); (ta_issue, e'); (ta_cover, e'')] =>
+      (fun _ _ => rmw e e' /\ e' = e'' /\ Rel e') ∩
+      (iiord_step (ta_cover, e) ;; 
+       iiord_step (ta_issue, e') ;;
+       iiord_step (ta_cover, e''))
+  | _ => fun _ _ => False
+  end.
+
   
+Definition sim_clos_step :=
+  restr_rel sim_coherent 
+            (fun tc tc' => exists tll, isim_clos_step tll tc tc').
+
+Global Add Parametric Morphism : sim_clos_step with signature
+       set_equiv ==> set_equiv ==> iff as sim_clos_step_more.
+Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
+
 
 Section ClosureSteps. 
 Variable (tc: trav_label -> Prop). 
@@ -731,7 +617,7 @@ Hypothesis (ICOH: iord_coherent G sc tc).
 Hypothesis (ICOH': iord_coherent G sc tc').
 Hypothesis (TCOH: tls_coherent G tc). 
 Hypothesis (TCOH': tls_coherent G tc'). 
-Hypothesis (NCOV: ~ tc lbl).
+Hypothesis (NEW: ~ tc lbl).
 
 Hypothesis (WF : Wf G)
            (CONS : imm_consistent G sc).
@@ -756,15 +642,9 @@ Qed.
 Section CoverClosure.
   Hypothesis COVER: a = ta_cover. 
   
-  Lemma tl_covered_single e':
-    tl_covered (eq (mkTL ta_cover e')) ≡₁ eq e'. 
-  Proof.
-    unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
-  Qed.
-  
   Lemma sim_clos_steps_cover_fence (FENCE: F e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER.
+  Proof using WF TCOH' TCOH NEW ICOH' ICOH CONS COVER.
     rename e into f.
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
@@ -792,7 +672,7 @@ Section CoverClosure.
     
   Lemma sim_clos_steps_cover_write (WRITE: W e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER. 
+  Proof using WF TCOH' TCOH NEW ICOH' ICOH CONS COVER. 
     rename e into w.
     remember (stc ∪₁ eq (mkTL ta_issue w)) as stc_w.
 
@@ -839,7 +719,7 @@ Section CoverClosure.
 
   Lemma sim_clos_steps_cover_read (READ: R e):
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER. 
+  Proof using WF TCOH' TCOH NEW ICOH' ICOH CONS COVER. 
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
     
@@ -887,10 +767,10 @@ Section CoverClosure.
 
     arewrite ((eq ta_cover ∪₁ eq ta_issue) <*> eq w ≡₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)).
     { rewrite set_pair_alt. split; try basic_solver 10.
-      iord_dom_solver; intuition. }
+      iord_dom_unfolder; intuition. }
       
     assert (~ tc (mkTL ta_cover w)) as NCw.
-    { intros COVw. apply NCOV.
+    { intros COVw. apply NEW.
       apply iord_coh_implies_iord_simpl_coh in ICOH; auto. apply ICOH.
       eexists. apply seq_eqv_r. split; eauto.
       red. do 4 apply unionA. left.
@@ -906,7 +786,7 @@ Section CoverClosure.
     { intros [?a w_] [=<-] INTER. red in INTER. red in INTER. desc.
       red in INTER0. desc. apply seq_eqv_l in INTER0. desc.
       forward eapply (wf_rmw_invf WF w r x) as ->; eauto.
-      apply NCOV. red in INTER0. unfolder in INTER0. desc.
+      apply NEW. red in INTER0. unfolder in INTER0. desc.
       subst lbl. destruct y; ins; vauto. } 
       
     intros STC STC'.
@@ -957,7 +837,7 @@ Section CoverClosure.
         eapply set_disjoint_mori; [..| apply DISJW]; red; basic_solver. }
       { unfold rel_clos, tl_issued. intros [RCcw]. unfolder in H. desc.
         destruct y; ins. subst. 
-        apply NCOV.
+        apply NEW.
         apply iord_coh_implies_iord_simpl_coh in ICOH; auto. apply ICOH.
         exists (ta_issue, w). apply seq_eqv_r. split; auto.
         red. do 3 left. right. red. apply seq_eqv_lr. splits; try by vauto.
@@ -967,7 +847,7 @@ Section CoverClosure.
 
     destruct (classic (Rel w)) as [RELw | NRELw].
     { assert (~ tc (mkTL ta_issue w)) as NIw.
-      { intros ISSw. apply NCOV.
+      { intros ISSw. apply NEW.
         apply iord_coh_implies_iord_simpl_coh in ICOH; auto. apply ICOH.
         eexists. apply seq_eqv_r. split; eauto.
         red. do 3 left. right.
@@ -1046,7 +926,7 @@ Qed.
 
   Lemma sim_clos_steps_cover:
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH NCOV ICOH' ICOH CONS COVER.
+  Proof using WF TCOH' TCOH NEW ICOH' ICOH CONS COVER.
     pose proof (lab_rwf lab e) as LABe.
     des; auto using sim_clos_steps_cover_read,
       sim_clos_steps_cover_write,
@@ -1059,36 +939,10 @@ End CoverClosure.
 Section IssueClosure.
   Hypothesis ISSUE: a = ta_issue. 
 
-  (* Lemma iord_coh_intermediate *)
-  (*       (STC': stc' ≡₁ stc ∪₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)): *)
-  (*   iord_coherent G sc (stc ∪₁ eq (mkTL ta_issue w)). *)
-  (* Proof using WF TCOH' TCOH NISS ICOH' ICOH CONS. *)
-  (*   apply iord_simpl_coh_implies_iord_coh; auto. *)
-
-  (*   red. rewrite id_union, seq_union_r, dom_union. *)
-  (*   apply set_subset_union_l. split. *)
-  (*   { rewrite iord_coh_implies_iord_simpl_coh; auto using ICOHs, TCOHs.  *)
-  (*     basic_solver. } *)
-
-  (*   pose proof ICOHs' as ICOHs'%iord_coh_implies_iord_simpl_coh; auto using TCOHs'. *)
-  (*   rewrite STC' in ICOHs'. *)
-  (*   rewrite <- set_subset_union_r1, <- set_subset_union_r2 in ICOHs' at 1. *)
-  (*   rewrite set_subset_inter_exact in ICOHs'. rewrite set_subset_inter_exact. *)
-  (*   rewrite set_inter_union_r, set_subset_union in ICOHs'. *)
-  (*   { rewrite set_union_empty_r in ICOHs'. apply ICOHs'. } *)
-  (*   { reflexivity. } *)
-
-  (*   rewrite set_interC, <- dom_eqv1. unfold iord_simpl. *)
-  (*   repeat case_union _ _. rewrite !dom_union. *)
-  (*   repeat (apply set_subset_union_l; split); try by iord_dom_solver. *)
-  (*   unfold FWBOB. rewrite fwbob_in_sb. *)
-  (*   iord_dom_unfolder. inv d. inv d2. edestruct sb_irr; eauto.  *)
-  (* Qed.   *)
-
   Lemma sim_clos_steps_issue:
     sim_clos_step＊ stc stc'.
-  Proof using WF TCOH' TCOH ICOH' ICOH CONS ISSUE NCOV.
-    (* TODO: replace NCOV with more general name  *)
+  Proof using WF TCOH' TCOH ICOH' ICOH CONS ISSUE NEW.
+    (* TODO: replace NEW with more general name  *)
     rename e into w. 
     assert (W w) as Ww.
     { replace w with (event lbl); auto. eapply (@tlsc_I_in_W _ tc'); eauto. 
@@ -1096,10 +950,9 @@ Section IssueClosure.
     assert (~ tc (mkTL ta_cover w)) as NCw.
     { intros Cw.
       forward eapply (@tlsc_w_covered_issued tc) as WCI; eauto.
-      destruct NCOV. specialize (WCI (mkTL ta_cover w)). specialize_full WCI.
+      destruct NEW. specialize (WCI (mkTL ta_cover w)). specialize_full WCI.
       { basic_solver. }
-      unfolder in WCI. desc. subst lbl. destruct y. simpl in *. subst.
-      red in WCI. unfolder in WCI. desc. simpl in *. congruence. }
+      unfolder in WCI. desc. subst lbl. destruct y. ins. vauto. }
     
     assert (rmw_clos (eq lbl) ≡₁ ∅) as NO_RMWC.
     { apply set_subset_empty_r. unfold rmw_clos.
@@ -1175,25 +1028,23 @@ Section IssueClosure.
     forward eapply tlsc_w_covered_issued with (x := (ta_cover, w))(tc := stc).
     1, 2: subst stc; eauto using sim_clos_iord_coherent, sim_clos_tls_coherent.
     { basic_solver. }
-    unfold tlsI. unfolder. ins. desc. destruct y; ins; vauto.
-Qed.  
+    unfolder. ins. desc. destruct y; ins; vauto.
+Qed.
       
 End IssueClosure.
 
 End ClosureSteps. 
             
 Lemma iord_step_implies_sim_clos_step WF CONS:
-  iord_step ⊆ sim_clos ↓ sim_clos_step^*.
+  restr_rel (tls_coherent G) iord_step ⊆ sim_clos ↓ sim_clos_step^*.
 Proof using.
-  unfolder; intros tc tc' STEP.
+  unfolder; intros tc tc' (STEP & TCOH & TCOH').
   red in STEP. destruct STEP as [[a e] STEP]. 
   remember STEP as AA. clear HeqAA.
   do 2 red in AA. destruct AA as [AA [ICOHT ICOHT']].
   apply seq_eqv_l in AA. destruct AA as [COMPL AA].
   rewrite AA in *. clear dependent tc'.
 
-  assert (tls_coherent G tc /\ tls_coherent G (tc ∪₁ eq (a, e))) as [TCOH TCOH'].
-  { admit. }
   assert (iord_coherent G sc (sim_clos tc)) as SIMCOH.
   { apply sim_clos_iord_coherent; auto. }
   assert (sim_coherent (sim_clos tc)) as SIMSIM.
@@ -1203,9 +1054,7 @@ Proof using.
   { now apply sim_clos_steps_cover. }
   { now apply sim_clos_steps_issue. }
 
-  { assert (tls_coherent G (tc ∪₁ eq (ta_propagate tid, e))) as TLS.
-    { (* TODO: introduce a lemma *) admit. }
-    apply rt_step.
+  { apply rt_step.
     do 2 red. splits; auto.
     2: now apply sim_clos_sim_coherent.
     exists [(ta_propagate tid, e)].
@@ -1223,8 +1072,6 @@ Proof using.
     unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
     clear. unfolder; ins; do 2 desf. }
 
-  assert (tls_coherent G (tc ∪₁ eq (ta_reserve, e))) as TLS.
-  { (* TODO: introduce a lemma *) admit. }
   apply rt_step.
   do 2 red. splits; auto.
   2: now apply sim_clos_sim_coherent.
@@ -1242,214 +1089,6 @@ Proof using.
   split; eauto with hahn.
   unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
   clear. unfolder; ins; do 2 desf.
-Admitted.
-  
-(* Require Import Set2TravConfig. *)
-Section Traversal.
-  Variable (steps: nat -> trav_label).
-  Hypothesis (ENUM: enumerates steps (exec_tls G)).
-  Hypothesis (RESP: respects_rel steps (iord G sc)⁺ (exec_tls G)).
-  
-  Definition tc_enum (i: nat): trav_label -> Prop  :=
-    sim_clos (trav_prefix steps i) ∪₁ init_tls G. 
-  
-  Lemma trav_prefix_init:
-    trav_prefix steps 0 ≡₁ ∅. 
-  Proof.
-    unfold trav_prefix. apply set_subset_empty_r, set_subset_bunion_l.
-    ins. lia. 
-  Qed.
-  
-  Ltac liaW no := destruct no; [done| ins; lia]. 
-  
-  Lemma trav_prefix_iord_coherent 
-        (i : nat) (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
-    iord_coherent G sc (trav_prefix steps i).
-  Proof using RESP ENUM.
-    induction i.
-    { rewrite trav_prefix_init. red. basic_solver. }
-    rewrite trav_prefix_ext; eauto. red.
-    rewrite id_union, seq_union_r, dom_union.
-    apply set_subset_union_l. split. 
-    { unfold iord_coherent in IHi. rewrite IHi; [basic_solver| ].
-      liaW (set_size (exec_tls G)). }
-    red. intros tlj. intros [tli IORD%seq_eqv_r]. desc.
-    apply iord_exec_tls in IORD. red in IORD. desc.
-    apply enumeratesE' in ENUM. cdes ENUM.
-    apply IND in IORD1, IORD2. desc. rename i1 into j.
-    assert (i0 = i) as -> by (apply INJ; auto; congruence).
-    subst. 
-    pose proof (Nat.lt_trichotomy i j) as LT. des; revgoals. 
-    { left. red. vauto. }
-    { subst. basic_solver. }
-    enough (j < i); [lia| ]. eapply RESP; eauto. 
-  Qed.
-  
-  Lemma trav_prefix_step
-        i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
-    iord_step (trav_prefix steps i) (trav_prefix steps (S i)).
-  Proof using RESP ENUM.
-    red. exists (steps i). do 2 red.
-    splits; try by (apply trav_prefix_iord_coherent; liaW (set_size (exec_tls G))).
-    apply seq_eqv_l. split.
-    { eapply prefix_border; eauto. }
-    eapply trav_prefix_ext; eauto. 
-  Qed.
-
-  Lemma init_tls_sim_coh WF:
-    sim_coherent (init_tls G).
-  Proof. 
-    unfold sim_coherent, sim_clos. split; [basic_solver| ].
-    repeat (apply set_subset_union_l; split); try basic_solver.
-    { unfold rmw_clos. rewrite set_pair_alt. etransitivity.
-      { red. intro. apply proj2. }
-      iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
-      apply init_tls_EI in d. red in d.
-      apply rmw_non_init_lr, seq_eqv_lr in d0; auto. type_solver. }
-    { unfold rel_clos. rewrite set_pair_alt. etransitivity.
-      { red. intro. apply proj2. }
-      iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
-      apply init_tls_EI in d. do 2 red in d. desc.
-      destruct y, a0; try by vauto. ins. subst. 
-      forward eapply (wf_init_lab WF l) as ?.
-      unfold is_rel, Events.mod in c. rewrite H in c. vauto. }
-  Qed.
-
-  (* TODO: group similar lemmas about union with init_tls *)
-  Lemma trav_prefix_init_tls_iord_coherent i
-        (DOMi : NOmega.le (NOnum i) (set_size (exec_tls G))):
-    iord_coherent G sc (trav_prefix steps i ∪₁ init_tls G).
-  Proof.
-    red. unfold tc_enum. rewrite id_union, seq_union_r, dom_union.
-    apply set_subset_union_l. split.
-    { apply set_subset_union_r. left. apply trav_prefix_iord_coherent; auto. }
-    unfold iord. rewrite init_tls_EI at 1. basic_solver.
-  Qed. 
-
-  (* TODO: move upper *)
-  Lemma init_exec_tls_disjoint:
-    set_disjoint (init_tls G) (exec_tls G). 
-  Proof. unfold init_tls, exec_tls. iord_dom_unfolder. Qed. 
-
-  Lemma trav_prefix_in_exec_tls i
-        (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
-    trav_prefix steps i ⊆₁ exec_tls G. 
-  Proof. 
-    apply enumeratesE' in ENUM. cdes ENUM. 
-    unfold trav_prefix. apply set_subset_bunion_l. intros.
-    apply set_subset_single_l. apply INSET.
-    liaW (set_size (exec_tls G)). 
-  Qed.     
-
-  Lemma trav_prefix_step_ext
-        i (DOMsi: NOmega.lt_nat_l i (set_size (exec_tls G))):
-    iord_step (trav_prefix steps i ∪₁ init_tls G)
-    (trav_prefix steps (S i) ∪₁ init_tls G). 
-  Proof. 
-    forward eapply trav_prefix_step as [l STEP]; eauto.
-    red. exists l. do 2 red.
-    splits; try by (apply trav_prefix_init_tls_iord_coherent; liaW (set_size (exec_tls G))).
-    do 2 red in STEP. desc. apply seq_eqv_l in STEP. desc.  
-    apply seq_eqv_l. split.
-    2: { rewrite STEP2. basic_solver. }
-    apply set_compl_union. split; auto.
-    apply set_disjoint_eq_r. eapply set_disjoint_mori; [reflexivity| ..].
-    2: by apply init_exec_tls_disjoint.
-    red. rewrite <- (@trav_prefix_in_exec_tls (S i)); auto.
-    rewrite STEP2. basic_solver. 
-  Qed. 
-  
-  Lemma sim_traversal_next WF CONS:
-    forall i (DOMi: NOmega.lt_nat_l i (set_size (exec_tls G))),
-      (* (sim_trav_step G sc)^* (tc_enum i) (tc_enum (1 + i)). *)
-      (sim_clos_step^*) (tc_enum i) (tc_enum (1 + i)). 
-  Proof using RESP ENUM.
-    ins. unfold tc_enum.
-    forward eapply init_tls_sim_coh as INIT_SCOH; auto. red in INIT_SCOH.
-    rewrite INIT_SCOH, <- !sim_clos_dist; auto.  
-    apply iord_step_implies_sim_clos_step; auto.
-    apply trav_prefix_step_ext; auto. 
-  Qed.
-
-  (* TODO: move upper *)
-  Lemma exec_tls_sim_coh WF:
-    sim_coherent (exec_tls G).
-  Proof. 
-    unfold sim_coherent, sim_clos. split; [basic_solver| ].
-    repeat (apply set_subset_union_l; split; try basic_solver). 
-    { unfold rmw_clos, exec_tls, tl_covered, tl_issued.
-      repeat rewrite set_pair_alt.
-      rewrite wf_rmwE, wf_rmwD, rmw_non_init_lr; auto. 
-      iord_dom_unfolder; [by vauto| ]. 
-      right. eauto. }
-    { unfold rel_clos, exec_tls, tl_covered, tl_issued.
-      repeat rewrite set_pair_alt.
-      iord_dom_unfolder. left. vauto. }
-  Qed. 
-
-  (* TODO: move upper *)
-  Global Add Parametric Morphism : sim_clos with signature
-         set_subset ==> set_subset as sim_clos_mori.
-  Proof using.
-    unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
-    rewrite !set_pair_alt. rewrite H. basic_solver.
-  Qed.
-
-  Lemma tc_enum_tls_coherent WF i
-      (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))):
-    tls_coherent G (tc_enum i). 
-  Proof.
-    unfold tc_enum. split; [basic_solver| ].
-    apply set_subset_union_l. split; [| basic_solver].
-    erewrite sim_clos_mori.
-    2: { apply trav_prefix_in_exec_tls. auto. }
-    pose proof (exec_tls_sim_coh WF). red in H. rewrite <- H. basic_solver. 
-  Qed. 
-
-End Traversal.
-
-(* TODO: move upper *)
-Lemma sim_clos_empty:
-  sim_clos ∅ ≡₁ ∅. 
-Proof.
-  unfold sim_clos, rmw_clos, rel_clos, tl_issued, tl_covered.
-  rewrite !set_pair_alt. basic_solver.
 Qed. 
-
   
-
-(* TODO: rename? *)
-Lemma sim_traversal_inf WF CONS
-      (FAIR: mem_fair G)
-      (IMM_FAIR: imm_s_fair G sc)
-  :
-  exists (sim_enum: nat -> (trav_label -> Prop)),
-    ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
-      ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))),
-          tls_coherent G (sim_enum i)⟫ /\
-      ⟪STEPS: forall i (DOMi: NOmega.lt_nat_l i (set_size (exec_tls G))),
-          (sim_clos_step^*) (sim_enum i) (sim_enum (1 + i)) ⟫ /\
-      ⟪ENUM: forall e (Ee: (E \₁ is_init) e), exists i,
-          NOmega.le (NOnum i) (set_size (exec_tls G)) /\
-            (sim_enum i) (mkTL ta_cover e)⟫.
-Proof using.
-  edestruct iord_enum_exists as [steps_enum [ENUM RESP]]; eauto.
-  1, 2: by apply CONS.
-  exists (tc_enum steps_enum). splits.
-  { unfold tc_enum. rewrite trav_prefix_init.
-    rewrite sim_clos_empty. basic_solver. }
-  { apply tc_enum_tls_coherent; auto. }
-  { apply sim_traversal_next; auto. }
-
-  intros e Ee.
-  pose proof ENUM as ENUM'. apply enumeratesE' in ENUM. desc.
-  specialize (IND (mkTL ta_cover e)). specialize_full IND; [by vauto| ].
-  desc. exists (S i). split; [by vauto| ].  
-  eapply set_equiv_exp. 
-  { unfold tc_enum. rewrite trav_prefix_ext; auto. apply IND. }
-  rewrite IND0. unfold sim_clos. basic_solver 10.  
-Qed.
-
-
-End TravOrderConfig.
-  
+End SimClosure.

@@ -38,12 +38,6 @@ Definition ta_propagate_tid ta :=
   | _              => tid_init
   end.
 
-(* Definition get (TC : trav_config) ta := *)
-(*   match ta with *)
-(*   | ta_cover => covered TC *)
-(*   | ta_issue => issued TC *)
-(*   end. *)
-
 Definition trav_label : Set := trav_action * actid.
 Definition action : trav_label -> trav_action := fst.
 Definition event  : trav_label -> actid       := snd.
@@ -85,19 +79,78 @@ Proof using.
 Qed.
 
 Lemma event_cover_finite_inj y :
-  set_finite (fun x : trav_label => y = event x /\ (action ↓₁ eq ta_cover) x).
+  set_finite (fun x => y = event x /\ (action ↓₁ eq ta_cover) x).
 Proof using.
   ins. exists [mkTL ta_cover y]. 
   ins. desf. red in IN0. destruct x as [[]]; ins; auto.
 Qed.
 
 Lemma event_issue_finite_inj y :
-  set_finite (fun x : trav_label => y = event x /\ (action ↓₁ eq ta_issue) x).
+  set_finite (fun x => y = event x /\ (action ↓₁ eq ta_issue) x).
 Proof using.
   ins. exists [mkTL ta_issue y]. 
   ins. desf. red in IN0. destruct x as [[]]; ins; auto.
 Qed.
 
+Definition graph_threads (G: execution): thread_id -> Prop :=
+  tid ↑₁ (acts_set G \₁ is_init). 
+
+Definition is_ta_propagate_to_G (G: execution): trav_action -> Prop := 
+  ⋃₁ t ∈ graph_threads G, eq (ta_propagate t). 
+
+Definition SB (G: execution) (sc: relation actid) :=
+  ⦗action ↓₁ (eq ta_cover)⦘
+      ⨾ (event ↓ (sb G ∪ sc)⁺)
+      ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
+
+Definition RF (G: execution):=
+  ⦗action ↓₁ (eq ta_issue)⦘
+    ⨾ (event ↓ (⦗is_w (lab G)⦘ ⨾ (rf G)^?))
+    ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
+
+Definition FWBOB (G: execution):=
+  ⦗action ↓₁ (eq ta_cover)⦘
+    ⨾ (event ↓ (fwbob G⨾ ⦗is_w (lab G)⦘))
+    ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
+
+Definition AR (G: execution) (sc: relation actid) :=
+  ⦗action ↓₁ (eq ta_issue)⦘
+    ⨾ (event ↓ (⦗is_w (lab G)⦘ ⨾ (ar G sc ∪ rf G ⨾ ppo G ∩ same_loc (lab G))⁺ ⨾ ⦗is_w (lab G)⦘))
+    ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
+
+Definition IPROP (G: execution) :=
+  ⦗action ↓₁ (eq ta_issue)⦘
+    ⨾ (event ↓ (eq ⨾ ⦗is_w (lab G)⦘))
+    ⨾ ⦗action ↓₁ is_ta_propagate_to_G G⦘.
+
+Definition PROP (G: execution) (sc: relation actid): relation trav_label :=
+  ⦗action ↓₁ (eq ta_cover)⦘ ⨾
+  ((event ↓ ((sb G)^? ⨾ (ar G sc ∪ rf G ⨾ ppo G ∩ same_loc (lab G))^* ⨾
+             (sb G)^? ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
+       ∩ (fun ta1 ta2 =>
+            tid (event ta1) = ta_propagate_tid (action ta2))) ⨾
+  ⦗action ↓₁ is_ta_propagate_to_G G⦘.
+
+(* Essentially, it is an alternative representation of a part of tc_coherent *)
+Definition iord (G: execution) (sc: relation actid): relation trav_label :=
+  restr_rel (event ↓₁ (acts_set G \₁ is_init))
+            (SB G sc ∪ RF G ∪ FWBOB G ∪ AR G sc ∪ IPROP G ∪ PROP G sc).
+
+Global Ltac iord_parts_unfolder := 
+  unfold iord, SB, RF, FWBOB, AR, PROP, IPROP. 
+
+Global Ltac iord_dom_unfolder :=
+  iord_parts_unfolder;
+  unfold is_ta_propagate_to_G in *;
+  (* clear; *)
+  unfolder; intros [?a ?b] [?c ?d]; ins; desc;
+  (try match goal with
+       | z : trav_label |- _ => destruct z; desf; ins; desf
+       end);
+  desf.
+
+Global Ltac iord_dom_solver := by iord_dom_unfolder. 
+  
 Section TravLabel. 
   Context (G : execution) (sc : relation actid).
   Implicit Types (WF : Wf G) (COMP : complete G)
@@ -123,97 +176,43 @@ Section TravLabel.
   Notation "'deps'" := (deps G).
   Notation "'detour'" := (detour G).
 
-Notation "'lab'" := (lab G).
-Notation "'loc'" := (loc lab).
-Notation "'val'" := (val lab).
-Notation "'mod'" := (Events.mod lab).
-Notation "'same_loc'" := (same_loc lab).
-
-Notation "'E'" := (acts_set G).
-Notation "'R'" := (fun x => is_true (is_r lab x)).
-Notation "'W'" := (fun x => is_true (is_w lab x)).
-Notation "'F'" := (fun x => is_true (is_f lab x)).
-Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
-Notation "'RW'" := (R ∪₁ W).
-Notation "'FR'" := (F ∪₁ R).
-Notation "'FW'" := (F ∪₁ W).
-Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
-Notation "'W_ex'" := (W_ex G).
-Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
-
-  Definition graph_threads: thread_id -> Prop :=
-    tid ↑₁ (E \₁ is_init). 
-
-  (* Definition is_ta_propagate_to_G ta : Prop := *)
-  (*   match ta with  *)
-  (*   | ta_propagate t => graph_threads t *)
-  (*   | _              => false *)
-  (*   end. *)
-  Definition is_ta_propagate_to_G: trav_action -> Prop := 
-    ⋃₁ t ∈ graph_threads, eq (ta_propagate t). 
-
-  Definition SB :=
-    ⦗action ↓₁ (eq ta_cover)⦘
-      ⨾ (event ↓ (sb ∪ sc)⁺)
-      ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
-         
-  Definition RF :=
-    ⦗action ↓₁ (eq ta_issue)⦘
-      ⨾ (event ↓ (⦗W⦘ ⨾ rf^?))
-      ⨾ ⦗action ↓₁ (eq ta_cover)⦘.
-
-  Definition FWBOB :=
-    ⦗action ↓₁ (eq ta_cover)⦘
-      ⨾ (event ↓ (fwbob ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
-
-  Definition AR :=
-    ⦗action ↓₁ (eq ta_issue)⦘
-      ⨾ (event ↓ (⦗W⦘ ⨾ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ (eq ta_issue)⦘.
+  Notation "'lab'" := (lab G).
+  Notation "'loc'" := (loc lab).
+  Notation "'val'" := (val lab).
+  Notation "'mod'" := (Events.mod lab).
+  Notation "'same_loc'" := (same_loc lab).
   
-  Definition IPROP :=
-    ⦗action ↓₁ (eq ta_issue)⦘
-      ⨾ (event ↓ (eq ⨾ ⦗W⦘))
-      ⨾ ⦗action ↓₁ is_ta_propagate_to_G⦘.
+  Notation "'E'" := (acts_set G).
+  Notation "'R'" := (fun x => is_true (is_r lab x)).
+  Notation "'W'" := (fun x => is_true (is_w lab x)).
+  Notation "'F'" := (fun x => is_true (is_f lab x)).
+  Notation "'Sc'" := (fun x => is_true (is_sc lab x)).
+  Notation "'RW'" := (R ∪₁ W).
+  Notation "'FR'" := (F ∪₁ R).
+  Notation "'FW'" := (F ∪₁ W).
+  Notation "'R_ex'" := (fun a => is_true (R_ex lab a)).
+  Notation "'W_ex'" := (W_ex G).
+  Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
-  Definition PROP : relation trav_label :=
-    ⦗action ↓₁ (eq ta_cover)⦘ ;;
-    ((event ↓ (sb^? ;; (ar ∪ rf ⨾ ppo ∩ same_loc)^* ;; sb^? ;; co^? ;; <|W|>))
-       ∩ (fun ta1 ta2 =>
-            tid (event ta1) = ta_propagate_tid (action ta2))
-    ) ;;
-    ⦗action ↓₁ is_ta_propagate_to_G⦘.
-
-  (* Essentially, it is an alternative representation of a part of tc_coherent *)
-  Definition iord : relation trav_label :=
-    restr_rel (event ↓₁ (E \₁ is_init))
-              (SB ∪ RF ∪ FWBOB ∪ AR ∪ IPROP ∪ PROP).
+  (* iord *)
+  Notation "'SB'" := (SB G sc). 
+  Notation "'RF'" := (RF G). 
+  Notation "'FWBOB'" := (FWBOB G). 
+  Notation "'AR'" := (AR G sc). 
+  Notation "'IPROP'" := (IPROP G). 
+  Notation "'PROP'" := (PROP G sc).
+  Notation "'iord'" := (iord G sc).
 
   Lemma iord_irreflexive WF COMP WFSC CONS : irreflexive iord.
   Proof using.
-    assert (transitive sc) as TSC.
-    { now apply WFSC. }
-    assert (transitive sb) as TSB.
-    { apply sb_trans. }
-
-    unfold iord, SB, RF, FWBOB, AR, IPROP, PROP.
-    apply irreflexive_restr.
-    repeat (apply irreflexive_union; splits).
-    all: try by (unfolder; intros [y z]; ins; desf; eauto).
-    { rewrite <- restr_relE.
-      apply irreflexive_restr.
-      apply map_rel_irr.
-      apply sb_sc_acyclic; auto.
-      apply CONS. }
-    { unfolder; intros [y z]; ins; desf; eauto. 
-      eapply ar_rf_ppo_loc_acyclic; eauto. }
-    all: unfolder; intros [y z]; ins; desf; eauto; inversion H1; by desc. 
-  Qed.
+    iord_dom_unfolder.
+    { eapply sb_sc_acyclic; eauto. apply CONS. }
+    eapply ar_rf_ppo_loc_acyclic; eauto. 
+  Qed. 
   
   Lemma AR_trans : transitive AR.
   Proof using.
-    unfold AR.
+    unfold "AR".
     rewrite <- restr_relE.
     apply transitive_restr.
     apply transitiveI. rewrite map_rel_seq.
@@ -225,7 +224,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Lemma AR_irr WF COMP CONS : irreflexive AR.
   Proof using.
-    unfold AR.
+    unfold "AR".
     rewrite <- restr_relE.
     apply irreflexive_restr.
     apply map_rel_irr.
@@ -242,15 +241,6 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
 
   Local Hint Resolve AR_acyc : lbase.
   
-  Local Ltac iord_dom_solver :=
-    unfold SB, RF, FWBOB, AR, PROP, IPROP;
-    unfold is_ta_propagate_to_G in *;
-    clear; unfolder; intros [a b] [c d]; ins; desc;
-    (try match goal with
-        | z : trav_label |- _ => destruct z; desf; ins; desf
-        end);
-    desf.
-  
   Lemma SBRF : SB ⨾ RF ⊆ ∅₂.
   Proof using. iord_dom_solver. Qed.
   
@@ -260,7 +250,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Lemma RFAR : RF ⨾ AR ⊆ ∅₂.
   Proof using. iord_dom_solver. Qed.
 
-  Lemma RFRF : RF ;; RF ⊆ ∅₂.
+  Lemma RFRF : RF ⨾ RF ⊆ ∅₂.
   Proof using. iord_dom_solver. Qed.
   
   Lemma RF_trans : transitive RF.
@@ -272,7 +262,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Local Hint Resolve SBRF SBAR RFAR RFRF RF_trans RF_irr : lbase.
 
   Lemma eSB_in_sb_sc_ct : event ↑ SB ⊆ (sb ∪ sc)⁺.
-  Proof using. unfold SB. clear. basic_solver 10. Qed.
+  Proof using. unfold "SB". clear. basic_solver 10. Qed.
 
   Lemma SB_acyclic WF WFSC CONS : acyclic SB.
   Proof using.
@@ -285,7 +275,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
   Lemma SB_trans : transitive SB.
   Proof using.
-    unfold SB.
+    unfold "SB".
     rewrite <- restr_relE.
     apply transitive_restr.
     apply transitiveI.
@@ -299,7 +289,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     now apply SB_acyclic.
   Qed.
 
-  Lemma FWBOBFWBOB : FWBOB ;; FWBOB ⊆ ∅₂.
+  Lemma FWBOBFWBOB : FWBOB ⨾ FWBOB ⊆ ∅₂.
   Proof using. iord_dom_solver. Qed.
 
   Local Hint Resolve SB_acyclic SB_trans SB_irr FWBOBFWBOB : lbase.
@@ -353,15 +343,15 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         event_issue_finite_inj : lbase.
 
   Lemma ERF : event ↑ RF ⊆ rf^?.
-  Proof using. unfold RF. clear. basic_solver 10. Qed.
+  Proof using. unfold "RF". clear. basic_solver 10. Qed.
   Lemma EFWBOB : event ↑ FWBOB ⊆ fwbob.
-  Proof using. unfold FWBOB. clear. basic_solver 10. Qed.
+  Proof using. unfold "FWBOB". clear. basic_solver 10. Qed.
   Lemma EAR : event ↑ AR ⊆ (ar ∪ rf ⨾ ppo ∩ same_loc)⁺.
-  Proof using. unfold AR. clear. basic_solver 10. Qed.
+  Proof using. unfold "AR". clear. basic_solver 10. Qed.
 
   Lemma RFSBFWBOBINAR WF WFSC CONS : RF ⨾ SB^? ⨾ FWBOB ⊆ AR.
   Proof using.
-    unfold AR, RF, FWBOB, SB.
+    iord_parts_unfolder. 
     rewrite !seqA.
     hahn_frame.
     arewrite_id ⦗action ↓₁ eq ta_cover⦘. rewrite !seq_id_l, !seq_id_r.
@@ -417,7 +407,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     assert (transitive sb) as SBTRANS.
     { apply sb_trans. }
 
-    red. unfold iord.
+    red. unfold "iord".
     apply acyclic_restr.
     apply acyclic_ut; splits; auto with lbase.
     2: { rewrite ct_begin.
@@ -470,9 +460,9 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         (FSUPPSC : fsupp sc)
     : fsupp (restr_rel (event ↓₁ (E \₁ is_init)) SB).
   Proof using.
-    assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
+    assert (FSUPPSB : fsupp (<|set_compl is_init|> ⨾ sb)).
     { now apply fsupp_sb. }
-    unfold SB. rewrite inclusion_t_rt.
+    unfold "SB". rewrite inclusion_t_rt.
     rewrite sb_sc_rt; auto; try apply CONS.
     rewrite restr_seq_eqv_l.
     arewrite_id ⦗action ↓₁ eq ta_cover⦘ at 2.
@@ -507,7 +497,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Lemma RF_fsupp (FSUPPRF : fsupp rf) :
     fsupp RF.
   Proof using.
-    unfold RF.
+    unfold "RF".
     arewrite_id ⦗action ↓₁ eq ta_cover⦘. rewrite seq_id_r.
     apply fsupp_seq_l_map_rel; auto with lbase.
     arewrite_id ⦗W⦘. rewrite !seq_id_l.
@@ -518,7 +508,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         (IMM_FAIR: imm_s_fair G sc):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ AR).
   Proof using.
-    unfold AR. seq_rewrite seq_eqvC. rewrite seqA. 
+    unfold "AR". seq_rewrite seq_eqvC. rewrite seqA. 
     rewrite <- seqA with (r2 := event ↓ _).
     rewrite map_rel_eqv with (f := event), map_rel_seq.  
     arewrite_id ⦗action ↓₁ eq ta_issue⦘ at 2. rewrite seq_id_r.
@@ -530,9 +520,9 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
   Lemma FWBOB_fsupp WF : fsupp (restr_rel (event ↓₁ (E \₁ is_init)) FWBOB).
   Proof using.
-    assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
+    assert (FSUPPSB : fsupp (<|set_compl is_init|> ⨾ sb)).
     { now apply fsupp_sb. }
-    unfold FWBOB.
+    unfold "FWBOB".
     arewrite_id ⦗action ↓₁ eq ta_issue⦘.
     arewrite_id ⦗W⦘.
     rewrite !seq_id_r.
@@ -549,7 +539,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   
   Lemma IPROP_fsupp : fsupp IPROP.
   Proof using.
-    unfold IPROP.
+    unfold "IPROP". 
     rewrite <- seqA.
     apply fsupp_seq; auto using fsupp_eqv.
     apply fsupp_seq_l_map_rel; auto with lbase.
@@ -568,10 +558,10 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { rewrite rtE, seq_union_r. apply fsupp_union; auto using fsupp_seq, fsupp_eqv.
       eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. }
 
-    unfold PROP.
+    unfold "PROP".
     rewrite inclusion_inter_l1.
     arewrite_id ⦗W⦘.
-    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G⦘.
+    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G G⦘.
     rewrite !seq_id_r.
     rewrite <- !seqA.
     rewrite seq_eqvC, !seqA.
@@ -595,7 +585,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
     { eapply imm_s_fair_fsupp_sc; eauto. }
-    unfold iord. rewrite !restr_union, !seq_union_r. 
+    unfold "iord". rewrite !restr_union, !seq_union_r. 
     repeat (apply fsupp_union).
     6: { eapply fsupp_mori; [| apply PROP_fsupp]; auto. red. basic_solver. }
     4: { eapply fsupp_mori; [| apply AR_fsupp]; auto. red. basic_solver. }
@@ -608,7 +598,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ≡ ⦗event ↓₁ set_compl is_init⦘ ⨾ RF ⨾ ⦗event ↓₁ set_compl is_init⦘. 
   Proof using.
     split; [| basic_solver]. rewrite <- seqA. apply domb_helper. 
-    unfold RF. rewrite crE. repeat case_union _ _.
+    unfold "RF". rewrite crE. repeat case_union _ _.
     rewrite map_rel_union. repeat case_union _ _.
     apply union_domb.
     { unfolder. ins. desc. congruence. }
@@ -620,7 +610,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Proof using.
     split; [| basic_solver]. apply domb_helper. 
     forward eapply no_ar_rf_ppo_loc_to_init as AR'_NI; eauto.
-    apply seq_eqv_compl in AR'_NI. unfold AR. rewrite AR'_NI.
+    apply seq_eqv_compl in AR'_NI. unfold "AR". rewrite AR'_NI.
     rewrite ct_end. basic_solver.
   Qed. 
 
@@ -631,10 +621,10 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     split; [| basic_solver].
     rewrite <- !seqA.
     apply domb_helper.
-    unfold PROP.
+    unfold "PROP".
     rewrite inclusion_inter_l1.
     arewrite_id ⦗action ↓₁ eq ta_cover⦘.
-    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G⦘.
+    arewrite_id ⦗action ↓₁ is_ta_propagate_to_G G⦘.
     arewrite_id ⦗W⦘.
     rewrite !seq_id_l, !seq_id_r.
     rewrite map_rel_eqv, map_rel_seq.
@@ -667,14 +657,14 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     forward eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc as FS_AR_RFPPOL; eauto.
     assert (transitive sb) as SBTRANS.
     { apply sb_trans. }
-    assert (FSUPPSB : fsupp (<|set_compl is_init|> ;; sb)).
+    assert (FSUPPSB : fsupp (<|set_compl is_init|> ⨾ sb)).
     { now apply fsupp_sb. }
     assert (FSUPPRF : fsupp rf).
     { now apply fsupp_rf. }
     assert (FSUPPSC : fsupp sc).
     { eapply imm_s_fair_fsupp_sc; eauto. }
 
-    unfold iord.
+    unfold "iord".
     rewrite !restr_union.
     remember
       (restr_rel (event ↓₁ (E \₁ (fun a : actid => is_init a)))
@@ -688,7 +678,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { subst rFWBOB. apply transitive_restr.
       auto with lbase. }
 
-    assert (rSB ∪ RF ⊆ RF^? ;; rSB^?) as SBRFT.
+    assert (rSB ∪ RF ⊆ RF^? ⨾ rSB^?) as SBRFT.
     { rewrite crE. clear; basic_solver 10. }
 
     assert (fsupp rSB) as FSUPPRSB.
@@ -807,7 +797,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     { rewrite ct_begin. sin_rewrite PROPIORDSTEP. clear; basic_solver 1. }
 
     rewrite clos_trans_domb_l_strong. 
-    2: { subst rSB rFWBOB. unfold IPROP. rewrite !seq_union_r.
+    2: { subst rSB rFWBOB. unfold "IPROP". rewrite !seq_union_r.
          repeat apply union_domb; try (clear; basic_solver). 
          { rewrite no_RF_to_init_weak; auto. basic_solver. }
          { rewrite no_AR_to_init; auto. basic_solver. }  
@@ -884,7 +874,7 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
       rewrite ct_begin. basic_solver. }
     rewrite (@inclusion_seq_eqv_l _ rSB). rewrite (@inclusion_seq_eqv_l _ RF).
 
-    arewrite ((rSB ∪ RF)＊ ⨾ rFWBOB ⊆ RF^? ;; rSB^? ;; rFWBOB).
+    arewrite ((rSB ∪ RF)＊ ⨾ rFWBOB ⊆ RF^? ⨾ rSB^? ⨾ rFWBOB).
     { rewrite SBRFT. rewrite rt_of_trans; auto.
       rewrite cr_seq, !seqA.
       unionL; eauto with hahn.
@@ -902,9 +892,9 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
     apply seq_eqv_l_trans. 
 
     assert (AR ⨾ rFWBOB ⊆ ∅₂) as ARFWBOB.
-    { subst. unfold AR, FWBOB. iord_dom_solver. }
+    { subst. unfold "AR", "FWBOB". iord_dom_solver. }
     assert (AR ⨾ rSB ⊆ ∅₂) as ARSB.
-    { subst. unfold AR, SB.  iord_dom_solver. }
+    { subst. unfold "AR", "SB".  iord_dom_solver. }
 
     assert (AR ⨾ rSB^? ⨾ rFWBOB ⊆ ∅₂) as ARSBFW.
     { rewrite crE, !seq_union_l, !seq_union_r, !seq_id_l.
@@ -920,16 +910,15 @@ Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
         
 End TravLabel.
 
-Global Ltac iord_dom_solver :=
-  unfold SB, RF, FWBOB, AR, PROP, IPROP;
-  unfold is_ta_propagate_to_G in *;
-  clear; unfolder; intros [a b] [c d]; ins; desc;
-  (try match goal with
-       | z : trav_label |- _ => destruct z; desf; ins; desf
-       end);
-  desf.
+(* Global Ltac iord_dom_solver := *)
+(*   unfold SB, RF, FWBOB, AR, PROP, IPROP; *)
+(*   unfold is_ta_propagate_to_G in *; *)
+(*   clear; unfolder; intros [a b] [c d]; ins; desc; *)
+(*   (try match goal with *)
+(*        | z : trav_label |- _ => destruct z; desf; ins; desf *)
+(*        end); *)
+(*   desf. *)
 
-(* TODO: move to TraversalOrder.v *)
 Global Add Parametric Morphism : SB with signature
        eq ==> same_relation ==> same_relation as SB_more.
 Proof using.
@@ -969,3 +958,95 @@ Proof using.
 Qed.
 
   
+(* TODO: move to lib *)
+Lemma set_pair_alt {A B: Type} (Sa: A -> Prop) (Sb: B -> Prop ):
+  Sa <*> Sb ≡₁ (fst ↓₁ Sa) ∩₁ (snd ↓₁ Sb). 
+Proof using. unfold set_pair. basic_solver. Qed.
+
+(* TODO: move to lib *)
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_equiv A ==> @set_equiv B ==> @set_equiv (A * B) as set_pair_more.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+(* TODO: move to lib *)
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_subset A ==> @set_subset B ==> @set_subset (A * B) as set_pair_mori.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+(* TODO: move to lib *)
+Lemma eqv_rel_alt {A: Type} (S: A -> Prop):
+  ⦗S⦘ ≡ S × S ∩ eq.
+Proof using. basic_solver. Qed.
+
+(* TODO: move to lib *)
+Lemma doma_alt {A: Type} (r: relation A) (d: A -> Prop):
+  doma r d <-> dom_rel r ⊆₁ d. 
+Proof using. unfolder. split; ins; basic_solver. Qed. 
+
+(* TODO: move to lib *)  
+Lemma map_rel_seq_insert_exact {A B: Type} (r1 r2: relation B)
+      (f: A -> B) (d: A -> Prop)
+      (SUR_D: forall b, exists a, f a = b /\ d a):
+  f ↓ (r1 ⨾ r2) ⊆ f ↓ r1 ⨾ ⦗d⦘ ⨾ f ↓ r2. 
+Proof using.
+  unfolder. ins. desc.
+  specialize (SUR_D z). desc. eexists. splits; eauto; congruence. 
+Qed. 
+
+
+(* TODO: move to lib *)  
+Lemma rel_map_bunionC {A B C: Type} (f: A -> B)
+      (cdom: C -> Prop) (ss: C -> relation B):
+  f ↓ (⋃ c ∈ cdom, ss c) ≡ (⋃ c ∈ cdom, f ↓ (ss c)).
+Proof using. basic_solver. Qed. 
+
+(* TODO: move to lib *)  
+Lemma dom_rel_bunion {B C: Type}
+      (cdom: C -> Prop) (ss: C -> relation B):
+  dom_rel (⋃ c ∈ cdom, ss c) ≡₁ (⋃₁ c ∈ cdom, dom_rel (ss c)).
+Proof using. basic_solver. Qed.
+
+(* TODO: move to lib *)  
+Lemma restr_rel_seq_same {A: Type} (r1 r2: relation A) (d: A -> Prop)
+      (DOMB1: domb (⦗d⦘ ⨾ r1) d):
+  restr_rel d (r1 ⨾ r2) ≡ restr_rel d r1 ⨾ restr_rel d r2. 
+Proof using.
+  split; [| apply restr_seq].
+  unfolder. unfolder in DOMB1. ins. desc.
+  eexists. splits; eauto.
+Qed. 
+
+(* TODO: move to lib *)
+Global Add Parametric Morphism
+       {A: Type} (r: relation (A -> Prop)):
+  r with signature
+       @set_equiv A ==> @set_equiv A ==> iff as set_equiv_rel_more. 
+Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
+
+(* TODO: move to lib? *)
+Lemma set_subset_inter_exact {A: Type} (s s': A -> Prop):
+  s ⊆₁ s' <-> s ⊆₁ s ∩₁ s'. 
+Proof using.
+  split; [basic_solver| ]. ins.
+  red. ins. by apply H. 
+Qed.  
+
+(* TODO: move to lib *)
+Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
+      (SUR: forall b, exists a, f a = b):
+  f ↑₁ (f ↓₁ d) ≡₁ d. 
+Proof.
+  ins. split; [apply set_collect_map| ]. 
+  unfolder. ins.
+  specialize (SUR x) as [a Fa]. exists a. split; congruence. 
+Qed.
+ 
+(* TODO: move *)
+Lemma restr_rel_cross_inter {A: Type} (d1 d2 d: A -> Prop):
+  (d1 ∩₁ d) × (d2 ∩₁ d) ≡ restr_rel d (d1 × d2).
+Proof using. basic_solver. Qed. 
+

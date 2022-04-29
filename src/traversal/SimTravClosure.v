@@ -16,12 +16,12 @@ Require Import AuxRel2.
 Require Import SetSize.
 Require Import FairExecution.
 Import ListNotations.
-Require Import TraversalOrder.
+Require Import traversal.TraversalOrder.
 Require Import PropExtensionality.
 Require Import CountabilityHelpers.
-Require Import IordTraversal.
-Require Import SimTraversal.
-Require Import SimTraversalProperties.
+Require Import traversal.IordTraversal.
+Require Import traversal.SimTraversal.
+Require Import traversal.SimTraversalProperties.
 Require Import ImmFair.
 
 
