@@ -90,7 +90,15 @@ and IMMs, a version of IMM with RC11-style definition of happens-before (HB) (**
       used to prove properties of the traversal (**Def. 7.3 and 7.7**).
   - *SimTraversal.v*—traversal of IMMs-consistent execution graphs (**Prop. 6.5**).
   - *SimTraversalProperties.v*—properties of the normal traversal.
-
+  
+* **New parts:** `src/travorder`. Traversal of IMM-consistent graphs based on the traversal labels approach.
+  - *TraversalOrder.v*—definitions of traversal labels and relation describing the restrictions on the traversal order.
+  - *TLSCoherency.v*—definitions of coherent sets of traversal labels.
+  - *IordCoherency.v*—definition of a traversal labels set corresponding to a traversal prefix.
+  - *SimClosure.v*—transitions between traversal labels set corresponding to simulation steps.
+  - *SimClosureTraversal.v*—construction of a traversal.
+  
+  
 Auxiliary files:
 - *IfThen.v*,
 *TraversalConfigAlt.v*,
