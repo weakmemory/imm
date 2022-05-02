@@ -4,6 +4,7 @@ Require Import Setoid.
 Require Import SetSize.
 Import ListNotations.
 Require Import IndefiniteDescription.
+Require Import AuxDef.
 
 Set Implicit Arguments.
 
@@ -238,11 +239,6 @@ Proof using.
   destruct INF. exists (findom ++ findom'). ins. apply in_or_app.
   destruct (classic (S' x)); intuition. 
 Qed.
-
-Ltac contra name := 
-  match goal with
-  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
-  end. 
 
 Lemma set_infinite_bunion {A B: Type} (As: A -> Prop) (ABs: A -> B -> Prop)
       (FINa: set_finite As)

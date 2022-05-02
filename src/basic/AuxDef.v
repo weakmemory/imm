@@ -3,7 +3,7 @@ Require Import Classical.
 Require Import Lia.
 Require Import IndefiniteDescription.
 Require Import PropExtensionality.
-
+From ZornsLemma Require Classical_Wf. 
 Require Import Events.
 
 Lemma false_acyclic {A} : acyclic (∅₂ : relation A).
@@ -139,6 +139,28 @@ Proof using.
   eauto.
 Qed.
 
+
+Lemma set_map_codom_ext {A B : Type} (f : A -> B) (rr : relation B)
+      (SUR: forall b, exists a, f a = b):
+  codom_rel (f ↓ rr) ≡₁ f ↓₁ codom_rel rr. 
+Proof using. 
+  split; [apply set_map_codom| ].
+  unfolder. ins. desc. specialize (SUR x0). desc.
+  exists a. congruence. 
+Qed.  
+
+
+Ltac contra name := 
+  match goal with
+  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
+  end. 
+
+(* TODO: move to Hahn. *)
+Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
+      (INF: ~ set_finite S):
+  exists e, S e.
+Proof using. contra NO. destruct INF. exists nil. ins. edestruct NO; vauto. Qed. 
+
 (* TODO: move to Hahn. *)
 Lemma set_finite_exists_bigger {A}
       (DEC : forall x y : A, {x = y} + {x <> y})
@@ -237,6 +259,70 @@ Proof using.
   split; apply IN.
 Qed.
 
+Lemma eqv_rel_alt {A: Type} (S: A -> Prop):
+  ⦗S⦘ ≡ S × S ∩ eq.
+Proof using. basic_solver. Qed.
+
+Lemma doma_alt {A: Type} (r: relation A) (d: A -> Prop):
+  doma r d <-> dom_rel r ⊆₁ d. 
+Proof using. unfolder. split; ins; basic_solver. Qed. 
+
+Lemma map_rel_seq_insert_exact {A B: Type} (r1 r2: relation B)
+      (f: A -> B) (d: A -> Prop)
+      (SUR_D: forall b, exists a, f a = b /\ d a):
+  f ↓ (r1 ⨾ r2) ⊆ f ↓ r1 ⨾ ⦗d⦘ ⨾ f ↓ r2. 
+Proof using.
+  unfolder. ins. desc.
+  specialize (SUR_D z). desc. eexists. splits; eauto; congruence. 
+Qed. 
+
+
+Lemma rel_map_bunionC {A B C: Type} (f: A -> B)
+      (cdom: C -> Prop) (ss: C -> relation B):
+  f ↓ (⋃ c ∈ cdom, ss c) ≡ (⋃ c ∈ cdom, f ↓ (ss c)).
+Proof using. basic_solver. Qed. 
+
+Lemma dom_rel_bunion {B C: Type}
+      (cdom: C -> Prop) (ss: C -> relation B):
+  dom_rel (⋃ c ∈ cdom, ss c) ≡₁ (⋃₁ c ∈ cdom, dom_rel (ss c)).
+Proof using. basic_solver. Qed.
+
+Lemma restr_rel_seq_same {A: Type} (r1 r2: relation A) (d: A -> Prop)
+      (DOMB1: domb (⦗d⦘ ⨾ r1) d):
+  restr_rel d (r1 ⨾ r2) ≡ restr_rel d r1 ⨾ restr_rel d r2. 
+Proof using.
+  split; [| apply restr_seq].
+  unfolder. unfolder in DOMB1. ins. desc.
+  eexists. splits; eauto.
+Qed. 
+
+Lemma set_subset_inter_exact {A: Type} (s s': A -> Prop):
+  s ⊆₁ s' <-> s ⊆₁ s ∩₁ s'. 
+Proof using.
+  split; [basic_solver| ]. ins.
+  red. ins. by apply H. 
+Qed.  
+
+Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
+      (SUR: forall b, exists a, f a = b):
+  f ↑₁ (f ↓₁ d) ≡₁ d. 
+Proof.
+  ins. split; [apply set_collect_map| ]. 
+  unfolder. ins.
+  specialize (SUR x) as [a Fa]. exists a. split; congruence. 
+Qed.
+ 
+Lemma restr_rel_cross_inter {A: Type} (d1 d2 d: A -> Prop):
+  (d1 ∩₁ d) × (d2 ∩₁ d) ≡ restr_rel d (d1 × d2).
+Proof using. basic_solver. Qed. 
+
+Global Add Parametric Morphism
+       {A: Type} (r: relation (A -> Prop)):
+  r with signature
+       @set_equiv A ==> @set_equiv A ==> iff as set_equiv_rel_more. 
+Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
+
+
 Lemma functional_codom {A: Type} (r: relation A) (a: A)
       (FUN: functional r)
       (DOMa: dom_rel r a):
@@ -262,3 +348,51 @@ Definition set_pair {A B} (s : A -> Prop) (t : B -> Prop) : A * B -> Prop :=
     | (a, b) => s a /\ t b
     end.
 Global Notation "s <*> t" := (set_pair s t) (at level 40, left associativity).
+
+Lemma set_pair_alt {A B: Type} (Sa: A -> Prop) (Sb: B -> Prop ):
+  Sa <*> Sb ≡₁ (fst ↓₁ Sa) ∩₁ (snd ↓₁ Sb). 
+Proof using. unfold set_pair. basic_solver. Qed.
+
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_equiv A ==> @set_equiv B ==> @set_equiv (A * B) as set_pair_more.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
+       @set_subset A ==> @set_subset B ==> @set_subset (A * B) as set_pair_mori.
+Proof using.
+  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
+Qed.
+
+Lemma acyclic_transp {A: Type} (r: relation A)
+      (AC: acyclic r):
+  acyclic (transp r). 
+Proof using. red. rewrite <- transp_ct. vauto. Qed.   
+
+Lemma not_wf_inf_decr_enum {A: Type} (r: relation A)
+      (NWF: ~ well_founded r):
+  exists (f: nat -> A), forall i, r (f (i + 1)) (f i).
+Proof using.
+  contra DECR. destruct NWF.
+  apply Classical_Wf.DSP_implies_WF. red. apply not_ex_not_all. 
+  intros [f DECR']. destruct DECR. exists f.
+  ins. contra Nri. destruct DECR'. exists i. by rewrite <- PeanoNat.Nat.add_1_r. 
+Qed. 
+
+Lemma In_gt_list_max (l: list nat) (n: nat)
+      (GT_MAX: n > list_max l):
+  ~ In n l. 
+Proof using.
+  intros IN.
+  forward eapply (list_max_le l (list_max l)) as [IMPL _].
+  specialize_full IMPL; [lia| ].
+  eapply Forall_in in IMPL; eauto. lia.
+Qed.  
+
+Lemma excluded_middle_or (A B: Prop)
+      (OR: A \/ B):
+  A \/ (~ A) /\ B.
+Proof. tauto. Qed. 
+
+Ltac liaW no := destruct no; [done| ins; lia]. 

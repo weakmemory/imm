@@ -27,6 +27,7 @@ Require Import IndefiniteDescription.
 Require Import AuxRel2.
 Require Import Program.Basics.
 Require Import HardwareFairness.
+Require Import AuxDef.
 Import ListNotations. 
 
 Set Implicit Arguments.
@@ -104,11 +105,6 @@ Hypothesis DATA_RMW : data ⨾ ⦗W_ex⦘ ⨾ sb ⊆ ctrl.
 Hypothesis DEPS_RMW_FAIL : rmw_dep ⨾ (rmw ∪ ctrl) ⊆ ctrl.
 
 Hypothesis CON: PowerConsistent G.
-
-Ltac contra name := 
-  match goal with
-  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
-  end. 
 
 
 Lemma wf_hbpE:

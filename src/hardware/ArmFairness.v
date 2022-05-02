@@ -23,6 +23,7 @@ Require Import FairExecution.
 Require Import imm_sToARM.
 Require Import HardwareFairness. 
 Require Import Lia.
+Require Import AuxDef.
 Import ListNotations. 
 
 Set Implicit Arguments.
@@ -138,11 +139,6 @@ Proof using CON.
   basic_solver.
 Qed.  
   
-Ltac contra name := 
-  match goal with
-  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
-  end. 
-
 Lemma wf_ob'E:
   ob' ≡ ⦗E⦘ ⨾ ob' ⨾ ⦗E⦘. 
 Proof using CON. 

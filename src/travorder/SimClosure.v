@@ -83,7 +83,6 @@ Definition tl_issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)
 Definition tl_covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
 Definition tl_reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
 
-(* TODO: move upper *)
 Lemma tl_covered_single e:
   tl_covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
 Proof.
@@ -111,13 +110,13 @@ Proof using.
   rewrite !set_pair_alt. rewrite H. basic_solver.
 Qed.
 
-(* TODO: move upper *)
 Global Add Parametric Morphism : sim_clos with signature
        set_subset ==> set_subset as sim_clos_mori.
 Proof using.
   unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
   rewrite !set_pair_alt. rewrite H. basic_solver.
 Qed.
+
 
 Lemma rmw_clos_dist (tc1 tc2: trav_label -> Prop):
   rmw_clos (tc1 ∪₁ tc2) ≡₁ rmw_clos tc1 ∪₁ rmw_clos tc2. 
@@ -204,27 +203,6 @@ Proof using.
   rewrite rel_clos_idemp; basic_solver. 
 Qed. 
 
-(* TODO: move to lib *)
-Lemma map_rel_seq_ext {A B : Type} (f : A -> B) (r r' : relation B)
-      (SUR: forall b, exists a, f a = b):
-  f ↓ r ⨾ f ↓ r' ≡ f ↓ (r ⨾ r'). 
-Proof using. 
-  split; [apply map_rel_seq| ].
-  unfolder. ins. desc. specialize (SUR z). desc.
-  exists a. vauto. 
-Qed.
-
-(* TODO: move to lib *)
-Lemma set_map_codom_ext {A B : Type} (f : A -> B) (rr : relation B)
-      (SUR: forall b, exists a, f a = b):
-  codom_rel (f ↓ rr) ≡₁ f ↓₁ codom_rel rr. 
-Proof using. 
-  split; [apply set_map_codom| ].
-  unfolder. ins. desc. specialize (SUR x0). desc.
-  exists a. congruence. 
-Qed.  
-
-
 (* TODO: add to auto lib *)
 Lemma event_sur:
   forall y : actid, exists x : trav_label, event x = y. 
@@ -243,7 +221,9 @@ Proof using.
   do 2 red in H. desc. red in H. desc.
   destruct x as [a2 e2], x0 as [a1 e1], y as [a3 e3]. red in H2. ins. subst.
   eexists. splits; eauto. 
-Qed.  
+Qed.
+
+Ltac by_sur := by (intros e; destruct (event_sur e); eauto).  
 
 Lemma sb_cr_tc_cover (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
@@ -257,7 +237,7 @@ Proof using.
   rewrite set_split_complete with (s' := action ↓₁ _) (s := event ↓₁ is_init)at 1.
   rewrite id_union. repeat case_union _ _.
   rewrite dom_union. apply set_subset_union_l. split.
-  { rewrite wf_sbE. rewrite <- map_rel_seq_ext; [| by apply event_sur].
+  { rewrite wf_sbE. rewrite <- map_rel_seq2; [| by_sur]. 
     rewrite <- !seqA. do 3 rewrite dom_seq. 
     destruct TCOH. rewrite <- tls_coh_init. unfold init_tls.
     rewrite set_pair_alt. unfolder. ins. desc. splits; vauto. }
@@ -354,8 +334,7 @@ Proof using.
   { etransitivity; [| do 2 (apply set_subset_union_r; left); reflexivity].
     fold action event. unfold SB.
     rewrite ct_end at 1.
-    erewrite <- map_rel_seq2.
-    2: { ins. generalize (event_sur y). ins. desc. eauto. }
+    erewrite <- map_rel_seq2; [| by_sur]. 
     rewrite map_rel_union. rewrite !seqA, seq_union_l.
     etransitivity.
     { apply dom_rel_mori.
@@ -374,7 +353,7 @@ Proof using.
     rewrite <- !seqA, dom_rel_eqv_codom_rel.
     
     rewrite transp_seq, <- map_rel_transp, !transp_eqv_rel.
-    rewrite !seqA. seq_rewrite !map_rel_seq_ext; try by apply event_sur.
+    rewrite !seqA. seq_rewrite !map_rel_seq2; try by_sur.
     rewrite seqA. sin_rewrite sb_transp_rmw; auto.
     
     arewrite ((sb ∪ sc)＊ ⨾ sb^? ⊆ (sb ∪ sc)＊).
@@ -413,7 +392,7 @@ Proof using.
     unfold FWBOB, SB. rewrite fwbob_in_sb.
     rewrite inclusion_seq_eqv_r with (dom := W).
     rewrite inclusion_seq_eqv_r with (dom := action ↓₁ _) at 1.
-    rewrite seqA. seq_rewrite map_rel_seq_ext; [| apply event_sur].
+    rewrite seqA. seq_rewrite map_rel_seq2; [| by_sur]. 
     rewrite sb_transp_rmw; auto.
     rewrite crE, map_rel_union. repeat case_union _ _. apply inclusion_union_l.
     { rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r1].
@@ -451,7 +430,7 @@ Proof using.
   do 2 rewrite inclusion_seq_eqv_r.
   rewrite transp_seq, transp_eqv_rel, <- map_rel_transp.
   rewrite inclusion_seq_eqv_r with (dom := W). rewrite seqA.
-  seq_rewrite map_rel_seq_ext; [| apply event_sur]. rewrite sb_transp_rmw; auto.
+  seq_rewrite map_rel_seq2; [| by_sur]. rewrite sb_transp_rmw; auto.
   rewrite seqA, sb_cr_tc_cover; auto.
   rewrite <- !seqA. do 2 rewrite dom_seq. rewrite !seqA.
   rewrite rtE. case_union _ _. rewrite map_rel_union.
@@ -877,7 +856,6 @@ Section CoverClosure.
     remember (stc ∪₁ eq (mkTL ta_issue w)) as stc_w1.
     assert (sim_coherent stc_w1) as SCOHw1.
     { red. subst stc_w1.
-      (* TODO: remove WF premise? *)      
       rewrite sim_clos_dist; auto.
       arewrite (sim_clos stc ≡₁ stc).
       { symmetry. unfold stc at 2. apply sim_clos_sim_coherent; auto. }
@@ -942,7 +920,6 @@ Section IssueClosure.
   Lemma sim_clos_steps_issue:
     sim_clos_step＊ stc stc'.
   Proof using WF TCOH' TCOH ICOH' ICOH CONS ISSUE NEW.
-    (* TODO: replace NEW with more general name  *)
     rename e into w. 
     assert (W w) as Ww.
     { replace w with (event lbl); auto. eapply (@tlsc_I_in_W _ tc'); eauto. 

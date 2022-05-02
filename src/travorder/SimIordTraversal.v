@@ -22,9 +22,6 @@ Require Import ImmFair.
 
 Import ListNotations.
 
-(* TODO: move to lib *)
-Ltac liaW no := destruct no; [done| ins; lia]. 
-
 Set Implicit Arguments.
 
 Section IordTraversal. 

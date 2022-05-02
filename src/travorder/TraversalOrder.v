@@ -926,14 +926,6 @@ Proof using.
   unfold SB. rewrite EQ; eauto.
 Qed.
 
-(* TODO: move to ... *)
-Global Add Parametric Morphism : ar with signature
-       eq ==> same_relation ==> same_relation as ar_more.
-Proof using.
-  intros G r r' EQ.
-  now unfold ar; rewrite EQ.
-Qed.
-
 Global Add Parametric Morphism : AR with signature
        eq ==> same_relation ==> same_relation as AR_more.
 Proof using.
@@ -956,97 +948,6 @@ Proof using.
   apply restr_rel_more; eauto.
   now rewrite EQ.
 Qed.
-
   
-(* TODO: move to lib *)
-Lemma set_pair_alt {A B: Type} (Sa: A -> Prop) (Sb: B -> Prop ):
-  Sa <*> Sb ≡₁ (fst ↓₁ Sa) ∩₁ (snd ↓₁ Sb). 
-Proof using. unfold set_pair. basic_solver. Qed.
 
-(* TODO: move to lib *)
-Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
-       @set_equiv A ==> @set_equiv B ==> @set_equiv (A * B) as set_pair_more.
-Proof using.
-  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
-Qed.
-
-(* TODO: move to lib *)
-Global Add Parametric Morphism {A B: Type}: (@set_pair A B) with signature
-       @set_subset A ==> @set_subset B ==> @set_subset (A * B) as set_pair_mori.
-Proof using.
-  ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
-Qed.
-
-(* TODO: move to lib *)
-Lemma eqv_rel_alt {A: Type} (S: A -> Prop):
-  ⦗S⦘ ≡ S × S ∩ eq.
-Proof using. basic_solver. Qed.
-
-(* TODO: move to lib *)
-Lemma doma_alt {A: Type} (r: relation A) (d: A -> Prop):
-  doma r d <-> dom_rel r ⊆₁ d. 
-Proof using. unfolder. split; ins; basic_solver. Qed. 
-
-(* TODO: move to lib *)  
-Lemma map_rel_seq_insert_exact {A B: Type} (r1 r2: relation B)
-      (f: A -> B) (d: A -> Prop)
-      (SUR_D: forall b, exists a, f a = b /\ d a):
-  f ↓ (r1 ⨾ r2) ⊆ f ↓ r1 ⨾ ⦗d⦘ ⨾ f ↓ r2. 
-Proof using.
-  unfolder. ins. desc.
-  specialize (SUR_D z). desc. eexists. splits; eauto; congruence. 
-Qed. 
-
-
-(* TODO: move to lib *)  
-Lemma rel_map_bunionC {A B C: Type} (f: A -> B)
-      (cdom: C -> Prop) (ss: C -> relation B):
-  f ↓ (⋃ c ∈ cdom, ss c) ≡ (⋃ c ∈ cdom, f ↓ (ss c)).
-Proof using. basic_solver. Qed. 
-
-(* TODO: move to lib *)  
-Lemma dom_rel_bunion {B C: Type}
-      (cdom: C -> Prop) (ss: C -> relation B):
-  dom_rel (⋃ c ∈ cdom, ss c) ≡₁ (⋃₁ c ∈ cdom, dom_rel (ss c)).
-Proof using. basic_solver. Qed.
-
-(* TODO: move to lib *)  
-Lemma restr_rel_seq_same {A: Type} (r1 r2: relation A) (d: A -> Prop)
-      (DOMB1: domb (⦗d⦘ ⨾ r1) d):
-  restr_rel d (r1 ⨾ r2) ≡ restr_rel d r1 ⨾ restr_rel d r2. 
-Proof using.
-  split; [| apply restr_seq].
-  unfolder. unfolder in DOMB1. ins. desc.
-  eexists. splits; eauto.
-Qed. 
-
-(* TODO: move to lib *)
-Global Add Parametric Morphism
-       {A: Type} (r: relation (A -> Prop)):
-  r with signature
-       @set_equiv A ==> @set_equiv A ==> iff as set_equiv_rel_more. 
-Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
-
-(* TODO: move to lib? *)
-Lemma set_subset_inter_exact {A: Type} (s s': A -> Prop):
-  s ⊆₁ s' <-> s ⊆₁ s ∩₁ s'. 
-Proof using.
-  split; [basic_solver| ]. ins.
-  red. ins. by apply H. 
-Qed.  
-
-(* TODO: move to lib *)
-Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
-      (SUR: forall b, exists a, f a = b):
-  f ↑₁ (f ↓₁ d) ≡₁ d. 
-Proof.
-  ins. split; [apply set_collect_map| ]. 
-  unfolder. ins.
-  specialize (SUR x) as [a Fa]. exists a. split; congruence. 
-Qed.
- 
-(* TODO: move *)
-Lemma restr_rel_cross_inter {A: Type} (d1 d2 d: A -> Prop):
-  (d1 ∩₁ d) × (d2 ∩₁ d) ≡ restr_rel d (d1 × d2).
-Proof using. basic_solver. Qed. 
 

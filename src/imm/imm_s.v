@@ -953,3 +953,11 @@ Proof using WF.
 Qed.
 
 End IMM.
+
+Global Add Parametric Morphism: (fun G sc => ar G sc) with signature
+       eq ==> same_relation ==> same_relation as ar_more.
+Proof using.
+  intros G r r' EQ.
+  now unfold ar; rewrite EQ.
+Qed.
+

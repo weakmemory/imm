@@ -4,7 +4,6 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
-From ZornsLemma Require Classical_Wf. 
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -16,6 +15,7 @@ Require Import ClassicalChoice.
 Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
 Require Import AuxRel2.
+Require Import AuxDef.
 Require Import Program.Basics.
 Import ListNotations.
 
@@ -102,41 +102,6 @@ Notation "'same_loc'" := (same_loc lab).
 Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'Loc_' l" := (fun x => loc x = l) (at level 1).
 
-(* TODO: move to lib and get rid of duplicates*)
-Ltac contra name := 
-  match goal with
-  | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
-  end. 
-
-
-(* TODO: move to lib *)
-Lemma not_wf_inf_decr_enum {A: Type} (r: relation A)
-      (NWF: ~ well_founded r):
-  exists (f: nat -> A), forall i, r (f (i + 1)) (f i).
-Proof using.
-  contra DECR. destruct NWF.
-  apply Classical_Wf.DSP_implies_WF. red. apply not_ex_not_all. 
-  intros [f DECR']. destruct DECR. exists f.
-  ins. contra Nri. destruct DECR'. exists i. by rewrite <- PeanoNat.Nat.add_1_r. 
-Qed. 
-
-(* TODO: move to lib *)
-Lemma In_gt_list_max (l: list nat) (n: nat)
-      (GT_MAX: n > list_max l):
-  ~ In n l. 
-Proof using.
-  intros IN.
-  forward eapply (list_max_le l (list_max l)) as [IMPL _].
-  specialize_full IMPL; [lia| ].
-  eapply Forall_in in IMPL; eauto. lia.
-Qed.  
-
-(* TODO: move to lib *)
-Lemma excluded_middle_or (A B: Prop)
-      (OR: A \/ B):
-  A \/ (~ A) /\ B.
-Proof using. tauto. Qed. 
-
 Lemma enum_steps_inv {A: Type} (r: relation A) (f: nat -> A)
       (STEPS: forall i : nat, r (f (i + 1)) (f i)):
   ⟪STEPS: forall i j (LT: i < j), r^+ (f j) (f i) ⟫.
@@ -167,20 +132,6 @@ Proof using.
   unfolder. tauto. 
 Qed.
 
-(* TODO: move to lib *)
-Lemma acyclic_transp {A: Type} (r: relation A)
-      (AC: acyclic r):
-  acyclic (transp r). 
-Proof using. red. rewrite <- transp_ct. vauto. Qed.   
-
-
-(* TODO: move to lib *)
-Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
-      (INF: ~ set_finite S):
-  exists e, S e.
-Proof using. contra NO. destruct INF. exists []. ins. edestruct NO; vauto. Qed. 
-
-
 Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Prop)
       (STEPS: forall i, r (f (i + 1)) (f i))
       (AC: acyclic r)
@@ -190,7 +141,7 @@ Lemma fsupp_dom_enum_general {A: Type} (f: nat -> A) (r: relation A) (S: A -> Pr
 Proof using.
   pose proof (proj2 (fin_dom_rel_fsupp _) FSUPP) as FSUPP'.
 
-  forward eapply (set_infinite_has_element INF_S') as [ie1 Ie1].
+  forward eapply (@set_infinite_has_element _ _ INF_S')  as [ie1 Ie1].
   specialize (FSUPP' (eq (f ie1))). specialize_full FSUPP'; [by exists [f ie1]; vauto| ].
 
   eapply set_finite_mori in FSUPP'.
