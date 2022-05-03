@@ -274,7 +274,8 @@ Proof using.
     case_union _ _. rewrite sb_sb. rewrite <- ct_step.
     repeat (apply inclusion_union_l); try basic_solver 10.
     apply inclusion_union_r2_search. hahn_frame.
-    rewrite <- inclusion_union_r1. basic_solver. }
+    rewrite <- inclusion_union_r1.
+    rewrite <- inclusion_t_rt. apply ct_step. }
   repeat case_union _ _. rewrite map_rel_union. rewrite <- !seqA. rewrite seqA with (r2 := rfe). 
   rewrite map_rel_seq_insert_exact with (r2 := rfe ⨾ _) (d := action ↓₁ eq ta_issue). 
   2: { ins. exists (mkTL ta_issue b). vauto. }
@@ -399,7 +400,8 @@ Proof using.
       iord_dom_solver; vauto. }
     rewrite crE. case_union _ _ . etransitivity; [| apply inclusion_union_r2].
     rewrite id_inter, seq_eqvC. hahn_frame.
-    rewrite <- inclusion_union_r1. basic_solver. }
+    rewrite <- inclusion_union_r1, <- ct_step.
+    basic_solver. }
   unfold AR. fold event action.
   rewrite ct_end, !seqA. unfold "ar" at 2.
   repeat rewrite seq_union_l with (r := ⦗W⦘).

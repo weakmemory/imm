@@ -689,9 +689,11 @@ Proof using WF LSM RMWSC RSCF WRLXF WSCFACQRMW.
   repeat rewrite inclusion_seq_eqv_r. do 2 rewrite seq_union_l.
   rewrite !seqA, unionK.
   arewrite (ar sc ⨾ ar sc ⨾ ar sc ⊆ (ar sc)⁺).
-  { do 2 rewrite <- ct_ct at 1. basic_solver 10. }
+  { do 2 rewrite <- ct_ct at 1.
+    rewrite <- !ct_step.
+    basic_solver 10. }
   arewrite (ar sc ⨾ ar sc ⊆ (ar sc)⁺).
-  { rewrite <- ct_ct at 1. basic_solver 10. }
+  { rewrite <- ct_ct at 1. rewrite <- ct_step. basic_solver 10. }
   rewrite unionK. red in Cext. red.
   rewrite ct_of_ct. auto.
 Qed. 
@@ -736,7 +738,9 @@ Proof using WF LSM RMWSC RSCF WRLXF WSCFACQRMW.
     case_union _ _.
     rewrite seq_union_r. rewrite seq_union_r, seq_union_l. 
     unionL.
-    { rewrite sc_rf_in_pscb. basic_solver. }
+    { rewrite sc_rf_in_pscb.
+      rewrite <- inclusion_t_rt, <- ct_step.
+      basic_solver. }
     rewrite cr_seq. case_union _ _. rewrite seq_union_r.
     arewrite ((sb ⨾ rf^?)⁺ ⊆ (sb ⨾ rf)＊ ⨾ sb^?).
     { rewrite crE, seq_union_r, seq_id_r.

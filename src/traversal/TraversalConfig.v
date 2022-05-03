@@ -1584,7 +1584,8 @@ Proof using WF TCCOH RELCOV IMMCON.
        { left.
          destruct_seq_l CC as XX.
          apply seq_eqv_l. split; auto.
-         apply ct_ct. eexists. split; eauto. }
+         apply ct_ct. exists y. split; eauto.
+         by apply ct_step. }
        destruct AA as [AA|AA].
        { right. eapply (@sb_trans G); eauto. }
        assert ((sw ⨾ ⦗C ∪₁ dom_rel (sb^? ⨾ ⦗I⦘)⦘) y z) as DD.

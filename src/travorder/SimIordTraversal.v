@@ -198,6 +198,7 @@ Section IordTraversal.
     { left. red. vauto. }
     { subst. basic_solver. }
     enough (j < i); [lia| ]. eapply RESP; eauto. 
+    by apply ct_step.
   Qed.
   
   Lemma trav_prefix_step
