@@ -192,7 +192,7 @@ Proof using CON.
         specialize_full FINW; try basic_solver. 
       all: apply In_gt_list_max in FINW; vauto; lia. }
     
-    forward eapply fsupp_dom_enum with (f0 := fun k => f (wb + k))
+    forward eapply fsupp_dom_enum with (f := fun k => f (wb + k))
                                        (r := ⦗set_compl is_init⦘ ⨾ sb) as []. 
     { ins. apply seq_eqv_l. split.
       { apply ENUM_E. vauto. }
@@ -208,7 +208,7 @@ Proof using CON.
        forward eapply is_w_loc; eauto. ins. desc. vauto. }
 
   eapply enum_order_contradiction with (r' := co)
-                                       (S0 := (E \₁ is_init) ∩₁ (W ∩₁ Loc_ (Some l))); eauto.
+                                       (S := (E \₁ is_init) ∩₁ (W ∩₁ Loc_ (Some l))); eauto.
   { intros FIN. destruct INFtl. eapply set_finite_mori; eauto.
     red. rewrite set_map_inter with (d := _ \₁ _).
     apply set_subset_inter_r. split; [| basic_solver].

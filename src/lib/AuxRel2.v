@@ -209,7 +209,7 @@ Lemma set_finite_set_collect_inv_inj {A B: Type} (f: A -> B) (S: A -> Prop)
 Proof using.
   red in FIN_MAP. desc.
   rewrite AuxRel2.set_bunion_separation with (fab := f).
-  rewrite AuxRel2.set_full_split with (S0 := (fun b => In b findom)).
+  rewrite AuxRel2.set_full_split with (S := (fun b => In b findom)).
   rewrite set_bunion_union_l. apply set_finite_union. split.
   2: { exists []. ins. red in IN. desc. red in IN0. desc.
        destruct IN. apply FIN_MAP. basic_solver. }

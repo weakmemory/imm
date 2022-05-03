@@ -292,13 +292,17 @@ Proof using WF IMMCON.
   { eapply itrav_step_more; eauto.
     { apply same_tc_Reflexive. }
     red. rewrite COVEQ. rewrite ISSEQ. by split. }
-  eapply itrav_step_more with (y0:= mkTC (covered T) (issued T ∪₁ eq e)); eauto.
+  eapply itrav_step_more.
+(* eapply itrav_step_more with (y0:= mkTC (covered T) (issued T ∪₁ eq e)); eauto.
+   ^ doesn't work due to a ?bug? in Coq 8.15.1.
+*)
+  3: reflexivity.
+  all: eauto.
   { red; eauto. }
-  { apply same_tc_Reflexive. }
   apply w_rel_trav_step; eauto.
   { by split. }
-  eapply itrav_step_more with (y1:=T'); eauto.
-  { apply same_tc_Reflexive. }
+  eapply itrav_step_more; eauto.
+  { reflexivity. }
   red. simpls. rewrite COVEQ, ISSEQ. by split.
 Qed.
 

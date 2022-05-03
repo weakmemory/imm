@@ -134,7 +134,7 @@ Proof using.
   intros FIN. destruct INF.
   rewrite AuxRel2.set_bunion_separation with (fab := tid).
   rewrite set_map_bunion. 
-  rewrite AuxRel2.set_full_split with (S0 := flip BinPos.Pos.lt b).
+  rewrite AuxRel2.set_full_split with (S := flip BinPos.Pos.lt b).
   rewrite set_bunion_union_l, set_finite_union. split; auto. 
   exists []. ins. unfolder in IN. desc. destruct IN. red. 
   rewrite <- IN1. apply FINTHREADS. apply IN_E. vauto.
@@ -150,7 +150,7 @@ Proof using.
   intros FIN. destruct INF.
   rewrite AuxRel2.set_bunion_separation with (fab := loc).
   rewrite set_map_bunion.
-  rewrite AuxRel2.set_full_split with (S0 := fun l => In l locs).
+  rewrite AuxRel2.set_full_split with (S := fun l => In l locs).
   rewrite set_bunion_union_l, set_finite_union. split; auto.
   exists []. ins. unfolder in IN. desc.    
   destruct IN. rewrite <- IN1. apply FINLOCS. apply IN_E. vauto.
@@ -195,7 +195,7 @@ Proof using CON.
       { apply wf_rfeD, seq_eqv_lr in H; auto. desc. vauto. }
       apply In_gt_list_max in FINW; vauto. lia. }
     
-    forward eapply fsupp_dom_enum with (f0 := fun k => f (wb + k))
+    forward eapply fsupp_dom_enum with (f := fun k => f (wb + k))
                                        (r := ⦗set_compl is_init⦘ ⨾ sb) as []. 
     { ins. apply seq_eqv_l. split.
       { apply ENUM_E. vauto. }

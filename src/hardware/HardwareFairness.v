@@ -147,12 +147,12 @@ Proof using.
   eapply set_finite_mori in FSUPP'.
   2: { red. apply set_collect_map with (f := f). }
   apply set_finite_set_collect_inv_inj in FSUPP'.
-  2: { ins. eapply enum_inj with (r0 := transp r); eauto.
+  2: { ins. eapply enum_inj with (r := transp r); eauto.
        by apply acyclic_transp. }
 
   destruct INF_S'.
   rewrite <- set_inter_full_r with (s := _ ↓₁ _). 
-  rewrite set_full_split with (S0 := ge ie1), set_inter_union_r.
+  rewrite set_full_split with (S := ge ie1), set_inter_union_r.
   apply set_finite_union. split.
   { exists (List.seq 0 (ie1 + 1)). ins. unfolder in IN. desc. 
     apply in_seq. lia. }
@@ -170,7 +170,7 @@ Lemma fsupp_dom_enum {A: Type} (f: nat -> A) (r: relation A)
       (FSUPP: fsupp r^+):
   False.
 Proof using. 
-  eapply fsupp_dom_enum_general with (S0 := set_full); eauto.
+  eapply fsupp_dom_enum_general with (S := set_full); eauto.
   { eapply fsupp_mori; eauto. red. basic_solver. }
   intros FIN. eapply set_infinite_nat.
   eapply set_finite_mori; eauto. basic_solver. 
@@ -202,7 +202,7 @@ Lemma enum_order_contradiction {A: Type} (f: nat -> A) (r r': relation A) (S: A 
   False.
 Proof using.
   forward eapply enum_steps_inv as STEPS'; eauto.  
-  forward eapply orders_contradiction with (r1 := r^+) (r2 := r') (S0 := S ∩₁ (f ↑₁ set_full)).  
+  forward eapply orders_contradiction with (r1 := r^+) (r2 := r') (S := S ∩₁ (f ↑₁ set_full)).  
   { red. ins. unfolder in IWa. unfolder in IWb. desc. subst. rename y0 into x.
     pose proof (NPeano.Nat.lt_trichotomy x y). 
     des; (try by vauto); [right | left]; eauto. }
@@ -236,7 +236,7 @@ Proof using.
   intros FIN. destruct INF.
   rewrite AuxRel2.set_bunion_separation with (fab := tid).
   rewrite set_map_bunion. 
-  rewrite AuxRel2.set_full_split with (S0 := flip BinPos.Pos.lt b).
+  rewrite AuxRel2.set_full_split with (S := flip BinPos.Pos.lt b).
   rewrite set_bunion_union_l, set_finite_union. split; auto. 
   exists []. ins. unfolder in IN. desc. destruct IN. red. 
   rewrite <- IN1. apply FINTHREADS. apply IN_E. vauto.
@@ -252,7 +252,7 @@ Proof using.
   intros FIN. destruct INF.
   rewrite AuxRel2.set_bunion_separation with (fab := loc).
   rewrite set_map_bunion.
-  rewrite AuxRel2.set_full_split with (S0 := fun l => In l locs).
+  rewrite AuxRel2.set_full_split with (S := fun l => In l locs).
   rewrite set_bunion_union_l, set_finite_union. split; auto.
   exists []. ins. unfolder in IN. desc.    
   destruct IN. rewrite <- IN1. apply FINLOCS. apply IN_E. vauto.

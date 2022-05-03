@@ -469,11 +469,13 @@ Proof using.
     2: { ins. by exists (mkTL ta_cover b). }
     rewrite !seqA. 
     rewrite map_rel_union. repeat case_union _ _.
-    erewrite union_mori with (y0 := ∅₂); [rewrite union_false_r| reflexivity| ].
-    2: { unfold tl_issued. rewrite <- !id_inter.
-         erewrite eqv_rel_mori with (x := _ ∩₁ _).
-         2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
-         cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_unfolder. type_solver. }
+    erewrite union_mori with (y := ∅₂).
+    3: reflexivity.
+    { rewrite union_false_l.
+      rewrite <- !id_inter.
+      erewrite eqv_rel_mori with (x := _ ∩₁ _).
+      2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
+      cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_unfolder. type_solver. }
     rewrite dom_rel_helper_in with (r := _ ⨾ _ ⨾ _ ⨾ _ ⨾ ⦗tc⦘) (d := tc).
     2: { rewrite <- ICOH at 2. apply dom_rel_mori.
          transitivity (FWBOB G ⨾ ⦗tc⦘); [| unfold iord_simpl; basic_solver 10].
@@ -482,19 +484,20 @@ Proof using.
          forward eapply tlsc_I_in_W with (x := (ta_issue, d)) as I_W; eauto.
          { basic_solver. }
          eexists. splits; eauto. }
-    rewrite <- !seqA. do 4 rewrite dom_seq. rewrite !seqA. rewrite seq_eqvC.
-    rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union.
-    apply set_subset_union_l. split; [iord_dom_solver| ].
-    rewrite <- ICOH at 2. unfold iord_simpl, SB. basic_solver 10. }
-  { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _.
-    rewrite union_mori; [rewrite union_false_r| reflexivity| ].
-    2: { rewrite wf_rfD; auto.
-         unfold tl_issued. rewrite tlsc_I_in_W; eauto.
-         iord_dom_unfolder. type_solver. }
-    iord_dom_unfolder. left. left.
-    do 2 red in d4. desc. destruct y; ins; vauto.
-    unfolder in d4. desc. ins; vauto. } 
-Qed. 
+    (* rewrite <- !seqA. rewrite dom_seq. rewrite !seqA. rewrite seq_eqvC. *)
+(*     rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union. *)
+(*     apply set_subset_union_l. split; [iord_dom_solver| ]. *)
+(*     rewrite <- ICOH at 2. unfold iord_simpl, SB. basic_solver 10. } *)
+(*   { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _. *)
+(*     rewrite union_mori; [rewrite union_false_r| reflexivity| ]. *)
+(*     2: { rewrite wf_rfD; auto. *)
+(*          unfold tl_issued. rewrite tlsc_I_in_W; eauto. *)
+(*          iord_dom_unfolder. type_solver. } *)
+(*     iord_dom_unfolder. left. left. *)
+(*     do 2 red in d4. desc. destruct y; ins; vauto. *)
+(*     unfolder in d4. desc. ins; vauto. }  *)
+(* Qed.  *)
+Admitted.
 
 Lemma sim_clos_iord_coherent WF CONS (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)

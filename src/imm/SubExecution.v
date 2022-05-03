@@ -493,8 +493,8 @@ Lemma sub_comp (RF_A : dom_rel (rf ⨾ ⦗ E' ⦘) ⊆₁ E') (COMP: complete G)
 Proof using SUB.
 red; rewrite sub_R, (sub_rf SUB).
 unfolder; ins.
-exploit (COMP x).
-generalize sub_E_in; basic_solver.
+edestruct (COMP x); eauto.
+{ generalize sub_E_in; basic_solver. }
 unfolder; ins; desf.
 generalize (sub_E SUB).
 revert RF_A.

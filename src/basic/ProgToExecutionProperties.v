@@ -873,7 +873,7 @@ Proof using.
   { assert (C ⊆₁ acts_set (G y)) as UU.
     { intros a HH. apply CREP in HH. desc. subst.
       apply (acts_clos GPC'). lia. }
-    edestruct step_middle_set with (state0:=x) (state':=y) as [YY|YY]; eauto.
+    edestruct step_middle_set with (state:=x) (state':=y) as [YY|YY]; eauto.
     { ins. apply RMWC. eapply steps_preserve_rmw; eauto. }
     { exists x. splits.
       { apply rt_refl. }

@@ -422,24 +422,22 @@ Lemma eco_sw_helper WF SC_PER_LOC
   x y z (ECO: eco x y) (SW: sw y z) (NECO: ~ eco y z) :
   exists k, eco x k /\ sb k z /\ ~ rmw k z.
 Proof using.
-assert (Wy: W y).
-  apply (wf_ecoD WF) in ECO; try edone.
-  apply (wf_swD WF) in SW; try edone.
-  by unfolder in *; type_solver.
-assert (SW1 := SW).
-apply (wf_swD WF) in SW1; try edone.
-unfolder in SW1; desc.
-destruct SW2.
-- exploit sw_in_eco_sb; eauto.
-  unfolder; splits; eauto.
-  by desf.
-  unfold eqv_rel, seq; ins; desc.
-  exists z0; splits; eauto using (eco_trans WF); subst.
-  done.
+  assert (Wy: W y).
+  { apply (wf_ecoD WF) in ECO; try edone.
+    apply (wf_swD WF) in SW; try edone.
+    by unfolder in *; type_solver. }
+  assert (SW1 := SW).
+  apply (wf_swD WF) in SW1; try edone.
+  unfolder in SW1; desc.
+  destruct SW2.
+  2: { exfalso; apply NECO.
+       apply sw_in_eco; try done.
+       unfolder; ins; desf. }
+  edestruct sw_in_eco_sb as [x' [AA BB]]; eauto.
+  { unfolder; splits; eauto. desf. }
+  apply seq_eqv_r in BB. destruct BB as [SB FF].
+  exists x'; splits; eauto using (eco_trans WF); subst.
   intro A; eapply (wf_rmwD WF) in A; unfolder in *; type_solver.
-- exfalso; apply NECO.
-  apply sw_in_eco; try done.
-  unfolder; ins; desf.
 Qed.
 
 Lemma eco_sw WF SC_PER_LOC :
