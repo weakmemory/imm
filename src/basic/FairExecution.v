@@ -27,6 +27,9 @@ Section FairExecution.
         (FOR_SPLIT : ⦗set_compl S⦘ ⨾ immediate (co G) ⊆ sb G) :
     sb G w wnext.
   Proof using WF FAIR.
+    assert (transitive (co G)) as COTRANS.
+    { apply (co_trans WF). }
+
     assert (S wnext /\ co G w wnext) as [ISSNEXT CONEXT].
     { generalize NCOIMM. basic_solver. }
     apply clos_trans_of_transitiveD; [apply sb_trans|].
@@ -42,21 +45,18 @@ Section FairExecution.
       assert (immediate ((co G) ⨾ ⦗S⦘) z wnext) as IMM'.
       { red; split; [apply seq_eqv_r; split; auto|].
         { apply clos_trans_immediate1; auto.
-          eapply (co_trans WF). }
+          by apply ct_step. }
         ins. eapply NCOIMM; [|by apply R2].
         apply seq_eqv_r in R1; destruct R1 as [R1 R3].
         apply seq_eqv_r; split; auto.
         eapply (co_trans WF); [|by apply R1].
-        apply clos_trans_immediate1; auto.
-        eapply (co_trans WF). }
+        apply clos_trans_immediate1; auto. }
       clear IMM.
       induction IMMS.
       { apply rt_step. apply seq_eqv_l; split; auto. }
       assert (co G y wnext) as YNEXT.
       { apply clos_trans_immediate1; auto.
-        eapply (co_trans WF).
         eapply transitive_ct; [by apply IMMS2|].
-
         eapply same_relation_exp.
         { symmetry. apply fsupp_imm_t; apply FAIR || apply WF. }
         unfolder in IMM'. basic_solver. }
@@ -66,8 +66,7 @@ Section FairExecution.
         apply seq_eqv_r in R1; destruct R1 as [R1 R3].
         apply seq_eqv_r; split; auto.
         eapply (co_trans WF); [|by apply R1].
-        apply clos_trans_immediate1; auto.
-        eapply (co_trans WF). }
+        apply clos_trans_immediate1; auto. }
       eapply rt_trans.
       { by apply IHIMMS1. }
       apply IHIMMS2; auto.
@@ -76,14 +75,13 @@ Section FairExecution.
       intros NISS. eapply NCOIMM; apply seq_eqv_r; split; auto.
       2: by apply NISS.
       2: done.
-      apply clos_trans_immediate1; auto.
-        by apply (co_trans WF). }
+      apply clos_trans_immediate1; auto. }
     intros HH. apply rtE in IMMS; destruct IMMS as [IMSS|IMMS].
     { red in IMSS; desf. }
     eapply NCOIMM; apply seq_eqv_r; split; auto.
     2: by apply HH.
     all: apply clos_trans_immediate1; auto.
-    all: apply (co_trans WF).
+    all: by apply ct_step.
   Qed.
   
   Lemma fsupp_rf: fsupp (rf G).

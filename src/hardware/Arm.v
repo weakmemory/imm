@@ -238,7 +238,8 @@ Proof using.
   unfold Execution.detour.
   arewrite (coe ⊆ obs).
   arewrite (rfe ⊆ obs).
-  rewrite ct_end.
+  rewrite <- ct_ct.
+  rewrite <- ct_step.
   basic_solver 12.
 Qed.
 

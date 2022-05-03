@@ -95,7 +95,9 @@ Section ImmFairProperties.
     2: { rewrite <- ct_of_ct. reflexivity. }
     etransitivity.
     2: { apply inclusion_ct_seq_eqv_l. } 
-    apply clos_trans_mori. basic_solver. 
+    apply clos_trans_mori.
+    unionL; hahn_frame_l; try reflexivity.
+    rewrite <- ct_step. reflexivity.
   Qed.
 
   Lemma imm_s_fair_fsupp_sc (IMM_FAIR: imm_s_fair G sc):
