@@ -197,8 +197,8 @@ Section IordTraversal.
     pose proof (Nat.lt_trichotomy i j) as LT. des; revgoals. 
     { left. red. vauto. }
     { subst. basic_solver. }
-    enough (j < i); [lia| ]. eapply RESP; eauto. 
-    by apply ct_step.
+    (* TODO: is the last tactic needed? *)
+    enough (j < i); [lia| ]. eapply RESP; eauto; try by apply ct_step.
   Qed.
   
   Lemma trav_prefix_step

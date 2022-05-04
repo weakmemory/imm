@@ -44,8 +44,8 @@ Section FairExecution.
       { red in IMMS; desf. apply rt_refl. }
       assert (immediate ((co G) ⨾ ⦗S⦘) z wnext) as IMM'.
       { red; split; [apply seq_eqv_r; split; auto|].
-        { apply clos_trans_immediate1; auto.
-          by apply ct_step. }
+        { (* TODO: is the last tactic needed? *)
+          apply clos_trans_immediate1; auto; try by apply ct_step. }
         ins. eapply NCOIMM; [|by apply R2].
         apply seq_eqv_r in R1; destruct R1 as [R1 R3].
         apply seq_eqv_r; split; auto.
