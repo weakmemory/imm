@@ -16,10 +16,14 @@ Set Implicit Arguments.
     
 
 Definition init_tls (G: execution):=
-  (eq ta_cover ∪₁ eq ta_issue ∪₁ is_ta_propagate_to_G G) <*>
+  (eq ta_cover ∪₁ eq ta_issue ∪₁ eq ta_reserve ∪₁ is_ta_propagate_to_G G) <*>
   (acts_set G ∩₁ is_init). 
 
 Definition exec_tls (G: execution): trav_label -> Prop :=
+  (eq ta_cover) <*> (acts_set G \₁ is_init) ∪₁
+  (eq ta_issue ∪₁ eq ta_reserve ∪₁ is_ta_propagate_to_G G) <*> ((acts_set G \₁ is_init) ∩₁ is_w (lab G)). 
+
+Definition exec_tls_cip (G: execution): trav_label -> Prop :=
   (eq ta_cover) <*> (acts_set G \₁ is_init) ∪₁
   (eq ta_issue ∪₁ is_ta_propagate_to_G G) <*> ((acts_set G \₁ is_init) ∩₁ is_w (lab G)). 
 

@@ -240,7 +240,7 @@ Proof using.
   { rewrite wf_sbE. rewrite <- map_rel_seq2; [| by_sur]. 
     rewrite <- !seqA. do 3 rewrite dom_seq. 
     destruct TCOH. rewrite <- tls_coh_init. unfold init_tls.
-    rewrite set_pair_alt. unfolder. ins. desc. splits; vauto. }
+    rewrite set_pair_alt. unfolder. ins. desc. splits; eauto. }
 
   red in ICOH. rewrite <- ICOH at 2. apply dom_rel_mori.
   rewrite seq_eqvC. hahn_frame_r. unfold iord.
