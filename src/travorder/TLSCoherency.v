@@ -147,6 +147,17 @@ Section TLSCoherency.
   apply set_subset_union_l. split; auto. basic_solver.
   Qed. 
   
+  Lemma exec_tls_cip_alt:
+    exec_tls_cip G ≡₁ exec_tls G \₁ action ↓₁ eq ta_reserve. 
+  Proof using. 
+    unfold exec_tls_cip, exec_tls. rewrite !set_pair_alt.
+    split; try basic_solver 10.
+    rewrite set_minus_union_l.
+    unfolder. ins. destruct x; ins; des; subst; splits; try by vauto.
+    { right. splits; vauto. }
+    do 2 red in H. desc. subst. right. splits; vauto. 
+  Qed. 
+
   Lemma iord_exec_tls:
     iord G sc ≡ restr_rel (exec_tls G) (iord G sc).
   Proof using.
@@ -160,5 +171,23 @@ Section TLSCoherency.
     repeat apply inclusion_union_l; try basic_solver.
     all: unfolder; ins; destruct x, y; ins; desc; subst; intuition. 
   Qed.
+
+  Lemma iord_exec_tls_cip:
+    iord G sc ≡ restr_rel (exec_tls_cip G) (iord G sc).
+  Proof using.
+    rewrite restr_relE. apply dom_helper_3.
+    rewrite exec_tls_cip_alt, set_minusE.
+    rewrite restr_rel_cross_inter.
+    split.
+    { eapply iord_exec_tls; eauto. }
+    do 2 red in H. desc. clear -H. unfolder in H. des.
+    all: apply seq_eqv_lr in H as (X & _ & Y); red in X, Y; vauto;
+      split; red; intros [=]; try congruence.
+    all: do 2 red in Y; desc; congruence. 
+  Qed. 
+
+  Lemma init_exec_tls_disjoint:
+    set_disjoint (init_tls G) (exec_tls G). 
+  Proof using. unfold init_tls, exec_tls. iord_dom_unfolder. Qed. 
 
 End TLSCoherency. 

@@ -203,6 +203,39 @@ Proof using.
   rewrite rel_clos_idemp; basic_solver. 
 Qed. 
 
+Lemma exec_tls_sim_coh (WF: Wf G):
+  sim_coherent (exec_tls G).
+Proof using. 
+  unfold sim_coherent, sim_clos. split; [basic_solver| ].
+  repeat (apply set_subset_union_l; split; try basic_solver). 
+  { unfold rmw_clos, exec_tls, tl_covered, tl_issued.
+    repeat rewrite set_pair_alt.
+    rewrite wf_rmwE, wf_rmwD, rmw_non_init_lr; auto. 
+    iord_dom_unfolder; [by vauto| ]. intuition. }
+  { unfold rel_clos, exec_tls, tl_covered, tl_issued.
+    repeat rewrite set_pair_alt.
+    iord_dom_unfolder. left. vauto. }
+Qed.
+
+Lemma init_tls_sim_coh (WF: Wf G):
+  sim_coherent (init_tls G).
+Proof using. 
+  unfold sim_coherent, sim_clos. split; [basic_solver| ].
+  repeat (apply set_subset_union_l; split); try basic_solver.
+  { unfold rmw_clos. rewrite set_pair_alt. etransitivity.
+    { red. intro. apply proj2. }
+    iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
+    apply init_tls_EI in d. red in d.
+    apply rmw_non_init_lr, seq_eqv_lr in d0; auto. type_solver. }
+  unfold rel_clos. rewrite set_pair_alt. etransitivity.
+  { red. intro. apply proj2. }
+  iord_dom_unfolder. do 2 red in d. desc. red in d. desc.
+  apply init_tls_EI in d. do 2 red in d. desc.
+  destruct y, a0; try by vauto. ins. subst. 
+  forward eapply (wf_init_lab WF l) as ?.
+  unfold is_rel, Events.mod in c. rewrite H in c. vauto. 
+Qed.
+
 (* TODO: add to auto lib *)
 Lemma event_sur:
   forall y : actid, exists x : trav_label, event x = y. 
@@ -471,13 +504,12 @@ Proof using.
     2: { ins. by exists (mkTL ta_cover b). }
     rewrite !seqA. 
     rewrite map_rel_union. repeat case_union _ _.
-    erewrite union_mori with (y := ∅₂).
-    3: reflexivity.
-    { rewrite union_false_l.
-      rewrite <- !id_inter.
-      erewrite eqv_rel_mori with (x := _ ∩₁ _).
-      2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
-      cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_unfolder. type_solver. }
+    rewrite dom_union. erewrite set_union_mori.
+    { rewrite set_union_empty_r. reflexivity. }
+    2: { rewrite <- !id_inter.
+         erewrite eqv_rel_mori with (x := _ ∩₁ _).
+         2: { etransitivity; [| apply tlsc_I_in_W]; basic_solver. } 
+         cdes CONS. rewrite (wf_scD Wf_sc). iord_dom_unfolder. type_solver. }
     rewrite dom_rel_helper_in with (r := _ ⨾ _ ⨾ _ ⨾ _ ⨾ ⦗tc⦘) (d := tc).
     2: { rewrite <- ICOH at 2. apply dom_rel_mori.
          transitivity (FWBOB G ⨾ ⦗tc⦘); [| unfold iord_simpl; basic_solver 10].
@@ -486,20 +518,19 @@ Proof using.
          forward eapply tlsc_I_in_W with (x := (ta_issue, d)) as I_W; eauto.
          { basic_solver. }
          eexists. splits; eauto. }
-    (* rewrite <- !seqA. rewrite dom_seq. rewrite !seqA. rewrite seq_eqvC. *)
-(*     rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union. *)
-(*     apply set_subset_union_l. split; [iord_dom_solver| ]. *)
-(*     rewrite <- ICOH at 2. unfold iord_simpl, SB. basic_solver 10. } *)
-(*   { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _. *)
-(*     rewrite union_mori; [rewrite union_false_r| reflexivity| ]. *)
-(*     2: { rewrite wf_rfD; auto. *)
-(*          unfold tl_issued. rewrite tlsc_I_in_W; eauto. *)
-(*          iord_dom_unfolder. type_solver. } *)
-(*     iord_dom_unfolder. left. left. *)
-(*     do 2 red in d4. desc. destruct y; ins; vauto. *)
-(*     unfolder in d4. desc. ins; vauto. }  *)
-(* Qed.  *)
-Admitted.
+    rewrite <- !seqA. do 4 rewrite dom_seq. rewrite !seqA. rewrite seq_eqvC.
+    rewrite rtE, map_rel_union. repeat case_union _ _. rewrite dom_union.
+    apply set_subset_union_l. split; [iord_dom_solver| ].
+    rewrite <- ICOH at 2. unfold iord_simpl, SB. basic_solver 10. }
+  { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _.
+    rewrite union_mori; [rewrite union_false_r| reflexivity| ].
+    2: { rewrite wf_rfD; auto.
+         unfold tl_issued. rewrite tlsc_I_in_W; eauto.
+         iord_dom_unfolder. type_solver. }
+    iord_dom_unfolder. left. left.
+    do 2 red in d4. desc. destruct y; ins; vauto.
+    unfolder in d4. desc. ins; vauto. }
+Qed.
 
 Lemma sim_clos_iord_coherent WF CONS (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
@@ -516,27 +547,49 @@ Proof using.
   apply sim_clos_iord_simpl_rel_clos; auto.
 Qed.
 
+Lemma rmw_clos_exec_tls tc (WF: Wf G):
+  rmw_clos tc ⊆₁ exec_tls G. 
+Proof using.
+  unfold rmw_clos, exec_tls. rewrite !set_pair_alt.
+  arewrite (codom_rel (⦗tl_covered tc⦘ ⨾ rmw) ⊆₁ (E \₁ is_init) ∩₁ W).
+  2: { basic_solver 10. }
+  rewrite wf_rmwD, wf_rmwE, rmw_in_sb, no_sb_to_init; auto. basic_solver.
+Qed. 
+  
+Lemma rel_clos_exec_tls tc (WF: Wf G) (TC_E: tc ⊆₁ event ↓₁ E):
+  rel_clos tc ⊆₁ exec_tls G.
+Proof using.
+  unfold rel_clos, exec_tls. rewrite !set_pair_alt.
+  apply set_subset_union_r. left. apply set_subset_inter; [done| ].
+  apply set_map_mori; [done| ]. unfold tl_issued.
+  unfolder. ins. desc. split.
+  { apply TC_E in H0. vauto. }
+  eintros INIT%init_pln; eauto. mode_solver.
+Qed.
+
+Lemma sim_clos_exec_tls WF tc
+      (TC_EXEC: tc ⊆₁ exec_tls G):
+  sim_clos tc ⊆₁ exec_tls G. 
+Proof using.
+  repeat (apply set_subset_union_l; split); auto.
+  { by apply rmw_clos_exec_tls. }
+  apply rel_clos_exec_tls; auto. rewrite TC_EXEC.
+  rewrite exec_tls_ENI. basic_solver. 
+Qed.
+
 Lemma sim_clos_tls_coherent WF tc
       (TCOH: tls_coherent G tc):
   tls_coherent G (sim_clos tc). 
-Proof.
+Proof using.
   pose proof TCOH as TCOH'.
   apply tls_coherent_defs_equiv. apply tls_coherent_defs_equiv in TCOH.
   red in TCOH. desc.
   red. unfold sim_clos. exists (tc' ∪₁ rmw_clos tc ∪₁ rel_clos tc). split.
   2: { rewrite TCOH0 at 1. basic_solver. }
   repeat (apply set_subset_union_l; split); auto.
-  { unfold rmw_clos, exec_tls. rewrite !set_pair_alt.
-    arewrite (codom_rel (⦗tl_covered tc⦘ ⨾ rmw) ⊆₁ (E \₁ is_init) ∩₁ W).
-    2: { basic_solver 10. }
-    rewrite wf_rmwD, wf_rmwE, rmw_in_sb, no_sb_to_init; auto. basic_solver. }
-  unfold rel_clos, exec_tls. rewrite !set_pair_alt.
-  apply set_subset_union_r. left. apply set_subset_inter; [done| ].
-  apply set_map_mori; [done| ]. unfold tl_issued.
-  unfolder. ins. desc. split.
-  { eapply tlsc_E in H0; eauto. vauto. }
-  eintros INIT%init_pln; eauto. mode_solver. 
-Qed. 
+  { by apply rmw_clos_exec_tls. }
+  apply rel_clos_exec_tls; auto. by apply tlsc_E. 
+Qed.  
 
 Lemma iord_coh_intermediate WF CONS tc s1 s2
       (ICOH: iord_coherent G sc tc)
