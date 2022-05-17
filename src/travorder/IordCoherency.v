@@ -39,7 +39,11 @@ Qed.
 Section IordCoherency.
   Variables (tc: trav_label -> Prop) (G: execution) (sc: relation actid). 
   Hypothesis (TCOH: tls_coherent G tc).
-  Hypotheses (WF: Wf G) (CONS: imm_consistent G sc).
+  Hypotheses (WF: Wf G)
+             (* (CONS: imm_consistent G sc). *)
+             (WFSC: wf_sc G sc)
+             (SCPL: sc_per_loc G)
+  .
 
   Implicit Types
            (ICOH: iord_coherent G sc tc)
@@ -107,29 +111,41 @@ Section IordCoherency.
   Lemma sb_E_ENI: sb ⊆ E_ENI. 
   Proof using. rewrite wf_sbE, no_sb_to_init. basic_solver. Qed. 
 
-  Lemma co_E_ENI (SCPL: sc_per_loc G): co ⊆ E_ENI. 
-  Proof using WF. rewrite wf_coE, no_co_to_init; auto. basic_solver. Qed. 
+  Lemma co_E_ENI: co ⊆ E_ENI. 
+  Proof using WF SCPL. rewrite wf_coE, no_co_to_init; auto. basic_solver. Qed.
 
   Lemma rf_E_ENI : rf ⊆ E_ENI. 
   Proof using WF. rewrite wf_rfE, no_rf_to_init; auto. basic_solver. Qed. 
 
-  Lemma fr_E_ENI (SCPL: sc_per_loc G) : fr ⊆ E_ENI. 
-  Proof using WF. rewrite wf_frE, no_fr_to_init; auto. basic_solver. Qed. 
+  Lemma fr_E_ENI: fr ⊆ E_ENI. 
+  Proof using WF SCPL. rewrite wf_frE, no_fr_to_init; auto. basic_solver. Qed.
+
+  (* TODO: replace the original lemma with it*)
+  Lemma no_ar_to_init': ar ⨾ ⦗is_init⦘ ≡ ∅₂.
+  Proof using WF WFSC.
+    split; [|basic_solver].
+    unfold ar.
+    rewrite (ar_int_in_sb WF). rewrite no_sb_to_init.
+    rewrite wf_scD with (sc:=sc); eauto.  
+    rewrite (wf_rfeD WF).
+    rewrite seq_union_l. unionL; [|basic_solver].
+    rewrite (init_w WF). type_solver 10.
+  Qed.
 
   Lemma no_ar_to_init_alt:
     ar ≡ ar ⨾ ⦗set_compl is_init⦘. 
-  Proof using CONS WF.
-    forward eapply no_ar_to_init; eauto. basic_solver 10.
+  Proof using WF WFSC.
+    forward eapply no_ar_to_init'; eauto. basic_solver 10.
     Unshelve. all: eauto.
   Qed. 
 
   Lemma ar_E_ENI: ar ⊆ E_ENI. 
-  Proof using WF CONS.
-    rewrite wf_arE, no_ar_to_init_alt; auto; [| apply CONS]. basic_solver.
+  Proof using WF WFSC.
+    rewrite wf_arE, no_ar_to_init_alt; auto. basic_solver.
   Qed.
 
-  Lemma sc_E_ENI (WFSC: wf_sc G sc): sc ⊆ E_ENI. 
-  Proof using WF.
+  Lemma sc_E_ENI: sc ⊆ E_ENI. 
+  Proof using WF WFSC.
     rewrite wf_scE, (@no_sc_to_init _ WF _ WFSC); eauto. basic_solver.
   Qed.
 
@@ -138,12 +154,10 @@ Section IordCoherency.
 
   Lemma iord_simpl_E_ENI:
     iord_simpl G sc ⊆ event ↓ E_ENI^?.
-  Proof using WF CONS. 
+  Proof using WF WFSC SCPL.
     unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
     rewrite ppo_in_sb, fwbob_in_sb; auto. rewrite inclusion_inter_l1 with (r := sb).
     rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_ENI, ?fr_E_ENI, ?ar_E_ENI, ?sc_E_ENI; auto.
-    2: by apply CONS.
-    2: { apply imm_s_hb.coherence_sc_per_loc, CONS. } 
     rewrite <- !seqA. 
     repeat (rewrite ?(@rt_of_trans _ E_ENI), ?(@rewrite_trans _ E_ENI),
              ?unionK, ?(@rewrite_trans _ E_ENI),
@@ -154,20 +168,21 @@ Section IordCoherency.
 
   Lemma iord_simpl_tc_doma:
     doma (iord_simpl G sc ⨾ ⦗tc⦘) (event ↓₁ E).
-  Proof using WF CONS TCOH.
+  Proof using WF WFSC SCPL TCOH.
     rewrite iord_simpl_E_ENI; auto. rewrite crE, map_rel_union, seq_union_l.
     apply union_doma.
     { rewrite tlsc_E; eauto. unfolder. ins. desc. congruence. }
     unfold E_ENI. basic_solver.
-  Qed. 
+  Qed.
 
+  (* TODO: move to lib*)
   Lemma set_compl_set_mapC {A B: Type} (d: B -> Prop) (f: A -> B):
     set_compl (f ↓₁ d) ≡₁  (f ↓₁ set_compl d).
   Proof using. basic_solver. Qed. 
 
-  Lemma iord_coh_implies_iord_simpl_coh ICOH:
+  Lemma iord_coh_implies_iord_simpl_coh' ICOH:
     dom_rel (iord_simpl G sc ⨾ ⦗tc⦘) ⊆₁ tc. 
-  Proof using WF CONS TCOH.
+  Proof using WF TCOH WFSC SCPL.
     rewrite set_split_complete with (s' := dom_rel _) (s := event ↓₁ is_init).
     forward eapply iord_simpl_tc_doma as IS_DOM%doma_rewrite; eauto.
 
@@ -222,3 +237,12 @@ Section IordCoherency.
 
 End IordCoherency.
 
+Lemma iord_coh_implies_iord_simpl_coh G sc tc
+      (tCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
+      (CONS: imm_consistent G sc) (WF: Wf G):      
+  dom_rel (iord_simpl G sc ⨾ ⦗tc⦘) ⊆₁ tc. 
+Proof using. 
+  apply iord_coh_implies_iord_simpl_coh'; auto.
+  { by apply CONS. }
+  apply imm_s_hb.coherence_sc_per_loc, CONS. 
+Qed.
