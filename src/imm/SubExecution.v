@@ -25,6 +25,7 @@ Variables G G' : execution.
 Variables sc sc' : relation actid.
 
 Notation "'E''" := (acts_set G').
+Notation "'threads_set''" := (threads_set G').
 Notation "'lab''" := (lab G').
 Notation "'sb''" := (sb G').
 Notation "'rf''" := (rf G').
@@ -87,6 +88,7 @@ Notation "'Acq/Rel''" := (fun a => is_true (is_ra lab' a)).
 Notation "'Sc''" := (fun a => is_true (is_sc lab' a)).
 
 Notation "'E'" := (acts_set G).
+Notation "'threads_set'" := (threads_set G).
 Notation "'lab'" := (lab G).
 Notation "'sb'" := (sb G).
 Notation "'rf'" := (rf G).
@@ -149,6 +151,7 @@ Notation "'Sc'" := (fun a => is_true (is_sc lab a)).
 
 Record sub_execution :=
   { sub_E: E' ⊆₁ E ;
+    sub_threads : threads_set' ≡₁ threads_set ;
     sub_lab : lab' = lab ;
     sub_rmw : rmw'  ≡ ⦗E'⦘ ⨾ rmw ⨾ ⦗E'⦘ ;
     sub_data : data'  ≡ ⦗E'⦘ ⨾ data ⨾ ⦗E'⦘ ;
@@ -271,6 +274,8 @@ constructor.
 - ins; rewrite (sub_lab SUB); apply WF.
 - by rewrite (sub_frmw SUB), rmw_dep_in_sb, sub_sb.
 - apply dom_helper_3; rewrite (sub_frmw SUB), wf_rmw_depD, sub_R, sub_R_ex; basic_solver 12.
+- ins. apply sub_threads; auto. apply WF.
+  apply sub_E; auto.
 Qed.
 
 (******************************************************************************)
@@ -517,6 +522,7 @@ End SubExecution.
 
 Definition restrict (G : execution) D :=
     {| acts_set := D ∩₁ G.(acts_set);
+       threads_set := threads_set G;
        lab := (lab G);
        rmw := ⦗ D ⦘ ⨾ (rmw G) ⨾ ⦗ D ⦘;
        data := ⦗ D ⦘ ⨾(data G) ⨾ ⦗ D ⦘;

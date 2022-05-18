@@ -16,6 +16,7 @@ Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Record thread_restricted_execution (G : execution) t (G' : execution) :=
   { tr_acts_set : (acts_set G') ≡₁ (acts_set G) ∩₁ Tid_ t;
+    tr_threads_set : (threads_set G') ≡₁ eq t;
     tr_lab  : forall x (EE : (acts_set G') x), (lab G') x = (lab G) x;
     tr_rmw  : (rmw G')  ≡ ⦗ Tid_ t ⦘ ⨾ (rmw G) ⨾ ⦗ Tid_ t ⦘;
     tr_data : (data G') ≡ ⦗ Tid_ t ⦘ ⨾ (data G) ⨾ ⦗ Tid_ t ⦘;

@@ -27,6 +27,7 @@ Definition relax_release_labels (l: label) : label :=
 
 Definition G' : execution :=
   {|  acts_set   := (acts_set G);
+      threads_set := (threads_set G);
       lab    := (fun a => relax_release_labels ((lab G) a));
       rmw    := (rmw G);
       data   := (data G);

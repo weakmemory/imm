@@ -1,7 +1,3 @@
-(******************************************************************************)
-(** * Definition of executions (common basis for all types of executions) *)
-(******************************************************************************)
-
 Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
@@ -13,6 +9,7 @@ Set Implicit Arguments.
 (** Definition of an execution *)
 Record execution :=
   { acts_set : actid -> Prop ;
+    threads_set : thread_id -> Prop;
     lab : actid -> label;
     rmw : actid -> actid -> Prop ;
     data : actid -> actid -> Prop ;   (** data dependency *)
@@ -43,6 +40,7 @@ Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
 
 Notation "'E'" := (acts_set G).
+Notation "'threads_set'" := (threads_set G).
 Notation "'lab'" := (lab G).
 Notation "'rf'" := (rf G).
 Notation "'co'" := (co G).
@@ -105,6 +103,8 @@ Record Wf :=
     rmw_dep_in_sb : rmw_dep ⊆ sb ;
     wf_rmw_depD : rmw_dep ≡ ⦗R⦘ ⨾ rmw_dep ⨾ ⦗R_ex⦘ ;
 (*     failed_rmw_fail : rmw_dep ⨾ rmw ⊆ ∅₂ ; *)
+
+    wf_threads : forall e (EE : E e), threads_set (tid e);
   }.
 (*   ⟪  wf_rmw_deps : rmw ⊆ data ∪ addr ∪ ctrl ⟫ /\
   ⟪  wf_rmw_ctrl : rmw ⨾ sb ⊆ ctrl ⟫. *)

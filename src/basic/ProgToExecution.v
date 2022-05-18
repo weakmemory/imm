@@ -75,6 +75,7 @@ Section State.
 
   Definition init_execution : execution :=
     {| acts_set := ∅;
+       threads_set := ∅;
        lab := fun _ => Afence Orlx;
        rmw := ∅₂;
        data := ∅₂;
@@ -101,6 +102,7 @@ Section State.
   Definition add G tid index elab ddata daddr dctrl drmw_dep :=
     let e := ThreadEvent tid index in 
     {| acts_set := eq e ∪₁ G.(acts_set);
+       threads_set := eq tid ∪₁ (threads_set G);
        lab := upd (lab G) e elab;
        rmw := (rmw G);
        data := (data G) ∪ ddata × (eq e);
@@ -116,6 +118,7 @@ Section State.
     let ew:= ThreadEvent tid (index + 1) in 
     let rw_edge := singl_rel er ew in
     {| acts_set := eq ew ∪₁ eq er ∪₁ G.(acts_set);
+       threads_set := eq tid ∪₁ (threads_set G);
        lab := upd (upd (lab G) er erlab) ew ewlab; 
        rmw := rw_edge ∪ (rmw G);
        data := (data G) ∪ ddata × (eq ew);

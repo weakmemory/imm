@@ -92,11 +92,8 @@ Proof using.
   ins. desf. red in IN0. destruct x as [[]]; ins; auto.
 Qed.
 
-Definition graph_threads (G: execution): thread_id -> Prop :=
-  tid ↑₁ (acts_set G \₁ is_init). 
-
 Definition is_ta_propagate_to_G (G: execution): trav_action -> Prop := 
-  ⋃₁ t ∈ graph_threads G, eq (ta_propagate t). 
+  ⋃₁ t ∈ (threads_set G \₁ eq tid_init), eq (ta_propagate t). 
 
 Definition SB (G: execution) (sc: relation actid) :=
   ⦗action ↓₁ (eq ta_cover)⦘
@@ -948,6 +945,3 @@ Proof using.
   apply restr_rel_more; eauto.
   now rewrite EQ.
 Qed.
-  
-
-
