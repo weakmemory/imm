@@ -17,6 +17,10 @@ Require Import imm_s.
 Require Import CombRelations.
 Require Import AuxRel2.
 
+Require Import TraversalOrder.
+Require Import TLSCoherency.
+Require Import IordCoherency.
+
 Set Implicit Arguments.
 
 Section SubExecution.
@@ -424,6 +428,80 @@ unfold CombRelations.furr.
 unfolder; ins; desf; eexists; apply sub_urr_in; eauto.
 Qed.
 
+Lemma sub_is_ta_propagate_to_G :
+  is_ta_propagate_to_G G' ≡₁ is_ta_propagate_to_G G.
+Proof using SUB. 
+  unfold is_ta_propagate_to_G.
+  now rewrite sub_threads.
+Qed. 
+
+Lemma sub_SB : SB G' sc' ⊆ SB G sc.
+Proof using SUB. 
+  unfold SB, RF, sb; ins.
+  hahn_frame; apply map_rel_mori; auto.
+  try apply clos_trans_mori.
+  rewrite sub_sc, sub_E; auto using SUB.
+  clear; basic_solver.
+Qed.
+
+Lemma sub_RF : RF G' ⊆ RF G.
+Proof using SUB. 
+  unfold SB, RF, sb; ins.
+  hahn_frame; apply map_rel_mori; auto.
+  try apply clos_trans_mori.
+  rewrite sub_rf, sub_W; auto using SUB.
+  clear; basic_solver.
+Qed.
+
+Lemma sub_FWBOB : FWBOB G' ⊆ FWBOB G.
+Proof using SUB.
+  unfold FWBOB; ins. 
+  rewrite sub_fwbob; eauto using SUB; ins.
+  rewrite sub_W; eauto using SUB; ins.
+  clear; basic_solver 20.
+Qed.
+
+Lemma sub_AR : AR G' sc' ⊆ AR G sc.
+Proof using SUB.
+  unfold AR; ins.
+  rewrite sub_ar_in, sub_ppo_in, sub_rf, sub_W; eauto using SUB.
+  rewrite sub_same_loc; eauto using SUB.
+  repeat (apply seq_mori; try easy).
+  apply map_rel_mori; auto.
+  repeat (apply seq_mori; try easy).
+  apply clos_trans_mori.
+  clear; basic_solver 10.
+Qed.
+
+Lemma sub_IPROP : IPROP G' ⊆ IPROP G.
+Proof using SUB.
+  unfold IPROP.
+  rewrite sub_is_ta_propagate_to_G.
+  now rewrite sub_W; eauto using SUB.
+Qed.
+ 
+Lemma sub_PROP : PROP G' sc' ⊆ PROP G sc.
+Proof using SUB.
+  unfold PROP.
+  rewrite sub_is_ta_propagate_to_G.
+  repeat (apply seq_mori; try easy).
+  apply inter_rel_mori; try easy.
+  apply map_rel_mori; auto.
+  rewrite sub_ar_in, sub_ppo_in, sub_sb_in, sub_W, sub_rf, sub_co, sub_same_loc;
+    eauto using SUB.
+  repeat (apply seq_mori; try easy).
+  all: try apply clos_refl_trans_mori.
+  all: clear; basic_solver 10.
+Qed.
+
+Lemma sub_iord : iord G' sc' ⊆ iord G sc.
+Proof using SUB.
+  unfold iord.
+  apply restr_rel_mori.
+  { rewrite sub_E; eauto using SUB. }
+  rewrite sub_SB, sub_RF, sub_FWBOB, sub_AR, sub_IPROP, sub_PROP.
+  easy.
+Qed.
 
 (******************************************************************************)
 (** Consistecy **  *)
