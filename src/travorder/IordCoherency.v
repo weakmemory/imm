@@ -20,9 +20,6 @@ Require Import AuxRel2.
 Definition iord_coherent G sc tc :=
   dom_rel (iord G sc ⨾ ⦗tc⦘) ⊆₁ tc.
 
-Definition iord_simpl G sc : relation trav_label :=
-  SB G sc ∪ RF G ∪ FWBOB G ∪ AR G sc ∪ IPROP G ∪ PROP G sc.
-
 Definition iord_simpl_coherent G sc tc :=
   dom_rel (iord_simpl G sc ⨾ ⦗tc⦘) ⊆₁ tc.
 
@@ -87,6 +84,13 @@ Section IordCoherency.
   Notation "'W_ex'" := (W_ex G).
   Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Notation "'Rel'" := (fun x => is_true (is_rel lab x)).
+
+  Lemma init_tls_iord_coherent :
+    iord_coherent G sc (init_tls G). 
+  Proof using.
+    red. rewrite iord_alt, restr_relE.
+    rewrite init_tls_EI at 1. basic_solver 10. 
+  Qed.
 
   Lemma tlsc_w_covered_issued ICOH:
     (tc ∩₁ action ↓₁ eq ta_cover) ∩₁ (event ↓₁ W) ⊆₁
@@ -187,7 +191,7 @@ Section IordCoherency.
     forward eapply iord_simpl_tc_doma as IS_DOM%doma_rewrite; eauto.
 
     apply set_subset_union_l. split.
-    { rewrite IS_DOM.     
+    { rewrite IS_DOM.
       destruct TCOH. rewrite <- tls_coh_init at 2. unfold init_tls.
       rewrite set_pair_alt, set_map_inter.
       rewrite <- set_interA. apply set_subset_inter; [| reflexivity].  
@@ -234,6 +238,30 @@ Section IordCoherency.
     rewrite crE, seq_union_l, seq_id_l, dom_union.
     red in ICOHs. rewrite ICOHs. basic_solver.
   Qed.
+
+Lemma dom_rel_iord_ext_parts (a1 a2: trav_action) (r: relation actid)
+      (R_IORD: ⦗action ↓₁ eq a1⦘ ⨾ event ↓ r ⨾ ⦗action ↓₁ eq a2⦘ ⊆ iord_simpl G sc)
+      (R_E_ENI: r ⊆ E × (E \₁ is_init))
+      (INITa1: is_init ∩₁ E ⊆₁ event ↑₁ (tc ∩₁ action ↓₁ eq a1))
+  :
+  dom_rel (r ⨾ ⦗event ↑₁ (dom_cond (iord G sc) tc ∩₁ action ↓₁ eq a2)⦘)
+          ⊆₁ event ↑₁ (tc ∩₁ action ↓₁ eq a1).
+Proof using.
+  rewrite set_split_complete with (s' := dom_rel _) (s := is_init).
+  apply dom_helper_3 in R_E_ENI. 
+  apply set_subset_union_l. split.
+  { rewrite <- INITa1. rewrite !dom_seq. rewrite R_E_ENI. basic_solver. }
+  rewrite set_interC, <- dom_eqv1, <- seqA. 
+  eapply dom_rel_collect_event with (b := a1); [basic_solver| ].
+  apply set_subset_inter_r. split; [| basic_solver].
+  rewrite set_interC, id_inter.  
+  arewrite (⦗action ↓₁ eq a1⦘ ⨾ event ↓ (⦗set_compl is_init⦘ ⨾ r) ⨾ ⦗action ↓₁ eq a2⦘ ⊆ iord G sc). 
+  { rewrite iord_alt. rewrite R_E_ENI. unfolder. ins. desc.
+    splits; eauto; try congruence.
+    apply R_IORD. basic_solver. }
+  rewrite dom_cond_elim. basic_solver. 
+Qed. 
+        
 
 End IordCoherency.
 

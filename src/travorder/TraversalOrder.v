@@ -92,6 +92,36 @@ Proof using.
   ins. desf. red in IN0. destruct x as [[]]; ins; auto.
 Qed.
 
+Lemma event_collect_eq a e:
+  event ↑₁ eq (mkTL a e) ≡₁ eq e.
+Proof using. basic_solver. Qed.  
+
+Lemma dom_rel_collect_event (b : trav_action) A B r
+      (UU : B ⊆₁ action ↓₁ eq b)
+      (AA : dom_rel (⦗action ↓₁ eq b⦘ ⨾ event ↓ r ⨾ ⦗A⦘) ⊆₁ B) :
+  dom_rel (r ⨾ ⦗event ↑₁ A⦘) ⊆₁ event ↑₁ B.
+Proof using.
+  clear -AA UU. unfolder. ins. desf.
+  exists (mkTL b x); ins.
+  split; auto.
+  apply AA.
+  unfolder. do 2 eexists; ins; eauto.
+  splits; eauto.
+Qed.
+
+Lemma dom_rel_collect_event2 (b : trav_action) A B r
+      (UU : B ⊆₁ action ↓₁ eq b):
+  dom_rel (⦗action ↓₁ eq b⦘ ⨾ event ↓ r ⨾ ⦗A⦘) ⊆₁ B <->
+    dom_rel (r ⨾ ⦗event ↑₁ A⦘) ⊆₁ event ↑₁ B.
+Proof using.
+  split; [by apply dom_rel_collect_event| ]. ins.  
+  unfolder. ins. desf. destruct x as [a1 e1], y as [a2 e2]. ins. 
+  specialize (H e1). specialize_full H.
+  { eexists. apply seq_eqv_r. split; vauto. }
+  red in H. desc.
+  specialize (UU _ H).  destruct y as [a3 e3]. red in UU. ins. subst. auto. 
+Qed.
+
 Definition is_ta_propagate_to_G (G: execution): trav_action -> Prop := 
   ⋃₁ t ∈ (threads_set G \₁ eq tid_init), eq (ta_propagate t). 
 
@@ -133,8 +163,21 @@ Definition iord (G: execution) (sc: relation actid): relation trav_label :=
   restr_rel (event ↓₁ (acts_set G \₁ is_init))
             (SB G sc ∪ RF G ∪ FWBOB G ∪ AR G sc ∪ IPROP G ∪ PROP G sc).
 
+Definition iord_simpl G sc : relation trav_label :=
+  SB G sc ∪ RF G ∪ FWBOB G ∪ AR G sc ∪ IPROP G ∪ PROP G sc.
+
 Global Ltac iord_parts_unfolder := 
   unfold iord, SB, RF, FWBOB, AR, PROP, IPROP. 
+
+Global Ltac iord_simpl_dom_unfolder :=
+  iord_parts_unfolder;
+  unfold is_ta_propagate_to_G in *;
+  (* clear; *)
+  unfolder; intros ?a ?b; ins; desc;
+  (try match goal with
+       | z : trav_label |- _ => destruct z; desf; ins; desf
+       end);
+  desf.
 
 Global Ltac iord_dom_unfolder :=
   iord_parts_unfolder;
@@ -199,12 +242,22 @@ Section TravLabel.
   Notation "'IPROP'" := (IPROP G). 
   Notation "'PROP'" := (PROP G sc).
   Notation "'iord'" := (iord G sc).
+  Notation "'iord_simpl'" := (iord_simpl G sc).
 
-  Lemma iord_irreflexive WF COMP WFSC CONS : irreflexive iord.
+  Lemma iord_alt :
+    iord ≡ restr_rel (event ↓₁ (E \₁ is_init)) iord_simpl.
+  Proof using. unfold iord, iord_simpl. basic_solver 10. Qed.
+
+  Lemma iord_simpl_irreflexive WF COMP WFSC CONS : irreflexive iord_simpl.
   Proof using.
-    iord_dom_unfolder.
+    unfold iord_simpl. iord_simpl_dom_unfolder.
     { eapply sb_sc_acyclic; eauto. apply CONS. }
     eapply ar_rf_ppo_loc_acyclic; eauto. 
+  Qed. 
+  
+  Lemma iord_irreflexive WF COMP WFSC CONS : irreflexive iord. 
+  Proof using.
+    apply irreflexive_restr. auto using iord_simpl_irreflexive.
   Qed. 
   
   Lemma AR_trans : transitive AR.
@@ -904,7 +957,6 @@ Section TravLabel.
     { sin_rewrite ARSBFW. clear; basic_solver 1. }
     all: rewrite rewrite_trans; eauto with hahn lbase.
   Qed.
-        
 End TravLabel.
 
 (* Global Ltac iord_dom_solver := *)
@@ -945,3 +997,4 @@ Proof using.
   apply restr_rel_more; eauto.
   now rewrite EQ.
 Qed.
+

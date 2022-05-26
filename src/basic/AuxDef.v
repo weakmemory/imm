@@ -306,7 +306,7 @@ Qed.
 Lemma set_collect_map_ext [A B : Type] [f : A -> B] [d : B -> Prop]
       (SUR: forall b, exists a, f a = b):
   f ↑₁ (f ↓₁ d) ≡₁ d. 
-Proof.
+Proof using.
   ins. split; [apply set_collect_map| ]. 
   unfolder. ins.
   specialize (SUR x) as [a Fa]. exists a. split; congruence. 
@@ -393,6 +393,21 @@ Qed.
 Lemma excluded_middle_or (A B: Prop)
       (OR: A \/ B):
   A \/ (~ A) /\ B.
-Proof. tauto. Qed. 
+Proof using. tauto. Qed. 
 
 Ltac liaW no := destruct no; [done| ins; lia]. 
+
+Lemma dom_cond_alt {A : Type} (r : relation A) (d : A -> Prop):
+  dom_cond r d ≡₁ (⋃₁ e ∈ (fun e_ => dom_rel (r ⨾ ⦗eq e_⦘) ⊆₁ d), eq e).
+Proof using. unfold dom_cond. basic_solver 10. Qed. 
+
+Lemma dom_rel_union_r1 {A: Type} (S1 S2: A -> Prop) (r: relation A)
+      (NOR2: ⦗S2⦘ ⨾ r ⊆ ∅₂)
+      (DOM: dom_rel r ⊆₁ S1 ∪₁ S2):
+  dom_rel r ⊆₁ S1. 
+Proof using. 
+  red. intros x D.
+  specialize (@DOM x D). destruct DOM; auto.
+  red in D. desc. 
+  edestruct NOR2; basic_solver 10.
+Qed.   

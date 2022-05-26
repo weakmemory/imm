@@ -85,7 +85,7 @@ Definition tl_reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserv
 
 Lemma tl_covered_single e:
   tl_covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
-Proof.
+Proof using.
   unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
 Qed.
   
@@ -138,7 +138,7 @@ Qed.
 
 Lemma sim_clos_empty:
   sim_clos ∅ ≡₁ ∅. 
-Proof.
+Proof using.
   unfold sim_clos, rmw_clos, rel_clos, tl_issued, tl_covered.
   rewrite !set_pair_alt. basic_solver.
 Qed. 
@@ -185,7 +185,7 @@ Qed.
 
 Lemma sim_clos_dist (tc1 tc2: trav_label -> Prop):
   sim_clos (tc1 ∪₁ tc2) ≡₁ sim_clos tc1 ∪₁ sim_clos tc2.
-Proof. 
+Proof using. 
   unfold sim_clos. rewrite rmw_clos_dist, rel_clos_dist. basic_solver. 
 Qed. 
 

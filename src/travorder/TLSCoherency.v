@@ -190,4 +190,7 @@ Section TLSCoherency.
     set_disjoint (init_tls G) (exec_tls G). 
   Proof using. unfold init_tls, exec_tls. iord_dom_unfolder. Qed. 
 
+Lemma init_tls_tls_coherent : tls_coherent G (init_tls G). 
+Proof using. apply tls_coherent_defs_equiv. exists ∅. basic_solver. Qed. 
+
 End TLSCoherency. 

@@ -533,7 +533,7 @@ Qed.
 
 Lemma sb_total t:
   is_total ((E \₁ is_init) ∩₁ Tid_ t) sb. 
-Proof.
+Proof using.
   red. ins. unfolder in IWa. unfolder in IWb. desc. subst. 
   destruct a, b; try by vauto. simpl in *. subst.
   pose proof (NPeano.Nat.lt_trichotomy index index0) as LT. 

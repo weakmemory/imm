@@ -251,7 +251,7 @@ Qed.
 
 Lemma fin_dom_rel_fsupp {A: Type} (r: relation A):
   (forall S (FINS: set_finite S), set_finite (dom_rel (r ⨾ ⦗S⦘))) <-> fsupp r.
-Proof.
+Proof using.
   split. 
   2: { intros FSUPPr S FINS.  
   red in FSUPPr. apply functional_choice in FSUPPr as [supp_map FSUPPr].
@@ -270,7 +270,7 @@ Qed.
 Lemma set_finite_set_collect {A B: Type} (S: A -> Prop) (f: A -> B)
       (FIN: set_finite S):
   set_finite (f ↑₁ S). 
-Proof. 
+Proof using. 
   red in FIN. desc. exists (map f findom). 
   ins. apply in_map_iff. red in IN. desc. vauto.
   eexists. split; eauto. 
@@ -278,7 +278,7 @@ Qed.
 
 Lemma same_relation_exp_iff {A: Type} (r r': relation A):
   r ≡ r' <-> (forall x y, r x y <-> r' x y).
-Proof.
+Proof using.
   red. split.
   { apply same_relation_exp. }
   ins. red. split.
