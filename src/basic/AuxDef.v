@@ -365,6 +365,26 @@ Proof using.
   ins. rewrite !set_pair_alt. rewrite H, H0. basic_solver. 
 Qed.
 
+Lemma set_pair_union_l {A B} (s s' : A -> Prop) (p : B -> Prop) :
+  (s ∪₁ s') <*> p ≡₁ s <*> p ∪₁ s' <*> p.
+Proof using.
+  clear.
+  unfold set_pair.
+  split. 
+  all: unfolder; ins.
+  all: do 2 desf; eauto.
+Qed.
+
+Lemma set_pair_union_r {A B} (s : A -> Prop) (p p' : B -> Prop) :
+  s <*> (p ∪₁ p') ≡₁ s <*> p ∪₁ s <*> p'.
+Proof using.
+  clear.
+  unfold set_pair.
+  split. 
+  all: unfolder; ins.
+  all: do 2 desf; eauto.
+Qed.
+
 Lemma acyclic_transp {A: Type} (r: relation A)
       (AC: acyclic r):
   acyclic (transp r). 
