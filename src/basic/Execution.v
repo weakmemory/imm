@@ -731,6 +731,14 @@ Proof using.
   eapply sb_trans; eauto.
 Qed.
 
+Lemma codom_rfi_rfe_empty WF : codom_rel rfi ∩₁ codom_rel rfe ⊆₁ ∅.
+Proof using.
+  unfold rfi, rfe.
+  unfolder. ins. desf. 
+  assert (x0 = x1); subst; eauto.
+  eapply (wf_rff WF); eauto.
+Qed.
+
 (******************************************************************************)
 (** ** properties of external/internal relations *)
 (******************************************************************************)

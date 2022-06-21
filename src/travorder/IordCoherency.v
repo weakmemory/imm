@@ -156,6 +156,18 @@ Section IordCoherency.
   Lemma E_ENI_trans: transitive E_ENI.
   Proof using. unfold E_ENI. basic_solver. Qed.
 
+  Lemma ar_rf_ppo_loc_ct_E_ENI: 
+    (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⊆ E_ENI.
+  Proof using WF WFSC. 
+    rewrite inclusion_inter_l1, ppo_in_sb; auto. 
+    rewrite sb_E_ENI, rf_E_ENI, ar_E_ENI; auto.
+    repeat (rewrite ?(@rt_of_trans _ E_ENI), ?(@rewrite_trans _ E_ENI),
+             ?unionK, ?(@rewrite_trans _ E_ENI),
+             ?(@rewrite_trans_seq_cr_cr _ E_ENI), ?(@ct_of_trans _ E_ENI)
+           ); try by (subst; apply E_ENI_trans).
+    basic_solver. 
+  Qed.
+
   Lemma iord_simpl_E_ENI:
     iord_simpl G sc ⊆ event ↓ E_ENI^?.
   Proof using WF WFSC SCPL.
@@ -252,7 +264,7 @@ Proof using.
   apply set_subset_union_l. split.
   { rewrite <- INITa1. rewrite !dom_seq. rewrite R_E_ENI. basic_solver. }
   rewrite set_interC, <- dom_eqv1, <- seqA. 
-  eapply dom_rel_collect_event with (b := a1); [basic_solver| ].
+  eapply dom_rel_collect_event with (b := a1).
   apply set_subset_inter_r. split; [| basic_solver].
   rewrite set_interC, id_inter.  
   arewrite (⦗action ↓₁ eq a1⦘ ⨾ event ↓ (⦗set_compl is_init⦘ ⨾ r) ⨾ ⦗action ↓₁ eq a2⦘ ⊆ iord G sc). 
@@ -262,6 +274,25 @@ Proof using.
   rewrite dom_cond_elim. basic_solver. 
 Qed. 
         
+Lemma iord_coherent_extend ICOH lbl      
+      (ADD: dom_cond (iord G sc) tc lbl):
+  iord_coherent G sc (tc ∪₁ eq lbl). 
+Proof using. 
+  red. rewrite id_union, seq_union_r, dom_union.
+  red in ICOH, ADD. rewrite ICOH, ADD. basic_solver. 
+Qed.
+
+Lemma iord_coherent_element_prefix ICOH (lbl: trav_label)
+      (Tlbl: tc lbl)
+      (IMMCON: imm_consistent G sc):
+  dom_rel (iord G sc ⨾ ⦗eq lbl⦘) ⊆₁ tc \₁ eq lbl.
+Proof using WF.
+  clear WFSC. 
+  rewrite set_minusE. apply set_subset_inter_r. split.
+  { etransitivity; [| apply ICOH]. basic_solver. }
+  intros x [y [REL ->]%seq_eqv_r]. intros ->.  
+  edestruct iord_irreflexive; eauto; apply IMMCON.
+Qed.
 
 End IordCoherency.
 
@@ -274,3 +305,18 @@ Proof using.
   { by apply CONS. }
   apply imm_s_hb.coherence_sc_per_loc, CONS. 
 Qed.
+
+Lemma iord_coherent_equiv_wo_reserved G sc T1 T2
+      (EQ': T1 \₁ action ↓₁ eq ta_reserve ≡₁ T2 \₁ action ↓₁ eq ta_reserve)
+      (ICOH: iord_coherent G sc T1):
+  iord_coherent G sc T2. 
+Proof using. 
+  red. red in ICOH.
+  rewrite iord_no_reserve, restr_relE in *.
+  rewrite !seqA, seq_eqvC, <- id_inter in *.
+  transitivity (T2 \₁ action ↓₁ eq ta_reserve); [| basic_solver].
+  rewrite <- EQ'. rewrite !set_minusE in EQ'. rewrite EQ' in ICOH.
+  rewrite set_minusE. apply set_subset_inter_r. split; [| basic_solver].
+  rewrite ICOH. basic_solver. 
+Qed.
+

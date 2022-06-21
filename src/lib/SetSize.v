@@ -62,3 +62,23 @@ Proof using.
   extensionality a. apply propositional_extensionality.
   by apply set_equiv_exp. 
 Qed. 
+
+Lemma set_size_empty {A: Type} (s: A -> Prop):
+  set_size s = NOnum 0 <-> s ≡₁ ∅.
+Proof.
+  split; intros. 
+  { unfold set_size in H. destruct excluded_middle_informative; try by vauto.
+    destruct constructive_indefinite_description. simpl in *.
+    inversion H. apply length_zero_iff_nil in H1.
+    destruct (classic (s ≡₁ ∅)) as [? | NEMPTY]; auto. 
+    apply set_nonemptyE in NEMPTY. desc.
+    specialize (i _ NEMPTY).
+    assert (In x0 nil); [| by vauto].
+    rewrite <- H1. apply in_undup_iff. apply in_filterP_iff. auto. }
+  erewrite set_size_equiv; eauto.
+  unfold set_size. destruct excluded_middle_informative.
+  2: { destruct n. by exists nil. }
+  f_equal. destruct constructive_indefinite_description. simpl in *.
+  rewrite (proj2 (filterP_eq_nil ∅ x)); vauto.
+Qed. 
+

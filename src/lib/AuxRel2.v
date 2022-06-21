@@ -149,10 +149,31 @@ Proof using.
   rewrite ct_end. basic_solver.
 Qed.
 
+Lemma clos_trans_doma_r_strong {B: Type} (r: relation B) (s: B -> Prop)
+      (DOMA_S: doma (r ⨾ ⦗s⦘) s):
+   r^+ ⨾ ⦗s⦘ ≡ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
+Proof using.
+  split.
+  2: { rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r. basic_solver. }
+  red. intros x y TT. apply seq_eqv_r in TT as [R'xy Sy].
+  apply ctEE in R'xy as [n [_ Rnxy]].
+  generalize dependent y. induction n.
+  { ins. apply ct_step. apply seq_eqv_l in Rnxy as [_ Rnxy].
+    apply seq_eqv_lr. splits; auto.
+    eapply DOMA_S. basic_solver. }
+  ins. destruct Rnxy as [z [Rnxz Rzy]]. specialize (IHn _ Rnxz).
+  apply ct_unit. exists z. split; eauto.
+  { apply IHn. eapply DOMA_S; eauto. basic_solver. } 
+  apply seq_eqv_lr. splits; auto.
+  eapply DOMA_S. basic_solver.
+Qed.
+
 Lemma clos_trans_domb_l_strong {B: Type} (r: relation B) (s: B -> Prop)
       (DOMB_S: domb (⦗s⦘ ⨾ r) s):
-  ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
+  ⦗s⦘ ⨾ r^+ ≡ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+. 
 Proof using.
+  split.
+  2: { rewrite inclusion_ct_seq_eqv_l, inclusion_ct_seq_eqv_r. basic_solver. }
   red. intros x y TT. apply seq_eqv_l in TT as [Sx R'xy].
   apply ctEE in R'xy as [n [_ Rnxy]].
   generalize dependent y. induction n.
@@ -284,3 +305,7 @@ Proof using.
   ins. red. split.
   all: red; ins; apply H; auto.
 Qed.  
+
+Lemma pref_union_alt {A: Type} (r1 r2: relation A):
+  pref_union r1 r2 ≡ r1 ∪ r2 \ (r1)⁻¹.
+Proof. basic_solver. Qed.

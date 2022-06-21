@@ -97,11 +97,10 @@ Lemma event_collect_eq a e:
 Proof using. basic_solver. Qed.  
 
 Lemma dom_rel_collect_event (b : trav_action) A B r
-      (UU : B ⊆₁ action ↓₁ eq b)
       (AA : dom_rel (⦗action ↓₁ eq b⦘ ⨾ event ↓ r ⨾ ⦗A⦘) ⊆₁ B) :
   dom_rel (r ⨾ ⦗event ↑₁ A⦘) ⊆₁ event ↑₁ B.
 Proof using.
-  clear -AA UU. unfolder. ins. desf.
+  unfolder. ins. desf.
   exists (mkTL b x); ins.
   split; auto.
   apply AA.
@@ -121,6 +120,32 @@ Proof using.
   red in H. desc.
   specialize (UU _ H).  destruct y as [a3 e3]. red in UU. ins. subst. auto. 
 Qed.
+
+Lemma dom_rel_tls_helper T (a1 a2: trav_action) (r: relation actid)
+      (DOM: dom_rel (r ⨾ ⦗event ↑₁ (T ∩₁ action ↓₁ eq a2)⦘)
+                    ⊆₁ event ↑₁ (T ∩₁ action ↓₁ eq a1)):
+  dom_rel (⦗action ↓₁ eq a1⦘ ⨾ event ↓ r ⨾ ⦗action ↓₁ eq a2⦘ ⨾ ⦗T⦘) ⊆₁ T.
+Proof using. 
+  rewrite <- id_inter.
+  transitivity (T ∩₁ action ↓₁ eq a1); [| basic_solver].
+  apply dom_rel_collect_event2; [basic_solver| ].
+  generalize DOM. basic_solver 10.
+Qed.   
+
+Lemma set_pair_cancel_action a B:
+    event ↑₁ (eq a <*> B) ≡₁ B. 
+Proof using. 
+  rewrite set_pair_alt. split; try basic_solver.
+  intros b Bb. exists (mkTL a b). vauto. 
+Qed.   
+
+Lemma set_pair_exact a e:
+  eq a <*> eq e ≡₁ eq (mkTL a e). 
+Proof using. 
+  unfold set_pair. split; try basic_solver.
+  intros [? ?] [-> ->]. auto. 
+Qed. 
+
 
 Definition is_ta_propagate_to_G (G: execution): trav_action -> Prop := 
   ⋃₁ t ∈ (threads_set G \₁ eq tid_init), eq (ta_propagate t). 
@@ -191,6 +216,25 @@ Global Ltac iord_dom_unfolder :=
 
 Global Ltac iord_dom_solver := by iord_dom_unfolder. 
   
+Ltac clear_iord_union :=
+  unfold SB, RF, FWBOB, AR, IPROP, PROP, is_ta_propagate_to_G;
+  repeat case_union _ _; rewrite !seqA;
+  repeat apply union_mori;
+  try (transitivity (fun (_ _: trav_label) => False); [basic_solver| apply inclusion_refl2]);
+  reflexivity.
+
+Ltac filter_iord_seq := 
+  unfold iord; rewrite <- ?restr_seq_eqv_r, <- ?restr_seq_eqv_l;
+  erewrite restr_rel_mori; [| reflexivity| clear_iord_union];
+  rewrite !union_false_l, !union_false_r. 
+
+Lemma iord_no_reserve G sc:
+  iord G sc ≡ restr_rel (set_compl (action ↓₁ eq ta_reserve)) (iord G sc).
+Proof using.
+  rewrite restr_relE. split; [| basic_solver]. apply dom_helper_3.
+  unfold iord. iord_dom_unfolder; ins; subst; vauto. 
+Qed.
+
 Section TravLabel. 
   Context (G : execution) (sc : relation actid).
   Implicit Types (WF : Wf G) (COMP : complete G)

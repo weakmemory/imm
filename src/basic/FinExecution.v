@@ -45,3 +45,7 @@ Section FinExecution.
   
 End FinExecution. 
 
+Lemma fin_exec_same_events G G'
+      (SAME: acts_set G ≡₁ acts_set G') (FIN: fin_exec G):
+  fin_exec G'.
+Proof using. unfold fin_exec in *. by rewrite <- SAME. Qed.

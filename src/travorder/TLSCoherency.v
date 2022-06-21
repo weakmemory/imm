@@ -114,6 +114,17 @@ Section TLSCoherency.
     unfold action, event. unfolder. ins; desf; congruence.  
   Qed.
   
+  Lemma tlsc_P_in_E thread (WF: Wf G) (TCOH: tls_coherent G tc) :
+    tc ∩₁ (action ↓₁ eq (ta_propagate thread)) ⊆₁ event ↓₁ acts_set G. 
+  Proof using. 
+    apply tls_coherent_defs_equiv in TCOH as [tc' [INE TC']].
+    rewrite TC', set_inter_union_l. apply set_subset_union_l. split.
+    { etransitivity; [red; intro; apply proj1| ].
+      unfold init_tls. erewrite set_pair_alt, init_w; eauto. basic_solver. }
+    rewrite INE. unfold exec_tls. rewrite !set_pair_alt.
+    unfold action, event. unfolder. ins; desf; congruence.  
+  Qed.
+  
   Lemma tlsc_P_in_W thread WF TCOH:
     tc ∩₁ (action ↓₁ eq (ta_propagate thread)) ⊆₁ event ↓₁ W. 
   Proof using. 

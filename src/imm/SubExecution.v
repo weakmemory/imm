@@ -654,3 +654,11 @@ Proof using.
   { eapply fsupp_mori; [| by apply FSco]. red. basic_solver. }
   eapply fsupp_mori; [| by apply FSfr]. red. unfold fr. basic_solver.
 Qed.
+
+Lemma restrict_threads_bound (G: execution) (b: thread_id) (S: actid -> Prop)
+      (BOUND: threads_bound G b):
+  threads_bound (restrict G S) b.
+Proof using.
+  unfold restrict, threads_bound. simpl.
+  ins. apply BOUND, Ge.
+Qed. 

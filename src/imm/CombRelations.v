@@ -719,3 +719,25 @@ Add Parametric Morphism G: (@S_tm G) with signature
 Proof using.
 by unfold S_tm, S_tmr; ins; rewrite H at 1.
 Qed.
+
+Add Parametric Morphism : c_cur with signature
+    eq ==> (@same_relation actid) ==> eq ==> eq ==> (@set_equiv actid) ==>
+       (@same_relation actid) as c_cur_more. 
+Proof using. 
+  ins. unfold c_cur, urr.
+  rewrite H, H0. reflexivity. 
+Qed. 
+       
+Add Parametric Morphism : c_acq with signature
+    eq ==> (@same_relation actid) ==> eq ==> eq ==> (@set_equiv actid) ==>
+       (@same_relation actid) as c_acq_more. 
+Proof using. 
+  ins. unfold c_acq, urr.
+  rewrite H, H0. reflexivity. 
+Qed. 
+
+Add Parametric Morphism : msg_rel with signature
+       eq ==> (@same_relation actid) ==> eq ==>
+          (@same_relation actid) as msg_rel_more. 
+Proof using. ins. unfold msg_rel. rewrite H. basic_solver. Qed. 
+
