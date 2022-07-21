@@ -487,11 +487,7 @@ Proof using SUB.
   repeat (apply seq_mori; try easy).
   apply inter_rel_mori; try easy.
   apply map_rel_mori; auto.
-  rewrite sub_ar_in, sub_ppo_in, sub_sb_in, sub_W, sub_rf, sub_co, sub_same_loc;
-    eauto using SUB.
-  repeat (apply seq_mori; try easy).
-  all: try apply clos_refl_trans_mori.
-  all: clear; basic_solver 10.
+  by rewrite sub_furr_in, sub_co_in, sub_W.   
 Qed.
 
 Lemma sub_iord : iord G' sc' ⊆ iord G sc.

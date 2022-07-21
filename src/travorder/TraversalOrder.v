@@ -15,7 +15,11 @@ Require Import FairExecution.
 Require Import ImmFair.
 Require Import AuxRel2.
 Require Import CountabilityHelpers.
+Require Import CombRelations.
 Import ListNotations.
+Require Import HbFsupp.
+Require Import ThreadBoundedExecution.
+Require Import imm_s_hb.
 
 Set Implicit Arguments.
 
@@ -177,8 +181,7 @@ Definition IPROP (G: execution) :=
 
 Definition PROP (G: execution) (sc: relation actid): relation trav_label :=
   ⦗action ↓₁ (eq ta_cover)⦘ ⨾
-  ((event ↓ ((sb G)^? ⨾ (ar G sc ∪ rf G ⨾ ppo G ∩ same_loc (lab G))^* ⨾
-             (sb G)^? ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
+  ((event ↓ (furr G sc ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
        ∩ (fun ta1 ta2 =>
             tid (event ta1) = ta_propagate_tid (action ta2))) ⨾
   ⦗action ↓₁ is_ta_propagate_to_G G⦘.
@@ -641,8 +644,26 @@ Section TravLabel.
     red; ins. exists [y]; ins; eauto.
   Qed.
 
+  (* TODO: move*)
+  Lemma sc_not_init WF WFSC:
+    sc ≡ ⦗set_compl is_init⦘ ⨾ sc ⨾ ⦗set_compl is_init⦘. 
+  Proof using.    
+    apply dom_helper_3.
+    rewrite wf_scD, init_pln; eauto. mode_solver. 
+  Qed.
+
+  (* TODO: move *)
+  Lemma imm_s_fair_fsupp_sc WF WFSC (IMM_FAIR: imm_s_fair G sc):
+    fsupp sc.
+  Proof using. 
+    eapply fsupp_mori; [| apply IMM_FAIR]. red.
+    rewrite sc_not_init at 1; auto. 
+    hahn_frame. rewrite <- ct_step. unfold ar. basic_solver.
+  Qed. 
+
   Lemma PROP_fsupp WF MF CONS COMP (IMM_FAIR: imm_s_fair G sc)
-    : fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ PROP).
+        t (TB: threads_bound G t):
+    fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ PROP).
   Proof using.
     assert (FSUPPSBCR : fsupp (⦗set_compl is_init⦘ ⨾ sb^?)).
     { rewrite crE, seq_union_r.
@@ -663,16 +684,15 @@ Section TravLabel.
     apply fsupp_seq_l_map_rel; auto with lbase.
     rewrite <- !seqA. apply fsupp_seq.
     2: { apply fsupp_cr. apply MF. }
-    sin_rewrite no_sb_cr_to_init.
-    rewrite !seqA, <- seqA. apply fsupp_seq; auto.
-    sin_rewrite no_ar_rfppo_rt_to_init; auto.
-    rewrite !seqA, <- seqA. apply fsupp_seq; auto.
+    eapply fsupp_furr; eauto.
+    apply imm_s_fair_fsupp_sc; auto. apply CONS. 
   Qed.
 
   Local Hint Resolve SB_fsupp RF_fsupp FWBOB_fsupp AR_fsupp IPROP_fsupp PROP_fsupp : lbase.
 
   Lemma iord_fsupp WF WFSC MF CONS COMP
-        (IMM_FAIR: imm_s_fair G sc):
+        (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord).
   Proof using.
     assert (FSUPPRF : fsupp rf).
@@ -681,7 +701,7 @@ Section TravLabel.
     { eapply imm_s_fair_fsupp_sc; eauto. }
     unfold "iord". rewrite !restr_union, !seq_union_r. 
     repeat (apply fsupp_union).
-    6: { eapply fsupp_mori; [| apply PROP_fsupp]; auto. red. basic_solver. }
+    6: { eapply fsupp_mori; [| eapply PROP_fsupp]; eauto. red. basic_solver. }
     4: { eapply fsupp_mori; [| apply AR_fsupp]; auto. red. basic_solver. }
     all: apply fsupp_seq; [by apply fsupp_eqv| ].
     1, 3: by auto using SB_fsupp, FWBOB_fsupp. 
@@ -708,6 +728,74 @@ Section TravLabel.
     rewrite ct_end. basic_solver.
   Qed. 
 
+  (* TODO: move and add similar for doma *)
+  Lemma domb_map_rel {A B: Type} (r: relation A) (S: A -> Prop) (f: B -> A)
+        (DOMB: domb r S):
+    domb (f ↓ r) (f ↓₁ S). 
+  Proof using. 
+    unfolder. ins. eapply DOMB; eauto. 
+  Qed.
+
+  (* TODO: move*)
+  Notation "'Loc_' l" := (fun e => loc e = Some l) (at level 10). 
+
+  (* TODO: move*)
+  Lemma urr_to_ninit l WF WFSC:
+    urr G sc l ≡ urr G sc l ⨾ ⦗set_compl is_init⦘ ∪ ⦗Loc_ l ∩₁ is_init⦘. 
+  Proof using.
+    rewrite <- seq_id_r with (r := urr G sc l) at 1.
+    rewrite set_split_complete with (s' := set_full) (s := is_init), !set_inter_full_l.
+    rewrite id_union, seq_union_r. rewrite unionC. apply union_more; [done| ].    
+    unfold urr.
+    assert (is_init ≡₁ is_init ∩₁ W) as I' by (generalize init_w; basic_solver).
+    rewrite I' at 2. 
+    rewrite no_sc_to_init with (sc := sc), no_hb_to_init, no_rf_to_init; eauto.
+    basic_solver 20.
+  Qed.
+
+  (* TODO: move*)
+  Lemma furr_alt:
+    furr G sc ≡ ⋃ l, urr G sc l. 
+  Proof using. unfold furr. basic_solver. Qed.
+
+  (* TODO: move*)
+  Lemma bunion_set_bunion {A B: Type} (ss: B -> A -> Prop):
+    (⋃ x, ⦗ss x⦘) ≡ (⦗⋃₁ x, ss x⦘). 
+  Proof using. basic_solver. Qed. 
+
+  (* TODO: move to lib *)
+  Lemma bunion_more_equiv {A B: Type} (As1 As2: A -> Prop) (ABB1 ABB2: A -> relation B)
+        (EQA: As1 ≡₁ As2) (EQB: forall a (AS: As1 a), ABB1 a ≡ ABB2 a):
+    (⋃ a ∈ As1, ABB1 a) ≡ (⋃ a ∈ As2, ABB2 a). 
+  Proof using. 
+    unfolder. split; ins; desc; exists a.
+    all: splits; [apply EQA | apply EQB]; auto.
+    by apply EQA.
+  Qed.  
+
+  (* TODO: move*)
+  Lemma furr_to_ninit WF WFSC:
+    furr G sc ≡ furr G sc ⨾ ⦗set_compl is_init⦘ ∪ ⦗is_init⦘. 
+  Proof using.
+    rewrite furr_alt.
+    rewrite set_bunion_separation with (S := is_init) (fab := loc) at 2.
+    arewrite ((fun (_: option location) => True) ≡₁ (⋃₁ l, eq (Some l)) ∪₁ eq None).
+    { unfolder. split; ins; destruct x; vauto. }
+    rewrite set_bunion_union_l. rewrite set_bunion_bunion_l.
+    erewrite eqv_rel_more with (x := _ ∪₁ _).
+    2: { apply set_equiv_union with (t' := ∅); [reflexivity| ].
+         split; [| basic_solver]. unfolder. ins. desc. subst. 
+         edestruct is_w_loc; eauto.
+         { eapply init_w; eauto. }
+         vauto. }
+    rewrite set_union_empty_r. 
+    rewrite <- bunion_set_bunion, seq_bunion_l.
+    rewrite <- bunion_union_r.
+    apply bunion_more_equiv; [done| ]. intros l _. 
+    rewrite set_bunion_eq.
+    rewrite urr_to_ninit at 1; auto. basic_solver. 
+  Qed.
+
   Lemma no_PROP_to_init WF CONS :
      ⦗event ↓₁ set_compl is_init⦘ ⨾ PROP ≡
      ⦗event ↓₁ set_compl is_init⦘ ⨾ PROP ⨾ ⦗event ↓₁ set_compl is_init⦘. 
@@ -722,18 +810,13 @@ Section TravLabel.
     arewrite_id ⦗W⦘.
     rewrite !seq_id_l, !seq_id_r.
     rewrite map_rel_eqv, map_rel_seq.
-    sin_rewrite no_sb_cr_to_init. rewrite !seqA.
-    sin_rewrite no_ar_rfppo_rt_to_init; auto. rewrite !seqA.
-    arewrite_id ⦗set_compl (fun a : actid => is_init a)⦘ at 1.
-    sin_rewrite no_sb_cr_to_init. rewrite !seqA.
 
-    assert (SPL : Execution_eco.sc_per_loc G).
-    { apply imm_s_hb.coherence_sc_per_loc. apply CONS. }
-    sin_rewrite no_co_cr_to_init; auto.
-    rewrite <- !map_rel_seq2; auto using event_surj.
-    repeat apply seq_domb.
-    iord_dom_solver.
-  Qed.
+    apply domb_map_rel.
+    rewrite furr_to_ninit; auto; [| apply CONS].
+    rewrite crE. rewrite no_co_to_init; auto.
+    { basic_solver. }
+    apply coherence_sc_per_loc, CONS. 
+  Qed. 
 
   Lemma seq_eqv_l_trans {A: Type} (r: relation A) (s: A -> Prop)
         (TRANS: transitive r):
@@ -745,7 +828,8 @@ Section TravLabel.
 
   Lemma iord_ct_fsupp WF WFSC COMP MF CONS
         (FAIR: mem_fair G)
-        (IMM_FAIR: imm_s_fair G sc):
+        (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺).
   Proof using.
     forward eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc as FS_AR_RFPPOL; eauto.
@@ -905,7 +989,7 @@ Section TravLabel.
     2: { apply seq_eqv_l_trans; auto with lbase. }
     rewrite <- !seq_union_r. 
     repeat apply fsupp_seq.
-    3: now auto using fsupp_cr with lbase.
+    3: { eapply fsupp_cr, PROP_fsupp; eauto. }   
     2: { rewrite inclusion_eqv_rel_true, !seq_id_l.
          rewrite PROPIORD. rewrite empty_rt. auto using fsupp_eqv. }
 
@@ -1026,6 +1110,14 @@ Proof using.
   unfold AR. now rewrite EQ.
 Qed.
 
+(* TODO: move*)
+Global Add Parametric Morphism : furr with signature
+       eq ==> same_relation ==> same_relation as furr_more. 
+Proof using. 
+  ins. rewrite !furr_alt. apply bunion_more_equiv; [done| ]. intros l _.
+  unfold urr. rewrite H. done.
+Qed. 
+
 Global Add Parametric Morphism : PROP with signature
        eq ==> same_relation ==> same_relation as PROP_more.
 Proof using.
@@ -1041,4 +1133,3 @@ Proof using.
   apply restr_rel_more; eauto.
   now rewrite EQ.
 Qed.
-

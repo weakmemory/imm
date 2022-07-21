@@ -204,6 +204,12 @@ Qed.
 (** ** init *)
 (******************************************************************************)
 
+Lemma no_release_from_init WF: release ≡ ⦗set_compl is_init⦘ ⨾ release. 
+Proof using.
+  split; [| basic_solver]. apply doma_helper.
+  unfold release. rewrite init_pln; eauto. mode_solver.  
+Qed.
+
 Lemma no_sw_to_init WF : sw ≡ sw ⨾  ⦗fun x => ~ is_init x⦘.
 Proof using.
 split; [|basic_solver].

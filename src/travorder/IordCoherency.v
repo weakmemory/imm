@@ -15,6 +15,7 @@ Require Import AuxRel2.
 Require Import travorder.TraversalOrder.
 Require Import travorder.TLSCoherency. 
 Require Import AuxRel2.
+Require Import CombRelations.
 
 
 Definition iord_coherent G sc tc :=
@@ -153,6 +154,12 @@ Section IordCoherency.
     rewrite wf_scE, (@no_sc_to_init _ WF _ WFSC); eauto. basic_solver.
   Qed.
 
+  Lemma furr_E_ENI_cr: furr G sc ⊆ E_ENI^?.
+  Proof using WFSC WF.
+    rewrite furr_to_ninit, wf_furrE; auto.
+    rewrite crE. unfold E_ENI. basic_solver.
+  Qed.  
+
   Lemma E_ENI_trans: transitive E_ENI.
   Proof using. unfold E_ENI. basic_solver. Qed.
 
@@ -172,8 +179,11 @@ Section IordCoherency.
     iord_simpl G sc ⊆ event ↓ E_ENI^?.
   Proof using WF WFSC SCPL.
     unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
-    rewrite ppo_in_sb, fwbob_in_sb; auto. rewrite inclusion_inter_l1 with (r := sb).
-    rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_ENI, ?fr_E_ENI, ?ar_E_ENI, ?sc_E_ENI; auto.
+    rewrite ppo_in_sb, fwbob_in_sb; auto.
+    rewrite inclusion_inter_l1 with (r := sb).
+    rewrite inclusion_inter_l1. 
+    rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_ENI, ?fr_E_ENI, ?ar_E_ENI, 
+      ?furr_E_ENI_cr, ?sc_E_ENI; auto.
     rewrite <- !seqA. 
     repeat (rewrite ?(@rt_of_trans _ E_ENI), ?(@rewrite_trans _ E_ENI),
              ?unionK, ?(@rewrite_trans _ E_ENI),
@@ -319,4 +329,3 @@ Proof using.
   rewrite set_minusE. apply set_subset_inter_r. split; [| basic_solver].
   rewrite ICOH. basic_solver. 
 Qed.
-

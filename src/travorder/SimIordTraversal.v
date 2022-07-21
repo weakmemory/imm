@@ -20,6 +20,7 @@ Require Import travorder.SimClosure.
 Require Import AuxRel2.
 Require Import ImmFair.
 Require Import EnumPrefix.
+Require Import ThreadBoundedExecution. 
 
 Import ListNotations.
 
@@ -174,6 +175,7 @@ Section IordTraversal.
 
   Lemma iord_enum_exists WF COMP WFSC CONS MF
         (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t)
         dom:
   exists (steps: nat -> trav_label),
     enumerates steps dom /\
@@ -187,7 +189,7 @@ Section IordTraversal.
       { rewrite inclusion_seq_eqv_l. by apply iord_acyclic. }
       red. intros ? ? ? ?%seq_eqv_l  ?%seq_eqv_l. desc.
       apply seq_eqv_l. split; auto. eapply transitive_ct; eauto. }
-    { apply iord_ct_fsupp; auto. }
+    { eapply iord_ct_fsupp; eauto. }
     { edestruct H. constructor. econstructor; vauto. }
     exists steps. splits; eauto.
     red. ins. apply RESP; auto.
@@ -200,6 +202,7 @@ Section IordTraversal.
   Lemma sim_traversal_inf WF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t)
         (dom: trav_label -> Prop)
         (IORD_DOM: iord ⊆ dom × dom)
         (DOM_EXEC: dom ⊆₁ exec_tls G)
@@ -241,6 +244,7 @@ Section IordTraversal.
   Lemma sim_traversal_inf_cip WF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t)
         :
     exists (sim_enum: nat -> (trav_label -> Prop)),
       ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
@@ -268,7 +272,8 @@ Section IordTraversal.
 
   Lemma sim_traversal_inf_full WF CONS
         (FAIR: mem_fair G)
-        (IMM_FAIR: imm_s_fair G sc):
+        (IMM_FAIR: imm_s_fair G sc)
+        t (TB: threads_bound G t):
     exists (sim_enum: nat -> (trav_label -> Prop)),
       ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
       ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))),
