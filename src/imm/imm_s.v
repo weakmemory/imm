@@ -168,13 +168,17 @@ generalize (read_or_fence_is_not_init WF).
 basic_solver 42.
 Qed.
 
+Lemma sc_not_init:
+  sc ≡ ⦗set_compl is_init⦘ ⨾ sc ⨾ ⦗set_compl is_init⦘. 
+Proof using WF WF_SC. 
+  apply dom_helper_3.
+  rewrite wf_scD, init_pln; eauto. mode_solver. 
+Qed.
+
 Lemma no_sc_to_init :
  sc ≡ sc ⨾  ⦗fun x => ~ is_init x⦘.
 Proof using WF WF_SC.
-split; [|basic_solver].
-rewrite wf_scD at 1; try done.
-generalize (read_or_fence_is_not_init WF).
-basic_solver 42.
+  rewrite sc_not_init. basic_solver. 
 Qed.
 
 (******************************************************************************)

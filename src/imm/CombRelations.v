@@ -10,6 +10,9 @@ Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_bob.
+Require Import AuxRel2.
+Require Import AuxDef.
+
 
 Set Implicit Arguments.
 
@@ -561,6 +564,45 @@ Qed.
 
 Definition furr := fun x y => exists l, urr l x y.
 
+Lemma urr_to_ninit l WF WF_SC:
+  urr l ≡ urr l ⨾ ⦗set_compl is_init⦘ ∪ ⦗Loc_ l ∩₁ is_init⦘. 
+Proof using.
+  rewrite <- seq_id_r with (r := urr l) at 1.
+  rewrite set_split_complete with (s' := set_full) (s := is_init), !set_inter_full_l.
+  rewrite id_union, seq_union_r. rewrite unionC. apply union_more; [done| ].    
+  unfold urr.
+  assert (is_init ≡₁ is_init ∩₁ W) as I' by (generalize init_w; basic_solver).
+  rewrite I' at 2. 
+  rewrite no_sc_to_init with (sc := sc), no_hb_to_init, no_rf_to_init; eauto.
+  basic_solver 20.
+Qed.
+
+Lemma furr_bunion:
+  furr ≡ ⋃ l, urr l. 
+Proof using. unfold furr. basic_solver. Qed.
+
+Lemma furr_to_ninit WF WF_SC:
+  furr ≡ furr ⨾ ⦗set_compl is_init⦘ ∪ ⦗is_init⦘. 
+Proof using.
+  rewrite furr_bunion.
+  rewrite set_bunion_separation with (S := is_init) (fab := loc) at 2.
+  arewrite ((fun (_: option location) => True) ≡₁ (⋃₁ l, eq (Some l)) ∪₁ eq None).
+  { unfolder. split; ins; destruct x; vauto. }
+  rewrite set_bunion_union_l. rewrite set_bunion_bunion_l.
+  erewrite eqv_rel_more with (x := _ ∪₁ _).
+  2: { apply set_equiv_union with (t' := ∅); [reflexivity| ].
+       split; [| basic_solver]. unfolder. ins. desc. subst. 
+       edestruct is_w_loc; eauto.
+       { eapply init_w; eauto. }
+       vauto. }
+  rewrite set_union_empty_r.  
+  rewrite <- bunion_set_bunion, seq_bunion_l.
+  rewrite <- bunion_union_r.
+  apply bunion_more_equiv; [done| ]. intros l _. 
+  rewrite set_bunion_eq.
+  rewrite urr_to_ninit at 1; auto. basic_solver. 
+Qed.
+
 Lemma wf_furrE WF WF_SC: furr ≡ ⦗ W ⦘ ∪ ⦗ E ⦘ ⨾ furr ⨾ ⦗ E ⦘.
 Proof using.
 unfold furr; unfolder; ins; desf.
@@ -741,3 +783,9 @@ Add Parametric Morphism : msg_rel with signature
           (@same_relation actid) as msg_rel_more. 
 Proof using. ins. unfold msg_rel. rewrite H. basic_solver. Qed. 
 
+Global Add Parametric Morphism : furr with signature
+       eq ==> same_relation ==> same_relation as furr_more. 
+Proof using. 
+  ins. rewrite !furr_bunion. apply bunion_more_equiv; [done| ]. intros l _.
+  unfold urr. rewrite H. done.
+Qed. 

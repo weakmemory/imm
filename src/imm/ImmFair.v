@@ -130,4 +130,3 @@ Proof using.
   2: { eapply fsupp_cross with (s' := set_full); eauto. }
   red. rewrite ct_begin, imm.wf_arE; auto. basic_solver.  
 Qed. 
-

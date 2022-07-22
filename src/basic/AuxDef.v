@@ -155,13 +155,11 @@ Ltac contra name :=
   | |- ?goal => destruct (classic goal) as [? | name]; [done| exfalso]
   end. 
 
-(* TODO: move to Hahn. *)
 Lemma set_infinite_has_element {A: Type} (S: A -> Prop)
       (INF: ~ set_finite S):
   exists e, S e.
 Proof using. contra NO. destruct INF. exists nil. ins. edestruct NO; vauto. Qed. 
 
-(* TODO: move to Hahn. *)
 Lemma set_finite_exists_bigger {A}
       (DEC : forall x y : A, {x = y} + {x <> y})
       (s : A -> Prop) (FINDOM : set_finite s)
@@ -431,3 +429,34 @@ Proof using.
   red in D. desc. 
   edestruct NOR2; basic_solver 10.
 Qed.   
+
+Lemma doma_map_rel {A B: Type} (r: relation A) (S: A -> Prop) (f: B -> A)
+      (DOMA: doma r S):
+  doma (f ↓ r) (f ↓₁ S). 
+Proof using. 
+  unfolder. ins. eapply DOMA; eauto. 
+Qed.
+
+Lemma domb_map_rel {A B: Type} (r: relation A) (S: A -> Prop) (f: B -> A)
+      (DOMB: domb r S):
+  domb (f ↓ r) (f ↓₁ S). 
+Proof using. 
+  unfolder. ins. eapply DOMB; eauto. 
+Qed.
+
+Lemma bunion_set_bunion {A B: Type} (ss: B -> A -> Prop):
+  (⋃ x, ⦗ss x⦘) ≡ (⦗⋃₁ x, ss x⦘). 
+Proof using. basic_solver. Qed. 
+
+Lemma bunion_more_equiv {A B: Type} (As1 As2: A -> Prop) (ABB1 ABB2: A -> relation B)
+      (EQA: As1 ≡₁ As2) (EQB: forall a (AS: As1 a), ABB1 a ≡ ABB2 a):
+  (⋃ a ∈ As1, ABB1 a) ≡ (⋃ a ∈ As2, ABB2 a). 
+Proof using. 
+  unfolder. split; ins; desc; exists a.
+  all: splits; [apply EQA | apply EQB]; auto.
+  by apply EQA.
+Qed.  
+
+Lemma set_compl_set_mapC {A B: Type} (d: B -> Prop) (f: A -> B):
+  set_compl (f ↓₁ d) ≡₁  (f ↓₁ set_compl d).
+Proof using. basic_solver. Qed. 

@@ -128,7 +128,6 @@ Lemma set_bunion_separation {A B: Type} (S: A -> Prop) (fab: A -> B):
   S ≡₁ ⋃₁ b, S ∩₁ (fun a => fab a = b).
 Proof using. basic_solver. Qed.
 
-(* TODO: move to hahn *)
 Lemma clos_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
       (DOMB_S: domb r s):
   ⦗s⦘ ⨾ r^+ ⊆ (⦗s⦘ ⨾ r ⨾ ⦗s⦘)^+.
@@ -138,7 +137,6 @@ Proof using.
   do 2 rewrite <- seqA. rewrite <- ct_begin. basic_solver. 
 Qed.
 
-(* TODO: move to hahn *)
 Lemma clos_refl_trans_domb_l {B: Type} (r: relation B) (s: B -> Prop)
       (DOMB_S: domb r s):
   ⦗s⦘ ⨾ r^* ⊆ ⦗s⦘ ⨾ r^* ⨾ ⦗s⦘.

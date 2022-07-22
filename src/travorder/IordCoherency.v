@@ -201,11 +201,6 @@ Section IordCoherency.
     unfold E_ENI. basic_solver.
   Qed.
 
-  (* TODO: move to lib*)
-  Lemma set_compl_set_mapC {A B: Type} (d: B -> Prop) (f: A -> B):
-    set_compl (f ↓₁ d) ≡₁  (f ↓₁ set_compl d).
-  Proof using. basic_solver. Qed. 
-
   Lemma iord_coh_implies_iord_simpl_coh' ICOH:
     dom_rel (iord_simpl G sc ⨾ ⦗tc⦘) ⊆₁ tc. 
   Proof using WF TCOH WFSC SCPL.
