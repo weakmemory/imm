@@ -152,6 +152,7 @@ Qed.
 
 Definition sim_execution G G' MOD :=
       ⟪ ACTS : (acts_set G) = (acts_set G') ⟫ /\
+      ⟪ TS: threads_set G ≡₁ threads_set G'⟫ /\
       ⟪ SAME : same_lab_u2v (lab G') (lab G) ⟫ /\
       ⟪ OLD_VAL : forall a (NIN: ~ MOD a), val ((lab G')) a = val ((lab G)) a ⟫ /\
       ⟪ RMW  : (rmw G)  ≡ (rmw G')  ⟫ /\
@@ -421,6 +422,7 @@ do 7 eexists; splits; red; splits.
     red in EXEC; desc.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
+    + by rewrite TS. 
     + rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -531,6 +533,7 @@ by ins; desc; eauto.
     red in EXEC; desc.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
+    + by rewrite TS. 
     + rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -616,6 +619,7 @@ do 7 eexists; splits; red; splits.
     red in EXEC; desc.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
+    + by rewrite TS. 
     + rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -718,6 +722,7 @@ do 7 eexists; splits; red; splits.
     red in EXEC; desc.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
+    + by rewrite TS. 
     + rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -835,6 +840,7 @@ do 7 eexists; splits; red; splits.
     red in EXEC; desc.
     red; splits; ins.
     + by rewrite EINDEX, ACTS.
+    + by rewrite TS. 
     + rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1' + 1))).
@@ -991,6 +997,7 @@ Proof using.
     red in EXEC; desc.
     red; splits; ins.
     { by rewrite EINDEX, ACTS. }
+    {  by rewrite TS. }
     { rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -1161,6 +1168,7 @@ Proof using.
     red in EXEC; desc.
     red; splits; ins.
     { by rewrite EINDEX, ACTS. }
+    { by rewrite TS. }
     { rewrite EINDEX.
       unfold same_lab_u2v in *; intro e.
       destruct (eq_dec_actid e (ThreadEvent tid (eindex s1'))).
@@ -1446,6 +1454,7 @@ Lemma receptiveness_full (tid : thread_id)
     exists s',
       ⟪ STEPS' : (step tid)＊ s_init s' ⟫ /\
       ⟪ RACTS : (acts_set (G s)) = (acts_set (G s')) ⟫ /\
+      ⟪ RTS: threads_set (G s) ≡₁ threads_set (G s')⟫ /\
       ⟪ RRMW  : (rmw (G s))  ≡ (rmw (G s'))  ⟫ /\
       ⟪ RDATA : (data (G s)) ≡ (data (G s')) ⟫ /\
       ⟪ RADDR : (addr (G s)) ≡ (addr (G s')) ⟫ /\
