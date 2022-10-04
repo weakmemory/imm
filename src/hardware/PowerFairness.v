@@ -19,7 +19,7 @@ Require Import imm.
 Require Import ImmFair.
 Require Import FairExecution.
 Require Import immToPower.
-Require Import ThreadBoundedExecution.
+Require Import FinThreads.
 Require Import Lia.
 Require Import ClassicalChoice.
 Require Import ChoiceFacts.

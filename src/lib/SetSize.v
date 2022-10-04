@@ -82,3 +82,9 @@ Proof.
   rewrite (proj2 (filterP_eq_nil ∅ x)); vauto.
 Qed. 
 
+Lemma set_size_finite {A: Type} (S: A -> Prop)
+  (FIN: set_finite S):
+  exists n, set_size S = NOnum n.
+Proof using.
+  unfold set_size. destruct (excluded_middle_informative _); by vauto.
+Qed.

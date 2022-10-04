@@ -20,7 +20,7 @@ Require Import travorder.SimClosure.
 Require Import AuxRel2.
 Require Import ImmFair.
 Require Import EnumPrefix.
-Require Import ThreadBoundedExecution. 
+Require Import FinThreads. 
 
 Import ListNotations.
 
@@ -175,7 +175,7 @@ Section IordTraversal.
 
   Lemma iord_enum_exists WF COMP WFSC CONS MF
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t)
+        (TB: fin_threads G)
         dom:
   exists (steps: nat -> trav_label),
     enumerates steps dom /\
@@ -202,7 +202,7 @@ Section IordTraversal.
   Lemma sim_traversal_inf WF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t)
+        (TB: fin_threads G)
         (dom: trav_label -> Prop)
         (IORD_DOM: iord ⊆ dom × dom)
         (DOM_EXEC: dom ⊆₁ exec_tls G)
@@ -244,8 +244,7 @@ Section IordTraversal.
   Lemma sim_traversal_inf_cip WF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t)
-        :
+        (TB: fin_threads G) :
     exists (sim_enum: nat -> (trav_label -> Prop)),
       ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
       ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls_cip G))),
@@ -273,7 +272,7 @@ Section IordTraversal.
   Lemma sim_traversal_inf_full WF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t):
+        (TB: fin_threads G) :
     exists (sim_enum: nat -> (trav_label -> Prop)),
       ⟪INIT: sim_enum 0 ≡₁ init_tls G ⟫ /\
       ⟪COH: forall i (DOMi: NOmega.le (NOnum i) (set_size (exec_tls G))),

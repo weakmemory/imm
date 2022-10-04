@@ -301,6 +301,19 @@ Qed.
 
 End IordCoherency.
 
+Lemma iord_coherent_crt G sc T
+  (ICOH: iord_coherent G sc T):
+  dom_rel ((iord G sc)^* ⨾ ⦗T⦘) ⊆₁ T.
+Proof using.
+  intros x [y HH]. apply seq_eqv_r in HH.
+  destruct HH as [II TY].
+  apply clos_rt_rt1n in II.
+  induction II; auto.
+  apply IHII in TY.
+  eapply iord_coh_clos_refl; eauto.
+  clear -H TY. basic_solver 10.
+Qed.
+
 Lemma iord_coh_implies_iord_simpl_coh G sc tc
       (tCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc)
       (CONS: imm_consistent G sc) (WF: Wf G):      

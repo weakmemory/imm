@@ -21,13 +21,13 @@ From imm Require Import imm_s.
 From imm Require Import imm_s_hb.
 Require Import FairExecution. 
 Require Import AuxRel2.
-Require Import ThreadBoundedExecution.
+Require Import FinThreads.
 
 Section HbFsupp.
-  Variable (G: execution) (sc: relation actid) (t: thread_id). 
+  Variable (G: execution) (sc: relation actid). 
   Hypothesis (WF: Wf G) (IMMCON: imm_consistent G sc).
   Hypothesis (FAIR: mem_fair G) (FSUPP_SC: fsupp sc).
-  Hypothesis (TB: threads_bound G t). 
+  Hypothesis (TB: fin_threads G). 
   
   Lemma fsupp_rs : fsupp (⦗set_compl is_init⦘ ⨾ rs G).
   Proof using WF IMMCON FAIR.

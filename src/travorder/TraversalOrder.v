@@ -18,7 +18,7 @@ Require Import CountabilityHelpers.
 Require Import CombRelations.
 Import ListNotations.
 Require Import HbFsupp.
-Require Import ThreadBoundedExecution.
+Require Import FinThreads.
 Require Import imm_s_hb.
 
 Set Implicit Arguments.
@@ -647,7 +647,7 @@ Section TravLabel.
   Qed.
 
   Lemma PROP_fsupp WF MF CONS COMP (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t):
+        (TB: fin_threads G):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ PROP).
   Proof using.
     assert (FSUPPSBCR : fsupp (⦗set_compl is_init⦘ ⨾ sb^?)).
@@ -677,7 +677,7 @@ Section TravLabel.
 
   Lemma iord_fsupp WF WFSC MF CONS COMP
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t):
+        (TB: fin_threads G):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord).
   Proof using.
     assert (FSUPPRF : fsupp rf).
@@ -746,7 +746,7 @@ Section TravLabel.
   Lemma iord_ct_fsupp WF WFSC COMP MF CONS
         (FAIR: mem_fair G)
         (IMM_FAIR: imm_s_fair G sc)
-        t (TB: threads_bound G t):
+        (TB: fin_threads G):
     fsupp (⦗event ↓₁ (set_compl is_init)⦘ ⨾ iord⁺).
   Proof using.
     forward eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc as FS_AR_RFPPOL; eauto.

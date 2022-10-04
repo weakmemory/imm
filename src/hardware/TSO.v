@@ -5,7 +5,7 @@ From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
-Require Import ThreadBoundedExecution. 
+Require Import FinThreads. 
 Require Import FairExecution.
 
 Set Implicit Arguments.

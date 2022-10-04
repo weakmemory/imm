@@ -13,7 +13,7 @@ Require Import imm_hb.
 Require Import imm.
 Require Import FairExecution.
 Require Import ImmFair. 
-Require Import ThreadBoundedExecution.
+Require Import FinThreads.
 
 Set Implicit Arguments.
 
@@ -907,9 +907,9 @@ Qed.
 
 
 
-Lemma TSO_fsupp_ar_ct b
+Lemma TSO_fsupp_ar_ct
       (SCF : E ∩₁ MFENCE ⊆₁ ∅)
-      (TB: threads_bound G b):
+      (TB: fin_threads G):
   imm_fair G.
 Proof using CON.
   red. unfold ar.
