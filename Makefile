@@ -8,8 +8,11 @@ all: build
 build: Makefile.coq
 	$(MAKE) -f Makefile.coq all
 
-quick: Makefile.coq
-	$(MAKE) -f Makefile.coq quick
+vio: Makefile.coq
+	$(MAKE) -f Makefile.coq vio 
+
+checkproofs: Makefile.coq
+	$(MAKE) -f Makefile.coq checkproofs
 
 quick-check: Makefile.coq
 	$(MAKE) -f Makefile.coq vio2vo J=6
