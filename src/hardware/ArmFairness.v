@@ -21,6 +21,7 @@ Require Import imm_s_hb_hb.
 Require Import ImmFair.
 Require Import FairExecution.
 Require Import imm_sToARM.
+Require Import EnumProperties.
 Require Import HardwareFairness. 
 Require Import Lia.
 Require Import AuxDef.

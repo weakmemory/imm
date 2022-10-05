@@ -6,6 +6,59 @@ Require Import PropExtensionality.
 From ZornsLemma Require Classical_Wf. 
 Require Import Events.
 
+Lemma list_max_In (l: list nat) (NNIL: l <> nil):
+  In (list_max l) l. 
+Proof using.
+  generalize dependent NNIL. induction l; [by vauto| ].
+  ins. 
+  destruct l eqn:LL.
+  { ins. lia. }
+  specialize_full IHl; [done| ]. rewrite <- LL in *. clear LL.  
+  destruct (NPeano.Nat.max_spec_le a (list_max l)); desc.
+  { rewrite H0. by right. }
+  auto.
+Qed.
+
+Definition countP (f: actid -> Prop) l :=
+  length (filterP f l).
+
+Add Parametric Morphism : countP with signature
+    set_subset ==> eq ==> le as countP_mori.
+Proof using.
+  ins. unfold countP.
+  induction y0.
+  { simpls. }
+  ins. desf; simpls.
+  1,3: lia.
+  exfalso. apply n. by apply H.
+Qed.
+
+Add Parametric Morphism : countP with signature
+    set_equiv ==> eq ==> eq as countP_more.
+Proof using.
+  ins. unfold countP.
+  erewrite filterP_set_equiv; eauto.
+Qed.
+
+Lemma countP_strict_mori e l P P'
+      (IN : P ⊆₁ P')
+      (INP  : ~ P e)
+      (INP' :  P' e)
+      (INL  : In e l) :
+  countP P l < countP P' l.
+Proof using.
+  generalize dependent e.
+  induction l; simpls.
+  ins. desf.
+  { unfold countP; simpls. desf. simpls.
+    apply Lt.le_lt_n_Sm. by apply countP_mori. }
+  unfold countP; simpls. desf; simpls.
+  { apply Lt.lt_n_S. eapply IHl; eauto. }
+  { exfalso. apply n. by apply IN. }
+  { apply Lt.le_lt_n_Sm. by apply countP_mori. }
+    by apply IHl with (e:=e).
+Qed.
+
 Lemma false_acyclic {A} : acyclic (∅₂ : relation A).
 Proof using.
   red. rewrite ct_of_trans; [|apply transitiveI].

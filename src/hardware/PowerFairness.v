@@ -26,6 +26,7 @@ Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
 Require Import AuxRel2.
 Require Import Program.Basics.
+Require Import EnumProperties.
 Require Import HardwareFairness.
 Require Import AuxDef.
 Import ListNotations. 
