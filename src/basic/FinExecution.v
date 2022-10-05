@@ -1,5 +1,5 @@
 Require Import Lia.
-Require Import Classical Peano_dec.
+Require Import Classical Peano_dec ClassicalEpsilon.
 From hahn Require Import Hahn.
 Require Import AuxDef.
 Require Import AuxRel2. 
@@ -11,10 +11,7 @@ Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
 Definition fin_exec (G: execution) :=
   set_finite (acts_set G \₁ is_init).
 
-(* TODO: currently seems that the notion of full finiteness is needed 
-   to support traversal as is *)
 Definition fin_exec_full (G: execution) :=
-  (* fin_exec G /\ set_finite (acts_set G ∩₁ Tid_ tid_init).  *)
   set_finite (acts_set G).
 
 Lemma fin_exec_full_equiv (G: execution):
@@ -25,7 +22,6 @@ Proof using.
   rewrite set_minusE, set_unionC, <- set_inter_union_r, <- set_full_split.
   basic_solver.
 Qed. 
-
 
 Section FinExecution.
   Variable G: execution.
@@ -42,7 +38,18 @@ Section FinExecution.
     desf.
     exists (1 + n). apply AA. lia.
   Qed.
-  
+
+  Definition acts_list: list actid :=
+    filterP (acts_set G \₁ is_init)
+            (proj1_sig (@constructive_indefinite_description _ _ FINDOM)).
+  Lemma acts_set_findom: acts_set G \₁ is_init ≡₁ (fun e => In e acts_list).
+  Proof using.
+    unfold acts_list. destruct constructive_indefinite_description. simpl.
+    split; intros e.
+    all: rewrite in_filterP_iff; intuition. 
+    apply i. apply H.
+  Qed.
+  Opaque acts_list.
 End FinExecution. 
 
 Lemma fin_exec_same_events G G'
