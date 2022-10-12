@@ -79,23 +79,23 @@ Definition iiord_step (tl : trav_label) : relation (trav_label -> Prop) :=
 Definition iord_step (tc tc' : trav_label -> Prop) :=
   exists tl, iiord_step tl tc tc'.
 
-Definition tl_issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)).
-Definition tl_covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
-Definition tl_reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
+Definition issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)).
+Definition covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
+Definition reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
 
-Lemma tl_covered_single e:
-  tl_covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
+Lemma covered_single e:
+  covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
 Proof using.
-  unfold tl_covered. rewrite set_inter_absorb_r; basic_solver.
+  unfold covered. rewrite set_inter_absorb_r; basic_solver.
 Qed.
   
 
   
 Definition rmw_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
-  (eq ta_cover ∪₁ eq ta_issue) <*> codom_rel (<|tl_covered tc|> ;; rmw).
+  (eq ta_cover ∪₁ eq ta_issue) <*> codom_rel (<|covered tc|> ;; rmw).
 
 Definition rel_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
-  (eq ta_cover) <*> (Rel ∩₁ tl_issued tc).
+  (eq ta_cover) <*> (Rel ∩₁ issued tc).
   
 Definition sim_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
   tc ∪₁ rmw_clos tc ∪₁ rel_clos tc.
@@ -106,14 +106,14 @@ Definition sim_coherent (tc : trav_label -> Prop) :=
 Global Add Parametric Morphism : sim_clos with signature
        set_equiv ==> set_equiv as sim_clos_more.
 Proof using.
-  unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
+  unfold sim_clos. ins. unfold rmw_clos, rel_clos, issued, covered.
   rewrite !set_pair_alt. rewrite H. basic_solver.
 Qed.
 
 Global Add Parametric Morphism : sim_clos with signature
        set_subset ==> set_subset as sim_clos_mori.
 Proof using.
-  unfold sim_clos. ins. unfold rmw_clos, rel_clos, tl_issued, tl_covered.
+  unfold sim_clos. ins. unfold rmw_clos, rel_clos, issued, covered.
   rewrite !set_pair_alt. rewrite H. basic_solver.
 Qed.
 
@@ -121,13 +121,13 @@ Qed.
 Lemma rmw_clos_dist (tc1 tc2: trav_label -> Prop):
   rmw_clos (tc1 ∪₁ tc2) ≡₁ rmw_clos tc1 ∪₁ rmw_clos tc2. 
 Proof using. 
-  unfold rmw_clos. rewrite !set_pair_alt. unfold tl_covered. basic_solver 10.
+  unfold rmw_clos. rewrite !set_pair_alt. unfold covered. basic_solver 10.
 Qed. 
 
 Lemma rel_clos_dist (tc1 tc2: trav_label -> Prop):
   rel_clos (tc1 ∪₁ tc2) ≡₁ rel_clos tc1 ∪₁ rel_clos tc2. 
 Proof using. 
-  unfold rel_clos. rewrite !set_pair_alt. unfold tl_issued. basic_solver 10.
+  unfold rel_clos. rewrite !set_pair_alt. unfold issued. basic_solver 10.
 Qed. 
 
 Lemma sim_clos_union (tc1 tc2: trav_label -> Prop):
@@ -139,7 +139,7 @@ Qed.
 Lemma sim_clos_empty:
   sim_clos ∅ ≡₁ ∅. 
 Proof using.
-  unfold sim_clos, rmw_clos, rel_clos, tl_issued, tl_covered.
+  unfold sim_clos, rmw_clos, rel_clos, issued, covered.
   rewrite !set_pair_alt. basic_solver.
 Qed. 
 
@@ -148,7 +148,7 @@ Lemma rmw_clos_once WF (tc: trav_label -> Prop):
   rmw_clos (rmw_clos tc) ⊆₁ ∅.
 Proof using. 
   unfold rmw_clos.
-  unfold tl_covered. rewrite !set_pair_alt. unfolder. ins. desc.
+  unfold covered. rewrite !set_pair_alt. unfolder. ins. desc.
   destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3].
   ins. subst x0 x1 z. subst.
   eapply wf_rmwD, seq_eqv_lr in H5, H1; eauto. type_solver. 
@@ -157,7 +157,7 @@ Qed.
 Lemma rmw_rel_clos_none WF (tc: trav_label -> Prop) (TCOH: tls_coherent G tc):
   rmw_clos (rel_clos tc) ⊆₁ ∅.
 Proof using.
-  unfold rmw_clos, rel_clos. unfold tl_covered, tl_issued.
+  unfold rmw_clos, rel_clos. unfold covered, issued.
   rewrite !set_pair_alt. unfolder. ins. desc.
   destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3]. ins. subst x0. subst.
   forward eapply tlsc_I_in_W with (x := (ta_issue, e1)); eauto; [basic_solver| ].
@@ -168,7 +168,7 @@ Lemma rel_rmw_clos_rmw (tc: trav_label -> Prop)
       (TCOH: tls_coherent G tc) (ICOH: iord_coherent G sc tc):
   rel_clos (rmw_clos tc) ⊆₁ rmw_clos tc. 
 Proof using.
-  unfold rmw_clos, rel_clos. unfold tl_covered, tl_issued.
+  unfold rmw_clos, rel_clos. unfold covered, issued.
   rewrite !set_pair_alt. unfolder. ins. desc.
   destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3]. ins. subst x0. subst.
   splits; [by vauto| ]. repeat (eexists; eauto). 
@@ -178,7 +178,7 @@ Lemma rel_clos_idemp (tc: trav_label -> Prop):
   rel_clos (rel_clos tc) ⊆₁ rel_clos tc.
 Proof using. 
   unfold rel_clos.
-  unfold tl_issued. rewrite !set_pair_alt. unfolder. ins. desc.
+  unfold issued. rewrite !set_pair_alt. unfolder. ins. desc.
   destruct y as [a1 e1], y0 as [a2 e2], x as [a3 e3].
   ins. subst. splits; eauto. 
 Qed.
@@ -208,11 +208,11 @@ Lemma exec_tls_sim_coh (WF: Wf G):
 Proof using. 
   unfold sim_coherent, sim_clos. split; [basic_solver| ].
   repeat (apply set_subset_union_l; split; try basic_solver). 
-  { unfold rmw_clos, exec_tls, tl_covered, tl_issued.
+  { unfold rmw_clos, exec_tls, covered, issued.
     repeat rewrite set_pair_alt.
     rewrite wf_rmwE, wf_rmwD, rmw_non_init_lr; auto. 
     iord_dom_unfolder; [by vauto| ]. intuition. }
-  { unfold rel_clos, exec_tls, tl_covered, tl_issued.
+  { unfold rel_clos, exec_tls, covered, issued.
     repeat rewrite set_pair_alt.
     iord_dom_unfolder. left. vauto. }
 Qed.
@@ -247,7 +247,7 @@ Lemma action_sur:
 Proof using. ins. exists (mkTL y (InitEvent tid_init)). vauto. Qed.
 
 Lemma rmw_cover_simpl WF tc:
-  codom_rel (event ↓ (⦗tl_covered tc⦘ ⨾ rmw)) ⊆₁
+  codom_rel (event ↓ (⦗covered tc⦘ ⨾ rmw)) ⊆₁
   codom_rel (⦗(tc ∩₁ action ↓₁ eq ta_cover)⦘ ⨾ event ↓ rmw). 
 Proof using. 
   unfolder. ins. desc.
@@ -491,7 +491,7 @@ Proof using.
   repeat (case_union _ _; rewrite dom_union; apply set_subset_union_l; split).
   all: try by iord_dom_solver. 
   { 
-    unfold tl_issued, SB. unfolder. ins. desc. destruct x, y, y0; ins; vauto.
+    unfold issued, SB. unfolder. ins. desc. destruct x, y, y0; ins; vauto.
     left. left. 
     (* TODO: how to transform into this without unfolding? *)
     enough (dom_rel (⦗action ↓₁ eq ta_cover⦘ ⨾ (event ↓ (sb ∪ sc)^+)⨾ ⦗event ↓₁ Rel⦘ ⨾ ⦗action ↓₁ eq ta_issue⦘⨾ ⦗tc⦘) ⊆₁ tc) as ALT.
@@ -525,7 +525,7 @@ Proof using.
   { unfold RF. rewrite crE, seq_union_r, map_rel_union. repeat case_union _ _.
     rewrite union_mori; [rewrite union_false_r| reflexivity| ].
     2: { rewrite wf_rfD; auto.
-         unfold tl_issued. rewrite tlsc_I_in_W; eauto.
+         unfold issued. rewrite tlsc_I_in_W; eauto.
          iord_dom_unfolder. type_solver. }
     iord_dom_unfolder. left. left.
     do 2 red in d4. desc. destruct y; ins; vauto.
@@ -551,7 +551,7 @@ Lemma rmw_clos_exec_tls tc (WF: Wf G):
   rmw_clos tc ⊆₁ exec_tls G. 
 Proof using.
   unfold rmw_clos, exec_tls. rewrite !set_pair_alt.
-  arewrite (codom_rel (⦗tl_covered tc⦘ ⨾ rmw) ⊆₁ (E \₁ is_init) ∩₁ W).
+  arewrite (codom_rel (⦗covered tc⦘ ⨾ rmw) ⊆₁ (E \₁ is_init) ∩₁ W).
   2: { basic_solver 10. }
   rewrite wf_rmwD, wf_rmwE, rmw_in_sb, no_sb_to_init; auto. basic_solver.
 Qed. 
@@ -561,7 +561,7 @@ Lemma rel_clos_exec_tls tc (WF: Wf G) (TC_E: tc ⊆₁ event ↓₁ E):
 Proof using.
   unfold rel_clos, exec_tls. rewrite !set_pair_alt.
   apply set_subset_union_r. left. apply set_subset_inter; [done| ].
-  apply set_map_mori; [done| ]. unfold tl_issued.
+  apply set_map_mori; [done| ]. unfold issued.
   unfolder. ins. desc. split.
   { apply TC_E in H0. vauto. }
   eintros INIT%init_pln; eauto. mode_solver.
@@ -688,10 +688,10 @@ Section CoverClosure.
     rewrite rmw_clos_dist, rel_clos_dist. 
     arewrite (rmw_clos (eq lbl) ≡₁ ∅).
     { apply set_subset_empty_r.
-      unfold rmw_clos, tl_covered. subst lbl. 
+      unfold rmw_clos, covered. subst lbl. 
       rewrite wf_rmwD; auto. iord_dom_unfolder; try type_solver. }
     assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_LBL. 
-    { unfold rel_clos, tl_issued. subst lbl. iord_dom_unfolder. }
+    { unfold rel_clos, issued. subst lbl. iord_dom_unfolder. }
     
     intros STC STC'. apply rt_step.
     do 2 red. splits; try by (subst stc stc'; apply sim_clos_sim_coherent; auto).
@@ -703,7 +703,7 @@ Section CoverClosure.
     { unfold rmw_clos. subst lbl. apply set_disjoint_eq_r.
       rewrite wf_rmwD; auto. iord_dom_unfolder. type_solver. }
     unfold rel_clos. subst lbl. apply set_disjoint_eq_r.
-    unfold tl_issued. rewrite tlsc_I_in_W; eauto.
+    unfold issued. rewrite tlsc_I_in_W; eauto.
     iord_dom_unfolder. type_solver.  
   Qed. 
     
@@ -728,10 +728,10 @@ Section CoverClosure.
     rewrite rmw_clos_dist, rel_clos_dist.
     assert (rmw_clos (eq lbl) ≡₁ ∅) as NOWRMW.
     { unfold rmw_clos. rewrite wf_rmwD; auto. subst lbl.
-      apply set_subset_empty_r. unfold tl_covered. iord_dom_unfolder; type_solver 10. }    
+      apply set_subset_empty_r. unfold covered. iord_dom_unfolder; type_solver 10. }    
     rewrite NOWRMW, set_union_empty_r.
     assert (rel_clos (eq lbl) ⊆₁ eq lbl) as REL_CLOS.
-    { unfold rel_clos. unfold tl_issued. subst lbl. iord_dom_unfolder. }
+    { unfold rel_clos. unfold issued. subst lbl. iord_dom_unfolder. }
     intros STC STC'. 
     assert (stc' ≡₁ stc ∪₁ eq lbl) as STC'_ALT. 
     { rewrite STC, STC'. split; [| basic_solver].
@@ -767,16 +767,16 @@ Section CoverClosure.
       { unfold rmw_clos. rewrite set_pair_alt.
         rewrite wf_rmwD; auto. subst lbl.
         unfolder. ins. subst. type_solver. }
-      unfold rel_clos. unfold tl_issued. iord_dom_unfolder. subst lbl. inv IN'.
+      unfold rel_clos. unfold issued. iord_dom_unfolder. subst lbl. inv IN'.
       forward eapply tlsc_I_in_W with (x := (ta_issue, a1)) (tc := tc); eauto.
       all: type_solver. }
 
     rewrite rmw_clos_dist, rel_clos_dist.
     arewrite (rel_clos (eq lbl) ≡₁ ∅); [| rewrite set_union_empty_r]. 
-    { apply set_subset_empty_r. unfold rel_clos, tl_issued. iord_dom_unfolder. } 
+    { apply set_subset_empty_r. unfold rel_clos, issued. iord_dom_unfolder. } 
 
     unfold rmw_clos at 3. unfold lbl at 2.
-    rename r into e. rewrite COVER, tl_covered_single. rename e into r.
+    rename r into e. rewrite COVER, covered_single. rename e into r.
 
     destruct (classic (dom_rel rmw r)) as [RMWr | NRMWr].
     2: { arewrite (codom_rel (⦗eq r⦘ ⨾ rmw) ≡₁ ∅). 
@@ -872,7 +872,7 @@ Section CoverClosure.
       subst lbl. repeat (apply set_compl_union; split); try by vauto.
       { apply set_disjoint_eq_l.
         eapply set_disjoint_mori; [..| apply DISJW]; red; basic_solver. }
-      { unfold rel_clos, tl_issued. intros [RCcw]. unfolder in H. desc.
+      { unfold rel_clos, issued. intros [RCcw]. unfolder in H. desc.
         destruct y; ins. subst. 
         apply NEW.
         apply iord_coh_implies_iord_simpl_coh in ICOH; auto. apply ICOH.
@@ -919,8 +919,8 @@ Section CoverClosure.
       { symmetry. unfold stc at 2. apply sim_clos_sim_coherent; auto. }
       unfold sim_clos. split; [basic_solver| ].
       repeat (apply set_subset_union_l; split; try basic_solver).
-      { unfold rmw_clos. unfold tl_covered. iord_dom_unfolder. } 
-      unfold rel_clos. unfold tl_issued. iord_dom_unfolder. inv d0. }
+      { unfold rmw_clos. unfold covered. iord_dom_unfolder. } 
+      unfold rel_clos. unfold issued. iord_dom_unfolder. inv d0. }
     assert (iord_coherent G sc stc_w1) as ICOHw1.
     { assert (stc_rw1 ≡₁ stc_w1 ∪₁ eq lbl) as STCrw1.
       { subst stc_w1 stc_rw1 stc_r. basic_solver. }
@@ -992,7 +992,7 @@ Section IssueClosure.
     assert (rmw_clos (eq lbl) ≡₁ ∅) as NO_RMWC.
     { apply set_subset_empty_r. unfold rmw_clos.
       rewrite set_pair_alt. erewrite wf_rmwD; eauto. 
-      subst lbl. unfold tl_covered. type_solver. }
+      subst lbl. unfold covered. type_solver. }
 
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
@@ -1001,15 +1001,15 @@ Section IssueClosure.
     rewrite set_unionA with (s' := rel_clos _).
 
     arewrite (rel_clos (eq lbl) ≡₁ (event ↓₁ Rel) ∩₁ eq (mkTL ta_cover w)).
-    { unfold rel_clos, tl_issued. rewrite set_pair_alt.
+    { unfold rel_clos, issued. rewrite set_pair_alt.
       red. subst lbl. split; unfolder; ins; desc; destruct x; ins. 
       { subst. vauto. }
       inv H0. splits; vauto. }
         
-    destruct (classic (codom_rel (⦗tl_covered tc⦘ ⨾ rmw) w)) as [CRMWw | NCRMWw].
+    destruct (classic (codom_rel (⦗covered tc⦘ ⨾ rmw) w)) as [CRMWw | NCRMWw].
     { apply set_subset_single_l in CRMWw. 
       rewrite set_union_absorb_l with (s := _ ∩₁ _).
-      2: { unfold rel_clos, rmw_clos, tl_issued. rewrite !set_pair_alt.
+      2: { unfold rel_clos, rmw_clos, issued. rewrite !set_pair_alt.
            rewrite <- CRMWw. basic_solver. }
       rewrite set_unionA with (s' := eq _).
       rewrite set_union_absorb_l with (s := eq _).
@@ -1023,7 +1023,7 @@ Section IssueClosure.
     { eapply set_equiv_compl; [apply STC| ]. subst lbl.
       repeat (apply set_compl_union; split); try basic_solver.
       { intros RMWC. eapply set_subset_empty_r; [apply NO_RMWC| ]; basic_solver. }
-      unfold rel_clos, tl_issued, set_pair.
+      unfold rel_clos, issued, set_pair.
       red. rewrite ISSUE. intuition discriminate. Unshelve. econstructor; vauto. }
       
     destruct (classic (Rel w)) as [RELw | NRELw].
@@ -1098,13 +1098,13 @@ Proof using.
     apply seq_eqv_l. splits.
     { unfold sim_clos.
       repeat (apply set_compl_union; split); auto.
-      all: unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+      all: unfold rel_clos, rmw_clos, set_pair, covered, issued.
       all: clear; intros AA; desf; unfolder in AA; desf. }
     rewrite sim_clos_union.
     apply set_union_more; auto.
     unfold sim_clos.
     split; eauto with hahn.
-    unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+    unfold rel_clos, rmw_clos, set_pair, covered, issued.
     clear. unfolder; ins; do 2 desf. }
 
   apply rt_step.
@@ -1116,13 +1116,13 @@ Proof using.
   apply seq_eqv_l. splits.
   { unfold sim_clos.
     repeat (apply set_compl_union; split); auto.
-    all: unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+    all: unfold rel_clos, rmw_clos, set_pair, covered, issued.
     all: clear; intros AA; desf; unfolder in AA; desf. }
   rewrite sim_clos_union.
   apply set_union_more; auto.
   unfold sim_clos.
   split; eauto with hahn.
-  unfold rel_clos, rmw_clos, set_pair, tl_covered, tl_issued.
+  unfold rel_clos, rmw_clos, set_pair, covered, issued.
   clear. unfolder; ins; do 2 desf.
 Qed. 
   
