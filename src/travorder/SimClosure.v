@@ -13,10 +13,11 @@ Require Import AuxDef.
 Require Import SetSize.
 Require Import FairExecution.
 Require Import AuxRel2.
-Require Import travorder.TraversalOrder.
-Require Import travorder.TLSCoherency.
-Require Import travorder.IordCoherency.
-Require Import AuxRel2.
+Require Import TraversalOrder.
+Require Import TLSCoherency.
+Require Import IordCoherency.
+Require Import EventsTraversalOrder.
+Require Import TlsEventSets.
 
 Import ListNotations.
 
@@ -79,18 +80,6 @@ Definition iiord_step (tl : trav_label) : relation (trav_label -> Prop) :=
 Definition iord_step (tc tc' : trav_label -> Prop) :=
   exists tl, iiord_step tl tc tc'.
 
-Definition issued   tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_issue)).
-Definition covered  tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_cover)).
-Definition reserved tc := event ↑₁ (tc ∩₁ action ↓₁ (eq ta_reserve)).
-
-Lemma covered_single e:
-  covered (eq (mkTL ta_cover e)) ≡₁ eq e. 
-Proof using.
-  unfold covered. rewrite set_inter_absorb_r; basic_solver.
-Qed.
-  
-
-  
 Definition rmw_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
   (eq ta_cover ∪₁ eq ta_issue) <*> codom_rel (<|covered tc|> ;; rmw).
 
@@ -102,6 +91,13 @@ Definition sim_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
   
 Definition sim_coherent (tc : trav_label -> Prop) :=
   tc ≡₁ sim_clos tc.
+
+Lemma covered_rel_clos tc : covered (rel_clos tc) ≡₁ Rel ∩₁ issued tc.
+Proof using.
+  unfold rel_clos.
+  unfold covered, set_pair. split; unfolder; ins; do 2 desf.
+  eexists (_, _); eauto.
+Qed.
 
 Global Add Parametric Morphism : sim_clos with signature
        set_equiv ==> set_equiv as sim_clos_more.
@@ -1125,5 +1121,93 @@ Proof using.
   unfold rel_clos, rmw_clos, set_pair, covered, issued.
   clear. unfolder; ins; do 2 desf.
 Qed. 
+
+Lemma sim_clos_cover_no_dom_rmw WF r tc
+  (NCOV : ~ covered tc r)
+  (TCOH  : tls_coherent G tc)
+  (ICOH  : iord_coherent G sc tc)
+  (SCOH1 : sim_coherent tc)
+  (SCOH2 : sim_coherent (tc ∪₁ eq (ta_cover, r))) :
+  ~ dom_rel rmw r.
+Proof using.
+  intros [w RMW].
+  assert (~ covered tc w) as WNCOV.
+  { intros AA. apply NCOV. eapply dom_sb_covered; eauto.
+    apply (rmw_in_sb WF) in RMW. clear -RMW AA. basic_solver 10. }
+  red in SCOH1. red in SCOH2.
+  rewrite sim_clos_union in SCOH2.
+  rewrite <- SCOH1 in SCOH2.
+  unfold sim_clos in SCOH2.
+  assert (rmw_clos (eq (ta_cover, r)) ⊆₁ tc ∪₁ eq (ta_cover, r)) as RMWC.
+  { rewrite SCOH2. eauto 10 with hahn. }
+  unfold rmw_clos in RMWC. rewrite covered_single in RMWC.
+  specialize (RMWC (ta_cover, w)).
+  destruct RMWC as [AA|AA].
+  { red. split.
+    all: clear -RMW; basic_solver 10. }
+  { apply WNCOV. red. clear -AA. basic_solver 10. }
+  inv AA. apply (wf_rmwD WF) in RMW.
+  generalize RMW. clear. type_solver.
+Qed.
+
+Lemma sim_clos_cover_no_codom_rmw WF w tc tc'
+  (NCOV : ~ covered tc w)
+  (COVEQ : covered tc' ≡₁ covered tc ∪₁ eq w)
+  (TCOH  : tls_coherent G tc')
+  (ICOH  : iord_coherent G sc tc)
+  (ICOH2 : iord_coherent G sc tc')
+  (SCOH1 : sim_coherent tc) :
+  ~ codom_rel rmw w.
+Proof using.
+  intros [r RMW].
+  assert (covered tc' r) as AA.
+  { eapply dom_sb_covered; eauto.
+    apply (rmw_in_sb WF) in RMW. exists w.
+    apply seq_eqv_r. split; auto.
+    apply COVEQ. now right. }
+  apply COVEQ in AA.
+  enough (~ covered tc r) as RNCOV.
+  { destruct AA as [AA|AA]; auto; desf.
+    apply (wf_rmwD WF) in RMW.
+    generalize RMW. clear. type_solver. }
+  clear AA.
+  intros RCOV.
+  enough (covered (sim_clos tc) w) as AA.
+  { red in SCOH1. generalize SCOH1 AA NCOV.
+    unfold covered. clear. basic_solver 10. }
+  red. red. eexists (_, _); ins. splits; eauto.
+  red. splits.
+  2: { clear. basic_solver. }
+  enough (rmw_clos tc (ta_cover, w)) as AA.
+  { red. clear -AA. basic_solver 10. }
+  red. split.
+  { clear. basic_solver. }
+  clear -RCOV RMW. basic_solver 10.
+Qed.
+
+Lemma sim_clos_cover_no_rel w tc tc'
+  (WW    : W w)
+  (NCOV : ~ covered tc w)
+  (COVS : covered tc ∪₁ eq w ⊆₁ covered tc')
+  (ISSS : issued tc ≡₁ issued tc')
+  (TCOH  : tls_coherent G tc')
+  (SCOH1 : sim_coherent tc)
+  (ICOH2 : iord_coherent G sc tc')
+  (SCOH2 : sim_coherent tc') :
+  ~ Rel w.
+Proof using.
+  intros REL.
+  assert (issued tc' w) as ISSN.
+  { eapply w_covered_issued; eauto. split; auto.
+    apply COVS. clear. basic_solver. }
+  assert (issued tc w) as ISS by now apply ISSS.
+  apply NCOV.
+  assert (covered (sim_clos tc) w) as HH.
+  { unfold sim_clos. apply covered_union.
+    right. unfold rel_clos. red.
+    unfolder. eexists (_, _); ins. }
+  generalize SCOH1 HH. unfold covered, sim_coherent.
+  clear. basic_solver 10.
+Qed.
   
 End SimClosure.
