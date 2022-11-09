@@ -51,6 +51,17 @@ Hint Unfold
      inj_dom restr_fun set_map
      eq_opt compl_rel fixset : unfolderDb. 
 
+Lemma dom_rel_irr_seq_eq_no_eq {A} p s (e : A)
+  (IRR : irreflexive p)
+  (DOM : dom_rel (p ;; <|eq e|>) ⊆₁ s ∪₁ eq e) :
+  dom_rel (p ;; <|eq e|>) ⊆₁ s.
+Proof using.
+  ins. intros b [c HH]. apply seq_eqv_r in HH. desf.
+  specialize (DOM b). destruct DOM; auto.
+  { basic_solver 10. }
+  desf. now apply IRR in HH.
+Qed.
+
 Section Props.
 
 Variables A B C : Type.
