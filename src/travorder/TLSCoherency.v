@@ -204,4 +204,13 @@ Section TLSCoherency.
 Lemma init_tls_tls_coherent : tls_coherent G (init_tls G). 
 Proof using. apply tls_coherent_defs_equiv. exists ∅. basic_solver. Qed. 
 
+Lemma tls_coherent_ext_union T1 T2
+  (TCOH1: tls_coherent G T1)
+  (EXEC2: T2 ⊆₁ init_tls G ∪₁ exec_tls G):
+  tls_coherent G (T1 ∪₁ T2).
+Proof using. 
+  destruct TCOH1. split; try basic_solver.
+  apply set_subset_union_l; auto.
+Qed.         
+
 End TLSCoherency. 

@@ -784,8 +784,15 @@ Add Parametric Morphism : msg_rel with signature
 Proof using. ins. unfold msg_rel. rewrite H. basic_solver. Qed. 
 
 Global Add Parametric Morphism : furr with signature
+       eq ==> inclusion ==> inclusion as furr_mori. 
+Proof using. 
+  ins. rewrite !furr_bunion.
+  apply bunion_mori_equiv; [done| ]. intros l _.
+  unfold urr. rewrite H. done.
+Qed. 
+
+Global Add Parametric Morphism : furr with signature
        eq ==> same_relation ==> same_relation as furr_more. 
 Proof using. 
-  ins. rewrite !furr_bunion. apply bunion_more_equiv; [done| ]. intros l _.
-  unfold urr. rewrite H. done.
+  ins. split; apply furr_mori; auto; apply H.
 Qed. 

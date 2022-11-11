@@ -145,6 +145,16 @@ Global Add Parametric Morphism : propagated with signature
        as propagated_more.
 Proof using. intros G. cirp_morph. Qed. 
 
+Global Add Parametric Morphism : coverable with signature
+       eq ==> (@same_relation actid) ==> (@set_subset trav_label) ==>
+         (@set_subset actid) as coverable_mori. 
+Proof using. ins. unfold coverable. rewrite H, H0. done. Qed. 
+
+Global Add Parametric Morphism : issuable with signature
+       eq ==> (@same_relation actid) ==> (@set_subset trav_label) ==>
+         (@set_subset actid) as issuable_mori. 
+Proof using. ins. unfold issuable. rewrite H, H0. done. Qed. 
+
 End MorphismsCIRP. 
 
 Section SimplificationsCIRP. 

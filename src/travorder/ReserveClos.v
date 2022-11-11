@@ -83,6 +83,26 @@ Proof using.
   unfolder. ins. do 2 desf.
 Qed.
 
+Lemma reserve_clos_tls_coherent tc
+  (COH : tls_coherent G tc) :
+  tls_coherent G (reserve_clos tc).
+Proof using WF.
+  unfold reserve_clos.
+  apply tls_coherent_ext_union; auto.
+  unfold exec_tls.
+  arewrite (issued tc ≡₁ issued tc ∩₁ (is_init ∪₁ set_compl is_init)).
+  { now rewrite <- set_full_split, set_inter_full_r. }
+  rewrite issued_EW; eauto.
+  rewrite !set_inter_union_r, set_pair_union_r.
+  unionL.
+  { transitivity (init_tls G); eauto with hahn.
+    unfold init_tls. apply set_pair_mori; eauto with hahn.
+    clear. basic_solver. }
+  unionR right -> right.
+  apply set_pair_mori; eauto with hahn.
+  clear. basic_solver.
+Qed.
+
 Lemma covered_reserve_clos tc : covered (reserve_clos tc) ≡₁ covered tc.
 Proof using.
   ins. unfold reserve_clos. rewrite covered_union, covered_ta_reserve.

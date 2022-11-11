@@ -965,3 +965,6 @@ Proof using.
   now unfold ar; rewrite EQ.
 Qed.
 
+Global Add Parametric Morphism: ar with signature
+       eq ==> (@inclusion actid) ==> (@inclusion actid) as ar_mori. 
+Proof using. ins. now unfold ar; rewrite H. Qed.

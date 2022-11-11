@@ -12,9 +12,9 @@ Require Import imm_s_rfppo.
 Require Import AuxDef.
 Require Import SetSize.
 Require Import AuxRel2.
+Require Import AuxEE.
 Require Import travorder.TraversalOrder.
 Require Import travorder.TLSCoherency. 
-Require Import AuxRel2.
 Require Import CombRelations.
 
 
@@ -86,6 +86,8 @@ Section IordCoherency.
   Notation "'W_ex_acq'" := (W_ex ∩₁ (fun a => is_true (is_xacq lab a))).
   Notation "'Rel'" := (fun x => is_true (is_rel lab x)).
 
+  Let E_ENI := E × (E \₁ is_init).
+
   Lemma init_tls_iord_coherent :
     iord_coherent G sc (init_tls G). 
   Proof using.
@@ -111,70 +113,6 @@ Section IordCoherency.
     do 4 left. right. red. basic_solver 10. 
   Qed.
   
-  Let E_ENI := E × (E \₁ is_init).
-
-  Lemma sb_E_ENI: sb ⊆ E_ENI. 
-  Proof using. rewrite wf_sbE, no_sb_to_init. basic_solver. Qed. 
-
-  Lemma co_E_ENI: co ⊆ E_ENI. 
-  Proof using WF SCPL. rewrite wf_coE, no_co_to_init; auto. basic_solver. Qed.
-
-  Lemma rf_E_ENI : rf ⊆ E_ENI. 
-  Proof using WF. rewrite wf_rfE, no_rf_to_init; auto. basic_solver. Qed. 
-
-  Lemma fr_E_ENI: fr ⊆ E_ENI. 
-  Proof using WF SCPL. rewrite wf_frE, no_fr_to_init; auto. basic_solver. Qed.
-
-  (* TODO: replace the original lemma with it*)
-  Lemma no_ar_to_init': ar ⨾ ⦗is_init⦘ ≡ ∅₂.
-  Proof using WF WFSC.
-    split; [|basic_solver].
-    unfold ar.
-    rewrite (ar_int_in_sb WF). rewrite no_sb_to_init.
-    rewrite wf_scD with (sc:=sc); eauto.  
-    rewrite (wf_rfeD WF).
-    rewrite seq_union_l. unionL; [|basic_solver].
-    rewrite (init_w WF). type_solver 10.
-  Qed.
-
-  Lemma no_ar_to_init_alt:
-    ar ≡ ar ⨾ ⦗set_compl is_init⦘. 
-  Proof using WF WFSC.
-    forward eapply no_ar_to_init'; eauto. basic_solver 10.
-    Unshelve. all: eauto.
-  Qed. 
-
-  Lemma ar_E_ENI: ar ⊆ E_ENI. 
-  Proof using WF WFSC.
-    rewrite wf_arE, no_ar_to_init_alt; auto. basic_solver.
-  Qed.
-
-  Lemma sc_E_ENI: sc ⊆ E_ENI. 
-  Proof using WF WFSC.
-    rewrite wf_scE, (@no_sc_to_init _ WF _ WFSC); eauto. basic_solver.
-  Qed.
-
-  Lemma furr_E_ENI_cr: furr G sc ⊆ E_ENI^?.
-  Proof using WFSC WF.
-    rewrite furr_to_ninit, wf_furrE; auto.
-    rewrite crE. unfold E_ENI. basic_solver.
-  Qed.  
-
-  Lemma E_ENI_trans: transitive E_ENI.
-  Proof using. unfold E_ENI. basic_solver. Qed.
-
-  Lemma ar_rf_ppo_loc_ct_E_ENI: 
-    (ar ∪ rf ⨾ ppo ∩ same_loc)⁺ ⊆ E_ENI.
-  Proof using WF WFSC. 
-    rewrite inclusion_inter_l1, ppo_in_sb; auto. 
-    rewrite sb_E_ENI, rf_E_ENI, ar_E_ENI; auto.
-    repeat (rewrite ?(@rt_of_trans _ E_ENI), ?(@rewrite_trans _ E_ENI),
-             ?unionK, ?(@rewrite_trans _ E_ENI),
-             ?(@rewrite_trans_seq_cr_cr _ E_ENI), ?(@ct_of_trans _ E_ENI)
-           ); try by (subst; apply E_ENI_trans).
-    basic_solver. 
-  Qed.
-
   Lemma iord_simpl_E_ENI:
     iord_simpl G sc ⊆ event ↓ E_ENI^?.
   Proof using WF WFSC SCPL.
@@ -182,23 +120,37 @@ Section IordCoherency.
     rewrite ppo_in_sb, fwbob_in_sb; auto.
     rewrite inclusion_inter_l1 with (r := sb).
     rewrite inclusion_inter_l1. 
+    rewrite !inclusion_eqv_rel_true with (dom:=action ↓₁ eq ta_cover).
+    rewrite !inclusion_eqv_rel_true with (dom:=action ↓₁ eq ta_issue).
+    rewrite !inclusion_eqv_rel_true with (dom:=action ↓₁ is_ta_propagate_to_G G).
+    rewrite !seq_id_l, !seq_id_r.
     rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_ENI, ?fr_E_ENI, ?ar_E_ENI, 
-      ?furr_E_ENI_cr, ?sc_E_ENI; auto.
-    rewrite <- !seqA. 
+      ?furr_E_ENI_cr, ?(sc_E_ENI WF WFSC); auto.
+    fold E_ENI.
     repeat (rewrite ?(@rt_of_trans _ E_ENI), ?(@rewrite_trans _ E_ENI),
              ?unionK, ?(@rewrite_trans _ E_ENI),
              ?(@rewrite_trans_seq_cr_cr _ E_ENI), ?(@ct_of_trans _ E_ENI)
-           ); auto using E_ENI_trans.
-    repeat rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r. basic_solver 10.
+           ).
+    all: try now apply E_ENI_trans.
+    repeat rewrite inclusion_seq_eqv_l, inclusion_seq_eqv_r.
+    generalize (E_ENI_trans G).
+    unfold E_ENI. basic_solver 10.
+  Qed.
+
+  Lemma iord_simpl_tc_doma_impl S (S_E: S ⊆₁ event ↓₁ acts_set G) :
+    doma (iord_simpl G sc ⨾ ⦗S⦘) (event ↓₁ acts_set G).
+  Proof using WF WFSC.
+    rewrite iord_simpl_E_E; auto. rewrite crE, map_rel_union, seq_union_l.
+    apply union_doma.
+    2: { basic_solver. }
+    rewrite S_E. unfolder. ins. desc. congruence. 
   Qed.
 
   Lemma iord_simpl_tc_doma:
     doma (iord_simpl G sc ⨾ ⦗tc⦘) (event ↓₁ E).
   Proof using WF WFSC SCPL TCOH.
-    rewrite iord_simpl_E_ENI; auto. rewrite crE, map_rel_union, seq_union_l.
-    apply union_doma.
-    { rewrite tlsc_E; eauto. unfolder. ins. desc. congruence. }
-    unfold E_ENI. basic_solver.
+    apply iord_simpl_tc_doma_impl.
+    rewrite tlsc_E; eauto. 
   Qed.
 
   Lemma iord_coh_implies_iord_simpl_coh' ICOH:

@@ -307,3 +307,11 @@ Qed.
 Lemma pref_union_alt {A: Type} (r1 r2: relation A):
   pref_union r1 r2 ≡ r1 ∪ r2 \ (r1)⁻¹.
 Proof. basic_solver. Qed.
+
+Lemma bunion_mori_equiv {A B: Type} (As1 As2: A -> Prop) (ABB1 ABB2: A -> relation B)
+  (EQA: As1 ⊆₁ As2) (EQB: forall a (AS: As1 a), ABB1 a ⊆ ABB2 a):
+  (⋃ a ∈ As1, ABB1 a) ⊆ (⋃ a ∈ As2, ABB2 a). 
+Proof using. 
+  unfolder. ins; desc; exists a.
+  splits; [apply EQA | apply EQB]; auto.
+Qed.

@@ -1035,10 +1035,17 @@ Proof using.
 Qed.
 
 Global Add Parametric Morphism : iord with signature
+       eq ==> (@inclusion actid) ==> (@inclusion trav_label) as iord_mori. 
+Proof using.
+  ins. iord_parts_unfolder.
+  apply restr_rel_mori; eauto with hahn.
+  repeat apply union_mori.
+  all: rewrite ?H; eauto with hahn.
+Qed. 
+
+Global Add Parametric Morphism : iord with signature
        eq ==> same_relation ==> same_relation as iord_more.
 Proof using.
-  intros G r r' EQ.
-  unfold iord.
-  apply restr_rel_more; eauto.
-  now rewrite EQ.
+  ins. split.
+  all: apply iord_mori; auto; apply H.
 Qed.

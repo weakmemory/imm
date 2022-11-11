@@ -1,8 +1,12 @@
 From hahn Require Import Hahn.
 
 Require Import AuxDef Events Execution.
-Require Import Execution_eco imm_s_hb imm_s imm_bob.
-Require Import imm_s_ppo CombRelations.
+Require Import Execution_eco.
+Require Import imm_s_hb.
+Require Import imm_s.
+Require Import imm_bob.
+Require Import imm_s_ppo.
+Require Import CombRelations.
 Require Import imm_s_rfppo.
 Require Import FinExecution.
 
@@ -11,6 +15,7 @@ Require Import TLSCoherency.
 Require Import IordCoherency.
 Require Import TlsEventSets.
 Require Import AuxRel.
+Require Import AuxEE.
 
 Set Implicit Arguments.
 
@@ -20,8 +25,8 @@ Section TlsProperties.
   Variable COM : complete G.
   Variable sc : relation actid.
   (* Variable IMMCON : imm_consistent G sc. *)
-  Variable WFSC: wf_sc G sc. 
-  Variable SCPL: sc_per_loc G. 
+  Hypothesis WFSC: wf_sc G sc. 
+  Hypothesis SCPL: sc_per_loc G. 
 
   Notation "'sb'" := (sb G).
   Notation "'rmw'" := (rmw G).
@@ -186,7 +191,7 @@ Context
     unfold coverable, covered. rewrite id_inter, <- seqA.
     apply dom_rel_iord_ext_parts.
     3: by apply init_covered.
-    2: { erewrite (sc_E_ENI _ _ WF WFSC). basic_solver. } 
+    2: { erewrite (sc_E_ENI WF WFSC). basic_solver. } 
     transitivity (SB G sc); [| unfold iord_simpl; basic_solver 10].
     unfold SB. hahn_frame. apply map_rel_mori; [done| ].
     rewrite <- ct_step. rewrite (wf_scE WFSC). basic_solver 10.
@@ -1475,5 +1480,25 @@ Qed.
 
 End HbProps.
   
+Lemma dom_sb_sc_ct_coverable :
+  dom_rel ((sb ∪ sc)^+ ⨾ ⦗coverable G sc T⦘) ⊆₁ covered T. 
+Proof using WF WFSC TLSCOH.
+  unfold coverable, covered. rewrite id_inter, <- seqA.
+  apply dom_rel_iord_ext_parts.
+  { transitivity (SB G sc); [| unfold iord_simpl; basic_solver 10].
+    unfold SB. basic_solver. }
+  2: { rewrite init_covered; eauto. basic_solver. }
+  rewrite inclusion_seq_eqv_r.
+  rewrite <- ct_of_trans with (r := _ × _); [| basic_solver].
+  apply clos_trans_mori. 
+  rewrite (wf_scE WFSC), (no_sc_to_init WF WFSC), wf_sbE, no_sb_to_init; eauto.
+  basic_solver.
+Qed. 
 
+Lemma dom_sb_sc_ct_covered :
+  dom_rel ((sb ∪ sc)^+ ⨾ ⦗covered T⦘) ⊆₁ covered T. 
+Proof using WF WFSC TLSCOH IORDCOH.
+  rewrite covered_in_coverable at 1; eauto. by apply dom_sb_sc_ct_coverable. 
+Qed. 
+  
 End TlsProperties.
