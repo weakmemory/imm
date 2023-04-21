@@ -81,12 +81,12 @@ Proof using.
   induction l; simpls.
   ins. desf.
   { unfold countP; simpls. desf. simpls.
-    apply Lt.le_lt_n_Sm. by apply countP_mori. }
+    apply NPeano.Nat.lt_succ_r. by apply countP_mori. }
   unfold countP; simpls. desf; simpls.
-  { apply Lt.lt_n_S. eapply IHl; eauto. }
+  { apply NPeano.Nat.succ_lt_mono with (n:=length (filterP P l)). eapply IHl; eauto. }
   { exfalso. apply n. by apply IN. }
-  { apply Lt.le_lt_n_Sm. by apply countP_mori. }
-    by apply IHl with (e:=e).
+  { apply NPeano.Nat.lt_succ_r. by apply countP_mori. }
+  by apply IHl with (e:=e).
 Qed.
 
 Lemma false_acyclic {A} : acyclic (∅₂ : relation A).
@@ -282,7 +282,7 @@ Proof using.
   ins. induction n.
   { unfold Q. ins. inv H. apply HPi. ins. inv H0. }
   unfold Q in *. ins.
-  apply Lt.le_lt_or_eq in H.
+  apply NPeano.Nat.lt_eq_cases in H.
   destruct H as [Hl | Heq].
   { unfold lt in Hl. apply le_S_n in Hl. by apply IHn. }
   rewrite Heq. apply HPi. ins.

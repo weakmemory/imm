@@ -256,7 +256,7 @@ Lemma set_infinite_minus_finite {A: Type} (S S': A -> Prop)
 Proof using.
   intros [findom FIN]. destruct FIN' as [findom' FIN']. 
   destruct INF. exists (findom ++ findom'). ins. apply in_or_app.
-  destruct (classic (S' x)); intuition. 
+  destruct (classic (S' x)); intuition (auto with *).
 Qed.
 
 Lemma set_infinite_bunion {A B: Type} (As: A -> Prop) (ABs: A -> B -> Prop)

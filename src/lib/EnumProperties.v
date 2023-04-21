@@ -35,7 +35,7 @@ Lemma enum_steps_crt (r : relation A) b
   forall i j (LE : i <= j) (DOM : NOmega.le (NOnum j) b), r^* (f i) (f j).
 Proof using.
   destruct b; ins.
-  { apply Lt.le_lt_or_eq in LE as [LT | ]; subst.
+  { apply NPeano.Nat.lt_eq_cases in LE as [LT | ]; subst.
     2: now apply rt_refl.
     apply inclusion_t_rt. eapply enum_steps; auto. }
   generalize dependent j.
@@ -43,9 +43,9 @@ Proof using.
   { assert (i = 0) by lia; subst.
     assert (j = 0) by lia; subst.
     apply rt_refl. }
-  apply Lt.le_lt_or_eq in DOM as [LT | ]; subst.
+  apply NPeano.Nat.lt_eq_cases in DOM as [LT | ]; subst.
   { apply IHn; auto. lia. }
-  apply Lt.le_lt_or_eq in LE as [LT | ]; subst; vauto.
+  apply NPeano.Nat.lt_eq_cases in LE as [LT | ]; subst; vauto.
   eapply rt_unit. exists (f n). split.
   { eapply IHn; auto. lia. }
   specialize (STEPS n).

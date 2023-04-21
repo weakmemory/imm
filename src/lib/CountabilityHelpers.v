@@ -41,12 +41,11 @@ Lemma isomorphism_dom_len_helper {A B: Type} (fab: A -> B) (fba: B -> A)
 Proof using.
   rewrite <- map_length with (f := fab).
   apply NoDup_incl_length.
-  2: { red. intros b INb. apply in_undup_iff. intuition. } 
+  2: { red. intros b INb. apply in_undup_iff. intuition (auto with *). }
   apply FinFun.Injective_map_NoDup; [| apply nodup_undup].
   red. ins. apply f_equal with (f := fba) in H.
   destruct ISO. congruence. 
 Qed. 
-
 
 (* It can be generalized to subsets, but currently we don't need it *)
 Lemma set_size_full_isomorphic {A B: Type} (fab: A -> B) (fba: B -> A)

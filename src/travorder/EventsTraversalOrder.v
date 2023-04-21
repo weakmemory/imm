@@ -133,7 +133,7 @@ Context
     2: { rewrite sb_E_ENI. basic_solver. }
     unfold iord_simpl, SB. 
     rewrite <- ct_step, <- inclusion_union_r1 with (r' := sc).
-    rewrite inclusion_seq_eqv_r with (r := sb). intuition.
+    rewrite inclusion_seq_eqv_r with (r := sb). intuition (auto with *).
   Qed.
 
   Lemma dom_sb_covered :

@@ -17,7 +17,7 @@ Lemma lt_size_of_finite A (s : A -> Prop) d
   lt_size n s <-> n < length (undup (filterP s d)).
 Proof using.
   unfold lt_size; split; ins; desf.
-    eapply lt_le_trans, NoDup_incl_length; unfold incl; eauto.
+    eapply Nat.lt_le_trans, NoDup_incl_length; unfold incl; eauto.
     ins; rewrite in_undup_iff, in_filterP_iff; desf; eauto.
     exists (undup (filterP s d)); splits; ins.
     rewrite in_undup_iff, in_filterP_iff in *; desf; eauto.
