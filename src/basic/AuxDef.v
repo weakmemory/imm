@@ -1,10 +1,40 @@
 From hahn Require Import Hahn.
+Require Import Coq.Logic.ChoiceFacts.
 Require Import Classical.
 Require Import Lia.
 Require Import IndefiniteDescription.
 Require Import PropExtensionality.
-From ZornsLemma Require Classical_Wf. 
 Require Import Events.
+
+Lemma not_wf_inf_decr_enum {A: Type} (r: relation A)
+      (NWF: ~ well_founded r):
+  exists (f: nat -> A), forall i, r (f (i + 1)) (f i).
+Proof using.
+  unfold well_founded in NWF.
+  apply not_all_ex_not in NWF.
+  assert (forall n (NAC : ~ Acc r n),
+           { m | << MN : r m n >> /\
+                 << MAC : ~ Acc r m >>}) as ACD.
+  { ins. apply constructive_indefinite_description.
+    apply NNPP. intros HH. apply NAC.
+    constructor. intros y RY. apply NNPP. intros AR.
+    apply HH; eauto. }
+  remember (functional_choice_imp_functional_dependent_choice functional_choice)
+    as FCI.
+  clear HeqFCI. red in FCI.
+  set (B := { x : A | ~ Acc r x }).
+  set (R := fun x y : B => r (proj1_sig y) (proj1_sig x)).
+  destruct NWF as [a AAC].
+  edestruct (FCI B R) as [f [FF RF]].
+  { ins. destruct x.
+    destruct (ACD x n) as [m [MX AM]]. unnw.
+    subst R; ins. exists (exist _ m AM). ins. }
+  exists (fun n => proj1_sig (f n)).
+  ins. arewrite (i + 1 = 1 + i) by lia.
+  apply RF.
+Unshelve.
+red. econstructor. apply AAC.
+Qed.
 
 Lemma list_max_In (l: list nat) (NNIL: l <> nil):
   In (list_max l) l. 
@@ -440,16 +470,6 @@ Lemma acyclic_transp {A: Type} (r: relation A)
       (AC: acyclic r):
   acyclic (transp r). 
 Proof using. red. rewrite <- transp_ct. vauto. Qed.   
-
-Lemma not_wf_inf_decr_enum {A: Type} (r: relation A)
-      (NWF: ~ well_founded r):
-  exists (f: nat -> A), forall i, r (f (i + 1)) (f i).
-Proof using.
-  contra DECR. destruct NWF.
-  apply Classical_Wf.DSP_implies_WF. red. apply not_ex_not_all. 
-  intros [f DECR']. destruct DECR. exists f.
-  ins. contra Nri. destruct DECR'. exists i. by rewrite <- PeanoNat.Nat.add_1_r. 
-Qed. 
 
 Lemma In_gt_list_max (l: list nat) (n: nat)
       (GT_MAX: n > list_max l):

@@ -4,7 +4,6 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
-From ZornsLemma Require Classical_Wf. 
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.

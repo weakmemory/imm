@@ -27,9 +27,8 @@
 ## Building the Project
 
 ### Requirements
-* [Coq 8.15.1](https://coq.inria.fr)
+* [Coq 8.17.0](https://coq.inria.fr)
 * [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
-* [Coq formalization of Zorn's lemma included in "topology" package](https://github.com/coq-community/topology) (`coq-topology`)
 * [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib) (`coq-promising-lib`)
 
 ### Building Manually

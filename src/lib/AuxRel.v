@@ -144,14 +144,14 @@ Proof using.
 Qed.
 
 (* TODO : rename *)
-Lemma seq_transp_sym : symmetric r -> ⦗ s ⦘ ⨾ r ⨾ ⦗ s' ⦘ ≡ (⦗ s' ⦘ ⨾ r ⨾ ⦗ s ⦘)⁻¹.
+Lemma seq_transp_sym (SYM : symmetric r) :
+  ⦗ s ⦘ ⨾ r ⨾ ⦗ s' ⦘ ≡ (⦗ s' ⦘ ⨾ r ⨾ ⦗ s ⦘)⁻¹.
 Proof using. 
   ins. 
   rewrite !transp_seq. 
   rewrite !seqA.
-  rewrite !transp_sym_equiv; auto. 
   rewrite !transp_eqv_rel. 
-  done.
+  rewrite !transp_sym_equiv; auto. 
 Qed.
 
 (******************************************************************************)
