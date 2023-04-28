@@ -100,6 +100,7 @@ Lemma event_collect_eq a e:
   event ↑₁ eq (mkTL a e) ≡₁ eq e.
 Proof using. basic_solver. Qed.  
 
+(* TODO: move *)
 Lemma dom_rel_collect_event (b : trav_action) A B r
       (AA : dom_rel (⦗action ↓₁ eq b⦘ ⨾ event ↓ r ⨾ ⦗A⦘) ⊆₁ B) :
   dom_rel (r ⨾ ⦗event ↑₁ A⦘) ⊆₁ event ↑₁ B.
@@ -112,6 +113,7 @@ Proof using.
   splits; eauto.
 Qed.
 
+(* TODO: move *)
 Lemma dom_rel_collect_event2 (b : trav_action) A B r
       (UU : B ⊆₁ action ↓₁ eq b):
   dom_rel (⦗action ↓₁ eq b⦘ ⨾ event ↓ r ⨾ ⦗A⦘) ⊆₁ B <->
@@ -136,6 +138,7 @@ Proof using.
   generalize DOM. basic_solver 10.
 Qed.   
 
+(* TODO: move *)
 Lemma set_pair_cancel_action a B:
     event ↑₁ (eq a <*> B) ≡₁ B. 
 Proof using. 
@@ -143,6 +146,7 @@ Proof using.
   intros b Bb. exists (mkTL a b). vauto. 
 Qed.   
 
+(* TODO: move *)
 Lemma set_pair_exact a e:
   eq a <*> eq e ≡₁ eq (mkTL a e). 
 Proof using. 

@@ -92,6 +92,14 @@ Definition sim_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
 Definition sim_coherent (tc : trav_label -> Prop) :=
   tc ≡₁ sim_clos tc.
 
+(* TODO: move *)
+Lemma iiord_step_incl l tc1 tc2
+  (STEP : iiord_step l tc1 tc2) :
+  tc2 ≡₁ tc1 ∪₁ eq l.
+Proof using.
+  red in STEP.  generalize STEP. basic_solver.
+Qed.
+
 Lemma covered_rel_clos tc : covered (rel_clos tc) ≡₁ Rel ∩₁ issued tc.
 Proof using.
   unfold rel_clos.
@@ -138,7 +146,6 @@ Proof using.
   unfold sim_clos, rmw_clos, rel_clos, issued, covered.
   rewrite !set_pair_alt. basic_solver.
 Qed. 
-
 
 Lemma rmw_clos_once WF (tc: trav_label -> Prop):
   rmw_clos (rmw_clos tc) ⊆₁ ∅.
@@ -633,10 +640,33 @@ Definition sim_clos_step :=
   restr_rel sim_coherent 
             (fun tc tc' => exists tll, isim_clos_step tll tc tc').
 
+Lemma isim_clos_step_mon tl tc1 tc2
+  (STEP : isim_clos_step tl tc1 tc2) :
+  tc1 ⊆₁ tc2.
+Proof using.
+  red in STEP. desf.
+  all: try now (erewrite iiord_step_incl with (tc2:=tc2); eauto with hahn).
+  all: destruct STEP as [_ [x [AA BB]]].
+  all: try now erewrite iiord_step_incl with (tc1:=x) (tc2:=tc2); eauto with hahn;
+               erewrite iiord_step_incl with (tc1:=tc1) (tc2:=x); eauto with hahn.
+  destruct BB as [y [BB CC]].
+  erewrite iiord_step_incl with (tc1:=y)   (tc2:=tc2); eauto with hahn.
+  erewrite iiord_step_incl with (tc1:=x)   (tc2:=y  ); eauto with hahn.
+  erewrite iiord_step_incl with (tc1:=tc1) (tc2:=x  ); eauto with hahn.
+  clear. basic_solver.
+Qed.
+
+Lemma sim_clos_step_mon tc1 tc2
+  (STEP : sim_clos_step tc1 tc2) :
+  tc1 ⊆₁ tc2.
+Proof using.
+  clear -STEP. inv STEP. desf.
+  eapply isim_clos_step_mon; eauto.
+Qed.
+
 Global Add Parametric Morphism : sim_clos_step with signature
        set_equiv ==> set_equiv ==> iff as sim_clos_step_more.
 Proof using. ins. apply set_extensionality in H, H0. by subst. Qed.
-
 
 Section ClosureSteps. 
 Variable (tc: trav_label -> Prop). 

@@ -140,4 +140,23 @@ Proof using.
   unfold set_pair. unfolder. split; ins; do 2 desf; eauto.
 Qed.
 
+Lemma reserve_clos_mon tc : tc ⊆₁ reserve_clos tc.
+Proof using. unfold reserve_clos. eauto with hahn. Qed.
+
+Lemma reserve_clos_init_tls : reserve_clos (init_tls G) ≡₁ init_tls G.
+Proof using.
+  split; auto using reserve_clos_mon.
+  unfold reserve_clos. unionL; eauto with hahn.
+  unfold init_tls at 1. 
+  rewrite !set_pair_union_l, !issued_union.
+  rewrite !issued_ta_reserve, !issued_ta_issue, !issued_ta_cover,
+          !issued_is_ta_propagate_to_G.
+  rewrite !set_union_empty_l, !set_union_empty_r.
+  unfold init_tls. rewrite !set_pair_union_l. eauto with hahn.
+Qed.
+
 End ReserveClos.
+
+#[export]
+Hint Rewrite reserve_clos_eq_ta_cover reserve_clos_eq_ta_issue reserve_clos_eq_ta_reserve
+             : cir_simplify.

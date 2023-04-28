@@ -53,10 +53,58 @@ Proof using.
   eexists (_, _). splits; ins; eauto.
 Qed.
 
+Lemma reserved_eq_ta_reserve e :
+  reserved (eq (mkTL ta_reserve e)) ≡₁ eq e.
+Proof using.
+  unfold reserved.
+  unfolder; split; ins; desf.
+  eexists (_, _). splits; ins; eauto.
+Qed.
+
+Lemma reserved_eq_ta_propagate tid e :
+  reserved (eq (mkTL (ta_propagate tid) e)) ≡₁ ∅.
+Proof using.
+  unfold reserved.
+  unfolder; split; ins; desf.
+Qed.
+
+Lemma reserved_ta_propagate tid s :
+  reserved (eq (ta_propagate tid) <*> s) ≡₁ ∅.
+Proof using.
+  unfold reserved.
+  unfolder; split; ins; desf.
+  destruct y; ins. desf.
+Qed.
+
 Lemma issued_ta_reserve s :
   issued (eq ta_reserve <*> s) ≡₁ ∅.
 Proof using.
   unfold issued.
+  unfolder; split; ins; desf.
+  destruct y; ins. desf.
+Qed.
+
+Lemma issued_ta_issue s :
+  issued (eq ta_issue <*> s) ≡₁ s.
+Proof using.
+  unfold issued.
+  unfolder; split; ins; desf.
+  { destruct y; ins. desf. }
+  eexists (_, _). splits; ins; eauto.
+Qed.
+
+Lemma issued_ta_cover s :
+  issued (eq ta_cover <*> s) ≡₁ ∅.
+Proof using.
+  unfold issued.
+  unfolder; split; ins; desf.
+  destruct y; ins. desf.
+Qed.
+ 
+Lemma issued_is_ta_propagate_to_G G s :
+  issued (is_ta_propagate_to_G G <*> s) ≡₁ ∅.
+Proof using.
+  unfold issued, is_ta_propagate_to_G.
   unfolder; split; ins; desf.
   destruct y; ins. desf.
 Qed.
@@ -365,7 +413,9 @@ Ltac separate_set_event :=
   apply set_disjoint_eq_r; simplify_tls_events; basic_solver. 
 
 
-(* TODO: the problem is that 'autorewrite' either tries to rewrite every occurence, including those with unsatisfiable premises, or (with 'using' clause) stops on first failed rewrite. *)
+(* TODO: the problem is that 'autorewrite' either tries to rewrite every occurence,
+         including those with unsatisfiable premises, or (with 'using' clause)
+         stops on first failed rewrite. *)
 (* Create HintDb tls_events_db. *)
 (* Hint Rewrite reserved_union reserved_nonreserve_empty reserved_only_reserve using (basic_solver 10 || iord_dom_solver): tls_events_db. *)
 (* Ltac simplify_tls_events' := autorewrite * with tls_events_db.  *)
@@ -550,3 +600,25 @@ Lemma issuable_iord_dom_cond G sc T e (ISS: issuable G sc T e):
 Proof using. 
   red in ISS. apply proj2 in ISS as [[a e_] [[AA [=]] [=]]]. by subst. 
 Qed. 
+
+(* TODO: move *)
+Lemma set_pair_empty_l (A B: Type) (S: A -> Prop):
+  S <*> (∅: B -> Prop) ≡₁ ∅.
+Proof using. rewrite set_pair_alt. basic_solver. Qed. 
+
+(* TODO: move *)
+Lemma set_pair_empty_r (A B: Type) (S: B -> Prop):
+  (∅: A -> Prop) <*> S ≡₁ ∅.
+Proof using. rewrite set_pair_alt. basic_solver. Qed. 
+
+Global Hint Rewrite set_pair_empty_l set_pair_empty_r: set_simpl_db. 
+
+#[export]
+Hint Rewrite issued_eq_ta_cover issued_ta_reserve issued_eq_ta_reserve issued_singleton
+             covered_eq_ta_issue covered_eq_ta_reserve covered_singleton
+             reserved_eq_ta_issue reserved_eq_ta_cover reserved_singleton
+             reserved_ta_reserve reserved_eq_ta_propagate reserved_ta_propagate
+             covered_union issued_union reserved_union
+             set_pair_empty_l set_pair_empty_r
+             set_union_empty_l set_union_empty_r
+             : cir_simplify.
