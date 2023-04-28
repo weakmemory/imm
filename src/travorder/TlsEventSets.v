@@ -117,7 +117,19 @@ Proof using.
   destruct y; ins. desf.
 Qed.
 
+Lemma covered_action_ta_reserve : covered (action ↓₁ eq ta_reserve) ≡₁ ∅.
+Proof using.
+  unfold covered.
+  unfolder; split; ins; desf.
+  destruct y; ins. desf.
+Qed.
+
 Lemma issued_eq_ta_cover w : issued (eq (ta_cover, w)) ≡₁ ∅.
+Proof using.
+  unfold issued. clear. basic_solver 10.
+Qed.
+
+Lemma issued_eq_ta_issue w : issued (eq (ta_issue, w)) ≡₁ eq w.
 Proof using.
   unfold issued. clear. basic_solver 10.
 Qed.
@@ -611,14 +623,24 @@ Lemma set_pair_empty_r (A B: Type) (S: B -> Prop):
   (∅: A -> Prop) <*> S ≡₁ ∅.
 Proof using. rewrite set_pair_alt. basic_solver. Qed. 
 
+Lemma set_minus_empty (A : Type) (s : A -> Prop) : s \₁ ∅ ≡₁ s.
+Proof.  basic_solver. Qed.
+
+
 Global Hint Rewrite set_pair_empty_l set_pair_empty_r: set_simpl_db. 
 
 #[export]
 Hint Rewrite issued_eq_ta_cover issued_ta_reserve issued_eq_ta_reserve issued_singleton
+             issued_ta_issue issued_eq_ta_issue
              covered_eq_ta_issue covered_eq_ta_reserve covered_singleton
+             covered_ta_reserve
+             covered_minus
+             covered_action_ta_reserve
+             issued_minus 
              reserved_eq_ta_issue reserved_eq_ta_cover reserved_singleton
              reserved_ta_reserve reserved_eq_ta_propagate reserved_ta_propagate
              covered_union issued_union reserved_union
              set_pair_empty_l set_pair_empty_r
              set_union_empty_l set_union_empty_r
+             set_minus_empty
              : cir_simplify.

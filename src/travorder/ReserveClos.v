@@ -155,8 +155,21 @@ Proof using.
   unfold init_tls. rewrite !set_pair_union_l. eauto with hahn.
 Qed.
 
+Lemma reserve_clos_ta_reserve s :
+  reserve_clos (eq ta_reserve <*> s) ≡₁ eq ta_reserve <*> s.
+Proof using.
+  unfold reserve_clos. now autorewrite with cir_simplify.
+Qed.
+
 End ReserveClos.
 
 #[export]
-Hint Rewrite reserve_clos_eq_ta_cover reserve_clos_eq_ta_issue reserve_clos_eq_ta_reserve
+Hint Rewrite reserve_clos_eq_ta_cover reserve_clos_eq_ta_issue
+             reserve_clos_eq_ta_reserve
+             reserve_clos_union
+             reserved_reserve_clos
+             issued_reserve_clos 
+             covered_reserve_clos 
+             reserve_clos_init_tls
+             reserve_clos_ta_reserve
              : cir_simplify.
