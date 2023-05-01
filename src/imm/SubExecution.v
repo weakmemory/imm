@@ -642,6 +642,20 @@ Proof using.
   apply set_finite_bunion; [by apply BinPos_lt_fin| done].
 Qed.
 
+Lemma fin_exec_fin_threads_restrict G
+      (ACTS : forall e : actid, acts_set G e -> threads_set G (tid e))
+      (FIN_THREADS: fin_threads G)
+      (FIN_B: forall t (LTB: threads_set G t), fin_exec (restrict G (Tid_ t))):
+  fin_exec G. 
+Proof using.
+  apply fin_threads_bound in FIN_THREADS; auto. desf.
+  eapply fin_exec_bounded_threads; eauto.
+  ins. destruct (classic (threads_set G t)) as [|NTS]; intuition.
+  red. exists nil. ins. exfalso.
+  apply NTS. unfolder in IN. desf.
+  now apply ACTS.
+Qed.
+
 Lemma restrict_fair G (S: actid -> Prop) (FAIR: mem_fair G):
   mem_fair (restrict G S).
 Proof using.

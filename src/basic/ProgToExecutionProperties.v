@@ -968,4 +968,27 @@ Proof using.
   all: lia.
 Qed.
 
+Lemma step_threads_set s1 s2 t
+      (STEP: step t s1 s2):
+  threads_set (ProgToExecution.G s2) ⊆₁ threads_set (ProgToExecution.G s1) ∪₁ eq t /\ 
+  threads_set (ProgToExecution.G s1) ⊆₁ threads_set (ProgToExecution.G s2). 
+Proof using. 
+  inv STEP. inv H. red in H0, H1. desc. inv H2.
+  all: rewrite UG; try by vauto.
+  all: simpl; basic_solver.
+Qed.
+
+Lemma steps_threads_set s1 s2 t
+      (STEP: (step t)^* s1 s2):
+  threads_set (ProgToExecution.G s2) ⊆₁ threads_set (ProgToExecution.G s1) ∪₁ eq t /\
+  threads_set (ProgToExecution.G s1) ⊆₁ threads_set (ProgToExecution.G s2). 
+Proof using.
+  induction STEP.
+  { by apply step_threads_set in H. }
+  { basic_solver. }
+  desc. split.
+  { rewrite IHSTEP2, IHSTEP1. basic_solver. }
+  rewrite IHSTEP3, IHSTEP0. basic_solver.
+Qed.
+
 End Props.

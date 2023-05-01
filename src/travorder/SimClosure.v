@@ -92,12 +92,25 @@ Definition sim_clos (tc : trav_label -> Prop) : trav_label -> Prop :=
 Definition sim_coherent (tc : trav_label -> Prop) :=
   tc ≡₁ sim_clos tc.
 
-(* TODO: move *)
 Lemma iiord_step_incl l tc1 tc2
   (STEP : iiord_step l tc1 tc2) :
   tc2 ≡₁ tc1 ∪₁ eq l.
 Proof using.
   red in STEP.  generalize STEP. basic_solver.
+Qed.
+
+Add Parametric Morphism : iiord_step with signature
+  eq ==> set_equiv ==> set_equiv ==> iff as iiord_step_more.
+Proof using.
+  clear. intros a b c BC d e DE.
+  split; intros [HH [AA BB]]; split; splits.
+  all: try now eapply iord_coherent_more; eauto.
+  all: try now eapply iord_coherent_more; (try symmetry); eauto.
+  all: apply seq_eqv_l in HH; destruct HH as [CC DD].
+  all: apply seq_eqv_l; split.
+  all: try (generalize BC DE CC DD; basic_solver).
+  { now rewrite <- DE, <- BC. }
+  now rewrite DE, BC.
 Qed.
 
 Lemma covered_rel_clos tc : covered (rel_clos tc) ≡₁ Rel ∩₁ issued tc.
@@ -1238,6 +1251,108 @@ Proof using.
     unfolder. eexists (_, _); ins. }
   generalize SCOH1 HH. unfold covered, sim_coherent.
   clear. basic_solver 10.
+Qed.
+
+Lemma iiord_fixed_reserve_step_minus_reserved
+  tl tc1 tc2 s
+  (NORES : action tl <> ta_reserve)
+  (SRES  : s ⊆₁ action ↓₁ (eq ta_reserve))
+  (STEP  : iiord_step tl tc1 tc2) :
+  iiord_step tl ((tc1 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s)
+                ((tc2 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s).
+Proof using.
+  destruct tl as [ta a]. destruct ta.
+  4: { exfalso. apply NORES. desf. }
+  all: destruct STEP as [STEP [AA BB]].
+  all: split; splits.
+  all: try now eapply iord_coherent_equiv_wo_reserved; [|apply AA]; split; [|rewrite SRES]; basic_solver.
+  all: try now eapply iord_coherent_equiv_wo_reserved; [|apply BB]; split; [|rewrite SRES]; basic_solver.
+  all: apply seq_eqv_l in STEP; destruct STEP as [TT STEP].
+  all: apply seq_eqv_l; split.
+  all: try now intros [HH|HH]; [|now apply SRES in HH; inv HH]; apply TT; apply HH.
+  all: rewrite STEP.
+  all: split; unfolder; ins; desf; ins; splits; auto.
+Qed.
+
+Lemma iiord_no_reserve_step_minus_reserved
+  tl tc1 tc2
+  (NORES : action tl <> ta_reserve)
+  (STEP  : iiord_step tl tc1 tc2) :
+  iiord_step tl (tc1 \₁ action ↓₁ (eq ta_reserve))
+                (tc2 \₁ action ↓₁ (eq ta_reserve)).
+Proof using.
+  apply iiord_fixed_reserve_step_minus_reserved with (s:=fun _ => False) in STEP; auto.
+  2: basic_solver.
+  eapply iiord_step_more; [..| eauto]; auto.
+  all: basic_solver.
+Qed.
+
+Lemma iiord_step_fixed_reserved s tl tc1 tc2
+  (SRES : s ⊆₁ action ↓₁ (eq ta_reserve))
+  (STEP : iiord_step tl tc1 tc2) :
+  (iiord_step tl)^? ((tc1 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s)
+                    ((tc2 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s).
+Proof using.
+  destruct tl as [ta a]. destruct ta.
+  4: { left. apply set_extensionality.
+       erewrite iiord_step_incl with (tc1:=tc1) (tc2:=tc2); eauto.
+       rewrite set_minus_union_l. split; [basic_solver|].
+       unionL; clear; basic_solver. }
+  all: right.
+  all: apply iiord_fixed_reserve_step_minus_reserved; auto.
+  all: intros HH; inv HH.
+Qed.
+
+Lemma iiord_step_minus_reserved tl tc1 tc2
+  (STEP : iiord_step tl tc1 tc2) :
+  (iiord_step tl)^? (tc1 \₁ action ↓₁ (eq ta_reserve))
+                    (tc2 \₁ action ↓₁ (eq ta_reserve)).
+Proof using.
+  clear -STEP.
+  destruct tl as [ta a]. destruct ta.
+  4: { left. apply set_extensionality.
+       erewrite iiord_step_incl with (tc1:=tc1) (tc2:=tc2); eauto.
+       rewrite set_minus_union_l. split; [basic_solver|].
+       unionL; clear; basic_solver. }
+  all: right.
+  all: apply iiord_no_reserve_step_minus_reserved; auto.
+  all: intros HH; inv HH.
+Qed.
+
+Lemma isim_clos_step_fixed_reserve s tl tc1 tc2
+  (SRES : s ⊆₁ action ↓₁ (eq ta_reserve))
+  (STEP : isim_clos_step tl tc1 tc2) :
+  (isim_clos_step tl)^? ((tc1 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s)
+                        ((tc2 \₁ action ↓₁ (eq ta_reserve)) ∪₁ s).
+Proof using.
+  unfold isim_clos_step in *. desf.
+  all: try now (apply iiord_step_fixed_reserved; auto).
+  all: right.
+  all: destruct STEP as [AA [y [STEP0 STEP1]]].
+  all: split; auto.
+  all: eexists; split.
+  all: try now eapply iiord_fixed_reserve_step_minus_reserved; eauto.
+  destruct STEP1 as [z [STEP1 STEP2]].
+  eexists; split.
+  all: try now eapply iiord_fixed_reserve_step_minus_reserved; eauto.
+Qed.
+
+Lemma isim_clos_step_minus_reserved tl tc1 tc2
+  (STEP : isim_clos_step tl tc1 tc2) :
+  (isim_clos_step tl)^? (tc1 \₁ action ↓₁ (eq ta_reserve))
+                        (tc2 \₁ action ↓₁ (eq ta_reserve)).
+Proof using.
+  clear -STEP.
+  unfold isim_clos_step in *. desf.
+  all: try now (apply iiord_step_minus_reserved; auto).
+  all: right.
+  all: destruct STEP as [AA [y [STEP0 STEP1]]].
+  all: split; auto.
+  all: eexists; split.
+  all: try now eapply iiord_no_reserve_step_minus_reserved; eauto.
+  destruct STEP1 as [z [STEP1 STEP2]].
+  eexists; split.
+  all: try now eapply iiord_no_reserve_step_minus_reserved; eauto.
 Qed.
   
 End SimClosure.

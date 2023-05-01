@@ -56,3 +56,16 @@ Lemma fin_exec_same_events G G'
       (SAME: acts_set G ≡₁ acts_set G') (FIN: fin_exec G):
   fin_exec G'.
 Proof using. unfold fin_exec in *. by rewrite <- SAME. Qed.
+
+Lemma tid_is_init_fin_helper (S: actid -> Prop) thread
+      (NT: thread <> tid_init)
+      (FIN: set_finite (S \₁ is_init)):
+  set_finite (S ∩₁ Tid_ thread).
+Proof using. 
+  rewrite set_split_complete with (s := is_init).
+  apply set_finite_union. split.
+  { eapply set_finite_mori; [| by apply set_finite_empty].
+    red. unfolder. ins. desc. vauto. by destruct x. }
+  eapply set_finite_mori; [| by apply FIN].
+  red. basic_solver.
+Qed. 

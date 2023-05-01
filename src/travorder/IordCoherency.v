@@ -1,4 +1,3 @@
-Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
 Require Import Lia.
 
@@ -25,10 +24,19 @@ Definition iord_simpl_coherent G sc tc :=
   dom_rel (iord_simpl G sc ⨾ ⦗tc⦘) ⊆₁ tc.
 
 Global Add Parametric Morphism : iord_coherent with signature
+       eq ==> Basics.flip inclusion ==> set_equiv ==> Basics.impl as iord_coherent_mori.
+Proof using.
+  intros G sc sc' EQ s s' EQS.
+  unfold iord_coherent. red. 
+  intros HH.
+  by rewrite EQ, <- EQS. 
+Qed.
+
+Global Add Parametric Morphism : iord_coherent with signature
        eq ==> same_relation ==> set_equiv ==> iff as iord_coherent_more.
 Proof using.
   intros G sc sc' EQ s s' EQS.
-  unfold iord_coherent. 
+  unfold iord_coherent.
   split; intros HH.
   { now rewrite <- EQS, <- EQ. }
   now rewrite EQS, EQ.
@@ -250,6 +258,24 @@ Proof using WF.
   intros x [y [REL ->]%seq_eqv_r]. intros ->.  
   edestruct iord_irreflexive; eauto; apply IMMCON.
 Qed.
+
+Lemma dom_rel_iord_ext_parts_tl (r: relation trav_label)
+      (R_IORD: r ⊆ iord_simpl G sc)
+      (R_E_ENI: r ⊆ (event ↓₁ E) × (event ↓₁ (E \₁ is_init)))
+      (INIT: event ↓₁ is_init ∩₁ dom_rel r ⊆₁ tc)
+      (ICOH': iord_coherent G sc tc):
+  dom_rel (r ⨾ ⦗tc⦘) ⊆₁ tc.
+Proof using.
+  rewrite AuxRel2.set_split_complete with (s' := dom_rel _) (s := event ↓₁ is_init).
+  apply dom_helper_3 in R_E_ENI. 
+  apply set_subset_union_l. split.
+  { rewrite set_interC, <- dom_eqv1.
+    generalize INIT. basic_solver. }
+  rewrite set_interC, <- dom_eqv1, <- seqA.
+  rewrite R_E_ENI.
+  red in ICOH'. rewrite <- ICOH' at 2. apply dom_rel_mori.
+  hahn_frame_r. rewrite iord_alt, R_IORD. basic_solver.
+Qed. 
 
 End IordCoherency.
 

@@ -83,7 +83,7 @@ Section HbFsupp.
       generalize Cint. unfold acyclic, hb. basic_solver 10. }
     { rewrite (dom_l (@wf_sbE G)), (dom_l (wf_swE WF)); basic_solver 10. }
     { rewrite <- inclusion_union_r1.
-      eapply (@has_finite_antichains_sb G); eauto. }
+      eapply (@has_finite_antichains_sb G); eauto. apply WF. }
     { apply fsupp_sb; auto. }
     eapply fsupp_mori; [| apply fsupp_sw]. red. basic_solver 10. 
   Qed.

@@ -219,18 +219,19 @@ Qed.
 (** ** implications of SC_PER_LOC  *)
 (******************************************************************************)
 
-Lemma no_co_to_init WF SC_PER_LOC : co ⊆ co ⨾  ⦗fun x => ~ is_init x⦘.
+Lemma no_co_to_init WF SC_PER_LOC : co ≡ co ⨾ ⦗set_compl is_init⦘. 
 Proof using.
-rewrite wf_coE at 1; try done.
-unfolder; ins; splits; auto; desf; intro.
-eapply SC_PER_LOC; exists x; splits; [|eby apply co_in_eco].
-unfold Execution.sb; unfolder; splits; try done.
-cut (~ is_init x).
-by destruct x, y; ins.
-intro.
-assert (x=y).
-eby apply (loceq_co WF) in H0; eapply init_same_loc.
-eby subst; eapply (co_irr WF).
+  split; [| basic_solver].
+  rewrite wf_coE at 1; try done.
+  unfolder; ins; splits; auto; desf; intro.
+  eapply SC_PER_LOC; exists x; splits; [|eby apply co_in_eco].
+  unfold Execution.sb; unfolder; splits; try done.
+  cut (~ is_init x).
+  { destruct x, y; ins. }
+  intro.
+  assert (x=y).
+  eby apply (loceq_co WF) in H0; eapply init_same_loc.
+  eby subst; eapply (co_irr WF).
 Qed.
 
 Lemma no_co_cr_to_init WF SC_PER_LOC :

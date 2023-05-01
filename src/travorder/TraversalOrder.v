@@ -20,6 +20,7 @@ Import ListNotations.
 Require Import HbFsupp.
 Require Import FinThreads.
 Require Import imm_s_hb.
+Require Import AuxEE.
 
 Set Implicit Arguments.
 
@@ -46,6 +47,18 @@ Definition trav_label : Set := trav_action * actid.
 Definition action : trav_label -> trav_action := fst.
 Definition event  : trav_label -> actid       := snd.
 Definition mkTL ta e : trav_label := (ta, e).
+
+Definition ta_label2thread (a : trav_label) : thread_id :=
+  match a with
+  | (ta_propagate t, _) => t
+  | (_, e) => tid e
+  end.
+
+Definition ta_labels_related_to_thread tl (thread : thread_id) : Prop :=
+  match tl with
+  | [] => False
+  | a :: tl => thread = ta_label2thread a
+  end.
 
 Lemma trav_label_countable: countable (@set_full trav_label).
 Proof using.
@@ -1006,6 +1019,61 @@ Section TravLabel.
     { sin_rewrite ARSBFW. clear; basic_solver 1. }
     all: rewrite rewrite_trans; eauto with hahn lbase.
   Qed.
+
+Lemma PROP_to_ninit (WF : Wf G) (WFsc : wf_sc G sc) (SPL : sc_per_loc G) :
+  PROP ≡ PROP ⨾ ⦗event ↓₁ set_compl is_init⦘. 
+Proof using.
+  split; [| basic_solver]. apply domb_helper. 
+  unfold PROP.
+  rewrite furr_to_ninit; auto. relsf. rewrite map_rel_union.
+  rewrite inter_union_l. repeat case_union _ _.
+  apply union_domb. 
+  { rewrite no_co_to_init; auto. basic_solver 10. }
+  rewrite crE, no_co_to_init; auto.
+  unfold is_ta_propagate_to_G. unfolder.
+  ins; desf; subst; destruct x, y, t0; ins; subst; splits; try by vauto.
+  destruct a0; vauto. 
+Qed. 
+
+Lemma PROP_E_end (WF : Wf G) (WFsc : wf_sc G sc) :
+  PROP ⨾ ⦗event ↓₁ acts_set G⦘ ≡ ⦗event ↓₁ acts_set G⦘ ⨾ PROP ⨾ ⦗event ↓₁ acts_set G⦘.
+Proof using.
+  split; [| basic_solver]. apply doma_helper.
+  unfold PROP. rewrite furr_E_ENI_cr, !crE; auto. 
+  relsf. rewrite !map_rel_union.
+  rewrite !inter_union_l. repeat case_union _ _.
+  repeat apply union_doma.
+  2, 4: rewrite wf_coE; eauto; basic_solver.
+  2: { basic_solver 10. }
+  unfold is_ta_propagate_to_G. unfolder. ins. desf; subst.
+  destruct x, y; ins; subst; ins.
+Qed.  
+
+Lemma iord_simpl_E_E (WF : Wf G) (WFsc : wf_sc G sc) :
+  iord_simpl ⊆ event ↓ (E × E)^?.
+Proof using.
+  unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
+  rewrite ppo_in_sb, fwbob_in_sb; auto.
+  repeat rewrite inclusion_seq_eqv_l with (dom := action ↓₁ eq _). 
+  repeat rewrite inclusion_seq_eqv_r with (dom := action ↓₁ eq _). 
+  rewrite inclusion_inter_l1 with (r := sb).
+  rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_E; auto.
+  rewrite furr_E_E_cr; auto. 
+  rewrite ar_E_ENI; auto.
+  rewrite sc_E_ENI with (G:=G) (sc:=sc); auto.
+  rewrite inclusion_inter_l1. 
+  arewrite (E × (E \₁ is_init) ⊆ E × E) by basic_solver. 
+  remember (E × E) as E_E.
+  assert (transitive E_E) as TEE.
+  { apply transitiveI. subst E_E. clear. basic_solver. }
+  rewrite <- !seqA.
+  rewrite ?(@rt_of_trans _ E_E), ?(@rewrite_trans _ E_E),
+          ?unionK, ?(@rewrite_trans _ E_E),
+          ?(@rewrite_trans_seq_cr_cr _ E_E), ?(@ct_of_trans _ E_E),
+          ?cr_rt, ?rt_cr,
+          ?(@rt_of_trans _ E_E); auto.
+  basic_solver 10. 
+Qed. 
 End TravLabel.
 
 (* Global Ltac iord_dom_solver := *)

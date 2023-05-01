@@ -921,7 +921,7 @@ Proof using CON.
     clear; basic_solver 1. }
   pose proof WF as WF. 
   rewrite rfe_in_rf. rewrite ar_int_in_sb; auto. 
-  eapply thread_bounds_fsupp_ninit_ct; eauto.  
+  eapply thread_bounds_fsupp_ninit_ct; eauto; try apply WF.
   { basic_solver. }
   { rewrite unionC. by apply TSO_sb_rf_acyclic. }
   { rewrite no_rf_to_init, no_sb_to_init; auto. basic_solver. }

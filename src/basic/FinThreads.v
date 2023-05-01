@@ -9,13 +9,15 @@ Definition fin_threads G := set_finite (threads_set G).
 Definition threads_bound (G: execution) (b: thread_id) :=
   forall e (Ge: acts_set G e), BinPos.Pos.lt (tid e) b.
 
-Lemma fin_threads_bound G (WF: Wf G) (FIN : fin_threads G) :
+Lemma fin_threads_bound G
+      (ACTS : forall e : actid, acts_set G e -> threads_set G (tid e))
+      (FIN : fin_threads G) :
   exists b, threads_bound G b.
 Proof using.
   do 2 red in FIN. desf.
   unfold threads_bound.
   enough (exists b, forall t, List.In t findom -> BinPos.Pos.lt t b) as [b HH].
-  { exists b. ins. apply HH. apply FIN. now apply WF. }
+  { exists b. ins. apply HH. apply FIN. now apply ACTS. }
   clear. induction findom.
   { exists BinPos.xH. ins. }
   desf.
@@ -46,7 +48,9 @@ Proof using.
   specialize (IHl DUP); desf; eexists (_ :: _); ins; eauto.
 Qed.
 
-Lemma has_finite_antichains_sb (G: execution) (WF: Wf G) (B : fin_threads G):
+Lemma has_finite_antichains_sb G
+      (ACTS : forall e : actid, acts_set G e -> threads_set G (tid e))
+      (B : fin_threads G):
   has_finite_antichains (acts_set G \₁ is_init) (⦗set_compl is_init⦘ ⨾ sb G).
 Proof using.
   edestruct fin_threads_bound as [b HH]; eauto.
@@ -77,7 +81,8 @@ Proof using.
   intro; desf; rewrite nodup_app, nodup_cons in *; desf; eauto with hahn.
 Qed.
 
-Lemma thread_bounds_fsupp_ninit_ct G r (WF: Wf G)
+Lemma thread_bounds_fsupp_ninit_ct G r
+      (ACTS : forall e : actid, acts_set G e -> threads_set G (tid e))
       (TB : fin_threads G)
       (SB_R: sb G ⊆ r)
       (AC_R: acyclic r)

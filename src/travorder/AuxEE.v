@@ -11,7 +11,7 @@ Require Import imm_s_ppo.
 Require Import imm_s_rfppo.
 Require Import AuxDef.
 Require Import AuxRel2.
-Require Import travorder.TraversalOrder.
+(* Require Import travorder.TraversalOrder. *)
 Require Import CombRelations.
 
 Set Implicit Arguments.
@@ -140,30 +140,4 @@ Section E_E.
            ); try by (subst; apply E_ENI_trans).
     basic_solver. 
   Qed.
-
-  Lemma iord_simpl_E_E:
-    iord_simpl G sc ⊆ event ↓ (E × E)^?.
-  Proof using WF WFSC.
-    unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
-    rewrite ppo_in_sb, fwbob_in_sb; auto.
-    repeat rewrite inclusion_seq_eqv_l with (dom := action ↓₁ eq _). 
-    repeat rewrite inclusion_seq_eqv_r with (dom := action ↓₁ eq _). 
-    rewrite inclusion_inter_l1 with (r := sb).
-    rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_E; auto.
-    rewrite furr_E_E_cr; auto. 
-    rewrite ar_E_ENI; auto.
-    rewrite sc_E_ENI; auto.
-    rewrite inclusion_inter_l1. 
-    unfold E_ENI.
-    arewrite (E × (E \₁ is_init) ⊆ E × E) by basic_solver. 
-    fold E_E. 
-    rewrite <- !seqA.
-    (rewrite ?(@rt_of_trans _ E_E), ?(@rewrite_trans _ E_E),
-             ?unionK, ?(@rewrite_trans _ E_E),
-             ?(@rewrite_trans_seq_cr_cr _ E_E), ?(@ct_of_trans _ E_E),
-      ?cr_rt, ?rt_cr,
-      ?(@rt_of_trans _ E_E)
-           ); auto using E_E_trans.    
-    basic_solver 10. 
-  Qed.  
 End E_E. 

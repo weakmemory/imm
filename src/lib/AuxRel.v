@@ -593,17 +593,16 @@ Proof using.
     by right.
 Qed.
 
-Lemma set_split : s' ∪₁ s'' ≡₁ ⊤₁ -> s ≡₁ s ∩₁ s' ∪₁ s ∩₁ s''.
+Lemma set_split (UNCOMPL : s' ∪₁ s'' ≡₁ ⊤₁) : s ≡₁ s ∩₁ s' ∪₁ s ∩₁ s''.
 Proof using. 
-  unfolder. intros [_ HS]. 
+  unfolder in *. destruct UNCOMPL as [_ HS]. 
   split; [|basic_solver].
   intros x Sx. 
   specialize (HS x I).
   basic_solver. 
 Qed.
 
-(* TODO: fix name *)
-Lemma set_split_comlete : s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
+Lemma set_split_complete : s' ≡₁ s' ∩₁ s ∪₁ s' ∩₁ (set_compl s).
 Proof using. 
   (* copy paste of previous lemma because of section variables :( *)
   unfolder. 

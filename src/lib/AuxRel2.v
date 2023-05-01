@@ -22,6 +22,10 @@ Proof using.
   unfolder. ins. desf. eauto.
 Qed.
 
+Lemma codom_seq_eqv_r {A: Type} (r: relation A) (S: A -> Prop):
+  codom_rel (r ⨾ ⦗S⦘) ⊆₁ S. 
+Proof using. basic_solver. Qed.
+
 Add Parametric Morphism A : (@set_union A) with signature 
   set_equiv ==> set_equiv ==> set_equiv as set_union_more.
 Proof using. red; unfolder; splits; ins; desf; eauto. Qed.
@@ -285,6 +289,11 @@ Proof using.
   destruct H as [findom FIN]. exists findom. ins. apply FIN.
   red. eexists. apply seq_eqv_r. eauto.  
 Qed.
+
+Lemma fin_dom_rel_cr_fsupp {A: Type} (r: relation A) (S: A -> Prop)
+      (FIN: set_finite S) (FS: fsupp r):
+  set_finite (dom_rel (r^? ⨾ ⦗S⦘)). 
+Proof using. rewrite crE. relsf. split; auto. by apply fin_dom_rel_fsupp. Qed. 
 
 Lemma set_finite_set_collect {A B: Type} (S: A -> Prop) (f: A -> B)
       (FIN: set_finite S):
