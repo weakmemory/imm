@@ -134,6 +134,20 @@ Proof using.
   unfold issued. clear. basic_solver 10.
 Qed.
 
+Lemma issued_eq_ta_propagate tid e :
+  issued (eq (mkTL (ta_propagate tid) e)) ≡₁ ∅.
+Proof using.
+  unfold issued.
+  unfolder; split; ins; desf.
+Qed.
+
+Lemma covered_eq_ta_propagate tid e :
+  covered (eq (mkTL (ta_propagate tid) e)) ≡₁ ∅.
+Proof using.
+  unfold covered.
+  unfolder; split; ins; desf.
+Qed.
+
 Lemma covered_eq_ta_issue w : covered (eq (ta_issue, w)) ≡₁ ∅.
 Proof using.
   unfold covered. clear. basic_solver 10.
@@ -633,6 +647,7 @@ Global Hint Rewrite set_pair_empty_l set_pair_empty_r: set_simpl_db.
 Hint Rewrite issued_eq_ta_cover issued_ta_reserve issued_eq_ta_reserve issued_singleton
              issued_ta_issue issued_eq_ta_issue
              covered_eq_ta_issue covered_eq_ta_reserve covered_singleton
+             issued_eq_ta_propagate covered_eq_ta_propagate
              covered_ta_reserve
              covered_minus
              covered_action_ta_reserve
