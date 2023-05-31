@@ -10,28 +10,6 @@ Require Import TraversalOrder.
 Require Import TLSCoherency.
 Require Import IordCoherency.
 
-(* Require Import Prog. *)
-(* Require Import ProgToExecution. *)
-(* Require Import imm_s_ppo. *)
-(* Require Import CombRelations. *)
-(* Require Import ProgToExecutionProperties. *)
-(* Require Import RMWinstrProps. *)
-(* Require Import FairExecution. *)
-(* Require Import FinExecution. *)
-(* Require Import FinThreads. *)
-
-(* Require Import ImmFair.  *)
-
-(* Require Import SimTraversal. *)
-(* Require Import SimTraversalProperties. *)
-(* Require Import TraversalConfigAlt. *)
-(* Require Import SetSize. *)
-(* Require Import SimClosure. *)
-
-(* Require Import TlsAux2. *)
-(* Require Import SimIordTraversal. *)
-(* Require Import EventsTraversalOrder. *)
-
 Set Implicit Arguments.
 
 Section ReserveClos.

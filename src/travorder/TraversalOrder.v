@@ -151,7 +151,6 @@ Proof using.
   generalize DOM. basic_solver 10.
 Qed.   
 
-(* TODO: move *)
 Lemma set_pair_cancel_action a B:
     event ↑₁ (eq a <*> B) ≡₁ B. 
 Proof using. 
@@ -159,7 +158,6 @@ Proof using.
   intros b Bb. exists (mkTL a b). vauto. 
 Qed.   
 
-(* TODO: move *)
 Lemma set_pair_exact a e:
   eq a <*> eq e ≡₁ eq (mkTL a e). 
 Proof using. 
