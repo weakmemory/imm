@@ -47,7 +47,8 @@ with lib; mkCoqDerivation {
   # mlPlugin = false;
 
   dontConfigure = true;
-  installPhase = "make -f Makefile.coq install"; 
+  # installPhase = "make -f Makefile.coq install"; 
+  extraInstallFlags = ["-f" "Makefile.coq"]; 
 
   ## Give some meta data
   ## This is needed for submitting the package to nixpkgs but not required for local use.
