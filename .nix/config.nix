@@ -42,9 +42,9 @@
     ## You can override Coq and other Coq coqPackages
     ## through the following attribute
     coqPackages.coq.override.version = "8.17";
-    coqPackages.hahn.override.version = "anlun:master";
+    coqPackages.hahn.override.version = "master";
     coqPackages.sflib.override.version = "master";
-    coqPackages.promising-lib.override.version = "weakmemory:master";
+    coqPackages.promising-lib.override.version = "master";
 
     ## In some cases, light overrides are not available/enough
     ## in which case you can use either
