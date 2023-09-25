@@ -447,7 +447,7 @@ Ltac separate_set_event :=
 (* Ltac simplify_tls_events' := autorewrite * with tls_events_db.  *)
 
 Section TacticTest.
-Let test T e:
+Lemma test T e:
   reserved (T ∪₁ eq (mkTL ta_issue e) ∪₁ eq (mkTL ta_reserve e)) ≡₁
   reserved T ∪₁ eq e.
 Proof using.
