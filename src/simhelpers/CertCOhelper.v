@@ -356,6 +356,7 @@ Lemma T_I_new_co_I_T :
   ⦗ T \₁ I ⦘ ⨾ new_co ⨾ ⦗ I \₁ T ⦘  ⊆ 
   co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co.
 Proof using co_trans.
+clear wf_coD wf_coE.
 unfold new_co.
 unfolder; ins; desf.
 assert (A: (⦗ T \₁ I ⦘ ⨾ new_col l ⨾ ⦗ I \₁ T ⦘) x y) by basic_solver.
@@ -391,6 +392,7 @@ Qed.
 
 Lemma new_co_helper : ⦗ T ⦘ ⨾ co ⨾ ⦗ I ∩₁ T ⦘ ⨾ co ⨾ ⦗ I ⦘ ⊆ new_co.
 Proof using wf_coD wf_col.
+clear wf_coE.
 unfold new_co.
 unfolder; ins; desf.
 apply co_in_col in H0.
