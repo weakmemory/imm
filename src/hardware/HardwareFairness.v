@@ -4,6 +4,7 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -14,11 +15,8 @@ Require Import Lia.
 Require Import ClassicalChoice.
 Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
-Require Import AuxRel2.
-Require Import AuxDef.
 Require Import Program.Basics.
 Import ListNotations.
-Require Import EnumProperties.
 
 
 Set Implicit Arguments.

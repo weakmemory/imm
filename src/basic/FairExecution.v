@@ -1,8 +1,7 @@
 Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
-Require Import AuxDef.
-Require Import AuxRel2. 
+From hahnExt Require Import HahnExt. 
 Require Import Events.
 Require Import Execution.
 Import ListNotations.

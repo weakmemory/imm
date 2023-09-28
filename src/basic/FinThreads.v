@@ -2,7 +2,7 @@ Require Import Program.Basics.
 From hahn Require Import Hahn.
 From imm Require Import Execution Events.
 Require Import Lia.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 
 Definition fin_threads G := set_finite (threads_set G).
 

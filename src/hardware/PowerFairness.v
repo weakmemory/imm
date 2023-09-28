@@ -4,6 +4,7 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -23,11 +24,8 @@ Require Import Lia.
 Require Import ClassicalChoice.
 Require Import ChoiceFacts.
 Require Import IndefiniteDescription. 
-Require Import AuxRel2.
 Require Import Program.Basics.
-Require Import EnumProperties.
 Require Import HardwareFairness.
-Require Import AuxDef.
 Import ListNotations. 
 
 Set Implicit Arguments.
@@ -166,7 +164,7 @@ Proof using CON.
   assert (Wf G) as WF by apply CON. 
   rewrite clos_trans_domb_begin.
   2: { rewrite no_hbp_to_init; basic_solver. }
-  apply AuxDef.fsupp_wf_implies_fsupp_ct.
+  apply fsupp_wf_implies_fsupp_ct.
   2: { unfold "hbp".
        rewrite Power_ppo.ppo_in_sb, fence_in_sb, unionK, rfe_in_rf; auto.
        rewrite seq_union_r. apply fsupp_union.

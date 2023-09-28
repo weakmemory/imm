@@ -4,7 +4,7 @@ Require Import imm_s.
 Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 
 Set Implicit Arguments.
 

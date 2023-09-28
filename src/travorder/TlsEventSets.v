@@ -4,8 +4,7 @@ Require Import TLSCoherency.
 Require Import IordCoherency.
 Require Import Events.
 Require Import Execution.
-Require Import AuxRel.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import imm_s.
 
 Set Implicit Arguments.

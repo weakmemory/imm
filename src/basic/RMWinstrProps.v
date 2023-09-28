@@ -1,7 +1,7 @@
 Require Import RelationClasses List Lia.
 From PromisingLib Require Import Basic.
 From hahn Require Import Hahn.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import Prog.

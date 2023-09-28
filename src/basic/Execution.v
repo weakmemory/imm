@@ -1,7 +1,7 @@
 Require Import Lia.
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 
 Set Implicit Arguments.

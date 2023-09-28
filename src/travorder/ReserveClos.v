@@ -1,7 +1,6 @@
 Require Import Lia.
 From hahn Require Import Hahn.
-Require Import AuxRel2.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import imm_s.

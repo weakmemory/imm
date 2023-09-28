@@ -1,15 +1,13 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 Require Import Lia.
 
 Require Import Events.
 Require Import Execution.
 Require Import imm_bob.
-Require Import AuxDef.
 Require Import travorder.TraversalOrder.
 Require Import ImmFair.
-Require Import AuxRel2.
-Require Import SetSize.
 
 Import ListNotations.
 Set Implicit Arguments.

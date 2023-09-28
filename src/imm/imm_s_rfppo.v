@@ -1,10 +1,11 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
-Require Import AuxDef Events Execution.
+From hahnExt Require Import HahnExt.
+Require Import Events.
+Require Import Execution.
 Require Import Execution_eco imm_s_hb imm_bob imm_s_ppo imm_s. 
 Require Import FinExecution. 
 Require Import ImmFair.
-Require Import AuxRel2.
 Require Import FairExecution.
 
 Set Implicit Arguments.

@@ -10,8 +10,7 @@ Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_bob.
-Require Import AuxRel2.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 
 
 Set Implicit Arguments.

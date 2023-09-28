@@ -7,7 +7,7 @@ Require Import imm_bob.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import imm_s_ppo.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import TraversalConfig TraversalConfigAlt.
 Require Import imm_s_rfppo.
 

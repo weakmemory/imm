@@ -34,18 +34,21 @@
   bundles."8.16"= {
     coqPackages.coq.override.version = "8.16";
     coqPackages.hahn.override.version = "master";
+    coqPackages.hahnExt.override.version = "master";
     coqPackages.sflib.override.version = "master";
     coqPackages.promising-lib.override.version = "master";
   };
   bundles."8.17"= {
     coqPackages.coq.override.version = "8.17";
     coqPackages.hahn.override.version = "master";
+    coqPackages.hahnExt.override.version = "master";
     coqPackages.sflib.override.version = "master";
     coqPackages.promising-lib.override.version = "master";
   };
   bundles."8.18"= {
     coqPackages.coq.override.version = "8.18";
     coqPackages.hahn.override.version = "master";
+    coqPackages.hahnExt.override.version = "master";
     coqPackages.sflib.override.version = "master";
     coqPackages.promising-lib.override.version = "master";
   };

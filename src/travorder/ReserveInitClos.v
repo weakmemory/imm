@@ -1,7 +1,7 @@
 From hahn Require Import Hahn.
 
 Require Import ReserveClos.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import TlsEventSets.

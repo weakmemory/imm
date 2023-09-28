@@ -4,6 +4,7 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.
@@ -21,10 +22,8 @@ Require Import imm_s_hb_hb.
 Require Import ImmFair.
 Require Import FairExecution.
 Require Import imm_sToARM.
-Require Import EnumProperties.
 Require Import HardwareFairness. 
 Require Import Lia.
-Require Import AuxDef.
 Import ListNotations. 
 
 Set Implicit Arguments.
@@ -159,7 +158,7 @@ Proof using CON.
   forward eapply WF as WF; eauto. desc.
   rewrite clos_trans_domb_begin.
   2: { rewrite no_ob'_to_init; basic_solver. }
-  apply AuxDef.fsupp_wf_implies_fsupp_ct.
+  apply fsupp_wf_implies_fsupp_ct.
   2: { unfold ob'.
        unfold ob', "obs'". rewrite dob_in_sb, aob_in_sb, bob'_in_sb; auto.
        rewrite !unionA, !unionK. rewrite rfe_in_rf.

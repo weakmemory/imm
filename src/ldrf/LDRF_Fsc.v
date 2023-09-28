@@ -22,7 +22,7 @@
 (*****************************************************************************)
 Require Import Classical Peano_dec.
 From hahn Require Import Hahn.
-Require Import IfThen.
+From hahnExt Require Import HahnExt.
 
 Require Import Events.
 Require Import Execution.

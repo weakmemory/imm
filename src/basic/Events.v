@@ -5,7 +5,7 @@
 Require Import List.
 From hahn Require Import Hahn.
 From PromisingLib Require Import Basic Loc.
-Require Import CountabilityHelpers.
+From hahnExt Require Import HahnExt.
 
 Set Implicit Arguments.
 
@@ -706,3 +706,16 @@ Section EventsCountability.
 
 End EventsCountability.   
 
+Section Props.
+Notation "'Tid_' t" := (fun x => tid x = t) (at level 1).
+Notation "'NTid_' t" := (fun x => tid x <> t) (at level 1).
+
+Lemma ntid_tid_set_inter s thread :
+  s ⊆₁ s ∩₁ NTid_ thread ∪₁ s ∩₁ Tid_ thread.
+Proof using.
+  ins.
+  rewrite <- set_inter_union_r.
+  unfolder. ins. splits; auto.
+  destruct (classic (tid x = thread)); eauto.
+Qed.
+End Props.

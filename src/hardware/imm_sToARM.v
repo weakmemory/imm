@@ -3,7 +3,7 @@
 (******************************************************************************)
 
 From hahn Require Import Hahn.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 Require Import Events.
 Require Import Execution.
 Require Import Execution_eco.

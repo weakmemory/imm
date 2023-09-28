@@ -1,7 +1,7 @@
 From hahn Require Import Hahn.
 Require Import Events.
 Require Import Execution.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 
 Set Implicit Arguments.
 

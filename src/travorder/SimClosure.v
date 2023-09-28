@@ -1,5 +1,6 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 Require Import Lia.
 
 Require Import Events.
@@ -9,10 +10,7 @@ Require Import imm_bob.
 Require Import imm_s.
 Require Import imm_s_ppo.
 Require Import imm_s_rfppo.
-Require Import AuxDef.
-Require Import SetSize.
 Require Import FairExecution.
-Require Import AuxRel2.
 Require Import TraversalOrder.
 Require Import TLSCoherency.
 Require Import IordCoherency.

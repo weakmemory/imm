@@ -13,8 +13,7 @@ Require Import imm_bob.
 Require Import imm_s_ppo.
 Require Import imm_s_hb_hb.
 Require Import imm.
-Require Import AuxDef.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 
 Set Implicit Arguments.
 

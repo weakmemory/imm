@@ -1,6 +1,7 @@
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 
-From imm Require Import AuxDef Events Execution.
+From imm Require Import Events Execution.
 From imm Require Import Execution_eco imm_s_hb imm_s imm_bob.
 From imm Require Import imm_s_ppo CombRelations.
 From imm Require Import imm_s_rfppo.

@@ -15,7 +15,7 @@ Require Import imm_bob imm_s_ppo.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import CombRelations.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 
 Require Import TraversalOrder.
 Require Import TLSCoherency.

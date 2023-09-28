@@ -1,6 +1,7 @@
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 
-Require Import AuxDef Events Execution.
+Require Import Events Execution.
 Require Import Execution_eco.
 Require Import imm_s_hb.
 Require Import imm_s.
@@ -14,7 +15,6 @@ Require Import TraversalOrder.
 Require Import TLSCoherency.
 Require Import IordCoherency.
 Require Import TlsEventSets.
-Require Import AuxRel.
 Require Import AuxEE.
 
 Set Implicit Arguments.

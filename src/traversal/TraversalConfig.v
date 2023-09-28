@@ -1,7 +1,8 @@
 Require Import Classical Peano_dec Setoid PeanoNat.
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 
-Require Import AuxDef Events Execution.
+Require Import Events Execution.
 Require Import Execution_eco imm_s_hb imm_s imm_bob.
 Require Import imm_s_ppo CombRelations.
 Require Import imm_s_rfppo.

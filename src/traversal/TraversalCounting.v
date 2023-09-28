@@ -9,7 +9,7 @@ Require Import TraversalConfig.
 Require Import Traversal.
 Require Import SimTraversal.
 Require Import SimTraversalProperties.
-Require Import AuxDef.
+From hahnExt Require Import HahnExt.
 Require Import imm_s_rfppo.
 Require Import FinExecution.
 

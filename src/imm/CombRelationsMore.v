@@ -5,7 +5,7 @@ Require Import Execution.
 Require Import imm_s_hb.
 Require Import imm_s.
 Require Import CombRelations. 
-Require Import IfThen. 
+From hahnExt Require Import HahnExt. 
 
 Set Implicit Arguments.
 

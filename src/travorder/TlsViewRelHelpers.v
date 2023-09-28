@@ -1,4 +1,5 @@
 From hahn Require Import Hahn.
+From hahnExt Require Import HahnExt.
 From PromisingLib Require Import Basic DenseOrder Loc.
 
 From imm Require Import Events.
@@ -350,7 +351,7 @@ basic_solver.
 
 arewrite (⦗eq w⦘ ⊆ ⦗dom_cond (fwbob G) (covered T)⦘).
 { apply eqv_rel_mori. apply set_subset_eq.
-  eapply AuxDef.dom_rel_to_cond; eauto. apply fwbob_issuable_in_C; auto. }
+  eapply dom_rel_to_cond; eauto. apply fwbob_issuable_in_C; auto. }
 rewrite dom_cond_elim.
 basic_solver 12.
 Qed.

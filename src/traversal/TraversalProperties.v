@@ -9,8 +9,7 @@ Require Import imm_s.
 Require Import imm_bob imm_s_ppo.
 Require Import CombRelations.
 Require Import imm_s_rfppo.
-Require Import AuxDef.
-Require Import AuxRel2.
+From hahnExt Require Import HahnExt.
 Require Import TraversalConfig.
 Require Import Traversal.
 
