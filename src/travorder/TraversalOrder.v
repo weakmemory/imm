@@ -479,7 +479,7 @@ Section TravLabel.
 
   Lemma RFSBFINAR WF WFSC CONS : event ↑ (RF^? ⨾ SB^? ⨾ FWBOB) ⊆ ar⁺.
   Proof using.
-    rewrite !collect_rel_seq, !collect_rel_cr.
+    rewrite !collect_rel_seqi, !collect_rel_cr.
     rewrite ERF, eSB_in_sb_sc_ct, EFWBOB. rewrite cr_of_cr.
     rewrite cr_of_ct. apply rf_sb_sc_rt_sb_fwbob_in_ar; auto.
     apply CONS.
@@ -559,7 +559,7 @@ Section TravLabel.
       clear; basic_solver 1. }
 
     eapply collect_rel_acyclic with (f:=event).
-    rewrite collect_rel_seq, collect_rel_ct.
+    rewrite collect_rel_seqi, collect_rel_ct.
     rewrite RFSBFINAR; auto. rewrite ct_of_ct.
     rewrite EAR.
     arewrite (ar ⊆ ar ∪ rf ⨾ ppo ∩ same_loc) at 1.
