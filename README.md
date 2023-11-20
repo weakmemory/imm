@@ -27,17 +27,39 @@
 ## Building the Project
 
 ### Requirements
-* [Coq 8.17.0](https://coq.inria.fr)
-* [Hahn library](https://github.com/vafeiadis/hahn) (`coq-hahn`)
-* [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib) (`coq-promising-lib`)
+* [Coq](https://coq.inria.fr)
+* [Our fork](https://github.com/weakmemory/hahn) of [the Hahn library](https://github.com/vafeiadis/hahn)
+* [HahnExt library](https://github.com/weakmemory/hahnExt)
+* [The Coq supplementary library w/ basic data types](https://github.com/snu-sf/promising-lib)
+To check precise requirements with version numbers, please, check [the Nix configuration file](.nix/config.nix).
 
-### Building Manually
+### Building via Nix (preferred and mainly supported way)
+First, you need to install Nix (see https://nixos.org/download.html) and set-up Nix as recommended by [Coq Nix Toolbox](https://github.com/coq-community/coq-nix-toolbox).
+That is, run
+```
+nix-env -iA nixpkgs.cachix && cachix use coq && cachix use coq-community && cachix use math-comp
+```
+in order to use binary caches from recognized organizations.
+Additionally, we recommend add our binary cache with IMM and related packages as well:
+```
+cachix use weakmemory
+```
+Then, you may just run `nix-build` in the root folder of the project to build it.
+Alternatively, you may run `nix-shell` and then, in the Nix-configured environment, run `make -j`.
 
-To build the project, one needs to install some libraries (`promising-lib` and `hahn`), which the project
-depends on. This might be done by running `./configure`.
+#### Working on the project in VS Code
+You may use the [Nix Environment Selector](https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector) plugin in VS Code for it to use proper configuration.
+Alternatively, 
+you may run `nix-shell` in the root of the project and then `code .`--VSCoq or CoqLSP should be able to pick up the environment.
+ 
+### Building Manually (supported up to the 1.5 version of IMM)
+
+To build the project, one needs to install libraries (`promising-lib`, `hahn`, `hahnExt`), which the project
+depends on.
+This might be done by running `./configure`.
 The command installs `Coq` as well. After that, one needs to run `make` (or `make -j4` for a faster build).
 
-### Installation via OPAM
+### Installation via OPAM (supported up to the 1.5 version of IMM)
 The project may be built and installed via OPAM:
 ```bash
 opam repo add coq-released https://coq.inria.fr/opam/released
