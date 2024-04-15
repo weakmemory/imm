@@ -159,11 +159,11 @@ Lemma add_preserves_acts_clos thread ll s s' hl s1 s2 s3 s4
              (ThreadEvent thread n).
 Proof using.
   unfold add. simpls. ins.
-  apply NPeano.Nat.lt_succ_r in H.
-  apply Const.le_lteq in H.
-  destruct H as [LT|LT]; [right|left].
+  assert (n <= eindex s) as NS by lia.
+  apply Const.le_lteq in NS.
+  destruct NS as [LT|LT]; [right|left].
   { apply (acts_clos WF). lia. }
-  rewrite Const.add_comm in LT. inv LT.
+  desf.
 Qed.
 
 Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
@@ -178,9 +178,9 @@ Lemma add_rmw_preserves_acts_clos thread ll s s' rl wl s1 s2 s3 s4
              (ThreadEvent thread n).
 Proof using.
   unfold add_rmw. simpls. ins.
-  apply NPeano.Nat.lt_succ_r in H.
-  apply Const.le_lteq in H.
-  destruct H as [LT|LT].
+  assert (n <= eindex s + 1) as NS by lia.
+  apply Const.le_lteq in NS.
+  destruct NS as [LT|LT].
   { apply Const.le_lteq in LT.
     destruct LT as [LT|LT].
     { right. apply (acts_clos WF). lia. }

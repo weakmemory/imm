@@ -39,12 +39,12 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target coq
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"coq\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"coq\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
   hahn:
     needs:
@@ -87,16 +87,16 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target hahn
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"hahn\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"hahn\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "hahn"
   hahnExt:
     needs:
@@ -140,20 +140,20 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target hahnExt
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"hahnExt\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"hahnExt\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: hahn'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "hahn"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "hahnExt"
   imm:
     needs:
@@ -199,28 +199,28 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target imm
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"imm\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"imm\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: hahn'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "hahn"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: hahnExt'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "hahnExt"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: promising-lib'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "promising-lib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "imm"
   promising-lib:
     needs:
@@ -264,20 +264,20 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target promising-lib
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"promising-lib\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"promising-lib\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: sflib'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "sflib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "promising-lib"
   sflib:
     needs:
@@ -320,16 +320,16 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target sflib
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"sflib\" \\\n   --dry-run 2>&1 > /dev/null)\n\
+        \ bundle \"8.19\" --argstr job \"sflib\" \\\n   --dry-run 2>&1 > /dev/null)\n\
         echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
         s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "sflib"
   vscoq-language-server:
     needs:
@@ -372,25 +372,25 @@ jobs:
     - id: stepCheck
       name: Checking presence of CI target vscoq-language-server
       run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr\
-        \ bundle \"8.18\" --argstr job \"vscoq-language-server\" \\\n   --dry-run\
+        \ bundle \"8.19\" --argstr job \"vscoq-language-server\" \\\n   --dry-run\
         \ 2>&1 > /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep\
         \ \"built:\" | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "coq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.18" --argstr
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "8.19" --argstr
         job "vscoq-language-server"
-name: Nix CI for bundle 8.18
+name: Nix CI for bundle 8.19
 'on':
   pull_request:
     paths:
-    - .github/workflows/nix-action-8.18.yml
+    - .github/workflows/nix-action-8.19.yml
   pull_request_target:
     paths-ignore:
-    - .github/workflows/nix-action-8.18.yml
+    - .github/workflows/nix-action-8.19.yml
     types:
     - opened
     - synchronize

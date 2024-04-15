@@ -536,7 +536,7 @@ Lemma sb_total t:
 Proof using.
   red. ins. unfolder in IWa. unfolder in IWb. desc. subst. 
   destruct a, b; try by vauto. simpl in *. subst.
-  pose proof (NPeano.Nat.lt_trichotomy index index0) as LT. 
+  assert (index < index0 \/ index = index0 \/ index0 < index) as HH by lia.
   des; [left | congruence | right]. 
   all: red; apply seq_eqv_lr; splits; vauto. 
 Qed. 
