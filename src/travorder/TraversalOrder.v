@@ -193,7 +193,7 @@ Definition IPROP (G: execution) :=
 
 Definition PROP (G: execution) (sc: relation actid): relation trav_label :=
   ⦗action ↓₁ (eq ta_cover)⦘ ⨾
-  ((event ↓ (furr G sc ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
+  ((event ↓ ((fr G)^? ⨾ furr G sc ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
        ∩ (fun ta1 ta2 =>
             tid (event ta1) = ta_propagate_tid (action ta2))) ⨾
   ⦗action ↓₁ is_ta_propagate_to_G G⦘.
@@ -670,6 +670,12 @@ Section TravLabel.
     { rewrite rtE, seq_union_r. apply fsupp_union; auto using fsupp_seq, fsupp_eqv.
       eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. }
 
+    assert (FSUPSC : fsupp sc).
+    { eapply imm_s_fair_fsupp_sc; eauto. apply CONS. }
+    
+    assert (SCPLOC : sc_per_loc G).
+    { apply coherence_sc_per_loc. apply CONS. }
+
     unfold "PROP".
     rewrite inclusion_inter_l1.
     arewrite_id ⦗W⦘.
@@ -681,8 +687,16 @@ Section TravLabel.
     apply fsupp_seq_l_map_rel; auto with lbase.
     rewrite <- !seqA. apply fsupp_seq.
     2: { apply fsupp_cr. apply MF. }
-    eapply fsupp_furr; eauto.
-    eapply imm_s_fair_fsupp_sc; eauto. apply CONS. 
+    rewrite no_fr_to_init; auto.
+    rewrite crE, !seq_union_r, !seq_union_l, !seq_id_r.
+    apply fsupp_union.
+    { eapply fsupp_furr; eauto. }
+    rewrite <- !seqA, seqA.
+    apply fsupp_seq.
+    2: { eapply fsupp_furr; eauto. }
+    eapply fsupp_mori with (x:=fr).
+    { red. clear. basic_solver. }
+    apply MF.
   Qed.
 
   Local Hint Resolve SB_fsupp RF_fsupp FWBOB_fsupp AR_fsupp IPROP_fsupp PROP_fsupp : lbase.
@@ -740,11 +754,13 @@ Section TravLabel.
     rewrite !seq_id_l, !seq_id_r.
     rewrite map_rel_eqv, map_rel_seq.
 
+    assert (sc_per_loc G) as SC_PER_LOC.
+    { apply coherence_sc_per_loc, CONS. }
     apply domb_map_rel.
+    rewrite no_co_to_init; auto.
+    rewrite no_fr_to_init; auto.
     rewrite furr_to_ninit; auto; [| apply CONS].
-    rewrite crE. rewrite no_co_to_init; auto.
-    { basic_solver. }
-    apply coherence_sc_per_loc, CONS. 
+    basic_solver 10.
   Qed. 
 
   Lemma seq_eqv_l_trans {A: Type} (r: relation A) (s: A -> Prop)
@@ -1025,9 +1041,10 @@ Proof using.
   apply union_domb. 
   { rewrite no_co_to_init; auto. basic_solver 10. }
   rewrite crE, no_co_to_init; auto.
+  rewrite crE, no_fr_to_init; auto.
   unfold is_ta_propagate_to_G. unfolder.
   ins; desf; subst; destruct x, y, t0; ins; subst; splits; try by vauto.
-  destruct a0; vauto. 
+  destruct a0; vauto.
 Qed. 
 
 Lemma PROP_E_end (WF : Wf G) (WFsc : wf_sc G sc) :
@@ -1035,13 +1052,15 @@ Lemma PROP_E_end (WF : Wf G) (WFsc : wf_sc G sc) :
 Proof using.
   split; [| basic_solver]. apply doma_helper.
   unfold PROP. rewrite furr_E_ENI_cr, !crE; auto. 
-  relsf. rewrite !map_rel_union.
+  rewrite wf_coE; eauto.
+  rewrite wf_frE; eauto.
+  rewrite !seq_union_l, !seq_union_r.
+  rewrite !map_rel_union.
   rewrite !inter_union_l. repeat case_union _ _.
   repeat apply union_doma.
-  2, 4: rewrite wf_coE; eauto; basic_solver.
-  2: { basic_solver 10. }
-  unfold is_ta_propagate_to_G. unfolder. ins. desf; subst.
-  destruct x, y; ins; subst; ins.
+  { unfold is_ta_propagate_to_G; unfolder; ins; desf; subst;
+    destruct x, y; ins; subst; ins. }
+  all: basic_solver 10.
 Qed.  
 
 Lemma iord_simpl_E_E (WF : Wf G) (WFsc : wf_sc G sc) :
@@ -1052,7 +1071,7 @@ Proof using.
   repeat rewrite inclusion_seq_eqv_l with (dom := action ↓₁ eq _). 
   repeat rewrite inclusion_seq_eqv_r with (dom := action ↓₁ eq _). 
   rewrite inclusion_inter_l1 with (r := sb).
-  rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_E; auto.
+  rewrite ?sb_E_ENI, ?rf_E_ENI, ?co_E_E, ?fr_E_E; auto.
   rewrite furr_E_E_cr; auto. 
   rewrite ar_E_ENI; auto.
   rewrite sc_E_ENI with (G:=G) (sc:=sc); auto.
