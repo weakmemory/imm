@@ -191,22 +191,40 @@ Definition IPROP (G: execution) :=
     ⨾ (event ↓ (eq ⨾ ⦗is_w (lab G)⦘))
     ⨾ ⦗action ↓₁ is_ta_propagate_to_G G⦘.
 
-Definition PROP (G: execution) (sc: relation actid): relation trav_label :=
+(* A write must be propagated to a thread after covering the events of that
+   thread from which it is reachable by r. *)
+Definition PROP_gen (r: relation actid) (G: execution): relation trav_label :=
   ⦗action ↓₁ (eq ta_cover)⦘ ⨾
-  ((event ↓ (furr G sc ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
+  ((event ↓ (r ⨾ ⦗is_w (lab G)⦘))
        ∩ (fun ta1 ta2 =>
             tid (event ta1) = ta_propagate_tid (action ta2))) ⨾
   ⦗action ↓₁ is_ta_propagate_to_G G⦘.
+
+Global Add Parametric Morphism : PROP_gen with signature
+       inclusion ==> eq ==> inclusion as PROP_gen_mori.
+Proof using.
+  intros r r' IN G. unfold PROP_gen. now rewrite IN.
+Qed.
+
+Global Add Parametric Morphism : PROP_gen with signature
+       same_relation ==> eq ==> same_relation as PROP_gen_more.
+Proof using.
+  intros r r' EQ G. unfold PROP_gen. now rewrite EQ.
+Qed.
+
+(* Stored unfolded, so `unfold PROP` still shows the cover/propagate frame,
+   as it did before PROP_gen existed. PROP_alt gives the PROP_gen form. *)
+Definition PROP (G: execution) (sc: relation actid): relation trav_label :=
+  Eval cbv beta delta [PROP_gen] in PROP_gen (furr G sc ⨾ (co G)^?) G.
+
+Lemma PROP_alt G sc : PROP G sc = PROP_gen (furr G sc ⨾ (co G)^?) G.
+Proof using. reflexivity. Qed.
 
 (* PROP with an extra fr^? edge at the start: a read has to be covered before
    a write co-after the one it reads from is propagated to its thread.
    Not used by iord. *)
 Definition FRPROP (G: execution) (sc: relation actid): relation trav_label :=
-  ⦗action ↓₁ (eq ta_cover)⦘ ⨾
-  ((event ↓ ((fr G)^? ⨾ furr G sc ⨾ (co G)^? ⨾ ⦗is_w (lab G)⦘))
-       ∩ (fun ta1 ta2 =>
-            tid (event ta1) = ta_propagate_tid (action ta2))) ⨾
-  ⦗action ↓₁ is_ta_propagate_to_G G⦘.
+  PROP_gen ((fr G)^? ⨾ furr G sc ⨾ (co G)^?) G.
 
 (* Essentially, it is an alternative representation of a part of tc_coherent *)
 Definition iord (G: execution) (sc: relation actid): relation trav_label :=
@@ -217,7 +235,7 @@ Definition iord_simpl G sc : relation trav_label :=
   SB G sc ∪ RF G ∪ FWBOB G ∪ AR G sc ∪ IPROP G ∪ PROP G sc.
 
 Global Ltac iord_parts_unfolder := 
-  unfold iord, SB, RF, FWBOB, AR, PROP, IPROP. 
+  unfold iord, SB, RF, FWBOB, AR, PROP, PROP_gen, IPROP. 
 
 Global Ltac iord_simpl_dom_unfolder :=
   iord_parts_unfolder;
@@ -242,7 +260,7 @@ Global Ltac iord_dom_unfolder :=
 Global Ltac iord_dom_solver := by iord_dom_unfolder. 
   
 Ltac clear_iord_union :=
-  unfold SB, RF, FWBOB, AR, IPROP, PROP, is_ta_propagate_to_G;
+  unfold SB, RF, FWBOB, AR, IPROP, PROP, PROP_gen, is_ta_propagate_to_G;
   repeat case_union _ _; rewrite !seqA;
   repeat apply union_mori;
   try (transitivity (fun (_ _: trav_label) => False); [basic_solver| apply inclusion_refl2]);
@@ -322,11 +340,9 @@ Section TravLabel.
 
   Lemma PROP_in_FRPROP : PROP ⊆ FRPROP.
   Proof using.
-    unfold "PROP", "FRPROP".
-    repeat (apply seq_mori; try reflexivity).
-    apply inter_rel_mori; try reflexivity.
-    apply map_rel_mori; auto.
-    rewrite <- inclusion_id_cr with (r := fr). now rewrite seq_id_l.
+    unfold "PROP", "FRPROP". apply PROP_gen_mori; auto.
+    rewrite crE with (r := fr), seq_union_l, seq_id_l.
+    apply inclusion_union_r1.
   Qed.
 
   Lemma iord_simpl_irreflexive WF COMP WFSC CONS : irreflexive iord_simpl.
@@ -690,7 +706,7 @@ Section TravLabel.
     { rewrite rtE, seq_union_r. apply fsupp_union; auto using fsupp_seq, fsupp_eqv.
       eapply fsupp_ar_implies_fsupp_ar_rf_ppo_loc; eauto. }
 
-    unfold "PROP".
+    unfold "PROP", PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
     rewrite inclusion_inter_l1.
     arewrite_id ⦗W⦘.
     arewrite_id ⦗action ↓₁ is_ta_propagate_to_G G⦘.
@@ -723,7 +739,7 @@ Section TravLabel.
     assert (SCPLOC : sc_per_loc G).
     { apply coherence_sc_per_loc. apply CONS. }
 
-    unfold "FRPROP".
+    unfold "FRPROP", PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
     rewrite inclusion_inter_l1.
     arewrite_id ⦗W⦘.
     arewrite_id ⦗action ↓₁ is_ta_propagate_to_G G⦘.
@@ -793,7 +809,7 @@ Section TravLabel.
     split; [| basic_solver].
     rewrite <- !seqA.
     apply domb_helper.
-    unfold "PROP".
+    unfold "PROP", PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
     rewrite inclusion_inter_l1.
     arewrite_id ⦗action ↓₁ eq ta_cover⦘.
     arewrite_id ⦗action ↓₁ is_ta_propagate_to_G G⦘.
@@ -1080,7 +1096,7 @@ Lemma PROP_to_ninit (WF : Wf G) (WFsc : wf_sc G sc) (SPL : sc_per_loc G) :
   PROP ≡ PROP ⨾ ⦗event ↓₁ set_compl is_init⦘. 
 Proof using.
   split; [| basic_solver]. apply domb_helper. 
-  unfold PROP.
+  unfold PROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
   rewrite furr_to_ninit; auto. relsf. rewrite map_rel_union.
   rewrite inter_union_l. repeat case_union _ _.
   apply union_domb. 
@@ -1095,7 +1111,7 @@ Lemma PROP_E_end (WF : Wf G) (WFsc : wf_sc G sc) :
   PROP ⨾ ⦗event ↓₁ acts_set G⦘ ≡ ⦗event ↓₁ acts_set G⦘ ⨾ PROP ⨾ ⦗event ↓₁ acts_set G⦘.
 Proof using.
   split; [| basic_solver]. apply doma_helper.
-  unfold PROP. rewrite furr_E_ENI_cr, !crE; auto. 
+  unfold PROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘). rewrite furr_E_ENI_cr, !crE; auto. 
   relsf. rewrite !map_rel_union.
   rewrite !inter_union_l. repeat case_union _ _.
   repeat apply union_doma.
@@ -1109,7 +1125,7 @@ Lemma FRPROP_to_ninit (WF : Wf G) (WFsc : wf_sc G sc) (SPL : sc_per_loc G) :
   FRPROP ≡ FRPROP ⨾ ⦗event ↓₁ set_compl is_init⦘. 
 Proof using.
   split; [| basic_solver]. apply domb_helper. 
-  unfold FRPROP.
+  unfold FRPROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
   rewrite furr_to_ninit; auto. relsf. rewrite map_rel_union.
   rewrite inter_union_l. repeat case_union _ _.
   apply union_domb. 
@@ -1125,7 +1141,7 @@ Lemma FRPROP_E_end (WF : Wf G) (WFsc : wf_sc G sc) :
   FRPROP ⨾ ⦗event ↓₁ acts_set G⦘ ≡ ⦗event ↓₁ acts_set G⦘ ⨾ FRPROP ⨾ ⦗event ↓₁ acts_set G⦘.
 Proof using.
   split; [| basic_solver]. apply doma_helper.
-  unfold FRPROP. rewrite furr_E_ENI_cr, !crE; auto. 
+  unfold FRPROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘). rewrite furr_E_ENI_cr, !crE; auto. 
   rewrite wf_coE; eauto.
   rewrite wf_frE; eauto.
   rewrite !seq_union_l, !seq_union_r.
@@ -1140,7 +1156,7 @@ Qed.
 Lemma iord_simpl_E_E (WF : Wf G) (WFsc : wf_sc G sc) :
   iord_simpl ⊆ event ↓ (E × E)^?.
 Proof using.
-  unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
+  unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP, PROP_gen.
   rewrite ppo_in_sb, fwbob_in_sb; auto.
   repeat rewrite inclusion_seq_eqv_l with (dom := action ↓₁ eq _). 
   repeat rewrite inclusion_seq_eqv_r with (dom := action ↓₁ eq _). 
@@ -1191,14 +1207,14 @@ Global Add Parametric Morphism : PROP with signature
        eq ==> same_relation ==> same_relation as PROP_more.
 Proof using.
   intros G r r' EQ.
-  unfold PROP. now rewrite EQ.
+  unfold PROP, PROP_gen. now rewrite EQ.
 Qed.
 
 Global Add Parametric Morphism : FRPROP with signature
        eq ==> same_relation ==> same_relation as FRPROP_more.
 Proof using.
   intros G r r' EQ.
-  unfold FRPROP. now rewrite EQ.
+  unfold FRPROP, PROP_gen. now rewrite EQ.
 Qed.
 
 Global Add Parametric Morphism : iord with signature

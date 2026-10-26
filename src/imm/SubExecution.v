@@ -482,7 +482,7 @@ Qed.
  
 Lemma sub_PROP : PROP G' sc' ⊆ PROP G sc.
 Proof using SUB.
-  unfold PROP.
+  unfold PROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
   rewrite sub_is_ta_propagate_to_G.
   repeat (apply seq_mori; try easy).
   apply inter_rel_mori; try easy.
@@ -492,7 +492,7 @@ Qed.
 
 Lemma sub_FRPROP : FRPROP G' sc' ⊆ FRPROP G sc.
 Proof using SUB.
-  unfold FRPROP.
+  unfold FRPROP, PROP_gen. rewrite ?seqA with (r3 := ⦗is_w _⦘).
   rewrite sub_is_ta_propagate_to_G.
   repeat (apply seq_mori; try easy).
   apply inter_rel_mori; try easy.

@@ -122,7 +122,7 @@ Section IordCoherency.
   Lemma iord_simpl_E_ENI:
     iord_simpl G sc ⊆ event ↓ E_ENI^?.
   Proof using WF WFSC SCPL.
-    unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
+    unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP, PROP_gen.
     rewrite ppo_in_sb, fwbob_in_sb; auto.
     rewrite inclusion_inter_l1 with (r := sb).
     rewrite inclusion_inter_l1. 
@@ -171,7 +171,7 @@ Section IordCoherency.
       rewrite set_pair_alt, set_map_inter.
       rewrite <- set_interA. apply set_subset_inter; [| reflexivity].  
       rewrite dom_eqv1, set_interC. apply set_subset_inter; [| reflexivity].
-      unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP.
+      unfold iord_simpl. unfold SB, RF, FWBOB, AR, IPROP, PROP, PROP_gen.
       basic_solver 10. }
     
     rewrite set_interC, <- dom_eqv1.
