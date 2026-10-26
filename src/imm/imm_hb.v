@@ -436,7 +436,8 @@ Proof using.
   edestruct sw_in_eco_sb as [x' [AA BB]]; eauto.
   { unfolder; splits; eauto. desf. }
   apply seq_eqv_r in BB. destruct BB as [SB FF].
-  exists x'; splits; eauto using (eco_trans WF); subst.
+  exists x'; splits; eauto; subst.
+  { eapply (eco_trans WF); eauto. }
   intro A; eapply (wf_rmwD WF) in A; unfolder in *; type_solver.
 Qed.
 

@@ -794,6 +794,10 @@ Section CoverClosure.
   Lemma sim_clos_steps_cover_read (READ: R e):
     sim_clos_step＊ stc stc'.
   Proof using WF TCOH' TCOH NEW ICOH' ICOH CONS COVER. 
+    (* Rocq 9.3 checks that a section variable used by a section lemma is the
+       original one, so record these lemmas before e is renamed or substituted. *)
+    pose proof ICOHs as ICOHs_e. pose proof ICOHs' as ICOHs'_e.
+    pose proof TCOHs as TCOHs_e. pose proof TCOHs' as TCOHs'_e.
     generalize (set_equiv_refl2 stc),  (set_equiv_refl2 stc').
     unfold stc at 2, stc' at 2. unfold sim_clos, tc'.
     
@@ -869,7 +873,7 @@ Section CoverClosure.
 
     remember (stc ∪₁ eq lbl) as stc_r.
     assert (iord_coherent G sc stc_r) as ICOHsr.
-    { rename r into e. generalize ICOHs, ICOHs', TCOHs, TCOHs'. ins. 
+    { rename r into e. generalize ICOHs_e, ICOHs'_e, TCOHs_e, TCOHs'_e. ins. 
       rewrite STC'_ALT in *. subst stc_r. eapply iord_coh_intermediate; eauto.
       rewrite set_interC, <- dom_eqv1, id_union.
       unfold iord_simpl. repeat case_union _ _. repeat rewrite dom_union.
@@ -886,12 +890,12 @@ Section CoverClosure.
       { apply rmw_in_sb; auto. }
       apply rf_in_eco; auto. }
     assert (tls_coherent G stc_r) as TCOHsr.
-    { subst stc_r. apply tls_coherent_ext; auto using TCOHs.
+    { subst stc_r. apply tls_coherent_ext; auto using TCOHs_e.
       red. subst lbl. left. split; auto. }
     
     remember (stc_r ∪₁ eq (mkTL ta_issue w)) as stc_rw1.
     assert (iord_coherent G sc stc_rw1) as ICOHsrw1.
-    { rename r into e. generalize ICOHs, ICOHs', TCOHs, TCOHs'. ins.
+    { rename r into e. generalize ICOHs_e, ICOHs'_e, TCOHs_e, TCOHs'_e. ins.
       rewrite <- set_unionA in STC'_ALT. rewrite STC'_ALT in *. 
       subst stc_rw1. eapply iord_coh_intermediate; eauto.
       rewrite set_interC, <- dom_eqv1.
@@ -902,7 +906,7 @@ Section CoverClosure.
       apply fwbob_in_sb in d0. edestruct sb_irr; eauto. }
 
     assert (iiord_step (ta_cover, w) stc_rw1 stc') as ISTEP'.
-    { rename r into e. do 2 red. splits; auto using ICOHs'.
+    { rename r into e. do 2 red. splits; auto using ICOHs'_e.
       apply seq_eqv_l. split. 
       2: { subst stc_rw1. rewrite STC'_ALT. basic_solver. }
       eapply set_equiv_compl; [rewrite Heqstc_rw1, Heqstc_r, STC; reflexivity| ].
@@ -934,7 +938,7 @@ Section CoverClosure.
       exists [mkTL ta_cover r; mkTL ta_issue w; mkTL ta_cover w]. simpl.
       split; auto.
       exists stc_r. split.
-      { do 2 red. splits; auto using ICOHs. apply seq_eqv_l. split; [|basic_solver].
+      { do 2 red. splits; auto using ICOHs_e. apply seq_eqv_l. split; [|basic_solver].
         eapply set_equiv_compl; [rewrite STC; apply set_unionA| ].
         apply set_compl_union. split; try by vauto.
         rewrite <- COVER. by apply set_disjoint_eq_r. }
@@ -962,9 +966,9 @@ Section CoverClosure.
     { assert (stc_rw1 ≡₁ stc_w1 ∪₁ eq lbl) as STCrw1.
       { subst stc_w1 stc_rw1 stc_r. basic_solver. }
       rewrite STCrw1 in *. subst stc_w1.
-      eapply iord_coh_intermediate; eauto using ICOHs, TCOHs.
+      eapply iord_coh_intermediate; eauto using ICOHs_e, TCOHs_e.
       { apply tls_coherent_ext; [| by vauto]. 
-        apply tls_coherent_ext; [by apply TCOHs | ]. 
+        apply tls_coherent_ext; [by apply TCOHs_e | ]. 
         red. right. split; [by vauto| ]. split; vauto. }
         
       rewrite set_interC, <- dom_eqv1. unfold iord_simpl.
@@ -993,7 +997,7 @@ Section CoverClosure.
       
     apply rt_step. do 2 red. splits; auto.
     2: { unfold stc'. apply sim_clos_sim_coherent; auto. }
-    exists [mkTL ta_issue w]. simpl. do 2 red. splits; auto using ICOHs.
+    exists [mkTL ta_issue w]. simpl. do 2 red. splits; auto using ICOHs_e.
     apply seq_eqv_l. split; subst; basic_solver. 
 Qed. 
 
@@ -1015,6 +1019,10 @@ Section IssueClosure.
   Lemma sim_clos_steps_issue:
     sim_clos_step＊ stc stc'.
   Proof using WF TCOH' TCOH ICOH' ICOH CONS ISSUE NEW.
+    (* Rocq 9.3 checks that a section variable used by a section lemma is the
+       original one, so record these lemmas before e is renamed or substituted. *)
+    pose proof ICOHs as ICOHs_e. pose proof ICOHs' as ICOHs'_e.
+    pose proof TCOHs as TCOHs_e. pose proof TCOHs' as TCOHs'_e.
     rename e into w. 
     assert (W w) as Ww.
     { replace w with (event lbl); auto. eapply (@tlsc_I_in_W _ tc'); eauto. 
@@ -1082,8 +1090,8 @@ Section IssueClosure.
     assert (stc' ≡₁ stc ∪₁ eq (mkTL ta_issue w) ∪₁ eq (mkTL ta_cover w)) as STC'_ALT.
     { rewrite STC, STC'. basic_solver 10. } 
 
-    forward eapply iord_coh_intermediate with (tc := stc) as ICOHs_; eauto using TCOHs, ICOHs. 
-    1, 2: rewrite <- STC'_ALT; rename w into e; auto using TCOHs', ICOHs'.
+    forward eapply iord_coh_intermediate with (tc := stc) as ICOHs_; eauto using TCOHs_e, ICOHs_e. 
+    1, 2: rewrite <- STC'_ALT; rename w into e; auto using TCOHs'_e, ICOHs'_e.
     { rewrite set_interC, <- dom_eqv1. unfold iord_simpl.
       repeat case_union _ _. rewrite !dom_union.
       repeat (apply set_subset_union_l; split); try by iord_dom_solver.
