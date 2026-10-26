@@ -487,6 +487,16 @@ Proof using SUB.
   repeat (apply seq_mori; try easy).
   apply inter_rel_mori; try easy.
   apply map_rel_mori; auto.
+  by rewrite sub_furr_in, sub_co_in, sub_W.   
+Qed.
+
+Lemma sub_FRPROP : FRPROP G' sc' ⊆ FRPROP G sc.
+Proof using SUB.
+  unfold FRPROP.
+  rewrite sub_is_ta_propagate_to_G.
+  repeat (apply seq_mori; try easy).
+  apply inter_rel_mori; try easy.
+  apply map_rel_mori; auto.
   by rewrite sub_furr_in, sub_co_in, sub_fr_in, sub_W.   
 Qed.
 
